@@ -1,9 +1,8 @@
 (ns vgm.core
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.string :as str]
-            [malli.core :as m])
-  (:import (java.text Normalizer Normalizer$Form)))
+            [vgm.core-shared :as shared]
+            [malli.core :as m]))
 
 
 ;; ----- スキーマ ------------------------------------------------------------
@@ -35,12 +34,6 @@
 ;; --- 同義語辞書の読み込み＆正規化 ----------------------------------------
 
 
-(defn- nfkc [^CharSequence s]
-(Normalizer/normalize (str s) Normalizer$Form/NFKC))
-
-
-(defn base-normalize [s]
-(-> s (or "") nfkc str/trim str/lower-case))
 
 
 (defn load-aliases []
@@ -49,15 +42,15 @@
 (edn/read (java.io.PushbackReader. r)))))
 
 
-(defn- invert-aliases
-"{:game {canon #{a1 a2}} ...} → {normalized-alias canon, ...}"
-[aliases]
-(into {}
-(for [[_cat m] aliases
-[canon vs] m
-:let [canon* (base-normalize canon)]
-v (conj vs canon)]
-[(base-normalize v) canon*])))
+ (defn- invert-aliases
+  "{:game {canon #{a1 a2}} ...} → {normalized-alias canon, ...}"
+  [aliases]
+  (into {}
+    (for [[_cat m] aliases
+          [canon vs] m
+          :let [canon* (shared/normalize canon)]
+          v (conj vs canon)]
+      [(shared/normalize v) canon*])))
 
 
 (defonce ^:private !alias-map (atom nil))
@@ -69,9 +62,7 @@ v (conj vs canon)]
 
 
 (defn canonical [s]
-(let [b (base-normalize s)
-amap (ensure-alias-map)]
-(get amap b b)))
+  (shared/canonical (ensure-alias-map) s))
 
 
 ;; ----- 問題生成 ------------------------------------------------------------
@@ -81,7 +72,7 @@ amap (ensure-alias-map)]
 
 
 (defn normalize [s]
-  (base-normalize s))
+  (shared/normalize s))
 
 
 (defn make-question
