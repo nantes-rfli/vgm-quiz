@@ -30,13 +30,22 @@
           (UUID/nameUUIDFromBytes)
           str)))
 
-(defn- normalize-track [m]
-  (-> m
-      (update :year #(if (string? %) (Integer/parseInt %) %))
-      (update :title str)
-      (update :game str)
-      (update :composer str)
-      (assoc :track/id (stable-id m))))
+(defn- migrate-id [m]
+  ;; If legacy :id exists, move it to :track/id
+  (cond-> m
+    (:id m) (-> (assoc :track/id (:id m))
+                (dissoc :id))))
+
+(defn- normalize-track [m0]
+  (let [m (-> m0
+              migrate-id
+              (update :year #(if (string? %) (Integer/parseInt %) %))
+              (update :title str)
+              (update :game str)
+              (update :composer str))]
+    (-> m
+        (assoc :track/id (stable-id m))
+        (dissoc :id))))
 
 (defn dataset [_]
   (ensure-dir "build")
