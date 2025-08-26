@@ -17,3 +17,13 @@ clojure -M -m vgm.cli 3 # 3問
 * `resources/data/tracks.edn` を読み込み
 * 簡単な問題をランダム生成（作曲者/作品など）
 * 正解・不正解の判定とスコア表示
+
+## Web Preview
+
+```bash
+clojure -T:build publish
+python -m http.server -d public 4444
+# or: npx serve public
+```
+
+Index page displays dataset version and track count.

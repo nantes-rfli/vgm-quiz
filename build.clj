@@ -25,3 +25,9 @@
                 :tracks items}]
     (spit (io/file "build/dataset.json")
           (json/write-str out))))
+
+(defn publish [_]
+  (dataset nil)
+  (ensure-dir "public/build")
+  (io/copy (io/file "build/dataset.json")
+           (io/file "public/build/dataset.json")))

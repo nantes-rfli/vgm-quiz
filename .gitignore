@@ -14,3 +14,4 @@
 
 # Build outputs (later steps)
 /build/
+/public/build/
