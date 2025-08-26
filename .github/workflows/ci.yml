@@ -18,9 +18,9 @@ jobs:
           java-version: 21
 
       - name: Setup Clojure CLI
-        uses: DeLaGuardo/setup-clojure@v1
+        uses: DeLaGuardo/setup-clojure@12.5
         with:
-          cli: latest
+          cli: 1.11.3.1453
 
       - name: Cache maven and deps
         uses: actions/cache@v4
