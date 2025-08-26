@@ -6,44 +6,69 @@
   (:import (java.io PushbackReader)
            (java.util UUID)))
 
+;; Clean: keep using tools.build for deletion only
 (defn clean [_]
   (b/delete {:path "build"}))
 
 (defn- ensure-dir [path]
   (.mkdirs (io/file path)))
 
-(defn- read-edn-file [f]
+(defn- read-edn-file [^java.io.File f]
   (with-open [r (io/reader f)]
     (edn/read (PushbackReader. r))))
 
-(defn- ensure-track-id [track]
-  (if (:track/id track)
-    track
-    (let [s (str (:title track) "|" (:game track) "|" (:composer track) "|" (:year track))]
-      (assoc track :track/id
-             (str (UUID/nameUUIDFromBytes (.getBytes s "UTF-8")))))))
+(defn- top-level-vector? [x]
+  (vector? x))
+
+(defn- stable-id [m]
+  (or (:track/id m)
+      (-> (str (or (:title m) "")
+               "|" (or (:game m) "")
+               "|" (or (:composer m) "")
+               "|" (or (:year m) ""))
+          (.getBytes "UTF-8")
+          (UUID/nameUUIDFromBytes)
+          str)))
+
+(defn- normalize-track [m]
+  (-> m
+      (update :year #(if (string? %) (Integer/parseInt %) %))
+      (update :title str)
+      (update :game str)
+      (update :composer str)
+      (assoc :track/id (stable-id m))))
 
 (defn dataset [_]
-  (ensure-dir "build")                       ;; ← ここで作成
-  (let [files  (->> (file-seq (io/file "resources/data"))
-                    (filter #(-> % .getName (.endsWith ".edn"))))
-        items  (->> files (map read-edn-file) (mapcat identity) vec)
-        tracks (mapv ensure-track-id items)
-        out    {:dataset_version 1
-                :generated_at (str (java.time.Instant/now))
-                :tracks tracks}]
+  (ensure-dir "build")
+  (let [data-dir  (io/file "resources/data")
+        edn-files (->> (file-seq data-dir)
+                       (filter #(-> ^java.io.File % .getName (.endsWith ".edn"))))
+        items     (->> edn-files
+                       (map read-edn-file)
+                       ;; 7a で aliases.edn（map）もあるため、vectorトップだけ採用
+                       (mapcat #(if (top-level-vector? %) % []))
+                       (map normalize-track)
+                       vec)
+        out       {:dataset_version 1
+                   :generated_at (str (java.time.Instant/now))
+                   :tracks items}]
     (spit (io/file "build/dataset.json")
-          (json/write-str out :key-fn (fn [k]
-                                       (if-let [ns (namespace k)]
-                                         (str ns "/" (name k))
-                                         (name k))))))
+          (json/write-str out))))
+
+(defn- edn->json-file [edn-path json-path]
+  (let [in (io/file edn-path)]
+    (when (.exists in)
+      (let [data (read-edn-file in)]
+        (ensure-dir (.getParent (io/file json-path)))
+        (spit (io/file json-path) (json/write-str data))))))
 
 (defn publish [_]
+  ;; Build dataset first
   (dataset nil)
+  ;; Copy dataset.json into public/build/
   (ensure-dir "public/build")
-  (io/copy (io/file "build/dataset.json")
-           (io/file "public/build/dataset.json"))
-  (let [af (io/file "resources/data/aliases.edn")]
-    (when (.exists af)
-      (spit (io/file "public/build/aliases.json")
-            (json/write-str (read-edn-file af) :key-fn name)))))
+  (spit (io/file "public/build/dataset.json")
+        (slurp (io/file "build/dataset.json")))
+  ;; If aliases.edn exists, emit public/build/aliases.json
+  (edn->json-file "resources/data/aliases.edn" "public/build/aliases.json"))
+
