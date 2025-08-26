@@ -1,10 +1,8 @@
 # Project Status
 
 ## Current Step
-6b - IndexedDB history
 
 ## Next Step
-7a - Aliases on web
 
 ## Implemented
 - Step 1: Initial CLI prototype
@@ -14,12 +12,13 @@
 - Step 5: Minimal web quiz playable
 - Step 6a: Add stable track IDs
 - Step 6b: IndexedDB history
+- Step 7a: Aliases on web
+- Step 7b: CLJC core skeleton
 - GitHub Actions CI
 - CI stabilized (cache 403 fixed)
 - QA-1
 
 ## Open Tasks
-- Implement aliases on web
 
 ## How to Run
 ```bash
