@@ -26,3 +26,9 @@
 clojure -T:build publish
 python -m http.server -d public 4444
 ```
+
+## Activity Log
+- CI: lint + schema test
+- CI: clj-kondo via release binary
+- CI: clj-kondo via setup-clojure
+- 2025-08-26: Fix dataset normalization (:id → :track/id); add guard test

@@ -9,41 +9,92 @@
 (defn clean [_]
   (b/delete {:path "build"}))
 
-(defn- ensure-dir [path]
-  (.mkdirs (io/file path)))
+(defn- ensure-dir [p] (.mkdirs (io/file p)))
 
-(defn- read-edn-file [f]
+(defn- read-edn-file [^java.io.File f]
   (with-open [r (io/reader f)]
     (edn/read (PushbackReader. r))))
 
-(defn- ensure-track-id [track]
-  (if (:track/id track)
-    track
-    (let [s (str (:title track) "|" (:game track) "|" (:composer track) "|" (:year track))]
-      (assoc track :track/id
-             (str (UUID/nameUUIDFromBytes (.getBytes s "UTF-8")))))))
+(defn- kw->json-key [k]
+  (cond
+    (keyword? k) (if-let [ns (namespace k)]
+                   (str ns "/" (name k))
+                   (name k))
+    (string? k) k
+    :else (str k)))
+
+(defn- stable-id [m]
+  (or (:track/id m)
+      (-> (str (or (:title m) "")
+               "|" (or (:game m) "")
+               "|" (or (:composer m) "")
+               "|" (or (:year m) ""))
+          (.getBytes "UTF-8")
+          (UUID/nameUUIDFromBytes)
+          str)))
+
+(defn- migrate-id [m]
+  (cond-> m
+    (:id m) (-> (assoc :track/id (:id m))
+                (dissoc :id))))
+
+(defn- normalize-track [m0]
+  (let [m (-> m0
+              migrate-id
+              (update :year #(cond
+                               (int? %) %
+                               (string? %) (Integer/parseInt %)
+                               :else %))
+              (update :title str)
+              (update :game str)
+              (update :composer str))]
+    (-> m
+        (assoc :track/id (stable-id m))
+        (dissoc :id))))
+
+(defn- normalize-items [items]
+  (->> items (map normalize-track) vec))
 
 (defn dataset [_]
-  (ensure-dir "build")                       ;; ← ここで作成
-  (let [files  (->> (file-seq (io/file "resources/data"))
-                    (filter #(-> % .getName (.endsWith ".edn"))))
-        items  (->> files (map read-edn-file) (mapcat identity) vec)
-        tracks (mapv ensure-track-id items)
-        out    {:dataset_version 1
-                :generated_at (str (java.time.Instant/now))
-                :tracks tracks}]
+  (ensure-dir "build")
+  (let [files (->> (file-seq (io/file "resources/data"))
+                   (filter #(-> ^java.io.File % .getName (.endsWith ".edn"))))
+        items (->> files
+                   (map read-edn-file)
+                   ;; 7aのaliases.edn（map）は除外。vectorトップのみ採用。
+                   (mapcat #(if (vector? %) % []))
+                   normalize-items)
+        out   {:dataset_version 1
+               :generated_at (str (java.time.Instant/now))
+               :tracks items}]
     (spit (io/file "build/dataset.json")
-          (json/write-str out :key-fn (fn [k]
-                                       (if-let [ns (namespace k)]
-                                         (str ns "/" (name k))
-                                         (name k))))))
+          (json/write-str out :key-fn kw->json-key))))
+
+(defn- normalize-json-file! [json-path]
+  ;; JSON→Clojure（keyword化）→正規化→JSON で上書き
+  (let [f (io/file json-path)]
+    (when (.exists f)
+      (let [data (-> (slurp f)
+                     (json/read-str :key-fn keyword))
+            tracks (->> (:tracks data) normalize-items)
+            out    (assoc data :tracks tracks)]
+        (spit f (json/write-str out :key-fn kw->json-key))))))
+
+(defn- edn->json-file [edn-path json-path]
+  (let [in (io/file edn-path)]
+    (when (.exists in)
+      (let [data (read-edn-file in)]
+        (ensure-dir (.getParent (io/file json-path)))
+        (spit (io/file json-path) (json/write-str data :key-fn kw->json-key))))))
 
 (defn publish [_]
+  ;; 1) 生成
   (dataset nil)
+  ;; 2) 生成物を強制正規化
+  (normalize-json-file! "build/dataset.json")
+  ;; 3) public 配置
   (ensure-dir "public/build")
-  (io/copy (io/file "build/dataset.json")
-           (io/file "public/build/dataset.json"))
-  (let [af (io/file "resources/data/aliases.edn")]
-    (when (.exists af)
-      (spit (io/file "public/build/aliases.json")
-            (json/write-str (read-edn-file af) :key-fn name)))))
+  (spit (io/file "public/build/dataset.json")
+        (slurp (io/file "build/dataset.json")))
+  ;; 4) aliases があれば JSON も出力
+  (edn->json-file "resources/data/aliases.edn" "public/build/aliases.json"))

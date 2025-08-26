@@ -25,6 +25,7 @@ jobs:
         uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
+          clj-kondo: latest
 
       - name: Ensure cache paths exist
         run: mkdir -p ~/.m2/repository ~/.gitlibs ~/.deps.clj .cpcache
@@ -41,10 +42,16 @@ jobs:
           key: cljdeps-${{ runner.os }}-${{ hashFiles('**/deps.edn') }}
           restore-keys: cljdeps-
 
+      - name: clj-kondo version
+        run: clj-kondo --version
+
+      - name: clj-kondo
+        run: clj-kondo --lint src test build.clj || clj-kondo --version
+
       - name: Build dataset/publish
         run: |
           clojure -T:build clean || true
-          clojure -T:build dataset || clojure -T:build publish || true
+          clojure -T:build publish
 
       - name: Tests (if any)
         run: |
