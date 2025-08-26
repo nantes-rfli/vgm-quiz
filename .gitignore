@@ -1,0 +1,16 @@
+# Clojure/Java
+/target/
+/.cpcache/
+/.lein-
+/.nrepl-port
+
+
+# Editors/LSP
+/.lsp/
+/.idea/
+/.vs/
+/.vscode/
+
+
+# Build outputs (later steps)
+/build/

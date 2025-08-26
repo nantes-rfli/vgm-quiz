@@ -1,0 +1,8 @@
+{:game
+ {"dragon quest" #{"dq" "ドラクエ" "ドラゴンクエスト"}
+  "ゼルダの伝説" #{"ゼルダ" "legend of zelda"}
+  "undertale" #{"アンダーテール"}}
+ :composer
+ {"すぎやまこういち" #{"すぎやま" "koichi sugiyama"}
+  "近藤浩治" #{"koji kondo" "こんどうこうじ"}
+  "toby fox" #{"トビー・フォックス" "tobyfox"}}}
