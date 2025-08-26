@@ -15,6 +15,14 @@
   (with-open [r (io/reader f)]
     (edn/read (PushbackReader. r))))
 
+(defn- kw->json-key [k]
+  (cond
+    (keyword? k) (if-let [ns (namespace k)]
+                   (str ns "/" (name k))
+                   (name k))
+    (string? k) k
+    :else (str k)))
+
 (defn- stable-id [m]
   (or (:track/id m)
       (-> (str (or (:title m) "")
@@ -60,7 +68,7 @@
                :generated_at (str (java.time.Instant/now))
                :tracks items}]
     (spit (io/file "build/dataset.json")
-          (json/write-str out))))
+          (json/write-str out :key-fn kw->json-key))))
 
 (defn- normalize-json-file! [json-path]
   ;; JSON→Clojure（keyword化）→正規化→JSON で上書き
@@ -70,14 +78,14 @@
                      (json/read-str :key-fn keyword))
             tracks (->> (:tracks data) normalize-items)
             out    (assoc data :tracks tracks)]
-        (spit f (json/write-str out))))))
+        (spit f (json/write-str out :key-fn kw->json-key))))))
 
 (defn- edn->json-file [edn-path json-path]
   (let [in (io/file edn-path)]
     (when (.exists in)
       (let [data (read-edn-file in)]
         (ensure-dir (.getParent (io/file json-path)))
-        (spit (io/file json-path) (json/write-str data))))))
+        (spit (io/file json-path) (json/write-str data :key-fn kw->json-key))))))
 
 (defn publish [_]
   ;; 1) 生成
