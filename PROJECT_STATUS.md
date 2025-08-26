@@ -14,6 +14,7 @@
 - Step 6b: IndexedDB history
 - Step 7a: Aliases on web
 - Step 7b: CLJC core skeleton
+- Step 7c: CLJC question pipeline
 - GitHub Actions CI
 - CI stabilized (cache 403 fixed)
 - QA-1
