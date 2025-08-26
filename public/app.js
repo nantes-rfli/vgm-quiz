@@ -4,10 +4,53 @@ let current = 0;
 let score = 0;
 let awaitingNext = false;
 
+const DB_NAME = 'vgm-quiz';
+const STORE = 'plays';
+const dbPromise = new Promise((resolve, reject) => {
+  const req = indexedDB.open(DB_NAME, 1);
+  req.onupgradeneeded = () => {
+    req.result.createObjectStore(STORE, { autoIncrement: true });
+  };
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+
 function showView(id) {
-  document.getElementById('start-view').style.display = id === 'start-view' ? 'block' : 'none';
-  document.getElementById('question-view').style.display = id === 'question-view' ? 'block' : 'none';
-  document.getElementById('result-view').style.display = id === 'result-view' ? 'block' : 'none';
+  ['start-view', 'question-view', 'result-view', 'history-view'].forEach(v => {
+    document.getElementById(v).style.display = id === v ? 'block' : 'none';
+  });
+}
+
+function trackId(track) {
+  if (track['track/id']) return track['track/id'];
+  const str = `${track.title}|${track.game}|${track.composer}|${track.year}`;
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  }
+  return h >>> 0;
+}
+
+async function recordPlay(rec) {
+  const db = await dbPromise;
+  const tx = db.transaction(STORE, 'readwrite');
+  tx.objectStore(STORE).add({ ...rec, ts: Date.now() });
+}
+
+async function fetchHistory() {
+  const db = await dbPromise;
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
+    req.onsuccess = () => {
+      resolve(req.result.sort((a, b) => b.ts - a.ts).slice(0, 20));
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function clearHistoryStore() {
+  const db = await dbPromise;
+  db.transaction(STORE, 'readwrite').objectStore(STORE).clear();
 }
 
 function norm(str) {
@@ -71,15 +114,25 @@ function submitAnswer() {
     return;
   }
   const q = questions[current];
-  const userAns = norm(document.getElementById('answer').value);
+  const promptText = document.getElementById('prompt').textContent;
+  const rawInput = document.getElementById('answer').value;
+  const userAns = norm(rawInput);
   const expected = norm(q.expected);
   const feedback = document.getElementById('feedback');
-  if (userAns === expected) {
+  const correct = userAns === expected;
+  if (correct) {
     score++;
     feedback.textContent = 'Correct!';
   } else {
     feedback.textContent = `Incorrect. Correct: ${q.expected}`;
   }
+  recordPlay({
+    track: q.track,
+    prompt: promptText,
+    expected: q.expected,
+    userAnswer: rawInput,
+    correct
+  });
   const submit = document.getElementById('submit-btn');
   submit.textContent = current === questions.length - 1 ? 'Finish' : 'Next';
   awaitingNext = true;
@@ -103,8 +156,29 @@ function restart() {
   showView('start-view');
 }
 
+async function showHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  const items = await fetchHistory();
+  items.forEach(p => {
+    const li = document.createElement('li');
+    const ts = new Date(p.ts).toLocaleString();
+    li.textContent = `${ts} - ${p.prompt} - ${p.userAnswer} - ${p.correct ? '✅' : '❌'}`;
+    list.appendChild(li);
+  });
+  showView('history-view');
+}
+
+async function clearHistory() {
+  await clearHistoryStore();
+  showHistory();
+}
+
 document.getElementById('start-btn').addEventListener('click', startQuiz);
 document.getElementById('submit-btn').addEventListener('click', submitAnswer);
 document.getElementById('restart-btn').addEventListener('click', restart);
+document.getElementById('history-btn').addEventListener('click', showHistory);
+document.getElementById('history-back-btn').addEventListener('click', () => showView('start-view'));
+document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
 
 loadDataset();
