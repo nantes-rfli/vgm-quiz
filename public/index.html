@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VGM Quiz</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+</head>
+<body>
+  <h1>VGM Quiz</h1>
+  <div id="info"></div>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
+
