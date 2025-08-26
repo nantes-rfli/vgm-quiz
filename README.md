@@ -31,6 +31,10 @@ python -m http.server -d public 4444
 
 Index page displays dataset version and track count.
 
+## Snapshot
+
+Latest code snapshot: (see GitHub Pages URL after first deploy)
+
 ## Codex sandbox validation
 
 Run a small script to verify required files without network access:
@@ -39,3 +43,4 @@ Run a small script to verify required files without network access:
 sh scripts/validate_sandbox.sh web
 sh scripts/validate_sandbox.sh build
 ```
+
