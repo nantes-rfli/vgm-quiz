@@ -25,6 +25,7 @@ jobs:
         uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
+          clj-kondo: latest
 
       - name: Ensure cache paths exist
         run: mkdir -p ~/.m2/repository ~/.gitlibs ~/.deps.clj .cpcache
@@ -41,20 +42,8 @@ jobs:
           key: cljdeps-${{ runner.os }}-${{ hashFiles('**/deps.edn') }}
           restore-keys: cljdeps-
 
-      - name: Download clj-kondo
-        uses: robinraju/release-downloader@v1
-        with:
-          repository: clj-kondo/clj-kondo
-          latest: true
-          fileName: clj-kondo-linux-amd64.zip
-          out-file-path: clj-kondo
-
-      - name: Install clj-kondo
-        run: |
-          unzip -q clj-kondo/clj-kondo-linux-amd64.zip -d clj-kondo
-          mkdir -p $HOME/.local/bin
-          install -m 0755 clj-kondo/clj-kondo $HOME/.local/bin/clj-kondo
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: clj-kondo version
+        run: clj-kondo --version
 
       - name: clj-kondo
         run: clj-kondo --lint src test build.clj || clj-kondo --version
