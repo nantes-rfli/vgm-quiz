@@ -3,6 +3,7 @@ let questions = [];
 let current = 0;
 let score = 0;
 let awaitingNext = false;
+const aliases = {};
 
 const DB_NAME = 'vgm-quiz';
 const STORE = 'plays';
@@ -57,6 +58,11 @@ function norm(str) {
   return str.normalize('NFKC').trim().toLowerCase();
 }
 
+function canonical(str) {
+  const n = norm(str);
+  return aliases[n] || n;
+}
+
 async function loadDataset() {
   try {
     const res = await fetch('./build/dataset.json');
@@ -65,6 +71,22 @@ async function loadDataset() {
     document.getElementById('start-btn').disabled = false;
   } catch (err) {
     console.error('Failed to load dataset', err);
+  }
+}
+
+async function loadAliases() {
+  try {
+    const res = await fetch('./build/aliases.json');
+    if (!res.ok) return;
+    const data = await res.json();
+    Object.values(data).forEach(cat => {
+      Object.entries(cat).forEach(([canon, list]) => {
+        aliases[canon] = canon;
+        list.forEach(a => aliases[a] = canon);
+      });
+    });
+  } catch (err) {
+    console.warn('Failed to load aliases', err);
   }
 }
 
@@ -116,8 +138,8 @@ function submitAnswer() {
   const q = questions[current];
   const promptText = document.getElementById('prompt').textContent;
   const rawInput = document.getElementById('answer').value;
-  const userAns = norm(rawInput);
-  const expected = norm(q.expected);
+  const userAns = canonical(rawInput);
+  const expected = canonical(q.expected);
   const feedback = document.getElementById('feedback');
   const correct = userAns === expected;
   if (correct) {
@@ -182,3 +204,4 @@ document.getElementById('history-back-btn').addEventListener('click', () => show
 document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
 
 loadDataset();
+loadAliases();

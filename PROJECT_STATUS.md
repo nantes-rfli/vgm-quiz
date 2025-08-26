@@ -1,10 +1,10 @@
 # Project Status
 
 ## Current Step
-6b - IndexedDB history
+7a - Aliases on web
 
 ## Next Step
-7a - Aliases on web
+7b - CLJC core prep
 
 ## Implemented
 - Step 1: Initial CLI prototype
@@ -16,9 +16,10 @@
 - Step 6b: IndexedDB history
 - GitHub Actions CI
 - CI stabilized (cache 403 fixed)
+- Step 7a: Aliases on web
 
 ## Open Tasks
-- Implement aliases on web
+- Prepare CLJC core
 
 ## How to Run
 ```bash
