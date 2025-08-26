@@ -15,6 +15,15 @@ clojure -M -m vgm.cli # 既定: 5問
 clojure -M -m vgm.cli 3 # 3問
 ```
 
+### みんはや向けエクスポート
+
+```bash
+# 既定: 30問、タブ区切り
+clojure -M -m vgm.cli export
+# CSV 形式
+clojure -M -m vgm.cli export --format csv > out.csv
+```
+
 ## 概要
 
 * `resources/data/tracks.edn` を読み込み
