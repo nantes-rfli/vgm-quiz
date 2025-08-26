@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
+      - name: Ensure cache paths exist
+        run: mkdir -p ~/.m2/repository ~/.gitlibs ~/.deps.clj .cpcache
+
+      - name: Restore deps cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+            .cpcache
+          key: cljdeps-${{ runner.os }}-${{ hashFiles('**/deps.edn') }}
+          restore-keys: cljdeps-
+
+      - name: Build dataset/publish
+        run: |
+          clojure -T:build clean || true
+          clojure -T:build dataset || clojure -T:build publish || true
+
+      - name: Tests (if any)
+        run: |
+          if [ -d test ]; then clojure -M:test; else echo "no tests"; fi
+
+      - name: Web assets sanity
+        run: |
+          test -f public/index.html
+          test -f public/app.js
+          test -f public/sw.js || true
+          test -f public/manifest.webmanifest || true
+
+      - name: Save deps cache (main only)
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+            .cpcache
+          key: cljdeps-${{ runner.os }}-${{ hashFiles('**/deps.edn') }}

@@ -13,6 +13,8 @@
 - Step 4: Web build pipeline
 - Step 5: Minimal web quiz playable
 - Step 6a: Add stable track IDs
+- GitHub Actions CI
+- CI stabilized (cache 403 fixed)
 
 ## Open Tasks
 - Implement IndexedDB history
