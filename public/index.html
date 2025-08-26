@@ -7,7 +7,24 @@
 </head>
 <body>
   <h1>VGM Quiz</h1>
-  <div id="info"></div>
+
+  <div id="start-view">
+    <label>Questions: <input id="count" type="number" min="1" value="5" /></label>
+    <button id="start-btn" disabled>Start</button>
+  </div>
+
+  <div id="question-view" style="display:none">
+    <div id="prompt"></div>
+    <input id="answer" type="text" autocomplete="off" />
+    <button id="submit-btn">Submit</button>
+    <div id="feedback"></div>
+  </div>
+
+  <div id="result-view" style="display:none">
+    <div id="final-score"></div>
+    <button id="restart-btn">Restart</button>
+  </div>
+
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -16,4 +33,3 @@
   </script>
 </body>
 </html>
-
