@@ -16,6 +16,7 @@
 - Step 6b: IndexedDB history
 - GitHub Actions CI
 - CI stabilized (cache 403 fixed)
+- QA-1
 
 ## Open Tasks
 - Implement aliases on web

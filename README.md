@@ -30,3 +30,12 @@ python -m http.server -d public 4444
 ```
 
 Index page displays dataset version and track count.
+
+## Codex sandbox validation
+
+Run a small script to verify required files without network access:
+
+```bash
+sh scripts/validate_sandbox.sh web
+sh scripts/validate_sandbox.sh build
+```
