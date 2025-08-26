@@ -30,3 +30,4 @@ python -m http.server -d public 4444
 - CI: lint + schema test
 - CI: clj-kondo via release binary
 - CI: clj-kondo via setup-clojure
+- 2025-08-26: Fix dataset normalization (:id → :track/id); add guard test

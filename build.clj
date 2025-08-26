@@ -6,19 +6,14 @@
   (:import (java.io PushbackReader)
            (java.util UUID)))
 
-;; Clean: keep using tools.build for deletion only
 (defn clean [_]
   (b/delete {:path "build"}))
 
-(defn- ensure-dir [path]
-  (.mkdirs (io/file path)))
+(defn- ensure-dir [path] (.mkdirs (io/file path)))
 
 (defn- read-edn-file [^java.io.File f]
   (with-open [r (io/reader f)]
     (edn/read (PushbackReader. r))))
-
-(defn- top-level-vector? [x]
-  (vector? x))
 
 (defn- stable-id [m]
   (or (:track/id m)
@@ -31,7 +26,6 @@
           str)))
 
 (defn- migrate-id [m]
-  ;; If legacy :id exists, move it to :track/id
   (cond-> m
     (:id m) (-> (assoc :track/id (:id m))
                 (dissoc :id))))
@@ -39,7 +33,10 @@
 (defn- normalize-track [m0]
   (let [m (-> m0
               migrate-id
-              (update :year #(if (string? %) (Integer/parseInt %) %))
+              (update :year #(cond
+                               (int? %) %
+                               (string? %) (Integer/parseInt %)
+                               :else %))
               (update :title str)
               (update :game str)
               (update :composer str))]
@@ -47,17 +44,22 @@
         (assoc :track/id (stable-id m))
         (dissoc :id))))
 
+(defn- normalize-items [items]
+  (->> items (map normalize-track) vec))
+
 (defn dataset [_]
   (ensure-dir "build")
-  (let [data-dir  (io/file "resources/data")
-        edn-files (->> (file-seq data-dir)
+  (let [edn-files (->> (file-seq (io/file "resources/data"))
                        (filter #(-> ^java.io.File % .getName (.endsWith ".edn"))))
         items     (->> edn-files
                        (map read-edn-file)
-                       ;; 7a で aliases.edn（map）もあるため、vectorトップだけ採用
-                       (mapcat #(if (top-level-vector? %) % []))
-                       (map normalize-track)
-                       vec)
+                       ;; merge only top-level vectors (ignore maps like aliases.edn)
+                       (mapcat #(if (vector? %) % []))
+                       normalize-items)
+        _         (when-not (every? (fn [t] (and (:track/id t)
+                                                (not (contains? t :id))))
+                                    items)
+                    (throw (ex-info "Normalization failed: :track/id missing or legacy :id present" {})))
         out       {:dataset_version 1
                    :generated_at (str (java.time.Instant/now))
                    :tracks items}]
@@ -72,12 +74,8 @@
         (spit (io/file json-path) (json/write-str data))))))
 
 (defn publish [_]
-  ;; Build dataset first
   (dataset nil)
-  ;; Copy dataset.json into public/build/
   (ensure-dir "public/build")
   (spit (io/file "public/build/dataset.json")
         (slurp (io/file "build/dataset.json")))
-  ;; If aliases.edn exists, emit public/build/aliases.json
   (edn->json-file "resources/data/aliases.edn" "public/build/aliases.json"))
-
