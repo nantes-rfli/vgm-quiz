@@ -3,7 +3,8 @@
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.data.json :as json])
-  (:import (java.io PushbackReader)))
+  (:import (java.io PushbackReader)
+           (java.util UUID)))
 
 (defn clean [_]
   (b/delete {:path "build"}))
@@ -15,16 +16,27 @@
   (with-open [r (io/reader f)]
     (edn/read (PushbackReader. r))))
 
+(defn- ensure-track-id [track]
+  (if (:track/id track)
+    track
+    (let [s (str (:title track) "|" (:game track) "|" (:composer track) "|" (:year track))]
+      (assoc track :track/id
+             (str (UUID/nameUUIDFromBytes (.getBytes s "UTF-8")))))))
+
 (defn dataset [_]
   (ensure-dir "build")                       ;; ← ここで作成
   (let [files  (->> (file-seq (io/file "resources/data"))
                     (filter #(-> % .getName (.endsWith ".edn"))))
         items  (->> files (map read-edn-file) (mapcat identity) vec)
+        tracks (mapv ensure-track-id items)
         out    {:dataset_version 1
                 :generated_at (str (java.time.Instant/now))
-                :tracks items}]
+                :tracks tracks}]
     (spit (io/file "build/dataset.json")
-          (json/write-str out))))
+          (json/write-str out :key-fn (fn [k]
+                                       (if-let [ns (namespace k)]
+                                         (str ns "/" (name k))
+                                         (name k))))))
 
 (defn publish [_]
   (dataset nil)

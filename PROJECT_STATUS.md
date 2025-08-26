@@ -1,11 +1,10 @@
 # Project Status
 
 ## Current Step
-5 - Minimal web quiz playable
+6a - Add stable track IDs
 
 ## Next Step
-- 6a - Add stable track IDs
-- 6b - IndexedDB history
+6b - IndexedDB history
 
 ## Implemented
 - Step 1: Initial CLI prototype
@@ -13,9 +12,9 @@
 - Step 3: Quiz generation and scoring
 - Step 4: Web build pipeline
 - Step 5: Minimal web quiz playable
+- Step 6a: Add stable track IDs
 
 ## Open Tasks
-- Add stable track IDs
 - Implement IndexedDB history
 
 ## How to Run
