@@ -42,4 +42,8 @@
   (dataset nil)
   (ensure-dir "public/build")
   (io/copy (io/file "build/dataset.json")
-           (io/file "public/build/dataset.json")))
+           (io/file "public/build/dataset.json"))
+  (let [af (io/file "resources/data/aliases.edn")]
+    (when (.exists af)
+      (spit (io/file "public/build/aliases.json")
+            (json/write-str (read-edn-file af) :key-fn name)))))
