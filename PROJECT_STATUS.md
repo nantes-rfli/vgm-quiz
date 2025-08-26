@@ -1,10 +1,10 @@
 # Project Status
 
 ## Current Step
-6a - Add stable track IDs
+6b - IndexedDB history
 
 ## Next Step
-6b - IndexedDB history
+7a - Aliases on web
 
 ## Implemented
 - Step 1: Initial CLI prototype
@@ -13,11 +13,12 @@
 - Step 4: Web build pipeline
 - Step 5: Minimal web quiz playable
 - Step 6a: Add stable track IDs
+- Step 6b: IndexedDB history
 - GitHub Actions CI
 - CI stabilized (cache 403 fixed)
 
 ## Open Tasks
-- Implement IndexedDB history
+- Implement aliases on web
 
 ## How to Run
 ```bash
