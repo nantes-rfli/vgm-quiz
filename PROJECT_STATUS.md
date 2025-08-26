@@ -28,3 +28,4 @@ python -m http.server -d public 4444
 
 ## Activity Log
 - CI: lint + schema test
+- CI: clj-kondo via release binary

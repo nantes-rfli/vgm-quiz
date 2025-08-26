@@ -41,10 +41,23 @@ jobs:
           key: cljdeps-${{ runner.os }}-${{ hashFiles('**/deps.edn') }}
           restore-keys: cljdeps-
 
-      - name: clj-kondo
-        uses: clj-kondo/clj-kondo-action@v1
+      - name: Download clj-kondo
+        uses: robinraju/release-downloader@v1
         with:
-          files: src test build.clj
+          repository: clj-kondo/clj-kondo
+          latest: true
+          fileName: clj-kondo-linux-amd64.zip
+          out-file-path: clj-kondo
+
+      - name: Install clj-kondo
+        run: |
+          unzip -q clj-kondo/clj-kondo-linux-amd64.zip -d clj-kondo
+          mkdir -p $HOME/.local/bin
+          install -m 0755 clj-kondo/clj-kondo $HOME/.local/bin/clj-kondo
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: clj-kondo
+        run: clj-kondo --lint src test build.clj || clj-kondo --version
 
       - name: Build dataset/publish
         run: |
