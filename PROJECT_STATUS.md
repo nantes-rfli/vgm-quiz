@@ -13,6 +13,7 @@
 - Step 3: Quiz generation and scoring
 - Step 4: Web build pipeline
 - Step 5: Minimal web quiz playable
+- GitHub Actions CI
 
 ## Open Tasks
 - Add stable track IDs

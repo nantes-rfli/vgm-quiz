@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@12
+        with:
+          cli: latest
+
+      - name: Cache maven and deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2
+            ~/.gitlibs
+            ~/.deps.clj
+          key: ${{ runner.os }}-clj-${{ hashFiles('**/deps.edn') }}
+          restore-keys: ${{ runner.os }}-clj-
+
+      - run: clojure -T:build clean
+
+      - run: clojure -T:build publish
+
+      - run: clojure -M:test
+        if: ${{ hashFiles('test/**') != '' }}
+
+      - name: Web assets
+        run: |
+          test -f public/index.html
+          test -f public/app.js
+          test -f public/sw.js
+          test -f public/manifest.webmanifest || true
