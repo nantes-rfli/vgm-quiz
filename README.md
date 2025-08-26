@@ -1,5 +1,8 @@
 # VGM Quiz (Step 1)
 
+## Project Status
+See [PROJECT_STATUS.md](PROJECT_STATUS.md) for current progress.
+
 
 ## 要件
 - Clojure CLI（`clojure`コマンド）
