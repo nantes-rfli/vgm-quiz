@@ -63,6 +63,45 @@ function canonical(str) {
   return aliases[n] || n;
 }
 
+function yearBucket(y) {
+  const yr = parseInt(y, 10) || 0;
+  return yr - (yr % 5);
+}
+
+function distinctBy(keys, arr) {
+  const seen = new Set();
+  return arr.filter(item => {
+    const k = keys.map(key => item[key]).join('|');
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+function spreadByBucket(items, bucketFn, n) {
+  const buckets = {};
+  items.forEach(item => {
+    const b = bucketFn(item);
+    (buckets[b] ||= []).push(item);
+  });
+  const bucketKeys = Object.keys(buckets).sort(() => Math.random() - 0.5);
+  bucketKeys.forEach(k => buckets[k].sort(() => Math.random() - 0.5));
+  const result = [];
+  while (result.length < n) {
+    let added = false;
+    for (const key of bucketKeys) {
+      const bucket = buckets[key];
+      if (bucket.length) {
+        result.push(bucket.pop());
+        added = true;
+        if (result.length === n) break;
+      }
+    }
+    if (!added) break;
+  }
+  return result;
+}
+
 async function loadDataset() {
   try {
     const res = await fetch('./build/dataset.json');
@@ -94,10 +133,11 @@ function startQuiz() {
   const countInput = document.getElementById('count');
   let n = parseInt(countInput.value, 10);
   if (!n || n < 1) n = 1;
-  n = Math.min(n, tracks.length);
-  const shuffled = [...tracks].sort(() => Math.random() - 0.5).slice(0, n);
+  const deduped = distinctBy(['title', 'game', 'composer'], tracks);
+  n = Math.min(n, deduped.length);
+  const selected = spreadByBucket(deduped, t => yearBucket(t.year), n);
   const types = ['title-game', 'game-composer', 'title-composer'];
-  questions = shuffled.map(track => ({ track, type: types[Math.floor(Math.random() * types.length)] }));
+  questions = selected.map(track => ({ track, type: types[Math.floor(Math.random() * types.length)] }));
   current = 0;
   score = 0;
   showQuestion();

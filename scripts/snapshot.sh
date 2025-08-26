@@ -22,8 +22,8 @@ for f in $files; do
     html="$OUT/$rel.html"
     mkdir -p "$(dirname "$html")"
     {
-      printf '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>%s</title></head><body><pre><code>' "$f"
-      sed -e 's/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g' "$f"
+      printf '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>%s</title><style> pre{white-space:pre-wrap; word-wrap:break-word;} code{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;} </style></head><body><pre><code>' "$f"
+      sed -e 's/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g; s/"/&quot;/g' "$f"
       printf '</code></pre></body></html>\n'
     } > "$html"
   fi
@@ -31,7 +31,7 @@ done
 
 commit=$(git rev-parse --short HEAD 2>/dev/null || echo "")
 {
-  printf '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>Snapshot</title></head><body>\n'
+  printf '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>Snapshot</title><style> pre{white-space:pre-wrap; word-wrap:break-word;} code{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;} </style></head><body>\n'
   printf '<h1>Code Snapshot</h1>\n'
   if [ -n "$commit" ]; then
     printf '<p>Commit: %s</p>\n' "$commit"
@@ -40,7 +40,7 @@ commit=$(git rev-parse --short HEAD 2>/dev/null || echo "")
   for f in $included; do
     rel=$(printf '%s' "$f" | sed 's#^\.##')
     link="$rel.html"
-    text=$(printf '%s' "$f" | sed 's/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g')
+    text=$(printf '%s' "$f" | sed 's/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g; s/"/&quot;/g')
     printf '<li><a href="%s">%s</a></li>\n' "$link" "$text"
   done
   printf '</ul>\n'

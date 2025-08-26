@@ -34,4 +34,5 @@ python -m http.server -d public 4444
 - 2025-08-26: Fix dataset normalization (:id → :track/id); add guard test
 - Enable public code snapshot via GitHub Pages
 - 12: export for みんはや
+- 11: web pipeline applied
 
