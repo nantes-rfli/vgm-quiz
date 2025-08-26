@@ -15,6 +15,8 @@ clojure -M -m vgm.cli # 既定: 5問
 clojure -M -m vgm.cli 3 # 3問
 ```
 
+Kaocha is configured via `tests.edn`.
+
 ### みんはや向けエクスポート
 
 ```bash
