@@ -41,10 +41,15 @@ jobs:
           key: cljdeps-${{ runner.os }}-${{ hashFiles('**/deps.edn') }}
           restore-keys: cljdeps-
 
+      - name: clj-kondo
+        uses: clj-kondo/clj-kondo-action@v1
+        with:
+          files: src test build.clj
+
       - name: Build dataset/publish
         run: |
           clojure -T:build clean || true
-          clojure -T:build dataset || clojure -T:build publish || true
+          clojure -T:build publish
 
       - name: Tests (if any)
         run: |
