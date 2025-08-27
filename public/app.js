@@ -29,11 +29,19 @@ const TYPE_LABELS = {
 };
 
 const DB_NAME = 'vgm-quiz';
-const STORE = 'plays';
+const DB_VERSION = 2;
+const PLAY_STORE = 'plays';
+const ALIAS_STORE = 'alias_proposals';
 const dbPromise = new Promise((resolve, reject) => {
-  const req = indexedDB.open(DB_NAME, 1);
+  const req = indexedDB.open(DB_NAME, DB_VERSION);
   req.onupgradeneeded = () => {
-    req.result.createObjectStore(STORE, { autoIncrement: true });
+    const db = req.result;
+    if (!db.objectStoreNames.contains(PLAY_STORE)) {
+      db.createObjectStore(PLAY_STORE, { autoIncrement: true });
+    }
+    if (!db.objectStoreNames.contains(ALIAS_STORE)) {
+      db.createObjectStore(ALIAS_STORE, { autoIncrement: true });
+    }
   };
   req.onsuccess = () => resolve(req.result);
   req.onerror = () => reject(req.error);
@@ -57,14 +65,14 @@ function trackId(track) {
 
 async function recordPlay(rec) {
   const db = await dbPromise;
-  const tx = db.transaction(STORE, 'readwrite');
-  tx.objectStore(STORE).add({ ...rec, ts: Date.now() });
+  const tx = db.transaction(PLAY_STORE, 'readwrite');
+  tx.objectStore(PLAY_STORE).add({ ...rec, ts: Date.now() });
 }
 
 async function fetchHistory() {
   const db = await dbPromise;
   return new Promise((resolve, reject) => {
-    const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
+    const req = db.transaction(PLAY_STORE, 'readonly').objectStore(PLAY_STORE).getAll();
     req.onsuccess = () => {
       resolve(req.result.sort((a, b) => b.ts - a.ts).slice(0, 20));
     };
@@ -74,7 +82,58 @@ async function fetchHistory() {
 
 async function clearHistoryStore() {
   const db = await dbPromise;
-  db.transaction(STORE, 'readwrite').objectStore(STORE).clear();
+  db.transaction(PLAY_STORE, 'readwrite').objectStore(PLAY_STORE).clear();
+}
+
+async function saveAliasProposal(cat, canon, alias) {
+  const db = await dbPromise;
+  const tx = db.transaction(ALIAS_STORE, 'readwrite');
+  tx.objectStore(ALIAS_STORE).add({ cat, canon, alias });
+}
+
+async function getAllAliasProposals() {
+  const db = await dbPromise;
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(ALIAS_STORE, 'readonly').objectStore(ALIAS_STORE).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function proposalsToEdn(data) {
+  const catStrs = Object.entries(data).map(([cat, m]) => {
+    const entries = Object.entries(m).map(([canon, list]) => {
+      const aliases = list.map(a => `"${a.replace(/"/g, '\\"')}"`).join(' ');
+      return `"${canon.replace(/"/g, '\\"')}" #{${aliases}}`;
+    }).join(', ');
+    return `:${cat} {${entries}}`;
+  }).join(' ');
+  return `{${catStrs}}`;
+}
+
+async function exportAliasProposals() {
+  const items = await getAllAliasProposals();
+  const merged = { game: {}, composer: {} };
+  items.forEach(p => {
+    const m = merged[p.cat];
+    (m[p.canon] ||= new Set()).add(p.alias);
+  });
+  const formatted = { game: {}, composer: {} };
+  Object.entries(merged).forEach(([cat, m]) => {
+    Object.entries(m).forEach(([canon, set]) => {
+      (formatted[cat][canon] ||= []).push(...set);
+    });
+  });
+  const edn = proposalsToEdn(formatted);
+  const blob = new Blob([edn], { type: 'application/edn' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'alias-proposals.edn';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function norm(str) {
@@ -84,6 +143,23 @@ function norm(str) {
 function canonical(str) {
   const n = norm(str);
   return aliases[n] || n;
+}
+
+function levenshtein(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return dp[a.length][b.length];
 }
 
 function yearBucket(y) {
@@ -206,11 +282,16 @@ function showQuestion() {
   const next = document.getElementById('next-btn');
   const feedback = document.getElementById('feedback');
   const scoreBar = document.getElementById('score-bar');
+  const aliasBtn = document.getElementById('propose-alias-btn');
   answer.value = '';
   answer.focus();
   feedback.textContent = '';
   submit.disabled = false;
   next.style.display = 'none';
+  aliasBtn.style.display = 'none';
+  aliasBtn.disabled = false;
+  aliasBtn.textContent = '別名として提案';
+  aliasBtn.onclick = null;
   scoreBar.textContent = `Score: ${score}/${questions.length}`;
   switch (q.type) {
     case 'title-game':
@@ -247,11 +328,25 @@ function submitAnswer() {
   const feedback = document.getElementById('feedback');
   const scoreBar = document.getElementById('score-bar');
   const correct = userAns === expected;
+  const aliasBtn = document.getElementById('propose-alias-btn');
+  aliasBtn.style.display = 'none';
   if (correct) {
     score++;
     feedback.textContent = 'Correct!';
   } else {
     feedback.textContent = `Incorrect. Correct: ${q.expected}`;
+    const dist = levenshtein(norm(rawInput), norm(q.expected));
+    if (dist > 0 && dist <= 2) {
+      aliasBtn.style.display = 'inline';
+      aliasBtn.disabled = false;
+      aliasBtn.textContent = '別名として提案';
+      aliasBtn.onclick = () => {
+        const cat = q.type === 'title-game' ? 'game' : 'composer';
+        saveAliasProposal(cat, expected, norm(rawInput));
+        aliasBtn.textContent = '提案を保存しました';
+        aliasBtn.disabled = true;
+      };
+    }
   }
   q.userAnswer = rawInput;
   q.correct = correct;
@@ -323,6 +418,7 @@ document.getElementById('restart-btn').addEventListener('click', restart);
 document.getElementById('history-btn').addEventListener('click', showHistory);
 document.getElementById('history-back-btn').addEventListener('click', () => showView('start-view'));
 document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
+document.getElementById('export-aliases-btn').addEventListener('click', exportAliasProposals);
 document.querySelectorAll('input[name="qtype"]').forEach(cb => {
   cb.addEventListener('change', () => {
     settings.types = selectedTypes();
