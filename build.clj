@@ -97,4 +97,11 @@
   (spit (io/file "public/build/dataset.json")
         (slurp (io/file "build/dataset.json")))
   ;; 4) aliases があれば JSON も出力
-  (edn->json-file "resources/data/aliases.edn" "public/build/aliases.json"))
+  (edn->json-file "resources/data/aliases.edn" "public/build/aliases.json")
+  ;; 5) version.json
+  (let [sha (System/getenv "GITHUB_SHA")
+        commit (if (and sha (<= 7 (count sha))) (subs sha 0 7) "dev")
+        ver {:commit commit
+             :generated_at (str (java.time.Instant/now))}]
+    (spit (io/file "public/build/version.json")
+          (json/write-str ver))))

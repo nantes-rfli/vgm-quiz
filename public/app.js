@@ -4,6 +4,7 @@ let current = 0;
 let score = 0;
 let awaitingNext = false;
 const aliases = {};
+window.__APP_VERSION__ = 'dev';
 
 const DB_NAME = 'vgm-quiz';
 const STORE = 'plays';
@@ -134,6 +135,21 @@ async function loadAliases() {
   }
 }
 
+async function loadVersion() {
+  try {
+    const res = await fetch('./build/version.json');
+    const data = await res.json();
+    window.__APP_VERSION__ = data.commit || 'dev';
+  } catch (err) {
+    console.warn('Failed to load version', err);
+  }
+  const el = document.createElement('div');
+  el.id = 'app-version';
+  el.style.marginTop = '1em';
+  el.textContent = `Version: ${window.__APP_VERSION__}`;
+  document.body.appendChild(el);
+}
+
 function startQuiz() {
   const countInput = document.getElementById('count');
   let n = parseInt(countInput.value, 10);
@@ -251,43 +267,45 @@ document.getElementById('clear-history-btn').addEventListener('click', clearHist
 loadDataset();
 loadAliases();
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(registration => {
-    function showUpdateBanner() {
-      if (document.getElementById('sw-update')) return;
-      const banner = document.createElement('div');
-      banner.id = 'sw-update';
-      banner.style.position = 'fixed';
-      banner.style.bottom = '0';
-      banner.style.left = '0';
-      banner.style.right = '0';
-      banner.style.background = '#333';
-      banner.style.color = '#fff';
-      banner.style.padding = '8px';
-      banner.style.textAlign = 'center';
-      const btn = document.createElement('button');
-      btn.textContent = '更新があります。リロードしますか？';
-      btn.addEventListener('click', () => {
-        registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-        location.reload();
-      });
-      banner.appendChild(btn);
-      document.body.appendChild(banner);
-    }
-
-    if (registration.waiting) {
-      showUpdateBanner();
-    }
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      if (newWorker) {
-        newWorker.addEventListener('statechange', () => {
-          if (registration.waiting) {
-            showUpdateBanner();
-          }
+loadVersion().then(() => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register(`sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(registration => {
+      function showUpdateBanner() {
+        if (document.getElementById('sw-update')) return;
+        const banner = document.createElement('div');
+        banner.id = 'sw-update';
+        banner.style.position = 'fixed';
+        banner.style.bottom = '0';
+        banner.style.left = '0';
+        banner.style.right = '0';
+        banner.style.background = '#333';
+        banner.style.color = '#fff';
+        banner.style.padding = '8px';
+        banner.style.textAlign = 'center';
+        const btn = document.createElement('button');
+        btn.textContent = '更新があります。リロードしますか？';
+        btn.addEventListener('click', () => {
+          registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+          location.reload();
         });
+        banner.appendChild(btn);
+        document.body.appendChild(banner);
       }
+
+      if (registration.waiting) {
+        showUpdateBanner();
+      }
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (registration.waiting) {
+              showUpdateBanner();
+            }
+          });
+        }
+      });
+      navigator.serviceWorker.addEventListener('controllerchange', showUpdateBanner);
     });
-    navigator.serviceWorker.addEventListener('controllerchange', showUpdateBanner);
-  });
-}
+  }
+});
