@@ -1,7 +1,8 @@
 {:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.12.1"}
         metosin/malli {:mvn/version "0.14.0"}
-        org.clojure/data.json {:mvn/version "2.5.0"}}
+        org.clojure/data.json {:mvn/version "2.5.0"}
+        org.clojure/data.csv {:mvn/version "1.0.1"}}
  :aliases
  {:test {:extra-paths ["test"]
          :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
