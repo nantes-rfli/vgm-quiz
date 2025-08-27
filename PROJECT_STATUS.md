@@ -42,4 +42,5 @@ python -m http.server -d public 4444
 - CSV import pipeline
 - autofetch workflow
 - Ingest pipeline added
-- Fix: switch import_csv to clojure.data.csv; resolve autofetch crash
+
+- Switch to clojure.data.csv for CSV import

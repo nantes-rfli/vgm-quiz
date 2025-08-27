@@ -7,7 +7,7 @@
 (defn- ->headers [heads]
   (->> heads
        (map #(-> %
-                 (str/replace #"^\uFEFF" "") ; drop BOM if present
+                 (str/replace #"^\uFEFF" "")
                  str/trim
                  str/lower-case))
        vec))
@@ -40,5 +40,5 @@
 
 (defn write-edn [out-path items]
   (let [f (io/file out-path)]
-    (.getParentFile f) ;; ensure parent dir exists
+    (.getParentFile f)
     (spit f (with-out-str (pp/pprint (vec items))))))
