@@ -119,3 +119,11 @@ jobs:
             ~/.deps.clj
             .cpcache
           key: cljdeps-${{ runner.os }}-${{ hashFiles('**/deps.edn') }}
+
+      - name: Upload e2e artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: e2e-artifacts
+          if-no-files-found: ignore
