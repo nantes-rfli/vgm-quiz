@@ -31,7 +31,7 @@
 
       "import-csv"
       (let [[in out] opts
-            new (map ic/normalize-track (ic/parse-csv in))
+            new (map ingest/normalize-track (ic/parse-csv in))
             existing (if (.exists (io/file out))
                        (edn/read-string (slurp out))
                        [])
