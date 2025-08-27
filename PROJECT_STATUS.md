@@ -40,3 +40,4 @@ python -m http.server -d public 4444
 - Versioned cache + version label
 - QA-3: EDN schema validation
 - CSV import pipeline
+- autofetch workflow
