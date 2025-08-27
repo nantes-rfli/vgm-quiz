@@ -28,7 +28,9 @@ jobs:
         uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
-      - name: Fetch candidates
+      - name: Run tests
+        run: clojure -M:test
+      - name: Run autofetch
         run: clojure -M -m vgm.autofetch
       - name: Ingest candidates
         run: clojure -M -m vgm.cli ingest
