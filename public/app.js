@@ -280,19 +280,43 @@ async function loadAliases() {
 }
 
 async function loadVersion() {
+  let commit = 'dev';
   try {
-    const res = await fetch(VERSION_URL);
+    const res = await fetch(VERSION_URL, { cache: 'no-store' });
     const data = await res.json();
-    window.__APP_VERSION__ = data.commit || 'dev';
     window.__DATASET_VERSION__ = data.dataset_version || null;
+    const parts = [
+      `Dataset v${data.dataset_version}`,
+      data.content_hash.slice(0, 8),
+      new Date(data.generated_at).toLocaleString()
+    ];
+
+    try {
+      const metaRes = await fetch('build/app-meta.json', { cache: 'no-store' });
+      if (metaRes.ok) {
+        const meta = await metaRes.json();
+        if (meta.commit) {
+          commit = meta.commit;
+          parts.push(`commit: ${commit.slice(0, 7)}`);
+        }
+      } else if (data.commit) {
+        commit = data.commit;
+      }
+    } catch (_) {
+      if (data.commit) commit = data.commit;
+    }
+
+    window.__APP_VERSION__ = commit;
+    const el = document.getElementById('ver');
+    if (el) {
+      el.textContent = parts.join(' • ');
+      el.style.fontSize = 'small';
+      el.style.opacity = '0.7';
+      el.style.textAlign = 'center';
+    }
   } catch (err) {
     console.warn('Failed to load version', err);
   }
-  const el = document.createElement('div');
-  el.id = 'app-version';
-  el.style.marginTop = '1em';
-  el.textContent = `Version: ${window.__APP_VERSION__}`;
-  document.body.appendChild(el);
 }
 
 function escapeCsv(str) {
