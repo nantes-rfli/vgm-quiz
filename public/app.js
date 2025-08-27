@@ -37,10 +37,27 @@ async function applyUpdateAndReload(){
   location.reload();
 }
 
-function showUpdatePrompt(){
-  if(confirm('新しい問題が利用可能です。更新しますか？')){
-    applyUpdateAndReload();
-  }
+let swRegistration = null;
+function showUpdateBanner(){
+  if(document.getElementById('sw-update') || !swRegistration) return;
+  const banner = document.createElement('div');
+  banner.id = 'sw-update';
+  banner.style.position = 'fixed';
+  banner.style.bottom = '0';
+  banner.style.left = '0';
+  banner.style.right = '0';
+  banner.style.background = '#333';
+  banner.style.color = '#fff';
+  banner.style.padding = '8px';
+  banner.style.textAlign = 'center';
+  const btn = document.createElement('button');
+  btn.textContent = '更新があります。リロードしますか？';
+  btn.addEventListener('click', () => {
+    swRegistration.waiting?.postMessage({type:'SKIP_WAITING'});
+    navigator.serviceWorker.addEventListener('controllerchange', applyUpdateAndReload);
+  });
+  banner.appendChild(btn);
+  document.body.appendChild(banner);
 }
 
 const SETTINGS_KEY = 'quiz-options';
@@ -280,33 +297,18 @@ async function loadAliases() {
 }
 
 async function loadVersion() {
-  let commit = 'dev';
   try {
     const res = await fetch(VERSION_URL, { cache: 'no-store' });
     const data = await res.json();
     window.__DATASET_VERSION__ = data.dataset_version || null;
+    const commit = data.commit || 'dev';
+    window.__APP_VERSION__ = commit;
     const parts = [
       `Dataset v${data.dataset_version}`,
       data.content_hash.slice(0, 8),
-      new Date(data.generated_at).toLocaleString()
+      new Date(data.generated_at).toLocaleString(),
+      `commit: ${commit.slice(0, 7)}`
     ];
-
-    try {
-      const metaRes = await fetch('build/app-meta.json', { cache: 'no-store' });
-      if (metaRes.ok) {
-        const meta = await metaRes.json();
-        if (meta.commit) {
-          commit = meta.commit;
-          parts.push(`commit: ${commit.slice(0, 7)}`);
-        }
-      } else if (data.commit) {
-        commit = data.commit;
-      }
-    } catch (_) {
-      if (data.commit) commit = data.commit;
-    }
-
-    window.__APP_VERSION__ = commit;
     const el = document.getElementById('ver');
     if (el) {
       el.textContent = parts.join(' • ');
@@ -638,45 +640,22 @@ loadAliases();
 navigator.serviceWorker?.addEventListener('message', async (e)=>{
   if(e.data?.type==='version-refreshed'){
     const {content_hash} = await readVersionNoStore();
-    if(currentHash() !== content_hash){ showUpdatePrompt(); }
+    if(currentHash() !== content_hash){ showUpdateBanner(); }
   }
 });
 
 loadVersion().then(() => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register(`sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(registration => {
-      function showUpdateBanner() {
-        if (document.getElementById('sw-update')) return;
-        const banner = document.createElement('div');
-        banner.id = 'sw-update';
-        banner.style.position = 'fixed';
-        banner.style.bottom = '0';
-        banner.style.left = '0';
-        banner.style.right = '0';
-        banner.style.background = '#333';
-        banner.style.color = '#fff';
-        banner.style.padding = '8px';
-        banner.style.textAlign = 'center';
-        const btn = document.createElement('button');
-        btn.textContent = '更新があります。リロードしますか？';
-        btn.addEventListener('click', () => {
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            window.location.reload();
-          });
-        });
-        banner.appendChild(btn);
-        document.body.appendChild(banner);
-      }
-
-      if (registration.waiting) {
+    navigator.serviceWorker.register(`sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(reg => {
+      swRegistration = reg;
+      if (swRegistration.waiting) {
         showUpdateBanner();
       }
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
+      swRegistration.addEventListener('updatefound', () => {
+        const newWorker = swRegistration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
-            if (registration.waiting) {
+            if (swRegistration.waiting) {
               showUpdateBanner();
             }
           });

@@ -10,42 +10,53 @@ const CORE_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
-
-self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
 
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    if (url.pathname.endsWith('/build/dataset.json') || url.pathname.endsWith('/build/version.json')) {
+    if (url.pathname.endsWith('/build/dataset.json')) {
       event.respondWith((async () => {
         const cache = await caches.open(CACHE_NAME);
         const cached = await cache.match(event.request);
-        const network = fetch(event.request, {cache:'no-store'}).then(async response => {
-          if (response.ok) {
-            await cache.put(event.request, response.clone());
-            if (url.pathname.endsWith('/build/version.json')) {
-              const clients = await self.clients.matchAll();
-              clients.forEach(c => c.postMessage({type:'version-refreshed'}));
-            }
-          }
-          return response;
+        const network = fetch(event.request, { cache: 'no-store' }).then(async r => {
+          if (r.ok) await cache.put(event.request, r.clone());
+          return r;
         }).catch(() => {});
         event.waitUntil(network);
         return cached || network;
       })());
       return;
     }
-    event.respondWith(
-      caches.match(event.request).then(cached => {
-        return cached || fetch(event.request).then(response => {
-          const resClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
-          return response;
-        });
-      })
-    );
+    if (url.pathname.endsWith('/build/version.json')) {
+      event.respondWith((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(event.request);
+        const network = fetch(event.request, { cache: 'no-store' }).then(async r => {
+          if (r.ok) {
+            await cache.put(event.request, r.clone());
+            const clients = await self.clients.matchAll();
+            clients.forEach(c => c.postMessage({ type: 'version-refreshed' }));
+          }
+          return r;
+        }).catch(() => {});
+        event.waitUntil(network);
+        return cached || network;
+      })());
+      return;
+    }
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(event.request);
+      const fetchPromise = fetch(event.request).then(async r => {
+        if (r.ok) await cache.put(event.request, r.clone());
+        return r;
+      }).catch(() => {});
+      if (cached) event.waitUntil(fetchPromise);
+      return cached || fetchPromise;
+    })());
   });
 
 self.addEventListener('message', event => {
