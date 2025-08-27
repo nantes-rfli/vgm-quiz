@@ -6,7 +6,7 @@ let awaitingNext = false;
 let currentRunId = null;
 let datasetLoaded = false;
 const aliases = {};
-let questionMode = 'text'; // multiple choice mode uses 'mc4'
+let questionMode = 'free'; // multiple choice mode uses 'multiple-choice'
 let timerId = null;
 let remaining = 20;
 let useTimer = false;
@@ -413,7 +413,7 @@ function showQuestion() {
   aliasBtn.onclick = null;
   scoreBar.textContent = `Score: ${score}/${questions.length}`;
   const choiceButtons = choices.querySelectorAll('button.choice');
-  if (questionMode === 'mc4') {
+  if (questionMode === 'multiple-choice') {
     answer.style.display = 'none';
     submit.style.display = 'none';
     const opts = generateChoices(q.track, q.type, tracks, canonical).sort(() => Math.random() - 0.5);
@@ -638,7 +638,7 @@ if (settings.mode) {
 }
 updateStartButton();
 
-console.log('features', { mode: questionMode === 'mc4' ? 'MC' : 'Text', timer: useTimer ? '20s' : 'off' });
+console.log('features', { mode: questionMode === 'multiple-choice' ? 'MC' : 'Free', timer: useTimer ? '20s' : 'off' });
 
 checkOnLoad();
 loadDataset();
