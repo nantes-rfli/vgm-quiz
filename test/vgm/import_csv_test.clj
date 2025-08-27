@@ -1,7 +1,6 @@
 (ns vgm.import-csv-test
   (:require [clojure.test :refer :all]
-            [vgm.import-csv :as ic]
-            [clojure.java.io :as io]))
+            [vgm.import-csv :as ic]))
 
 (deftest parse-basic-csv
   (let [f (java.io.File/createTempFile "icf" ".csv")]
