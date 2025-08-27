@@ -171,10 +171,14 @@ function showQuestion() {
   const prompt = document.getElementById('prompt');
   const answer = document.getElementById('answer');
   const submit = document.getElementById('submit-btn');
+  const next = document.getElementById('next-btn');
   const feedback = document.getElementById('feedback');
+  const scoreBar = document.getElementById('score-bar');
   answer.value = '';
   feedback.textContent = '';
-  submit.textContent = 'Submit';
+  submit.disabled = false;
+  next.style.display = 'none';
+  scoreBar.textContent = `Score: ${score}/${questions.length}`;
   switch (q.type) {
     case 'title-game':
       prompt.textContent = `Which game is the track "${q.track.title}" from?`;
@@ -192,16 +196,13 @@ function showQuestion() {
 }
 
 function submitAnswer() {
-  if (awaitingNext) {
-    nextQuestion();
-    return;
-  }
   const q = questions[current];
   const promptText = document.getElementById('prompt').textContent;
   const rawInput = document.getElementById('answer').value;
   const userAns = canonical(rawInput);
   const expected = canonical(q.expected);
   const feedback = document.getElementById('feedback');
+  const scoreBar = document.getElementById('score-bar');
   const correct = userAns === expected;
   if (correct) {
     score++;
@@ -210,14 +211,17 @@ function submitAnswer() {
     feedback.textContent = `Incorrect. Correct: ${q.expected}`;
   }
   recordPlay({
-    track: q.track,
+    trackId: trackId(q.track),
     prompt: promptText,
     expected: q.expected,
     userAnswer: rawInput,
     correct
   });
+  scoreBar.textContent = `Score: ${score}/${questions.length}`;
   const submit = document.getElementById('submit-btn');
-  submit.textContent = current === questions.length - 1 ? 'Finish' : 'Next';
+  const next = document.getElementById('next-btn');
+  submit.disabled = true;
+  next.style.display = 'inline';
   awaitingNext = true;
 }
 
@@ -259,10 +263,16 @@ async function clearHistory() {
 
 document.getElementById('start-btn').addEventListener('click', startQuiz);
 document.getElementById('submit-btn').addEventListener('click', submitAnswer);
+document.getElementById('next-btn').addEventListener('click', nextQuestion);
 document.getElementById('restart-btn').addEventListener('click', restart);
 document.getElementById('history-btn').addEventListener('click', showHistory);
 document.getElementById('history-back-btn').addEventListener('click', () => showView('start-view'));
 document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
+document.getElementById('answer').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    awaitingNext ? nextQuestion() : submitAnswer();
+  }
+});
 
 loadDataset();
 loadAliases();
