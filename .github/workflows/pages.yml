@@ -41,6 +41,14 @@ jobs:
       - name: Publish
         run: clojure -T:build publish
 
+      - name: Sanity checks
+        run: |
+          test -f public/index.html
+          test -f public/app.js
+          test -f public/manifest.webmanifest
+          test -f public/build/dataset.json
+          ! grep -qi "Code Snapshot" public/index.html || (echo "Snapshot index detected"; exit 1)
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
