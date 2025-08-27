@@ -38,6 +38,9 @@
     (:id m) (-> (assoc :track/id (:id m))
                 (dissoc :id))))
 
+(defn- strip-meta [m]
+  (apply dissoc m (for [k (keys m) :when (= "meta" (namespace k))] k)))
+
 (defn- normalize-track [m0]
   (let [m (-> m0
               migrate-id
@@ -50,7 +53,8 @@
               (update :composer str))]
     (-> m
         (assoc :track/id (stable-id m))
-        (dissoc :id))))
+        (dissoc :id)
+        strip-meta)))
 
 (defn- normalize-items [items]
   (->> items (map normalize-track) vec))
