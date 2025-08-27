@@ -53,6 +53,20 @@ jobs:
           if git grep -nE '^(<<<<<<<|=======$|>>>>>>> )' -- ':!public/build/*' ':!dist/*' ; then
             echo "Unresolved merge conflict markers found"; exit 1; fi
 
+      - name: Static guards (typos & legacy)
+        run: |
+          set -euo pipefail
+          # Directories to scan
+          DIRS="src test resources scripts"
+          # 1) ban typo 'engest/'
+          ! git grep -n "engest/" -- $DIRS || { echo "Typo 'engest/' found"; exit 1; }
+          # 2) ban old normalizer ref
+          ! git grep -n "ic/normalize-track" -- $DIRS || { echo "Use ingest/normalize-track instead of ic/normalize-track"; exit 1; }
+          # 3) ban split-based CSV parsing (must use clojure.data.csv)
+          ! git grep -nE 'string/split.+","' -- src || { echo "Legacy CSV parsing detected. Use clojure.data.csv"; exit 1; }
+          # 4) enforce data.csv version via sentinel
+          grep -q 'SENTINEL: data.csv-parser v1' src/vgm/import_csv.clj || { echo "import_csv.clj is not the data.csv version"; exit 1; }
+
       - name: Preflight require (vgm.cli)
         run: clojure -M -e "(require 'vgm.cli 'vgm.ingest 'vgm.import-csv)"
 
