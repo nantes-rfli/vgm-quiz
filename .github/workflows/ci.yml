@@ -48,6 +48,11 @@ jobs:
       - name: clj-kondo
         run: clj-kondo --lint src test build.clj || clj-kondo --version
 
+      - name: Check for unresolved merge conflict markers
+        run: |
+          if git grep -nE '^(<<<<<<<|=======$|>>>>>>> )' -- ':!public/build/*' ':!dist/*' ; then
+            echo "Unresolved merge conflict markers found"; exit 1; fi
+
       - name: Build dataset/publish
         run: |
           clojure -T:build clean || true
