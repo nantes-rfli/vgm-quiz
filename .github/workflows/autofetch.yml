@@ -30,6 +30,10 @@ jobs:
           cli: latest
       - name: Run tests
         run: clojure -M:test
+      - name: Guard parser implementation (sentinel & no split-based csv)
+        run: |
+          grep -q 'SENTINEL: data.csv-parser v1' src/vgm/import_csv.clj
+          ! grep -R 'string/split.*","' -n src || (echo "Old parser detected"; exit 1)
       - name: Run autofetch
         run: clojure -M -m vgm.autofetch
       - name: Ingest candidates
