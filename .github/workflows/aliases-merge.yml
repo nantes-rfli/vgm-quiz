@@ -1,0 +1,45 @@
+name: Merge alias proposals
+
+on:
+  pull_request:
+    paths:
+      - 'resources/alias_proposals/*.edn'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+      - run: clojure -T:build publish || true
+      - name: Preflight require (aliases)
+        run: clojure -M -e "(require 'vgm.aliases)"
+      - id: merge
+        run: |
+          table=$(clojure -M -m vgm.aliases merge resources/alias_proposals/*.edn resources/data/aliases.edn)
+          echo "table<<'EOF'" >> $GITHUB_OUTPUT
+          echo "$table" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Update aliases
+          title: Update aliases (auto-merge proposals)
+          body: ${{ steps.merge.outputs.table }}
+          labels: data, aliases
+          branch: bot/aliases-merge-${{ github.run_id }}
+          base: ${{ github.event.pull_request.base.ref }}
+          add-paths: resources/data/aliases.edn
+          delete-branch: true
