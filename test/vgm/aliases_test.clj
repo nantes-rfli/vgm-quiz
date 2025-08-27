@@ -1,15 +1,14 @@
 (ns vgm.aliases-test
-  (:require [clojure.test :refer [deftest is]]
-            [vgm.aliases :as aliases]))
+  (:require [clojure.test :refer :all]
+            [vgm.aliases :as sut]))
 
-(deftest merge-proposals-test
+(deftest merge-proposals-basic
   (let [aliases   {:game {"dragon quest" #{"dq"}}}
-        proposals {:game {"Dragon Quest" ["ドラゴンクエスト"]
-                           "ゼルダの伝説" ["ゼルダ"]}}
-        {:keys [merged stats]} (aliases/merge-proposals aliases proposals)]
+        proposals {:game {"dragon quest" #{"ドラゴンクエスト" "dq"}}
+                   :composer {"toby fox" #{"トビー・フォックス"}}}
+        {:keys [result added total-added]} (sut/merge-proposals aliases proposals)]
     (is (= #{"dq" "ドラゴンクエスト"}
-           (get-in merged [:game "dragon quest"])))
-    (is (= #{"ゼルダ"}
-           (get-in merged [:game "ゼルダの伝説"])))
-    (is (= {:game {:added 1 :updated 1}}
-           stats))))
+           (get-in result [:game "dragon quest"])))
+    (is (= 1 (get-in added [:game "dragon quest"])))
+    (is (= 1 (get-in added [:composer "toby fox"])))
+    (is (= 2 total-added))))

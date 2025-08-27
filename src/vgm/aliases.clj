@@ -1,67 +1,96 @@
 (ns vgm.aliases
-  (:gen-class)
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.set :as set]
-            [vgm.core-shared :as shared]))
+            [clojure.pprint :as pp]
+            [clojure.string :as str]
+            [clojure.set :as set])
+  (:import (java.io PushbackReader)
+           (java.text Normalizer Normalizer$Form)))
 
-(defn- canonicalize [m]
-  (into {}
-        (for [[cat entries] m]
-          [cat
-           (into {}
-                 (for [[canon aliases] entries]
-                   [(shared/normalize canon)
-                    (set (map shared/normalize aliases))]))]))
+;; --- I/O helpers -----------------------------------------------------------
 
-(defn- merge-aliases [base props]
-  (merge-with
-    (fn [m1 m2]
-      (merge-with set/union m1 m2))
-    base props))
+(defn- read-edn-file [path]
+  (let [f (io/file path)]
+    (when (.exists f)
+      (with-open [r (io/reader f)]
+        (edn/read (PushbackReader. r))))))
 
-(defn- diff-stats [base props]
-  (into {}
-        (for [[cat entries] props]
-          (let [base-entries (get base cat {})]
-            [cat {:added   (count (remove #(contains? base-entries %) (keys entries)))
-                  :updated (count (filter (fn [k]
-                                            (let [new (get entries k)
-                                                  old (get base-entries k #{})]
-                                              (not (set/subset? new old))))
-                                          (filter #(contains? base-entries %) (keys entries))))}]))))
+(defn- write-edn-file [path data]
+  (let [f (io/file path)]
+    (when-let [dir (.getParentFile f)]
+      (.mkdirs dir))
+    (spit f (with-out-str (pp/pprint data)))))
 
-(defn merge-proposals [aliases proposals]
-  (let [aliases   (canonicalize aliases)
-        proposals (canonicalize proposals)
-        merged    (merge-aliases aliases proposals)]
-    {:merged merged
-     :stats  (diff-stats aliases proposals)}))
+;; --- Normalization (match core canonicalization) ---------------------------
 
-(defn- stats-table [stats]
-  (let [header "| Category | Added | Updated |\n|---|---:|---:|\n"]
-    (str header
-         (apply str
-                (for [[cat {:keys [added updated]}] (sort-by key stats)]
-                  (format "| %s | %d | %d |\n" (name cat) added updated))))))
+(defn- nfkc [s]
+  (Normalizer/normalize (str s) Normalizer$Form/NFKC))
 
-(defn -main [& args]
-  (let [[cmd & more] args]
-    (case cmd
-      "merge" (let [aliases-path (last more)
-                     props-files  (butlast more)
-                     proposals    (reduce (fn [acc f]
-                                            (merge-aliases acc (canonicalize (edn/read-string (slurp f)))))
-                                          {}
-                                          props-files)
-                     aliases      (if (.exists (io/file aliases-path))
-                                    (edn/read-string (slurp aliases-path))
-                                    {})
-                     {:keys [merged stats]} (merge-proposals aliases proposals)]
-                 (spit aliases-path (pr-str merged))
-                 (println (stats-table stats)))
-      (do
-        (binding [*out* *err*]
-          (println "Unknown command" cmd)
-          (println "Usage: merge <proposals.edn>... <aliases.edn>"))
-        (System/exit 1)))))
+(defn- base-normalize [s]
+  (-> s nfkc str/trim str/lower-case))
+
+;; Ensure {:game {:canon #{aliases}} :composer {...}} with sets and normalized keys/values.
+(defn- normalize-alias-map [m]
+  (letfn [(norm-cat [cat-map]
+            (reduce
+              (fn [acc [canon aliases]]
+                (let [canon* (base-normalize canon)
+                      set*   (into #{} (map base-normalize) (or aliases #{}))
+                      prev   (get acc canon* #{})
+                      merged (into prev set*)]
+                  (assoc acc canon* merged)))
+              {}
+              (or cat-map {})))]
+    {:game     (norm-cat (:game m))
+     :composer (norm-cat (:composer m))}))
+
+;; --- Merge -----------------------------------------------------------------
+
+(defn merge-proposals
+  "Merge proposals into existing aliases.
+   Returns {:result <merged> :added {cat {canon n}} :total-added n}."
+  [aliases proposals]
+  (let [A (normalize-alias-map (or aliases {}))
+        P (normalize-alias-map (or proposals {}))
+        cats [:game :composer]
+        result (reduce
+                 (fn [acc cat]
+                   (update acc cat
+                           (fn [am]
+                             (reduce (fn [am* [canon pset]]
+                                       (update am* canon (fnil into #{}) pset))
+                                     (or am {})
+                                     (get P cat {})))))
+                 A
+                 cats)
+        added  (into {}
+                     (for [cat cats]
+                       [cat
+                        (into {}
+                              (for [[canon pset] (get P cat {})]
+                                (let [before (get-in A [cat canon] #{})
+                                      diff   (set/difference pset before)]
+                                  [canon (count diff)]))]))
+        total-added (reduce + 0 (mapcat vals (vals added)))]
+    {:result result :added added :total-added total-added}))
+
+;; --- CLI -------------------------------------------------------------------
+
+(defn -main [& [cmd proposals-path aliases-path]]
+  (case cmd
+    "merge"
+    (let [proposals (or (and proposals-path (read-edn-file proposals-path)) {})
+          aliases   (or (and aliases-path   (read-edn-file aliases-path))   {})
+          {:keys [result added total-added]} (merge-proposals aliases proposals)
+          out (or aliases-path "resources/data/aliases.edn")]
+      (write-edn-file out result)
+      (println (format "aliases merged → %s (added %d)" out total-added))
+      (doseq [cat [:game :composer]]
+        (let [m (get added cat)
+              m' (into {} (remove (comp zero? val)) m)]
+          (when (seq m')
+            (println (name cat) ":" m'))))
+      (shutdown-agents))
+    (do
+      (println "Usage: clojure -M -m vgm.aliases merge <proposals.edn> <aliases.edn>")
+      (shutdown-agents))))

@@ -24,6 +24,8 @@ jobs:
         with:
           cli: latest
       - run: clojure -T:build publish || true
+      - name: Preflight require (aliases)
+        run: clojure -M -e "(require 'vgm.aliases)"
       - id: merge
         run: |
           table=$(clojure -M -m vgm.aliases merge resources/alias_proposals/*.edn resources/data/aliases.edn)

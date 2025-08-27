@@ -74,6 +74,9 @@ jobs:
         run: |
           clojure -T:build clean || true
           clojure -T:build publish
+      - name: Preflight require (aliases)
+        run: clojure -M -e "(require 'vgm.aliases)"
+
 
       - name: Tests (if any)
         run: |
