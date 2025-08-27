@@ -1,0 +1,25 @@
+name: Auto-Enable PR Auto-Merge
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable:
+    if: >
+      github.event.pull_request.head.repo.full_name == github.repository && (
+        startsWith(github.event.pull_request.head.ref, 'codex/') ||
+        startsWith(github.event.pull_request.head.ref, 'bot/') ||
+        contains(join(github.event.pull_request.labels.*.name), 'automerge')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge (squash)
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
