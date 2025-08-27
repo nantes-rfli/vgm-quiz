@@ -36,4 +36,5 @@ python -m http.server -d public 4444
 - 12: export for みんはや
 - 11: web pipeline applied
 - Pages: publish app under /app
+- Release workflow added
 

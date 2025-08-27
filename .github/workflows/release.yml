@@ -1,0 +1,25 @@
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build dataset
+        run: |
+          clojure -T:build clean
+          clojure -T:build publish
+      - name: Bundle artifacts
+        run: |
+          mkdir -p dist
+          cp -r public/build dist/
+          cp -r public dist/app
+          tar -czf vgm-quiz-${{ github.ref_name }}.tar.gz dist
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG.md
+          files: |
+            vgm-quiz-${{ github.ref_name }}.tar.gz

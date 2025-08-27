@@ -44,9 +44,8 @@ Index page displays dataset version and track count.
 
 ## Snapshot
 
-Latest code snapshot: (see GitHub Pages URL after first deploy)
-
-Play the app: https://<owner>.github.io/<repo>/app/
+- [Code Snapshot](https://<owner>.github.io/<repo>/)
+- [Live App](https://<owner>.github.io/<repo>/app/)
 
 ## Codex sandbox validation
 
