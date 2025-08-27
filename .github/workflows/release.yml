@@ -1,25 +1,62 @@
+name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag name to release (e.g., v1.0.0). Leave empty when using tag push."
+        required: false
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tags/history available
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
       - name: Build dataset
         run: |
-          clojure -T:build clean
+          clojure -T:build clean || true
           clojure -T:build publish
+
       - name: Bundle artifacts
         run: |
           mkdir -p dist
           cp -r public/build dist/
           cp -r public dist/app
-          tar -czf vgm-quiz-${{ github.ref_name }}.tar.gz dist
-      - name: Create GitHub Release
+          tar -czf vgm-quiz-${{ github.ref_name != '' && github.ref_name || (inputs.tag != '' && inputs.tag || 'manual') }}.tar.gz dist
+
+      # tagで走った場合（push）
+      - name: Create GitHub Release (tag push)
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           body_path: CHANGELOG.md
-          files: |
-            vgm-quiz-${{ github.ref_name }}.tar.gz
+          files: vgm-quiz-${{ github.ref_name }}.tar.gz
+
+      # 手動実行（workflow_dispatch）の場合
+      - name: Create GitHub Release (manual)
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          body_path: CHANGELOG.md
+          files: vgm-quiz-${{ inputs.tag != '' && inputs.tag || 'manual' }}.tar.gz
