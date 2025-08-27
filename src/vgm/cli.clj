@@ -46,7 +46,7 @@
             candidates  (->> (ingest/read-candidates "resources/candidates")
                              (map ingest/normalize-track))
             merged      (ingest/merge-unique existing candidates)
-            sorted      (engest/sort-tracks merged)]
+            sorted      (ingest/sort-tracks merged)]
         (ingest/rewrite-tracks! sorted)
         (println (format "Ingested %d candidates, wrote %d total tracks"
                          (count candidates) (count sorted))))
