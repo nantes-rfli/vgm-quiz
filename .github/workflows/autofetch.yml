@@ -2,12 +2,16 @@ name: Auto-fetch
 
 on:
   schedule:
-    - cron: "30 19 * * 1"
+    - cron: "30 18 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
         type: boolean
         default: false
+
+concurrency:
+  group: "autofetch"
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -52,6 +56,16 @@ jobs:
         run: clojure -M -e "(require 'vgm.autofetch 'vgm.cli 'vgm.ingest 'vgm.import-csv)"
       - name: Run autofetch
         run: clojure -M -m vgm.autofetch
+      - name: Run stats
+        run: |
+          YEAR=$(clojure -M -m vgm.stats added-by-year || echo "Stats unavailable")
+          echo "YEAR<<'EOF'" >> $GITHUB_ENV
+          echo "$YEAR" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          COMP=$(clojure -M -m vgm.stats added-by-composer || echo "Stats unavailable")
+          echo "COMP<<'EOF'" >> $GITHUB_ENV
+          echo "$COMP" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
       - name: Ingest candidates
         run: clojure -M -m vgm.cli ingest
       - name: Create PR
@@ -67,10 +81,11 @@ jobs:
             - Please review stats below. CI will validate schema and IDs.
 
             ### Stats (preview)
-            ```
-            $ clojure -M -m vgm.stats added-by-year
-            $ clojure -M -m vgm.stats added-by-composer
-            ```
+            #### Added by year
+            ${{ env.YEAR }}
+
+            #### Added by composer
+            ${{ env.COMP }}
           labels: data, bot
           delete-branch: true
       - name: Enable auto-merge (squash)
