@@ -10,7 +10,8 @@ let questionMode = 'input'; // multiple choice mode uses 'mc'
 let timerId = null;
 let remaining = 20;
 let paused = false;
-window.__APP_VERSION__ = 'dev';
+const scriptTag = document.currentScript;
+window.__APP_VERSION__ = scriptTag?.dataset?.version || 'dev';
 window.__DATASET_VERSION__ = null;
 
 const VERSION_URL = 'build/version.json';
@@ -603,6 +604,8 @@ if (settings.mode) {
   questionMode = settings.mode;
 }
 updateStartButton();
+
+console.log('features', { mode: questionMode === 'mc' ? 'MC' : 'Text', timer: '20s' });
 
 checkOnLoad();
 loadDataset();

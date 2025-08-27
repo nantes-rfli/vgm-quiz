@@ -69,6 +69,10 @@ python -m http.server -d public 4444
 # or: npx serve public
 ```
 
+CI builds provide the current commit hash via the `GITHUB_SHA` environment variable.
+`build.clj` reads this with `System/getenv` to write `public/build/app-meta.json`
+for cache-busting purposes.
+
 Index page displays dataset version and track count.
 
 ## Snapshot

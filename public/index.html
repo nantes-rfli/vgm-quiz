@@ -28,6 +28,7 @@
         <option value="20">20</option>
       </select>
     </label>
+    <div id="timer-info">Timer 20s</div>
     <button id="start-btn" disabled>Start</button>
     <div id="dataset-error" style="display:none;color:red;"></div>
     <button id="history-btn">History</button>
@@ -62,8 +63,8 @@
     <button id="restart-btn">Restart</button>
   </div>
 
-  <script src="mc.js"></script>
-  <script src="app.js"></script>
+    <script src="mc.js"></script>
+    <script src="app.js?ver=d27d0cc" data-version="d27d0cc"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
