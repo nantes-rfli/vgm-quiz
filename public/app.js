@@ -245,3 +245,44 @@ document.getElementById('clear-history-btn').addEventListener('click', clearHist
 
 loadDataset();
 loadAliases();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(registration => {
+    function showUpdateBanner() {
+      if (document.getElementById('sw-update')) return;
+      const banner = document.createElement('div');
+      banner.id = 'sw-update';
+      banner.style.position = 'fixed';
+      banner.style.bottom = '0';
+      banner.style.left = '0';
+      banner.style.right = '0';
+      banner.style.background = '#333';
+      banner.style.color = '#fff';
+      banner.style.padding = '8px';
+      banner.style.textAlign = 'center';
+      const btn = document.createElement('button');
+      btn.textContent = '更新があります。リロードしますか？';
+      btn.addEventListener('click', () => {
+        registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+        location.reload();
+      });
+      banner.appendChild(btn);
+      document.body.appendChild(banner);
+    }
+
+    if (registration.waiting) {
+      showUpdateBanner();
+    }
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (newWorker) {
+        newWorker.addEventListener('statechange', () => {
+          if (registration.waiting) {
+            showUpdateBanner();
+          }
+        });
+      }
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', showUpdateBanner);
+  });
+}
