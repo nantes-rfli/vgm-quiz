@@ -38,6 +38,9 @@ jobs:
       - name: Clean
         run: clojure -T:build clean || true
 
+      - name: Check root redirect
+        run: grep -q 'url=./app/' public/index.html
+
       - name: Publish
         run: clojure -T:build publish
 
