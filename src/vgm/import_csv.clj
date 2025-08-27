@@ -1,8 +1,10 @@
 (ns vgm.import-csv
+  "SENTINEL: data.csv-parser v1"
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.pprint :as pp]))
+;; ^ Look for the SENTINEL above to confirm correct version in CI.
 
 (defn- ->headers [heads]
   (->> heads
@@ -13,7 +15,6 @@
        vec))
 
 (defn parse-csv [path]
-  ;; returns seq of {:title :game :composer :year}
   (let [rows (with-open [r (io/reader path)]
                (into [] (csv/read-csv r)))
         headers (->headers (first rows))
@@ -28,15 +29,12 @@
        :composer (nth row (idx "composer") "")
        :year     (Integer/parseInt (str (nth row (idx "year") "")))})))
 
-(defn merge-unique
-  "existing/new are seqs of track maps. Deduplicate by [title game composer year]."
-  [existing new]
+(defn merge-unique [existing new]
   (let [k (fn [{:keys [title game composer year]}]
             [(str/trim title) (str/trim game) (str/trim composer) (int year)])]
     (->> (concat existing new)
          (reduce (fn [m t] (assoc m (k t) t)) {})
-         vals
-         vec)))
+         vals vec)))
 
 (defn write-edn [out-path items]
   (let [f (io/file out-path)]
