@@ -28,10 +28,17 @@ jobs:
         uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
-      - name: Guard parser implementation (sentinel & no split-based csv)
+      - name: Static guards (typos & legacy)
         run: |
+          set -euo pipefail
+          # ensure data.csv parser is used
           grep -q 'SENTINEL: data.csv-parser v1' src/vgm/import_csv.clj
-          ! grep -R 'string/split.*","' -n src || (echo "Old parser detected"; exit 1)
+          # ban split-based CSV parsing
+          ! git grep -nE 'string/split.+","' -- src || { echo "Legacy CSV parsing detected. Use clojure.data.csv"; exit 1; }
+          # ban typo 'engest/'
+          ! git grep -n "engest/" -- ':!public/build/*' || { echo "Typo 'engest/' found"; exit 1; }
+          # ban old normalizer ref
+          ! git grep -n "ic/normalize-track" -- ':!public/build/*' || { echo "Use ingest/normalize-track instead of ic/normalize-track"; exit 1; }
       - name: Build dataset for tests
         run: |
           clojure -T:build clean || true
