@@ -43,6 +43,19 @@ Then merge it into the dataset:
 clojure -M -m vgm.cli import-csv new_tracks.csv resources/data/tracks.edn
 ```
 
+## Alias proposals
+
+クイズで誤答した際に表示される「別名として提案」ボタンから候補を保存できます。
+
+1. 提案を溜めたら、スタート画面の「Export alias proposals (.edn)」ボタンでダウンロード。
+2. CLI で既存の `aliases.edn` に統合します。
+
+```bash
+clojure -M -m vgm.aliases merge-proposals alias-proposals.edn resources/data/aliases.edn
+```
+
+3. 生成された `aliases.edn` をコミットして PR を作成してください。
+
 ## 概要
 
 * `resources/data/tracks.edn` を読み込み
