@@ -18,8 +18,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
+      - name: Build dataset for Pages
+        run: |
+          clojure -T:build clean || true
+          clojure -T:build publish
+
       - name: Build snapshot site
         run: bash scripts/snapshot.sh
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
