@@ -1,0 +1,10 @@
+#kaocha/v1
+{:tests [{:id :unit
+          :test-paths ["test"]}]
+ :randomize? true
+ :color? true
+ :fail-fast? false
+ :reporter [kaocha.report/documentation]}
+
+# (If you prefer a progress bar, use this instead:)
+# :reporter [kaocha.report.progress/report]
