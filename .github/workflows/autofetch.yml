@@ -9,6 +9,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   autofetch:
     runs-on: ubuntu-latest
@@ -29,6 +33,7 @@ jobs:
       - name: Ingest candidates
         run: clojure -M -m vgm.cli ingest
       - name: Create PR
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           branch: "bot/ingest-${{ github.run_id }}"
@@ -46,3 +51,10 @@ jobs:
             ```
           labels: data, bot
           delete-branch: true
+      - name: Enable auto-merge (squash)
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
