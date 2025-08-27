@@ -4,7 +4,7 @@
             [clojure.java.io :as io]))
 
 (deftest parse-basic-csv
-  (let [f (java.io.File/createTempFile "ic" ".csv")]
+  (let [f (java.io.File/createTempFile "icf" ".csv")]
     (.deleteOnExit f)
     (spit f "title,game,composer,year\nMegalovania,UNDERTALE,Toby Fox,2015\n")
     (let [xs (vec (ic/parse-csv (.getPath f)))]
