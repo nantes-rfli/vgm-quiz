@@ -23,11 +23,19 @@
       (let [{:keys [n format]} (parse-opts opts)
             n (or (some-> n Integer/parseInt) 30)
             format (keyword (or format "plain"))
-            items (export/build-questions n)
+            items (export/build-questions n {})
             out (case format
                   :csv (export/to-csv items)
                   (export/to-plain items))]
         (println out))
+
+      "export-minhaya"
+      (let [[out & more] opts
+            {:keys [n]} (parse-opts more)
+            n (or (some-> n Integer/parseInt) 100)
+            items (export/build-questions n {})
+            csv (export/to-minhaya-csv items)]
+        (spit out csv))
 
       "import-csv"
       (let [[in out] opts

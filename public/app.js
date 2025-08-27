@@ -206,7 +206,10 @@ function selectedTypes() {
 }
 
 function updateStartButton() {
-  document.getElementById('start-btn').disabled = !datasetLoaded || selectedTypes().length === 0;
+  const disabled = !datasetLoaded || selectedTypes().length === 0;
+  document.getElementById('start-btn').disabled = disabled;
+  const btn = document.getElementById('export-minhaya-btn');
+  if (btn) btn.disabled = disabled;
 }
 
 async function loadDataset() {
@@ -256,6 +259,51 @@ async function loadVersion() {
   el.style.marginTop = '1em';
   el.textContent = `Version: ${window.__APP_VERSION__}`;
   document.body.appendChild(el);
+}
+
+function escapeCsv(str) {
+  return '"' + String(str).replace(/"/g, '""') + '"';
+}
+
+function toMinhayaCsv(items) {
+  const rows = items.map(it => `${escapeCsv(it.question)},${escapeCsv(it.answer)},${escapeCsv(it.explanation || '')}`);
+  return `question,answer,explanation\n${rows.join('\n')}`;
+}
+
+function exportMinhaya() {
+  const countSelect = document.getElementById('count');
+  let n = parseInt(countSelect.value, 10) || 5;
+  const deduped = distinctBy(['title', 'game', 'composer'], tracks);
+  n = Math.min(n, deduped.length);
+  const selected = spreadByBucket(deduped, t => yearBucket(t.year), n);
+  const types = selectedTypes();
+  const items = selected.map(track => {
+    const type = types[Math.floor(Math.random() * types.length)];
+    switch (type) {
+      case 'title-game':
+        return { question: `この曲の収録作品は？: ${track.title}`,
+                 answer: track.game,
+                 explanation: `${track.year} / ${track.composer}` };
+      case 'game-composer':
+        return { question: `この作品の作曲者は？: ${track.game}`,
+                 answer: track.composer,
+                 explanation: `${track.year}` };
+      case 'title-composer':
+        return { question: `この曲の作曲者は？: ${track.title}`,
+                 answer: track.composer,
+                 explanation: `${track.year} / ${track.game}` };
+    }
+  });
+  const csv = toMinhayaCsv(items);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'minhaya.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function startQuiz() {
@@ -419,6 +467,11 @@ document.getElementById('history-btn').addEventListener('click', showHistory);
 document.getElementById('history-back-btn').addEventListener('click', () => showView('start-view'));
 document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
 document.getElementById('export-aliases-btn').addEventListener('click', exportAliasProposals);
+const exportMinhayaBtn = document.createElement('button');
+exportMinhayaBtn.id = 'export-minhaya-btn';
+exportMinhayaBtn.textContent = 'Export for みんはや';
+exportMinhayaBtn.addEventListener('click', exportMinhaya);
+document.getElementById('start-view').appendChild(exportMinhayaBtn);
 document.querySelectorAll('input[name="qtype"]').forEach(cb => {
   cb.addEventListener('change', () => {
     settings.types = selectedTypes();
