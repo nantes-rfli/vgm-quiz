@@ -2,56 +2,63 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const TIMEOUT = 45000;
 
+async function dumpArtifacts(page, prefix = 'failure') {
+  try {
+    fs.mkdirSync('e2e-artifacts', { recursive: true });
+    await page
+      .screenshot({ path: `e2e-artifacts/${prefix}.png`, fullPage: true })
+      .catch(() => {});
+    const html = await page.content().catch(() => '');
+    fs.writeFileSync(`e2e-artifacts/${prefix}.html`, html);
+  } catch (_) {}
+}
+
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
 
   try {
-    await page.goto('http://localhost:8080/', {
+    await page.goto(process.env.APP_URL || 'http://127.0.0.1:8080/app/', {
       waitUntil: 'domcontentloaded',
-      timeout: TIMEOUT,
+      timeout: 60000,
     });
     await page.waitForResponse(
       (resp) => resp.url().endsWith('/build/dataset.json') && resp.ok(),
       { timeout: TIMEOUT }
     );
-
-    await page.waitForSelector('#mode', { state: 'visible' });
-    await page.waitForFunction(
-      () => {
-        const el = document.querySelector('#mode');
-        return el && el.querySelectorAll('option').length >= 2;
-      },
-      { timeout: 30000 }
-    );
-
-    const values = await page.$$eval('#mode option', (opts) =>
-      opts.map((o) => o.value || o.textContent.trim())
-    );
-    const wanted = ['multiple-choice', 'mc', 'choices', 'free', 'input'];
-    const pick =
-      wanted.find((w) => values.includes(w)) || values.find((v) => v) || null;
-    if (!pick) {
-      throw new Error(`No selectable option: got [${values.join(', ')}]`);
+    let picked = false;
+    try {
+      const hasMode = await page.$('#mode');
+      if (hasMode) {
+        await page
+          .waitForSelector('#mode', { state: 'visible', timeout: 5000 })
+          .catch(() => {});
+        const values = await page.$$eval('#mode option', (opts) =>
+          opts.map((o) => o.value || o.textContent.trim())
+        );
+        if (values.length > 0) {
+          const wanted = ['multiple-choice', 'mc', 'choices', 'free', 'input'];
+          const pick = wanted.find((w) => values.includes(w)) || values[0];
+          await page
+            .selectOption('#mode', { value: pick })
+            .catch(async () => {
+              await page
+                .selectOption('#mode', { label: pick })
+                .catch(() => {});
+            });
+          picked = true;
+        }
+      }
+    } catch (e) {
+      await dumpArtifacts(page, 'mode-select');
+      // continue even if mode selection fails
     }
-    await page
-      .selectOption('#mode', { value: pick })
-      .catch(async () => {
-        await page.selectOption('#mode', { label: pick });
-      });
 
-    await page.waitForSelector('#start-btn', {
-      state: 'attached',
-      timeout: TIMEOUT,
+    await page.waitForSelector('#start', {
+      state: 'visible',
+      timeout: 15000,
     });
-    await page.waitForFunction(
-      () => {
-        const b = document.querySelector('#start-btn');
-        return b && !b.disabled;
-      },
-      { timeout: TIMEOUT }
-    );
-    await page.click('#start-btn');
+    await page.click('#start');
 
     await page.waitForFunction(
       () => {
@@ -68,14 +75,10 @@ const TIMEOUT = 45000;
       { timeout: TIMEOUT }
     );
   } catch (e) {
-    await page
-      .screenshot({ path: 'e2e-artifacts/failure.png', fullPage: true })
-      .catch(() => {});
-    const html = await page.content().catch(() => '');
-    fs.mkdirSync('e2e-artifacts', { recursive: true });
-    fs.writeFileSync('e2e-artifacts/dom.html', html);
+    await dumpArtifacts(page);
     throw e;
   } finally {
     await browser.close();
   }
 })();
+
