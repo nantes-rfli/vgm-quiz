@@ -4,7 +4,9 @@
             [clojure.java.io :as io]
             [clojure.data.json :as json])
   (:import (java.io PushbackReader)
-           (java.util UUID)))
+           (java.util UUID)
+           (java.security MessageDigest)
+           (java.math BigInteger)))
 
 (defn clean [_]
   (b/delete {:path "build"}))
@@ -91,6 +93,23 @@
         (ensure-dir (.getParent (io/file json-path)))
         (spit (io/file json-path) (json/write-str data :key-fn kw->json-key))))))
 
+(defn- file-digest [^MessageDigest md ^java.io.File f]
+  (with-open [is (io/input-stream f)]
+    (let [buf (byte-array 8192)]
+      (loop []
+        (let [n (.read is buf)]
+          (when (pos? n)
+            (.update md buf 0 n)
+            (recur)))))))
+
+(defn- dataset-version []
+  (let [md (MessageDigest/getInstance "SHA-256")]
+    (doseq [path ["public/build/dataset.json" "public/build/aliases.json"]]
+      (let [f (io/file path)]
+        (when (.exists f)
+          (file-digest md f))))
+    (format "%064x" (BigInteger. 1 (.digest md)))))
+
 (defn publish [_]
   ;; 1) 生成
   (dataset nil)
@@ -105,7 +124,10 @@
   ;; 5) version.json
   (let [sha (System/getenv "GITHUB_SHA")
         commit (if (and sha (<= 7 (count sha))) (subs sha 0 7) "dev")
+        ds-meta (-> (slurp (io/file "public/build/dataset.json"))
+                    (json/read-str :key-fn keyword))
         ver {:commit commit
-             :generated_at (str (java.time.Instant/now))}]
+             :dataset_version (dataset-version)
+             :generated_at (:generated_at ds-meta)}]
     (spit (io/file "public/build/version.json")
           (json/write-str ver))))

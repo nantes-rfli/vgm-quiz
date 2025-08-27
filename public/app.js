@@ -5,6 +5,7 @@ let score = 0;
 let awaitingNext = false;
 const aliases = {};
 window.__APP_VERSION__ = 'dev';
+window.__DATASET_VERSION__ = null;
 
 const DB_NAME = 'vgm-quiz';
 const STORE = 'plays';
@@ -140,6 +141,7 @@ async function loadVersion() {
     const res = await fetch('./build/version.json');
     const data = await res.json();
     window.__APP_VERSION__ = data.commit || 'dev';
+    window.__DATASET_VERSION__ = data.dataset_version || null;
   } catch (err) {
     console.warn('Failed to load version', err);
   }
@@ -279,6 +281,22 @@ loadAliases();
 
 loadVersion().then(() => {
   if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', async event => {
+      if (event.data && event.data.type === 'dataset-updated') {
+        try {
+          const res = await fetch('./build/version.json');
+          const v = await res.json();
+          if (v.dataset_version && v.dataset_version !== window.__DATASET_VERSION__) {
+            if (confirm('新しい問題が利用可能です。更新しますか？')) {
+              location.reload();
+            }
+            window.__DATASET_VERSION__ = v.dataset_version;
+          }
+        } catch (err) {
+          console.error('Failed to check dataset version', err);
+        }
+      }
+    });
     navigator.serviceWorker.register(`sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(registration => {
       function showUpdateBanner() {
         if (document.getElementById('sw-update')) return;
