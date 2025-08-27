@@ -9,7 +9,19 @@
   <h1>VGM Quiz</h1>
 
   <div id="start-view">
-    <label>Questions: <input id="count" type="number" min="1" value="5" /></label>
+    <fieldset>
+      <legend>Question types</legend>
+      <label><input type="checkbox" id="type-title-game" name="qtype" value="title-game" checked /> title→game</label>
+      <label><input type="checkbox" id="type-game-composer" name="qtype" value="game-composer" checked /> game→composer</label>
+      <label><input type="checkbox" id="type-title-composer" name="qtype" value="title-composer" checked /> title→composer</label>
+    </fieldset>
+    <label>Number of questions
+      <select id="count">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+      </select>
+    </label>
     <button id="start-btn" disabled>Start</button>
     <div id="dataset-error" style="display:none;color:red;"></div>
     <button id="history-btn">History</button>
@@ -32,6 +44,10 @@
 
   <div id="result-view" style="display:none">
     <div id="final-score"></div>
+    <div id="summary">
+      <h2>Summary</h2>
+      <ul id="summary-list"></ul>
+    </div>
     <button id="restart-btn">Restart</button>
   </div>
 

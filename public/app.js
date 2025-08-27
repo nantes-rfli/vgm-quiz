@@ -3,9 +3,30 @@ let questions = [];
 let current = 0;
 let score = 0;
 let awaitingNext = false;
+let currentRunId = null;
+let datasetLoaded = false;
 const aliases = {};
 window.__APP_VERSION__ = 'dev';
 window.__DATASET_VERSION__ = null;
+
+const SETTINGS_KEY = 'quiz-options';
+function loadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+const settings = loadSettings();
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+const TYPE_LABELS = {
+  'title-game': 'title→game',
+  'game-composer': 'game→composer',
+  'title-composer': 'title→composer'
+};
 
 const DB_NAME = 'vgm-quiz';
 const STORE = 'plays';
@@ -104,12 +125,21 @@ function spreadByBucket(items, bucketFn, n) {
   return result;
 }
 
+function selectedTypes() {
+  return Array.from(document.querySelectorAll('input[name="qtype"]:checked')).map(cb => cb.value);
+}
+
+function updateStartButton() {
+  document.getElementById('start-btn').disabled = !datasetLoaded || selectedTypes().length === 0;
+}
+
 async function loadDataset() {
   try {
     const res = await fetch('./build/dataset.json');
     const data = await res.json();
     tracks = data.tracks;
-    document.getElementById('start-btn').disabled = false;
+    datasetLoaded = true;
+    updateStartButton();
   } catch (err) {
     console.error('Failed to load dataset', err);
     const msg = document.getElementById('dataset-error');
@@ -153,13 +183,13 @@ async function loadVersion() {
 }
 
 function startQuiz() {
-  const countInput = document.getElementById('count');
-  let n = parseInt(countInput.value, 10);
-  if (!n || n < 1) n = 1;
+  currentRunId = Date.now();
+  const countSelect = document.getElementById('count');
+  let n = parseInt(countSelect.value, 10) || 5;
   const deduped = distinctBy(['title', 'game', 'composer'], tracks);
   n = Math.min(n, deduped.length);
   const selected = spreadByBucket(deduped, t => yearBucket(t.year), n);
-  const types = ['title-game', 'game-composer', 'title-composer'];
+  const types = selectedTypes();
   questions = selected.map(track => ({ track, type: types[Math.floor(Math.random() * types.length)] }));
   current = 0;
   score = 0;
@@ -177,6 +207,7 @@ function showQuestion() {
   const feedback = document.getElementById('feedback');
   const scoreBar = document.getElementById('score-bar');
   answer.value = '';
+  answer.focus();
   feedback.textContent = '';
   submit.disabled = false;
   next.style.display = 'none';
@@ -197,6 +228,16 @@ function showQuestion() {
   }
 }
 
+function showHint() {
+  const q = questions[current];
+  const feedback = document.getElementById('feedback');
+  if (q.type === 'title-game') {
+    feedback.textContent = `Hint: ${q.track.year}`;
+  } else {
+    feedback.textContent = `Hint: ${q.expected[0]}`;
+  }
+}
+
 function submitAnswer() {
   const q = questions[current];
   const promptText = document.getElementById('prompt').textContent;
@@ -212,7 +253,10 @@ function submitAnswer() {
   } else {
     feedback.textContent = `Incorrect. Correct: ${q.expected}`;
   }
+  q.userAnswer = rawInput;
+  q.correct = correct;
   recordPlay({
+    runId: currentRunId,
     trackId: trackId(q.track),
     prompt: promptText,
     expected: q.expected,
@@ -239,6 +283,13 @@ function nextQuestion() {
 function showResult() {
   showView('result-view');
   document.getElementById('final-score').textContent = `Score: ${score}/${questions.length}`;
+  const list = document.getElementById('summary-list');
+  list.innerHTML = '';
+  questions.forEach(q => {
+    const li = document.createElement('li');
+    li.textContent = `${TYPE_LABELS[q.type]} - ${q.correct ? '✅' : '❌'} - ${q.expected} - ${q.userAnswer || ''} - ${q.track.year} - ${q.track.game}`;
+    list.appendChild(li);
+  });
 }
 
 function restart() {
@@ -249,7 +300,9 @@ async function showHistory() {
   const list = document.getElementById('history-list');
   list.innerHTML = '';
   const items = await fetchHistory();
-  items.forEach(p => {
+  let latestRunId = items.find(p => p.runId)?.runId;
+  const filtered = latestRunId ? items.filter(p => p.runId === latestRunId) : items;
+  filtered.forEach(p => {
     const li = document.createElement('li');
     const ts = new Date(p.ts).toLocaleString();
     li.textContent = `${ts} - ${p.prompt} - ${p.userAnswer} - ${p.correct ? '✅' : '❌'}`;
@@ -270,11 +323,39 @@ document.getElementById('restart-btn').addEventListener('click', restart);
 document.getElementById('history-btn').addEventListener('click', showHistory);
 document.getElementById('history-back-btn').addEventListener('click', () => showView('start-view'));
 document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
-document.getElementById('answer').addEventListener('keydown', e => {
+document.querySelectorAll('input[name="qtype"]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    settings.types = selectedTypes();
+    saveSettings();
+    updateStartButton();
+  });
+});
+const countEl = document.getElementById('count');
+countEl.addEventListener('change', () => {
+  settings.count = parseInt(countEl.value, 10);
+  saveSettings();
+});
+
+document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
+    e.preventDefault();
     awaitingNext ? nextQuestion() : submitAnswer();
+  } else if (e.key.toLowerCase() === 'n' && e.target.id !== 'answer' && awaitingNext) {
+    nextQuestion();
+  } else if (e.key.toLowerCase() === 'h' && e.target.id !== 'answer' && !awaitingNext) {
+    showHint();
   }
 });
+
+if (settings.types) {
+  document.querySelectorAll('input[name="qtype"]').forEach(cb => {
+    cb.checked = settings.types.includes(cb.value);
+  });
+}
+if (settings.count) {
+  countEl.value = settings.count;
+}
+updateStartButton();
 
 loadDataset();
 loadAliases();
