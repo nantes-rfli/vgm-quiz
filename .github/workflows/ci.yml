@@ -53,6 +53,9 @@ jobs:
           if git grep -nE '^(<<<<<<<|=======$|>>>>>>> )' -- ':!public/build/*' ':!dist/*' ; then
             echo "Unresolved merge conflict markers found"; exit 1; fi
 
+      - name: Preflight require (vgm.cli)
+        run: clojure -M -e "(require 'vgm.cli 'vgm.ingest 'vgm.import-csv)"
+
       - name: Build dataset/publish
         run: |
           clojure -T:build clean || true
