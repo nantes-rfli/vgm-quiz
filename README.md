@@ -28,6 +28,8 @@ clojure -M -m vgm.cli export --format csv > out.csv
 
 ## Contributing data
 
+Candidates go to `resources/candidates/*.edn` (map/vector of tracks). `:meta/*` allowed.
+
 Provide a CSV file with the header `title,game,composer,year`:
 
 ```csv
