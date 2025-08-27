@@ -15,11 +15,14 @@
       <label><input type="checkbox" id="type-game-composer" name="qtype" value="game-composer" checked /> game→composer</label>
       <label><input type="checkbox" id="type-title-composer" name="qtype" value="title-composer" checked /> title→composer</label>
     </fieldset>
-    <label>Question mode
+    <label>Mode:
       <select id="mode">
-        <option value="input">自由入力</option>
-        <option value="mc">4択</option>
+        <option value="text">自由入力</option>
+        <option value="mc4">4択</option>
       </select>
+    </label>
+    <label style="margin-left:8px">
+      <input type="checkbox" id="timer20"> タイマー(20s)
     </label>
     <label>Number of questions
       <select id="count">
@@ -28,7 +31,6 @@
         <option value="20">20</option>
       </select>
     </label>
-    <div id="timer-info">Timer 20s</div>
     <button id="start-btn" disabled>Start</button>
     <div id="dataset-error" style="display:none;color:red;"></div>
     <button id="history-btn">History</button>
@@ -43,10 +45,14 @@
 
   <div id="question-view" style="display:none">
     <div id="score-bar"></div>
-    <div id="timer">20</div>
-    <button id="pause-btn">Pause</button>
+    <div id="countdown" style="display:none; margin-top:6px;"></div>
     <div id="prompt"></div>
-    <div id="choices" style="display:none"></div>
+    <div id="choices" style="display:none; margin-top:8px">
+      <button class="choice"></button>
+      <button class="choice"></button>
+      <button class="choice"></button>
+      <button class="choice"></button>
+    </div>
     <input id="answer" type="text" autocomplete="off" />
     <button id="submit-btn">Submit</button>
     <button id="next-btn" style="display:none">Next</button>
