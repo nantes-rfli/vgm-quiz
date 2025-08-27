@@ -4,4 +4,7 @@
  :randomize? true
  :color? true
  :fail-fast? false
- :reporter [kaocha.report/progress]}
+ :reporter [kaocha.report/documentation]}
+
+# (If you prefer a progress bar, use this instead:)
+# :reporter [kaocha.report.progress/report]
