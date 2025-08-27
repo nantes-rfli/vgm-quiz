@@ -1,4 +1,5 @@
-const CACHE_NAME = 'pwa-cache-v1';
+self.__APP_VERSION__ = new URL(self.location).searchParams.get('v');
+const CACHE_NAME = 'vgm-quiz-' + (self.__APP_VERSION__ || 'dev');
 const CORE_ASSETS = [
   './',
   './index.html',
