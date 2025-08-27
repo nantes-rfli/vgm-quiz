@@ -16,7 +16,7 @@ self.addEventListener('install', event => {
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
 
-  self.addEventListener('fetch', event => {
+self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
     if (url.pathname.endsWith('/build/dataset.json') || url.pathname.endsWith('/build/version.json')) {
       event.respondWith((async () => {

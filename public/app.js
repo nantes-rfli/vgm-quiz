@@ -660,8 +660,10 @@ loadVersion().then(() => {
         const btn = document.createElement('button');
         btn.textContent = '更新があります。リロードしますか？';
         btn.addEventListener('click', () => {
-          registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-          applyUpdateAndReload();
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            window.location.reload();
+          });
         });
         banner.appendChild(btn);
         document.body.appendChild(banner);
@@ -680,7 +682,6 @@ loadVersion().then(() => {
           });
         }
       });
-      navigator.serviceWorker.addEventListener('controllerchange', showUpdateBanner);
     });
   }
 });
