@@ -14,13 +14,31 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  if (url.pathname.endsWith('/build/dataset.json') || url.pathname.endsWith('/build/aliases.json')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(event.request);
+      const network = fetch(event.request).then(async response => {
+        if (response.ok) {
+          await cache.put(event.request, response.clone());
+          const clients = await self.clients.matchAll();
+          clients.forEach(c => c.postMessage({type:'dataset-updated'}));
+        }
+        return response;
+      }).catch(() => {});
+      event.waitUntil(network);
+      return cached || network;
+    })());
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then(cached => {
-      const fetchPromise = fetch(event.request).then(response => {
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
+      return cached || fetch(event.request).then(response => {
+        const resClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
         return response;
       });
-      return cached || fetchPromise;
     })
   );
 });
@@ -30,4 +48,3 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
-
