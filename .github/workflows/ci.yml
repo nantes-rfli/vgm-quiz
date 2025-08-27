@@ -84,10 +84,30 @@ jobs:
 
       - name: Web assets sanity
         run: |
-          test -f public/index.html
-          test -f public/app.js
-          test -f public/sw.js || true
-          test -f public/manifest.webmanifest || true
+          set -euxo pipefail
+
+          echo "== public listing =="
+          ls -la public || (echo "missing public/ dir"; exit 1)
+
+          # index.html can be at public/index.html or public/app/index.html
+          if [ -f public/index.html ] || [ -f public/app/index.html ]; then
+            echo "index.html OK"
+          else
+            echo "index.html missing (checked public/index.html and public/app/index.html)"
+            exit 1
+          fi
+
+          # app.js can be at public/app.js or public/app/app.js
+          if [ -f public/app.js ] || [ -f public/app/app.js ]; then
+            echo "app.js OK"
+          else
+            echo "app.js missing (checked public/app.js and public/app/app.js)"
+            exit 1
+          fi
+
+          # optional assets
+          [ -f public/sw.js ] || true
+          [ -f public/manifest.webmanifest ] || true
 
       - name: Save deps cache (main only)
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
