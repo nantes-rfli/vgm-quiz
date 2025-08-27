@@ -2,10 +2,9 @@ name: Pages
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -15,6 +14,10 @@ concurrency:
 
 jobs:
   build:
+    if: >
+      contains(github.event.head_commit.message, 'chore(data)') ||
+      contains(join(github.event.head_commit.message, ' '), 'Data ingest') ||
+      contains(join(github.event.head_commit.message, ' '), 'data ingest')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,14 +37,13 @@ jobs:
         run: |
           clojure -T:build clean || true
           clojure -T:build publish
-
-      - name: Build snapshot site
-        run: bash scripts/snapshot.sh
+      - name: Verify dataset
+        run: test -f public/build/dataset.json
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: public
 
   deploy:
     needs: build
