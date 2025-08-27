@@ -26,6 +26,21 @@ clojure -M -m vgm.cli export
 clojure -M -m vgm.cli export --format csv > out.csv
 ```
 
+## Contributing data
+
+Provide a CSV file with the header `title,game,composer,year`:
+
+```csv
+title,game,composer,year
+Megalovania,UNDERTALE,Toby Fox,2015
+```
+
+Then merge it into the dataset:
+
+```bash
+clojure -M -m vgm.cli import-csv new_tracks.csv resources/data/tracks.edn
+```
+
 ## 概要
 
 * `resources/data/tracks.edn` を読み込み

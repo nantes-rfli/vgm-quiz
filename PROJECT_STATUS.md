@@ -39,3 +39,4 @@ python -m http.server -d public 4444
 - Release workflow added
 - Versioned cache + version label
 - QA-3: EDN schema validation
+- CSV import pipeline
