@@ -39,8 +39,8 @@ jobs:
           test -f public/build/dataset.json
       - name: Run tests
         run: clojure -M:test
-      - name: Preflight require (autofetch)
-        run: clojure -M -e "(require 'vgm.autofetch 'vgm.ingest 'vgm.import-csv)"
+      - name: Preflight require (cli + autofetch)
+        run: clojure -M -e "(require 'vgm.autofetch 'vgm.cli 'vgm.ingest 'vgm.import-csv)"
       - name: Run autofetch
         run: clojure -M -m vgm.autofetch
       - name: Ingest candidates
