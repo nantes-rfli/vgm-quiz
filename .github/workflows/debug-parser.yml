@@ -1,0 +1,27 @@
+name: Debug Parser
+on:
+  workflow_dispatch: {}
+
+jobs:
+  show:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
+      - name: Show import_csv.clj head
+        run: sed -n '1,120p' src/vgm/import_csv.clj || true
+
+      - name: Print source of vgm.import-csv/parse-csv
+        run: |
+          clojure -Srepro -e "(require '[vgm.import-csv :as ic] 'clojure.repl) (clojure.repl/source ic/parse-csv)"
