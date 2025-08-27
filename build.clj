@@ -119,14 +119,10 @@
   ;; 5) version.json
   (let [ds-meta (-> (slurp (io/file "public/build/dataset.json"))
                     (json/read-str :key-fn keyword))
+        commit (or (System/getenv "GITHUB_SHA") "dev")
         ver {:dataset_version 1
              :content_hash (sha256-file "public/build/dataset.json")
-             :generated_at (:generated_at ds-meta)}]
+             :generated_at (:generated_at ds-meta)
+             :commit commit}]
     (spit (io/file "public/build/version.json")
-          (json/write-str ver))
-    ;; app metadata for cache busting; CI provides GITHUB_SHA env var
-    (let [commit (or (System/getenv "GITHUB_SHA") "unknown")
-          meta {:commit commit
-                :built_at (str (java.time.Instant/now))}]
-      (spit (io/file "public/build/app-meta.json")
-            (json/write-str meta)))))
+          (json/write-str ver))))
