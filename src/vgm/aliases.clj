@@ -27,7 +27,7 @@
   (Normalizer/normalize (str s) Normalizer$Form/NFKC))
 
 (defn- base-normalize [s]
-  (-> s nfkc str/trim str/lower-case))
+  (-> (or s "") nfkc str/trim str/lower-case))
 
 ;; Ensure {:game {:canon #{aliases}} :composer {...}} with sets and normalized keys/values.
 (defn- normalize-alias-map [m]
@@ -70,7 +70,7 @@
                               (for [[canon pset] (get P cat {})]
                                 (let [before (get-in A [cat canon] #{})
                                       diff   (set/difference pset before)]
-                                  [canon (count diff)]))]))
+                                  [canon (count diff)])))]))
         total-added (reduce + 0 (mapcat vals (vals added)))]
     {:result result :added added :total-added total-added}))
 
