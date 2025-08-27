@@ -28,6 +28,7 @@ python -m http.server -d public 4444
 ```
 
 ## Activity Log
+- E2E: #mode select has static options "multiple-choice" and "free"; do not add dynamically
 - CI: lint + schema test
 - CI: clj-kondo via release binary
 - CI: clj-kondo via setup-clojure
