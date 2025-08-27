@@ -12,7 +12,14 @@ const path = require('path');
   await page.goto('http://localhost:8080/');
 
   await page.waitForSelector('#start-btn:not([disabled])');
-  await page.fill('#count', '1');
+
+  // enable only one question type
+  await page.uncheck('#type-game-composer');
+  await page.uncheck('#type-title-composer');
+  await page.check('#type-title-game');
+
+  // set number of questions to 5
+  await page.selectOption('#count', '5');
   await page.click('#start-btn');
 
   await page.waitForSelector('#prompt');
@@ -43,18 +50,26 @@ const path = require('path');
     throw new Error(`Unexpected feedback: ${feedback}`);
   }
 
-  const scoreText = await page.textContent('#score-bar');
-  if (!/^Score: 1\/\d+/.test(scoreText)) {
-    throw new Error(`Unexpected score: ${scoreText}`);
+  await page.waitForSelector('#next-btn');
+  await page.click('#next-btn');
+
+  // skip remaining questions
+  for (let i = 0; i < 4; i++) {
+    await page.waitForSelector('#prompt');
+    await page.click('#submit-btn');
+    await page.waitForSelector('#next-btn');
+    await page.click('#next-btn');
   }
 
-  await page.click('#next-btn');
-  await page.click('#restart-btn');
-  await page.click('#history-btn');
-  await page.waitForSelector('#history-list li');
-  const historyCount = await page.locator('#history-list li').count();
-  if (historyCount < 1) {
-    throw new Error('History not recorded');
+  await page.waitForSelector('#final-score');
+  const finalScore = await page.textContent('#final-score');
+  if (!/^Score: [1-5]\/5$/.test(finalScore)) {
+    throw new Error(`Unexpected final score: ${finalScore}`);
+  }
+
+  const summaryCount = await page.locator('#summary-list li').count();
+  if (summaryCount < 1) {
+    throw new Error('Summary not generated');
   }
 
   await browser.close();
