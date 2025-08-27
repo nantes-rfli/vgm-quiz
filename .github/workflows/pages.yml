@@ -2,6 +2,12 @@ name: Pages
 on:
   push:
     branches: [ main ]
+    paths:
+      - "public/**"
+      - "src/**"
+      - "build.clj"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -14,10 +20,6 @@ concurrency:
 
 jobs:
   build:
-    if: >
-      contains(github.event.head_commit.message, 'chore(data)') ||
-      contains(join(github.event.head_commit.message, ' '), 'Data ingest') ||
-      contains(join(github.event.head_commit.message, ' '), 'data ingest')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,12 +35,11 @@ jobs:
         with:
           cli: latest
 
-      - name: Build dataset for Pages
-        run: |
-          clojure -T:build clean || true
-          clojure -T:build publish
-      - name: Verify dataset
-        run: test -f public/build/dataset.json
+      - name: Clean
+        run: clojure -T:build clean || true
+
+      - name: Publish
+        run: clojure -T:build publish
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
