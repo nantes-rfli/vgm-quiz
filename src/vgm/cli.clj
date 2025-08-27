@@ -3,6 +3,7 @@
   (:require [vgm.core :as core]
             [vgm.export :as export]
             [vgm.import-csv :as ic]
+            [vgm.ingest :as ingest]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]))
@@ -38,20 +39,17 @@
         (ic/write-edn out merged))
 
       "ingest"
-      (let [cand-dir (io/file "resources/candidates")
-            files (->> (file-seq cand-dir)
-                       (filter #(.isFile %))
-                       (filter #(str/ends-with? (.getName %) ".edn")))
-            new (->> files
-                     (mapcat (fn [f]
-                               (map ic/normalize-track
-                                    (edn/read-string (slurp f))))))
-            out "resources/data/tracks.edn"
-            existing (if (.exists (io/file out))
-                       (edn/read-string (slurp out))
-                       [])
-            merged (ic/merge-unique existing new)]
-        (ic/write-edn out merged))
+      (let [existing   (if (.exists (io/file "resources/data/tracks.edn"))
+                         (edn/read-string (slurp "resources/data/tracks.edn"))
+                         [])
+            candidates (->> (ingest/read-candidates "resources/candidates")
+                            (map ingest/normalize-track))
+            merged     (ingest/merge-unique existing candidates)
+            sorted     (ingest/sort-tracks merged)]
+        (ingest/rewrite-tracks! sorted)
+        (println (format "Ingested %d candidates, wrote %d total tracks"
+                         (count candidates) (count sorted))))
 
+      ;; default: run quiz with N questions
       (let [n (or (some-> cmd Integer/parseInt) 5)]
         (core/run-quiz! n)))))
