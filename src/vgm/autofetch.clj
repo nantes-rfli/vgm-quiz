@@ -1,16 +1,15 @@
 (ns vgm.autofetch
-  (:gen-class)
   (:require [vgm.import-csv :as ic]
-            [clojure.java.io :as io])
-  (:import [java.time LocalDate]
-           [java.time.format DateTimeFormatter]))
-
-(defn- today []
-  (.format (LocalDate/now) (DateTimeFormatter/ofPattern "yyyyMMdd")))
+            [vgm.ingest :as ingest])
+  (:import (java.time LocalDate)
+           (java.time.format DateTimeFormatter)))
 
 (defn -main [& _]
-  (let [feed "resources/feeds/sample.csv"
-        out (format "resources/candidates/autofetch-%s.edn" (today))
-        candidates (map ic/normalize-track (ic/parse-csv feed))]
-    (io/make-parents out)
-    (ic/write-edn out (vec candidates))))
+  (let [in "resources/feeds/sample.csv"
+        stamp (.format (DateTimeFormatter/ofPattern "yyyyMMdd") (LocalDate/now))
+        out (format "resources/candidates/autofetch-%s.edn" stamp)
+        candidates (->> (ic/parse-csv in)
+                        (map ingest/normalize-track))]
+    (ic/write-edn out candidates)
+    (println (format "autofetch: wrote %d candidates -> %s"
+                     (count candidates) out))))
