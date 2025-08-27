@@ -8,11 +8,15 @@
            :composer "ＣｏｍＰoSeR "
            :year "２０００"}
         r (sut/normalize-track m)]
-    (is (= {:title "test"
+    (is (= {:title "Test"
             :game "ゲーム"
-            :composer "composer"
+            :composer "ComPoSeR"
             :year 2000}
            r))))
+
+(deftest normalize-track-year-int-safe
+  (is (map? (sut/normalize-track
+             {:title "A" :game "B" :composer "C" :year 2015}))))
 
 (deftest merge-unique-test
   (let [existing [{:title "t" :game "g" :composer "c" :year 2000}]

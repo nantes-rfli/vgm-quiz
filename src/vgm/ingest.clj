@@ -2,7 +2,8 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp])
+  (:import (java.text Normalizer Normalizer$Form)))
 
 (defn read-candidates [dir]
   (let [files (->> (io/file dir)
@@ -17,19 +18,23 @@
                   :else [])))
             files)))
 
-(defn normalize-track [m]
-  (let [nfkc (fn [s]
-               (some-> s
-                       (java.text.Normalizer/normalize java.text.Normalizer$Form/NFKC)
-                       str/trim
-                       str/lower-case))
-        year-int (fn [y]
-                   (some-> y nfkc Integer/parseInt))]
-    (-> m
-        (update :title nfkc)
-        (update :game nfkc)
-        (update :composer nfkc)
-        (update :year year-int))))
+(defn- nfkc [s]
+  ;; Always safe for any type
+  (Normalizer/normalize (str s) Normalizer$Form/NFKC))
+
+(defn- normalize-str [s]
+  (some-> s nfkc str/trim)) ; 表示は元の大小を保つ（lower-caseしない）
+
+(defn normalize-track [m0]
+  (-> m0
+      (update :title normalize-str)
+      (update :game normalize-str)
+      (update :composer normalize-str)
+      (update :year (fn [y]
+                      (cond
+                        (int? y) y
+                        (string? y) (Integer/parseInt (str y))
+                        :else y)))))
 
 (defn merge-unique [existing new]
   (let [kfn (juxt :title :game :composer :year)
