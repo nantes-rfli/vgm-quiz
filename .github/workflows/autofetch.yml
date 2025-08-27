@@ -28,12 +28,17 @@ jobs:
         uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
-      - name: Run tests
-        run: clojure -M:test
       - name: Guard parser implementation (sentinel & no split-based csv)
         run: |
           grep -q 'SENTINEL: data.csv-parser v1' src/vgm/import_csv.clj
           ! grep -R 'string/split.*","' -n src || (echo "Old parser detected"; exit 1)
+      - name: Build dataset for tests
+        run: |
+          clojure -T:build clean || true
+          clojure -T:build publish
+          test -f public/build/dataset.json
+      - name: Run tests
+        run: clojure -M:test
       - name: Run autofetch
         run: clojure -M -m vgm.autofetch
       - name: Ingest candidates
