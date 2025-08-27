@@ -35,4 +35,5 @@ python -m http.server -d public 4444
 - Enable public code snapshot via GitHub Pages
 - 12: export for みんはや
 - 11: web pipeline applied
+- Pages: publish app under /app
 
