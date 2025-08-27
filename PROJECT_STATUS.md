@@ -38,4 +38,4 @@ python -m http.server -d public 4444
 - Pages: publish app under /app
 - Release workflow added
 - 2025-08-27: PWA update toast
-
+- QA-3: EDN schema validation
