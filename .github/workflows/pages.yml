@@ -41,6 +41,9 @@ jobs:
       - name: Publish
         run: clojure -T:build publish
 
+      - name: Verify service worker
+        run: test -f public/app/sw.js
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

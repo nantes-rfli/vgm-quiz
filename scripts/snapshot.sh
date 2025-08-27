@@ -5,7 +5,7 @@ OUT=site
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
-files="build.clj deps.edn PROJECT_STATUS.md README.md .github/workflows/ci.yml public/index.html public/app.js public/sw.js public/manifest.webmanifest"
+files="build.clj deps.edn PROJECT_STATUS.md README.md .github/workflows/ci.yml public/index.html public/app.js public/app/sw.js public/manifest.webmanifest"
 
 for dir in src test; do
   if [ -d "$dir" ]; then

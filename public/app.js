@@ -14,6 +14,8 @@ const scriptTag = document.currentScript;
 window.__APP_VERSION__ = scriptTag?.dataset?.version || 'dev';
 window.__DATASET_VERSION__ = null;
 
+const BASE = '/vgm-quiz/'; // GitHub Pages のプロジェクトパス
+
 const VERSION_URL = 'build/version.json';
 const HASH_KEY = 'dataset_hash';
 
@@ -651,7 +653,7 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
 
 loadVersion().then(() => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register(`sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(reg => {
+    navigator.serviceWorker.register(`${BASE}app/sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(reg => {
       swRegistration = reg;
       if (swRegistration.waiting) {
         showUpdateBanner();
