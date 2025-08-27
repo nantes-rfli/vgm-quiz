@@ -6,10 +6,10 @@ let awaitingNext = false;
 let currentRunId = null;
 let datasetLoaded = false;
 const aliases = {};
-let questionMode = 'input'; // multiple choice mode uses 'mc'
+let questionMode = 'text'; // multiple choice mode uses 'mc4'
 let timerId = null;
 let remaining = 20;
-let paused = false;
+let useTimer = false;
 const scriptTag = document.currentScript;
 window.__APP_VERSION__ = scriptTag?.dataset?.version || 'dev';
 window.__DATASET_VERSION__ = null;
@@ -370,6 +370,7 @@ function startQuiz() {
   currentRunId = Date.now();
   const modeSelect = document.getElementById('mode');
   questionMode = modeSelect.value;
+  useTimer = document.getElementById('timer20').checked;
   settings.mode = questionMode;
   saveSettings();
   const countSelect = document.getElementById('count');
@@ -396,13 +397,9 @@ function showQuestion() {
   const scoreBar = document.getElementById('score-bar');
   const aliasBtn = document.getElementById('propose-alias-btn');
   const choices = document.getElementById('choices');
-  const pauseBtn = document.getElementById('pause-btn');
-  const timerEl = document.getElementById('timer');
+  const countdown = document.getElementById('countdown');
   clearInterval(timerId);
   remaining = 20;
-  paused = false;
-  timerEl.textContent = remaining;
-  pauseBtn.textContent = 'Pause';
   answer.value = '';
   answer.focus();
   feedback.textContent = '';
@@ -413,20 +410,20 @@ function showQuestion() {
   aliasBtn.textContent = '別名として提案';
   aliasBtn.onclick = null;
   scoreBar.textContent = `Score: ${score}/${questions.length}`;
-  if (questionMode === 'mc') {
+  const choiceButtons = choices.querySelectorAll('button.choice');
+  if (questionMode === 'mc4') {
     answer.style.display = 'none';
     submit.style.display = 'none';
-    choices.innerHTML = '';
-    const opts = generateChoices(q.track, q.type, tracks, canonical);
+    const opts = generateChoices(q.track, q.type, tracks, canonical).sort(() => Math.random() - 0.5);
     q.options = opts;
-    opts.forEach(opt => {
-      const btn = document.createElement('button');
+    choiceButtons.forEach((btn, idx) => {
+      const opt = opts[idx];
       btn.textContent = opt;
-      btn.addEventListener('click', () => {
+      btn.disabled = false;
+      btn.onclick = () => {
         answer.value = opt;
         submitAnswer();
-      });
-      choices.appendChild(btn);
+      };
     });
     choices.style.display = 'block';
   } else {
@@ -449,17 +446,22 @@ function showQuestion() {
       break;
   }
   window.__expectedAnswer = q.expected;
-  timerId = setInterval(() => {
-    if (paused) return;
-    remaining--;
-    timerEl.textContent = remaining;
-    if (remaining <= 0) {
-      clearInterval(timerId);
-      timerId = null;
-      submitAnswer();
-      nextQuestion();
-    }
-  }, 1000);
+  if (useTimer) {
+    countdown.style.display = 'block';
+    countdown.textContent = remaining;
+    timerId = setInterval(() => {
+      remaining--;
+      countdown.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(timerId);
+        timerId = null;
+        submitAnswer();
+        nextQuestion();
+      }
+    }, 1000);
+  } else {
+    countdown.style.display = 'none';
+  }
 }
 
 function showHint() {
@@ -526,6 +528,10 @@ function submitAnswer() {
 }
 
 function nextQuestion() {
+  if (timerId) {
+    clearInterval(timerId);
+    timerId = null;
+  }
   current++;
   if (current >= questions.length) {
     showResult();
@@ -535,6 +541,10 @@ function nextQuestion() {
 }
 
 function showResult() {
+  if (timerId) {
+    clearInterval(timerId);
+    timerId = null;
+  }
   showView('result-view');
   document.getElementById('final-score').textContent = `Score: ${score}/${questions.length}`;
   const list = document.getElementById('summary-list');
@@ -578,11 +588,6 @@ document.getElementById('history-btn').addEventListener('click', showHistory);
 document.getElementById('history-back-btn').addEventListener('click', () => showView('start-view'));
 document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
 document.getElementById('export-aliases-btn').addEventListener('click', exportAliasProposals);
-document.getElementById('pause-btn').addEventListener('click', () => {
-  if (timerId === null) return;
-  paused = !paused;
-  document.getElementById('pause-btn').textContent = paused ? 'Resume' : 'Pause';
-});
 const exportMinhayaBtn = document.createElement('button');
 exportMinhayaBtn.id = 'export-minhaya-btn';
 exportMinhayaBtn.textContent = 'Export for みんはや';
@@ -631,7 +636,7 @@ if (settings.mode) {
 }
 updateStartButton();
 
-console.log('features', { mode: questionMode === 'mc' ? 'MC' : 'Text', timer: '20s' });
+console.log('features', { mode: questionMode === 'mc4' ? 'MC' : 'Text', timer: useTimer ? '20s' : 'off' });
 
 checkOnLoad();
 loadDataset();
