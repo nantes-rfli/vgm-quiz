@@ -3,6 +3,7 @@
   (:require [vgm.core :as core]
             [vgm.export :as export]
             [vgm.import-csv :as ic]
+            [vgm.ingest :as ingest]
             [clojure.edn :as edn]
             [clojure.java.io :as io]))
 
@@ -35,6 +36,16 @@
                        [])
             merged (ic/merge-unique existing new)]
         (ic/write-edn out merged))
+
+      "ingest"
+      (let [existing (if (.exists (io/file "resources/data/tracks.edn"))
+                       (edn/read-string (slurp "resources/data/tracks.edn"))
+                       [])
+            candidates (->> (ingest/read-candidates "resources/candidates")
+                            (map ingest/normalize-track))
+            merged (ingest/merge-unique existing candidates)
+            sorted (ingest/sort-tracks merged)]
+        (ingest/rewrite-tracks! sorted))
 
       (let [n (or (some-> cmd Integer/parseInt) 5)]
         (core/run-quiz! n)))))
