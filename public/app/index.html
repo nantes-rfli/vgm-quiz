@@ -1,0 +1,73 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VGM Quiz</title>
+<link rel="manifest" href="manifest.webmanifest">
+
+<h1>VGM Quiz</h1>
+
+<div id="start-view">
+  <fieldset>
+    <legend>Question types</legend>
+    <label><input type="checkbox" id="type-title-game" name="qtype" value="title-game" checked> title→game</label>
+    <label><input type="checkbox" id="type-game-composer" name="qtype" value="game-composer" checked> game→composer</label>
+    <label><input type="checkbox" id="type-title-composer" name="qtype" value="title-composer" checked> title→composer</label>
+  </fieldset>
+  <label>Mode:
+    <select id="mode">
+      <option value="text">自由入力</option>
+      <option value="mc4">4択</option>
+    </select>
+  </label>
+  <label style="margin-left:8px">
+    <input type="checkbox" id="timer20"> タイマー(20s)
+  </label>
+  <label>Number of questions
+    <select id="count">
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="20">20</option>
+    </select>
+  </label>
+  <button id="start-btn" disabled>Start</button>
+  <div id="dataset-error" style="display:none;color:red;"></div>
+  <button id="history-btn">History</button>
+  <button id="export-aliases-btn">Export alias proposals (.edn)</button>
+</div>
+
+<div id="history-view" style="display:none">
+  <ul id="history-list"></ul>
+  <button id="clear-history-btn">Clear history</button>
+  <button id="history-back-btn">Back</button>
+</div>
+
+<div id="question-view" style="display:none">
+  <div id="score-bar"></div>
+  <div id="countdown" style="display:none; margin-top:6px;"></div>
+  <div id="prompt"></div>
+  <div id="choices" style="display:none; margin-top:8px">
+    <button class="choice"></button>
+    <button class="choice"></button>
+    <button class="choice"></button>
+    <button class="choice"></button>
+  </div>
+  <input id="answer" type="text" autocomplete="off">
+  <button id="submit-btn">Submit</button>
+  <button id="next-btn" style="display:none">Next</button>
+  <div id="feedback"></div>
+  <button id="propose-alias-btn" style="display:none">別名として提案</button>
+</div>
+
+<div id="result-view" style="display:none">
+  <div id="final-score"></div>
+  <div id="summary">
+    <h2>Summary</h2>
+    <ul id="summary-list"></ul>
+  </div>
+  <button id="restart-btn">Restart</button>
+</div>
+
+<footer id="ver"></footer>
+
+<script src="../mc.js"></script>
+<script src="app.js" type="module"></script>

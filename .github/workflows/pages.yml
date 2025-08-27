@@ -39,22 +39,20 @@ jobs:
         run: clojure -T:build clean || true
 
       - name: Check root redirect
-        run: grep -q 'url=./app/' public/index.html
+        run: grep -q "location.replace('./app/')" public/index.html
 
       - name: Publish
         run: clojure -T:build publish
 
-
-      - name: Verify service worker
-        run: test -f public/app/sw.js
-
-      - name: Sanity checks
+      - name: Guards
         run: |
-          test -f public/index.html
-          test -f public/app.js
-          test -f public/manifest.webmanifest
+          test -f public/app/index.html
+          test -f public/app/app.js
+          test -f public/app/sw.js
+          test -f public/app/manifest.webmanifest
           test -f public/build/dataset.json
-          ! grep -qi "Code Snapshot" public/index.html || (echo "Snapshot index detected"; exit 1)
+          grep -q "const VERSION_URL = '../build/version.json'" public/app/app.js
+          grep -q "register(\`./sw.js" public/app/app.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

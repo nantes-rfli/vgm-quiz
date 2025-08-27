@@ -1,4 +1,14 @@
 <!doctype html><meta charset="utf-8"><title>VGM Quiz</title>
-<meta http-equiv="refresh" content="0; url=./app/">
-<link rel="canonical" href="./app/">
+<script>
+(async () => {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) { try { await r.unregister(); } catch {} }
+    }
+  } finally {
+    location.replace('./app/');
+  }
+})();
+</script>
 <noscript><a href="./app/">Go to app</a></noscript>

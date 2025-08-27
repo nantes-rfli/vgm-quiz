@@ -14,9 +14,9 @@ const scriptTag = document.currentScript;
 window.__APP_VERSION__ = scriptTag?.dataset?.version || 'dev';
 window.__DATASET_VERSION__ = null;
 
-const BASE = '/vgm-quiz/'; // GitHub Pages のプロジェクトパス
-
-const VERSION_URL = 'build/version.json';
+const VERSION_URL = '../build/version.json';
+const DATASET_URL = '../build/dataset.json';
+const ALIASES_URL = '../build/aliases.json';
 const HASH_KEY = 'dataset_hash';
 
 async function readVersionNoStore(){
@@ -267,7 +267,7 @@ function updateStartButton() {
 
 async function loadDataset() {
   try {
-    const res = await fetch('./build/dataset.json');
+    const res = await fetch(DATASET_URL, { cache: 'no-store' });
     const data = await res.json();
     tracks = data.tracks;
     datasetLoaded = true;
@@ -284,7 +284,7 @@ async function loadDataset() {
 
 async function loadAliases() {
   try {
-    const res = await fetch('./build/aliases.json');
+    const res = await fetch(ALIASES_URL, { cache: 'no-store' });
     if (!res.ok) return;
     const data = await res.json();
     Object.values(data).forEach(cat => {
@@ -653,7 +653,8 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
 
 loadVersion().then(() => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register(`${BASE}app/sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(reg => {
+    const v = window.__APP_VERSION__ || 'dev';
+    navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(v)}`).then(reg => {
       swRegistration = reg;
       if (swRegistration.waiting) {
         showUpdateBanner();
