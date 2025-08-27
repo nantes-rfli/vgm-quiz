@@ -19,7 +19,7 @@ case "$mode" in
   web)
     [ -f "public/index.html" ] && pass public/index.html || fail public/index.html
     [ -f "public/app.js" ] && pass public/app.js || fail public/app.js
-    [ -f "public/sw.js" ] && pass public/sw.js || optfail public/sw.js
+    [ -f "public/app/sw.js" ] && pass public/app/sw.js || optfail public/app/sw.js
     [ -f "public/manifest.webmanifest" ] && pass public/manifest.webmanifest || optfail public/manifest.webmanifest
     ;;
   build)
