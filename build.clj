@@ -93,21 +93,16 @@
         (ensure-dir (.getParent (io/file json-path)))
         (spit (io/file json-path) (json/write-str data :key-fn kw->json-key))))))
 
-(defn- file-digest [^MessageDigest md ^java.io.File f]
-  (with-open [is (io/input-stream f)]
-    (let [buf (byte-array 8192)]
-      (loop []
-        (let [n (.read is buf)]
-          (when (pos? n)
-            (.update md buf 0 n)
-            (recur)))))))
-
-(defn- dataset-version []
-  (let [md (MessageDigest/getInstance "SHA-256")]
-    (doseq [path ["public/build/dataset.json" "public/build/aliases.json"]]
-      (let [f (io/file path)]
-        (when (.exists f)
-          (file-digest md f))))
+(defn- sha256-file [path]
+  (let [md (MessageDigest/getInstance "SHA-256")
+        f  (io/file path)]
+    (with-open [is (io/input-stream f)]
+      (let [buf (byte-array 8192)]
+        (loop []
+          (let [n (.read is buf)]
+            (when (pos? n)
+              (.update md buf 0 n)
+              (recur))))))
     (format "%064x" (BigInteger. 1 (.digest md)))))
 
 (defn publish [_]
@@ -122,12 +117,10 @@
   ;; 4) aliases があれば JSON も出力
   (edn->json-file "resources/data/aliases.edn" "public/build/aliases.json")
   ;; 5) version.json
-  (let [sha (System/getenv "GITHUB_SHA")
-        commit (if (and sha (<= 7 (count sha))) (subs sha 0 7) "dev")
-        ds-meta (-> (slurp (io/file "public/build/dataset.json"))
+  (let [ds-meta (-> (slurp (io/file "public/build/dataset.json"))
                     (json/read-str :key-fn keyword))
-        ver {:commit commit
-             :dataset_version (dataset-version)
+        ver {:dataset_version 1
+             :content_hash (sha256-file "public/build/dataset.json")
              :generated_at (:generated_at ds-meta)}]
     (spit (io/file "public/build/version.json")
           (json/write-str ver))))

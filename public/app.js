@@ -13,6 +13,35 @@ let paused = false;
 window.__APP_VERSION__ = 'dev';
 window.__DATASET_VERSION__ = null;
 
+const VERSION_URL = 'build/version.json';
+const HASH_KEY = 'dataset_hash';
+
+async function readVersionNoStore(){
+  const r = await fetch(VERSION_URL,{cache:'no-store'});
+  return r.json();
+}
+function rememberHash(h){ localStorage.setItem(HASH_KEY,h); }
+function currentHash(){ return localStorage.getItem(HASH_KEY); }
+async function checkOnLoad(){
+  try{
+    const {content_hash} = await readVersionNoStore();
+    if(!currentHash()) rememberHash(content_hash);
+  }catch(e){ console.warn('version check failed',e); }
+}
+async function applyUpdateAndReload(){
+  try{
+    const {content_hash} = await readVersionNoStore();
+    rememberHash(content_hash);
+  }catch(_){ }
+  location.reload();
+}
+
+function showUpdatePrompt(){
+  if(confirm('新しい問題が利用可能です。更新しますか？')){
+    applyUpdateAndReload();
+  }
+}
+
 const SETTINGS_KEY = 'quiz-options';
 function loadSettings() {
   try {
@@ -251,7 +280,7 @@ async function loadAliases() {
 
 async function loadVersion() {
   try {
-    const res = await fetch('./build/version.json');
+    const res = await fetch(VERSION_URL);
     const data = await res.json();
     window.__APP_VERSION__ = data.commit || 'dev';
     window.__DATASET_VERSION__ = data.dataset_version || null;
@@ -575,27 +604,19 @@ if (settings.mode) {
 }
 updateStartButton();
 
+checkOnLoad();
 loadDataset();
 loadAliases();
 
+navigator.serviceWorker?.addEventListener('message', async (e)=>{
+  if(e.data?.type==='version-refreshed'){
+    const {content_hash} = await readVersionNoStore();
+    if(currentHash() !== content_hash){ showUpdatePrompt(); }
+  }
+});
+
 loadVersion().then(() => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', async event => {
-      if (event.data && event.data.type === 'dataset-updated') {
-        try {
-          const res = await fetch('./build/version.json');
-          const v = await res.json();
-          if (v.dataset_version && v.dataset_version !== window.__DATASET_VERSION__) {
-            if (confirm('新しい問題が利用可能です。更新しますか？')) {
-              location.reload();
-            }
-            window.__DATASET_VERSION__ = v.dataset_version;
-          }
-        } catch (err) {
-          console.error('Failed to check dataset version', err);
-        }
-      }
-    });
     navigator.serviceWorker.register(`sw.js?v=${encodeURIComponent(window.__APP_VERSION__ || 'dev')}`).then(registration => {
       function showUpdateBanner() {
         if (document.getElementById('sw-update')) return;
@@ -613,7 +634,7 @@ loadVersion().then(() => {
         btn.textContent = '更新があります。リロードしますか？';
         btn.addEventListener('click', () => {
           registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-          location.reload();
+          applyUpdateAndReload();
         });
         banner.appendChild(btn);
         document.body.appendChild(banner);
