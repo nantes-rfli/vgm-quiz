@@ -39,6 +39,7 @@ python -m http.server -d public 4444
 - Release workflow added
 - Versioned cache + version label
 - QA-3: EDN schema validation
+- QA-4: CI asset check accepts both legacy and /app/ layouts
 - CSV import pipeline
 - autofetch workflow
 - Ingest pipeline added
