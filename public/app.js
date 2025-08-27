@@ -6,6 +6,10 @@ let awaitingNext = false;
 let currentRunId = null;
 let datasetLoaded = false;
 const aliases = {};
+let questionMode = 'input'; // multiple choice mode uses 'mc'
+let timerId = null;
+let remaining = 20;
+let paused = false;
 window.__APP_VERSION__ = 'dev';
 window.__DATASET_VERSION__ = null;
 
@@ -308,6 +312,10 @@ function exportMinhaya() {
 
 function startQuiz() {
   currentRunId = Date.now();
+  const modeSelect = document.getElementById('mode');
+  questionMode = modeSelect.value;
+  settings.mode = questionMode;
+  saveSettings();
   const countSelect = document.getElementById('count');
   let n = parseInt(countSelect.value, 10) || 5;
   const deduped = distinctBy(['title', 'game', 'composer'], tracks);
@@ -331,6 +339,14 @@ function showQuestion() {
   const feedback = document.getElementById('feedback');
   const scoreBar = document.getElementById('score-bar');
   const aliasBtn = document.getElementById('propose-alias-btn');
+  const choices = document.getElementById('choices');
+  const pauseBtn = document.getElementById('pause-btn');
+  const timerEl = document.getElementById('timer');
+  clearInterval(timerId);
+  remaining = 20;
+  paused = false;
+  timerEl.textContent = remaining;
+  pauseBtn.textContent = 'Pause';
   answer.value = '';
   answer.focus();
   feedback.textContent = '';
@@ -341,6 +357,27 @@ function showQuestion() {
   aliasBtn.textContent = '別名として提案';
   aliasBtn.onclick = null;
   scoreBar.textContent = `Score: ${score}/${questions.length}`;
+  if (questionMode === 'mc') {
+    answer.style.display = 'none';
+    submit.style.display = 'none';
+    choices.innerHTML = '';
+    const opts = generateChoices(q.track, q.type, tracks, canonical);
+    q.options = opts;
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.textContent = opt;
+      btn.addEventListener('click', () => {
+        answer.value = opt;
+        submitAnswer();
+      });
+      choices.appendChild(btn);
+    });
+    choices.style.display = 'block';
+  } else {
+    answer.style.display = 'inline';
+    submit.style.display = 'inline';
+    choices.style.display = 'none';
+  }
   switch (q.type) {
     case 'title-game':
       prompt.textContent = `Which game is the track "${q.track.title}" from?`;
@@ -355,6 +392,18 @@ function showQuestion() {
       q.expected = q.track.composer;
       break;
   }
+  window.__expectedAnswer = q.expected;
+  timerId = setInterval(() => {
+    if (paused) return;
+    remaining--;
+    timerEl.textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(timerId);
+      timerId = null;
+      submitAnswer();
+      nextQuestion();
+    }
+  }, 1000);
 }
 
 function showHint() {
@@ -370,6 +419,10 @@ function showHint() {
 function submitAnswer() {
   const q = questions[current];
   const promptText = document.getElementById('prompt').textContent;
+  if (timerId) {
+    clearInterval(timerId);
+    timerId = null;
+  }
   const rawInput = document.getElementById('answer').value;
   const userAns = canonical(rawInput);
   const expected = canonical(q.expected);
@@ -377,6 +430,8 @@ function submitAnswer() {
   const scoreBar = document.getElementById('score-bar');
   const correct = userAns === expected;
   const aliasBtn = document.getElementById('propose-alias-btn');
+  q.elapsed = 20 - remaining;
+  document.querySelectorAll('#choices button').forEach(b => b.disabled = true);
   aliasBtn.style.display = 'none';
   if (correct) {
     score++;
@@ -430,7 +485,7 @@ function showResult() {
   list.innerHTML = '';
   questions.forEach(q => {
     const li = document.createElement('li');
-    li.textContent = `${TYPE_LABELS[q.type]} - ${q.correct ? '✅' : '❌'} - ${q.expected} - ${q.userAnswer || ''} - ${q.track.year} - ${q.track.game}`;
+    li.textContent = `${TYPE_LABELS[q.type]} - ${q.correct ? '✅' : '❌'} - ${q.expected} - ${q.userAnswer || ''} - ${q.track.year} - ${q.track.game} - ${q.elapsed}s`;
     list.appendChild(li);
   });
 }
@@ -467,6 +522,11 @@ document.getElementById('history-btn').addEventListener('click', showHistory);
 document.getElementById('history-back-btn').addEventListener('click', () => showView('start-view'));
 document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
 document.getElementById('export-aliases-btn').addEventListener('click', exportAliasProposals);
+document.getElementById('pause-btn').addEventListener('click', () => {
+  if (timerId === null) return;
+  paused = !paused;
+  document.getElementById('pause-btn').textContent = paused ? 'Resume' : 'Pause';
+});
 const exportMinhayaBtn = document.createElement('button');
 exportMinhayaBtn.id = 'export-minhaya-btn';
 exportMinhayaBtn.textContent = 'Export for みんはや';
@@ -482,6 +542,11 @@ document.querySelectorAll('input[name="qtype"]').forEach(cb => {
 const countEl = document.getElementById('count');
 countEl.addEventListener('change', () => {
   settings.count = parseInt(countEl.value, 10);
+  saveSettings();
+});
+const modeEl = document.getElementById('mode');
+modeEl.addEventListener('change', () => {
+  settings.mode = modeEl.value;
   saveSettings();
 });
 
@@ -503,6 +568,10 @@ if (settings.types) {
 }
 if (settings.count) {
   countEl.value = settings.count;
+}
+if (settings.mode) {
+  modeEl.value = settings.mode;
+  questionMode = settings.mode;
 }
 updateStartButton();
 
