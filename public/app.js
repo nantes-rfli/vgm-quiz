@@ -110,6 +110,11 @@ async function loadDataset() {
     document.getElementById('start-btn').disabled = false;
   } catch (err) {
     console.error('Failed to load dataset', err);
+    const msg = document.getElementById('dataset-error');
+    if (msg) {
+      msg.textContent = 'データが読み込めませんでした。時間をおいて再度お試しください。';
+      msg.style.display = 'block';
+    }
   }
 }
 
