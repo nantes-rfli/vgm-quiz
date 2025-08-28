@@ -81,6 +81,11 @@ jobs:
           mkdir -p public/app
           cp public/build.json public/app/build.json
 
+      - name: Final guard (must have build.json)
+        run: |
+          test -f public/build.json
+          test -f public/app/build.json
+
       # Contract checks have moved to CI Fast; this workflow handles deploy only.
 
       - name: Upload artifact
