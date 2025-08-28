@@ -37,7 +37,7 @@ async function dumpArtifacts(page, prefix = 'failure') {
           opts.map((o) => o.value || o.textContent.trim())
         );
         if (values.length > 0) {
-          const wanted = ['multiple-choice', 'mc', 'choices', 'free', 'input'];
+          const wanted = ['multiple-choice', 'free'];
           const pick = wanted.find((w) => values.includes(w)) || values[0];
           await page
             .selectOption('#mode', { value: pick })

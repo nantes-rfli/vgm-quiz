@@ -27,8 +27,10 @@ clojure -T:build publish
 python -m http.server -d public 4444
 ```
 
+## UI–E2E contract
+- #mode select must be static with only "multiple-choice" and "free" options; dynamic insertion is forbidden
+
 ## Activity Log
-- E2E: #mode select has static options "multiple-choice" and "free"; do not add dynamically
 - CI: lint + schema test
 - CI: clj-kondo via release binary
 - CI: clj-kondo via setup-clojure
