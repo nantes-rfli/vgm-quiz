@@ -1,21 +1,45 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const TIMEOUT = 45000;
+const ART_DIR = 'e2e-artifacts';
 
 async function dumpArtifacts(page, prefix = 'failure') {
   try {
-    fs.mkdirSync('e2e-artifacts', { recursive: true });
+    fs.mkdirSync(ART_DIR, { recursive: true });
     await page
-      .screenshot({ path: `e2e-artifacts/${prefix}.png`, fullPage: true })
+      .screenshot({ path: `${ART_DIR}/${prefix}.png`, fullPage: true })
       .catch(() => {});
     const html = await page.content().catch(() => '');
-    fs.writeFileSync(`e2e-artifacts/${prefix}.html`, html);
+    fs.writeFileSync(`${ART_DIR}/${prefix}.html`, html);
   } catch (_) {}
 }
 
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage();
+  // context を切ってトレースを有効化
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  // artifacts ディレクトリ
+  fs.mkdirSync(ART_DIR, { recursive: true });
+
+  // Playwright Trace を常時収集（失敗時の操作履歴/ネットワーク/スクショ等）
+  await context.tracing.start({ screenshots: true, snapshots: true, sources: false });
+
+  // 失敗の手がかりになるログも保存
+  const log = (name, text) => {
+    try {
+      fs.appendFileSync(`${ART_DIR}/${name}`, text + '\n');
+    } catch (_) {}
+  };
+  page.on('console', (msg) => log('console.log', `[${msg.type()}] ${msg.text()}`));
+  page.on('pageerror', (err) => log('console.log', `[pageerror] ${err?.message || err}`));
+  page.on('requestfailed', (req) =>
+    log('network.log', `[fail] ${req.method()} ${req.url()} - ${req.failure()?.errorText}`)
+  );
+  page.on('response', async (res) => {
+    if (!res.ok()) log('network.log', `[${res.status()}] ${res.request().method()} ${res.url()}`);
+  });
 
   try {
     const base = process.env.APP_URL || 'http://127.0.0.1:8080/app/';
@@ -82,6 +106,9 @@ async function dumpArtifacts(page, prefix = 'failure') {
     await dumpArtifacts(page);
     throw e;
   } finally {
+    try {
+      await context.tracing.stop({ path: `${ART_DIR}/trace.zip` });
+    } catch (_) {}
     await browser.close();
   }
 })();
