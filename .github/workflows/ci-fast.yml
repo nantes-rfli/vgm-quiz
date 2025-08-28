@@ -1,0 +1,48 @@
+name: CI Fast
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
+      # Build the site so that public/build/{dataset.json,version.json} exist for tests
+      - name: Publish (build public/)
+        run: clojure -T:build publish
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node deps
+        run: npm install --no-audit --no-fund
+
+      - name: Run unit tests
+        run: clojure -M:test
+
+      - name: Static guards
+        run: |
+          grep -Rq 'option value="multiple-choice"' public/app/index.html
+          grep -Rq 'option value="free"' public/app/index.html
+          test -f public/build/dataset.json
+          test -f public/build/version.json
+
+      - name: Smoke HTML test
+        run: npm run smoke
