@@ -27,6 +27,7 @@ jobs:
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
         run: |
+          set -euo pipefail
           mkdir -p lhci-report
           # Run once; you can add more URLs if needed
           URL="https://nantes-rfli.github.io/vgm-quiz/app/?test=1"
@@ -43,10 +44,10 @@ jobs:
           # 2) Assert thresholds (fail workflow if under)
           lhci assert \
             --assert.preset=none \
-            --assert.assertions.categories:performance="error:>=0.80" \
-            --assert.assertions.categories:accessibility="error:>=0.90" \
-            --assert.assertions.categories:best-practices="error:>=0.90" \
-            --assert.assertions.categories:seo="error:>=0.90"
+            --assert.assertions.categories.performance="error:>=0.80" \
+            --assert.assertions.categories.accessibility="error:>=0.90" \
+            --assert.assertions.categories.best-practices="error:>=0.90" \
+            --assert.assertions.categories.seo="error:>=0.90"
 
           # 3) Upload reports to artifacts-friendly directory
           lhci upload \
