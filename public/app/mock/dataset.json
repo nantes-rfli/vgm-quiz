@@ -1,0 +1,14 @@
+{
+  "tracks": [
+    { "title": "Overworld", "game": "ゼルダの伝説", "composer": "近藤浩治", "year": 1986 },
+    { "title": "Main Theme", "game": "ドラゴンクエスト", "composer": "すぎやまこういち", "year": 1986 },
+    { "title": "Battle", "game": "ファイナルファンタジー", "composer": "植松伸夫", "year": 1987 },
+    { "title": "時の回廊", "game": "クロノ・トリガー", "composer": "光田康典", "year": 1995 },
+    { "title": "MEGALOVANIA", "game": "UNDERTALE", "composer": "Toby Fox", "year": 2015 },
+    { "title": "Green Hill Zone", "game": "ソニック・ザ・ヘッジホッグ", "composer": "中村正人", "year": 1991 },
+    { "title": "Stickerbrush Symphony", "game": "スーパードンキーコング2", "composer": "David Wise", "year": 1995 },
+    { "title": "Gusty Garden Galaxy", "game": "スーパーマリオギャラクシー", "composer": "近藤浩治", "year": 2007 },
+    { "title": "Corridors of Time", "game": "クロノ・トリガー", "composer": "光田康典", "year": 1995 },
+    { "title": "Main Theme", "game": "ゼルダの伝説: 時のオカリナ", "composer": "近藤浩治", "year": 1998 }
+  ]
+}
