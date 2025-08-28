@@ -38,6 +38,7 @@ jobs:
             --url="$URL" \
             --numberOfRuns=1 \
             --settings.emulatedFormFactor=desktop \
+            --settings.throttlingMethod=provided \
             --settings.disableStorageReset=true \
             --settings.chromePath="$(which google-chrome)"
 
