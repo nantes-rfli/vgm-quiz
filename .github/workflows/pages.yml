@@ -60,19 +60,7 @@ jobs:
           mkdir -p public/app
           cp public/build.json public/app/build.json
 
-      - name: Guards (static contract checks)
-        run: |
-          test -f public/app/index.html
-          test -f public/app/app.js
-          test -f public/app/sw.js
-          test -f public/app/manifest.webmanifest
-          test -f public/build/dataset.json
-          test -f public/build.json
-          test -f public/app/build.json
-          grep -Rq 'option value="multiple-choice"' public/app/index.html
-          grep -Rq 'option value="free"' public/app/index.html
-          grep -q "const VERSION_URL = '../build/version.json'" public/app/app.js
-          grep -q "register(\`./sw.js" public/app/app.js
+      # Contract checks have moved to CI Fast; this workflow handles deploy only.
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

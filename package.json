@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test": "clojure -M:test",
+    "e2e": "node e2e/test.js",
+    "smoke": "node scripts/smoke-html.js"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0"
+  }
+}

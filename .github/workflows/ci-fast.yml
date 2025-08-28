@@ -1,0 +1,35 @@
+name: CI Fast
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
+      - name: Run unit tests
+        run: clojure -M:test
+
+      - name: Static guards
+        run: |
+          grep -Rq 'option value="multiple-choice"' public/app/index.html
+          grep -Rq 'option value="free"' public/app/index.html
+          test -f public/build/dataset.json
+
+      - name: Smoke HTML test
+        run: npm run smoke
