@@ -65,7 +65,15 @@ function showUpdateBanner(){
 const SETTINGS_KEY = 'quiz-options';
 function loadSettings() {
   try {
-    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+    if (s.mode === 'mc4') s.mode = 'multiple-choice';
+    if (s.mode === 'text') s.mode = 'free';
+    const q = new URLSearchParams(location.search).get('mode');
+    if (q) {
+      s.mode = q === 'mc4' ? 'multiple-choice' : q === 'text' ? 'free' : q;
+    }
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+    return s;
   } catch {
     return {};
   }
