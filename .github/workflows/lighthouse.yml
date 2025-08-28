@@ -31,23 +31,27 @@ jobs:
           # Run once; you can add more URLs if needed
           URL="https://nantes-rfli.github.io/vgm-quiz/app/?test=1"
           echo "Target URL: $URL"
-          # Collect reports and assert minimal scores
+
+          # 1) Collect Lighthouse results into .lighthouseci/
           lhci collect \
             --url="$URL" \
             --numberOfRuns=1 \
-            --settings.chromePath="$(which chrome)" \
             --settings.emulatedFormFactor=desktop \
             --settings.disableStorageReset=true \
-            --outputPath="./lhci-report"
+            --settings.chromePath="$(which chrome)"
 
-          # Assert thresholds (fail workflow if under)
+          # 2) Assert thresholds (fail workflow if under)
           lhci assert \
             --assert.preset=none \
-            --assert.assertions.performance="error:>=0.80" \
-            --assert.assertions.accessibility="error:>=0.90" \
-            --assert.assertions.best-practices="error:>=0.90" \
-            --assert.assertions.seo="error:>=0.90" \
-            --reportDirectory="./lhci-report"
+            --assert.assertions.categories:performance="error:>=0.80" \
+            --assert.assertions.categories:accessibility="error:>=0.90" \
+            --assert.assertions.categories:best-practices="error:>=0.90" \
+            --assert.assertions.categories:seo="error:>=0.90"
+
+          # 3) Upload reports to artifacts-friendly directory
+          lhci upload \
+            --target=filesystem \
+            --outputDir="./lhci-report"
 
       - name: Upload Lighthouse reports
         if: always()
