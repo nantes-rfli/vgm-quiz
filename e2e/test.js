@@ -15,7 +15,8 @@ async function dumpArtifacts(page, prefix = 'failure') {
 
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage();
+  const context = await browser.newContext({ serviceWorkers: 'block' });
+  const page = await context.newPage();
 
   try {
     await page.goto(process.env.APP_URL || 'http://127.0.0.1:8080/app/', {
@@ -26,39 +27,42 @@ async function dumpArtifacts(page, prefix = 'failure') {
       (resp) => resp.url().endsWith('/build/dataset.json') && resp.ok(),
       { timeout: TIMEOUT }
     );
-    let picked = false;
+
     try {
-      const hasMode = await page.$('#mode');
-      if (hasMode) {
-        await page
-          .waitForSelector('#mode', { state: 'visible', timeout: 5000 })
-          .catch(() => {});
-        const values = await page.$$eval('#mode option', (opts) =>
-          opts.map((o) => o.value || o.textContent.trim())
-        );
-        if (values.length > 0) {
-          const wanted = ['multiple-choice', 'free'];
-          const pick = wanted.find((w) => values.includes(w)) || values[0];
-          await page
-            .selectOption('#mode', { value: pick })
-            .catch(async () => {
-              await page
-                .selectOption('#mode', { label: pick })
-                .catch(() => {});
-            });
-          picked = true;
-        }
-      }
+      await page.waitForSelector('#mode', { timeout: 10000 });
+      await page.selectOption('#mode', { value: 'multiple-choice' }).catch(() => {});
     } catch (e) {
       await dumpArtifacts(page, 'mode-select');
       // continue even if mode selection fails
     }
 
-    await page.waitForSelector('#start', {
-      state: 'visible',
-      timeout: 15000,
-    });
-    await page.click('#start');
+    let started = false;
+    try {
+      await page.waitForSelector('#start', { state: 'visible', timeout: 30000 });
+      await page.click('#start');
+      started = true;
+    } catch (_) {}
+
+    if (!started) {
+      const fallbacks = [
+        'button:has-text("\u958b\u59cb")',
+        'button:has-text("\u30b9\u30bf\u30fc\u30c8")',
+        'button:has-text("Start")',
+      ];
+      for (const sel of fallbacks) {
+        const btn = await page.$(sel);
+        if (btn) {
+          await btn.click();
+          started = true;
+          break;
+        }
+      }
+    }
+
+    if (!started) {
+      await dumpArtifacts(page, 'start-not-found');
+      throw new Error('Start control not found');
+    }
 
     await page.waitForFunction(
       () => {

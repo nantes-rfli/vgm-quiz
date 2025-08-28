@@ -58,23 +58,54 @@ jobs:
           mkdir -p public/app
           cp public/build.json public/app/build.json
 
-      - name: Guards
-        run: |
-          test -f public/app/index.html
-          test -f public/app/app.js
-          test -f public/app/sw.js
-          test -f public/app/manifest.webmanifest
-          test -f public/build/dataset.json
-          grep -q "const VERSION_URL = '../build/version.json'" public/app/app.js
-          grep -q "register(\`./sw.js" public/app/app.js
-          grep -Rq 'option value="multiple-choice"' public || (echo "missing multiple-choice option" && exit 1)
-          grep -Rq 'option value="free"' public || (echo "missing free option" && exit 1)
-          test -f public/build.json || (echo "build.json not found" && exit 1)
+        - name: Guards
+          run: |
+            test -f public/app/index.html
+            test -f public/app/app.js
+            test -f public/app/sw.js
+            test -f public/app/manifest.webmanifest
+            test -f public/build/dataset.json
+            grep -q "const VERSION_URL = '../build/version.json'" public/app/app.js
+            grep -q "register(\`./sw.js" public/app/app.js
+            grep -Rq 'option value="multiple-choice"' public || (echo "missing multiple-choice option" && exit 1)
+            grep -Rq 'option value="free"' public || (echo "missing free option" && exit 1)
+            test -f public/build.json || (echo "build.json not found" && exit 1)
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+
+        - name: Install Playwright
+          run: |
+            npm install --no-save playwright
+            npx playwright install --with-deps chromium
+
+        - name: Start static server
+          run: |
+            npx http-server public -p 8080 -s &
+            for i in {1..30}; do
+              curl -fsS http://127.0.0.1:8080/ && break || true
+              sleep 1
+            done
+
+        - name: E2E
+          env:
+            APP_URL: http://127.0.0.1:8080/app/
+          run: node e2e/test.js
+
+        - name: Upload e2e artifacts
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: e2e-artifacts
+            path: e2e-artifacts
+            if-no-files-found: ignore
+
+        - name: Upload artifact
+          uses: actions/upload-pages-artifact@v3
+          with:
+            path: public
 
   deploy:
     needs: build
