@@ -1,52 +1,46 @@
-# Project Status
+# Project Status: vgm-quiz
 
-## Current Step
+## Current
+- GitHub Pages deploy is green; visible at `https://nantes-rfli.github.io/vgm-quiz/app/`.
+- E2E flakes were addressed: TEST_MODE (no SW), deterministic seed, mock dataset, trace logs, CI split (CI Fast + Pages).
 
-## Next Step
+## UI–E2E contract (fixed)
+- `#mode` options are **exactly**:
+  - `multiple-choice`
+  - `free`
+- `#start` button exists and is visible to start the game.
 
-## Implemented
-- Step 1: Initial CLI prototype
-- Step 2: Track dataset loading
-- Step 3: Quiz generation and scoring
-- Step 4: Web build pipeline
-- Step 5: Minimal web quiz playable
-- Step 6a: Add stable track IDs
-- Step 6b: IndexedDB history
-- Step 7a: Aliases on web
-- Step 7b: CLJC core skeleton
-- Step 7c: CLJC question pipeline
-- GitHub Actions CI
-- CI stabilized (cache 403 fixed)
-- QA-1
+## Verification URLs
+- **Normal**:  
+  `https://nantes-rfli.github.io/vgm-quiz/app/`
+- **Test mode (no Service Worker)**:  
+  `https://nantes-rfli.github.io/vgm-quiz/app/?test=1`
+- **Deterministic (seed)**:  
+  `https://nantes-rfli.github.io/vgm-quiz/app/?test=1&seed=demo`
+- **Mock dataset (fast E2E)**:  
+  `https://nantes-rfli.github.io/vgm-quiz/app/?test=1&mock=1&seed=demo`
 
-## Open Tasks
+## Pages deploy verification
+1. Confirm **Pages** workflow ran automatically on push to `main` (or via `workflow_run` from **CI Fast**).  
+2. Check `build.json` responses (should show latest `short_sha`):  
+   - `/build.json?ts=NOW`  
+   - `/app/build.json?ts=NOW`  
+3. Footer should show: `Dataset vX • <content_hash> • <generated_at> • commit: <short_sha>`
 
-## How to Run
-```bash
-clojure -T:build publish
-python -m http.server -d public 4444
-```
+## E2E artifacts (for failures)
+- Artifacts directory: `e2e-artifacts/`
+  - `trace.zip` — Open with `npx playwright show-trace e2e-artifacts/trace.zip`
+  - `console.log` — Console messages, page errors
+  - `network.log` — Failed/Non-OK requests
+  - `*.html` / `*.png` — DOM snapshot and screenshot at failure
 
-## UI–E2E contract
-- #mode is present in initial HTML.
-- Allowed values are exactly multiple-choice and free.
-- Dynamic insertion is forbidden.
+## CI/Workflows quick reference
+- **CI Fast** (PR + main): unit tests + static guards + HTML smoke, builds `public/` beforehand.
+- **Pages** (main + CI Fast success fallback): publish + deploy to GitHub Pages.
+- **e2e (on-demand)**: manual/nightly Playwright E2E (uses `?test=1&mock=1&seed=e2e`).
 
-## Activity Log
-- CI: lint + schema test
-- CI: clj-kondo via release binary
-- CI: clj-kondo via setup-clojure
-- 2025-08-26: Fix dataset normalization (:id → :track/id); add guard test
-- Enable public code snapshot via GitHub Pages
-- 12: export for みんはや
-- 11: web pipeline applied
-- Pages: publish app under /app
-- Release workflow added
-- Versioned cache + version label
-- QA-3: EDN schema validation
-- QA-4: CI asset check accepts both legacy and /app/ layouts
-- CSV import pipeline
-- autofetch workflow
-- Ingest pipeline added
-
-- Switch to clojure.data.csv for CSV import
+## Developer shortcuts
+- Build site locally: `clojure -T:build publish`
+- HTML smoke: `npm run smoke`
+- Run E2E locally (ex.):  
+  `APP_URL="http://127.0.0.1:8080/app/" node e2e/test.js`
