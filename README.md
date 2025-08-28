@@ -1,12 +1,44 @@
-# VGM Quiz (Step 1)
+# vgm-quiz
+
+A small quiz app for video game music.
+
+## Runbook (Ops quick guide)
+
+### URLs
+- Normal: `/app/`
+- Test (no SW): `/app/?test=1`
+- Deterministic: `/app/?test=1&seed=demo`
+- Mock (fast): `/app/?test=1&mock=1&seed=demo`
+
+### Local
+```bash
+# Build static site into public/
+clojure -T:build publish
+
+# Lightweight HTML contract test (no real browser)
+npm run smoke
+
+# E2E locally (uses TEST_MODE + seed + mock via the test runner)
+APP_URL="http://127.0.0.1:8080/app/" node e2e/test.js
+```
+
+### GitHub Actions
+- **CI Fast**: PR/main — unit tests + guards + smoke  
+- **Pages**: main push (and CI Fast success fallback) — deploy to GitHub Pages  
+- **e2e (on-demand)**: manual/nightly — stable E2E with mock+seed+test
+
+### Debugging E2E failures
+- Download `e2e-artifacts/trace.zip` and view:
+```bash
+npx playwright show-trace e2e-artifacts/trace.zip
+```
+- Check `console.log` and `network.log` in the same artifact.
 
 ## Project Status
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for current progress.
 
-
 ## 要件
 - Clojure CLI（`clojure`コマンド）
-
 
 ## 使い方
 ```bash
@@ -88,4 +120,3 @@ Run a small script to verify required files without network access:
 sh scripts/validate_sandbox.sh web
 sh scripts/validate_sandbox.sh build
 ```
-
