@@ -20,8 +20,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Show LHCI version (npx, pinned)
-        run: npx -y @lhci/cli@0.14.1 --version
+      - name: LHCI version check
+        run: npx -y @lhci/cli@0.15.1 --version
 
       - name: Run Lighthouse (prod URL, SW disabled via ?test=1)
         env:
@@ -34,15 +34,15 @@ jobs:
           echo "Target URL: $URL"
 
           # 1) Collect Lighthouse results into .lighthouseci/
-          npx -y @lhci/cli@0.14.1 collect \
+          npx -y @lhci/cli@0.15.1 collect \
             --url="$URL" \
             --numberOfRuns=1 \
             --settings.emulatedFormFactor=desktop \
             --settings.disableStorageReset=true \
-            --settings.chromePath="$(which chrome)"
+            --settings.chromePath="$(which google-chrome)"
 
           # 2) Assert thresholds (fail workflow if under)
-          npx -y @lhci/cli@0.14.1 assert \
+          npx -y @lhci/cli@0.15.1 assert \
             --assert.preset=none \
             --assert.assertions.categories.performance="error:>=0.80" \
             --assert.assertions.categories.accessibility="error:>=0.90" \
@@ -50,7 +50,7 @@ jobs:
             --assert.assertions.categories.seo="error:>=0.90"
 
           # 3) Upload reports to artifacts-friendly directory
-          npx -y @lhci/cli@0.14.1 upload \
+          npx -y @lhci/cli@0.15.1 upload \
             --target=filesystem \
             --outputDir="./lhci-report"
 
