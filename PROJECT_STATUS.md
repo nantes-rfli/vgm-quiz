@@ -28,7 +28,9 @@ python -m http.server -d public 4444
 ```
 
 ## UI–E2E contract
-- #mode select must be static with only "multiple-choice" and "free" options; dynamic insertion is forbidden
+- #mode is present in initial HTML.
+- Allowed values are exactly multiple-choice and free.
+- Dynamic insertion is forbidden.
 
 ## Activity Log
 - CI: lint + schema test
