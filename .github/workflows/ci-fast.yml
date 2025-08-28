@@ -32,7 +32,7 @@ jobs:
           node-version: '20'
 
       - name: Install Node deps
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Run unit tests
         run: clojure -M:test
