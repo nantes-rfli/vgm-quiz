@@ -1,11 +1,48 @@
-name: e2e (on-demand)
+name: e2e (on-demand + nightly)
 
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: "0 18 * * *"  # JST 03:00 頃に相当（不要ならこのブロックを削除）
+    - cron: "0 18 * * *"  # UTC 18:00 ≈ JST 03:00
 
 jobs:
+  nightly-prod:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    name: nightly-prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Print target
+        run: |
+          echo "Running E2E against deployed site"
+          echo "APP_URL=https://nantes-rfli.github.io/vgm-quiz/app/"
+
+      - name: Run E2E (prod URL, test+mock+seed are appended by test.js)
+        env:
+          APP_URL: https://nantes-rfli.github.io/vgm-quiz/app/
+        run: node e2e/test.js
+
+      - name: Upload e2e artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-nightly
+          path: e2e-artifacts/**
+          if-no-files-found: ignore
   e2e:
     runs-on: ubuntu-latest
     steps:
