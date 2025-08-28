@@ -1,16 +1,12 @@
-name: Pages
+name: github-pages
+
 on:
   push:
-    branches: [ main ]
-    paths:
-      - "public/**"
-      - "src/**"
-      - "build.clj"
-      - ".github/workflows/pages.yml"
-  workflow_dispatch: {}
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -44,13 +40,37 @@ jobs:
       - name: Publish
         run: clojure -T:build publish
 
-      - name: Guards
+      - name: Generate build metadata
+        run: |
+          commit=$(git rev-parse HEAD)
+          short_sha=$(git rev-parse --short HEAD)
+          branch="${GITHUB_REF_NAME}"
+          built_at=$(date --iso-8601=seconds)
+          ci_run_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          mkdir -p public
+          cat <<EOF2 > public/build.json
+          {
+            "commit": "${commit}",
+            "short_sha": "${short_sha}",
+            "branch": "${branch}",
+            "built_at": "${built_at}",
+            "ci_run_url": "${ci_run_url}"
+          }
+          EOF2
+          mkdir -p public/app
+          cp public/build.json public/app/build.json
+
+      - name: Guards (static contract checks)
         run: |
           test -f public/app/index.html
           test -f public/app/app.js
           test -f public/app/sw.js
           test -f public/app/manifest.webmanifest
           test -f public/build/dataset.json
+          test -f public/build.json
+          test -f public/app/build.json
+          grep -Rq 'option value="multiple-choice"' public/app/index.html
+          grep -Rq 'option value="free"' public/app/index.html
           grep -q "const VERSION_URL = '../build/version.json'" public/app/app.js
           grep -q "register(\`./sw.js" public/app/app.js
 
@@ -66,6 +86,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4

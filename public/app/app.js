@@ -308,27 +308,50 @@ async function loadAliases() {
 }
 
 async function loadVersion() {
+  // 1) version.json（データセット情報）を取得
+  let datasetVersion = null;
+  let contentHash = null;
+  let generatedAt = null;
   try {
     const res = await fetch(VERSION_URL, { cache: 'no-store' });
-    const data = await res.json();
-    window.__DATASET_VERSION__ = data.dataset_version || null;
-    const commit = data.commit || 'dev';
-    window.__APP_VERSION__ = commit;
-    const parts = [
-      `Dataset v${data.dataset_version}`,
-      data.content_hash.slice(0, 8),
-      new Date(data.generated_at).toLocaleString(),
-      `commit: ${commit.slice(0, 7)}`
-    ];
-    const el = document.getElementById('ver');
-    if (el) {
-      el.textContent = parts.join(' • ');
-      el.style.fontSize = 'small';
-      el.style.opacity = '0.7';
-      el.style.textAlign = 'center';
+    if (res.ok) {
+      const data = await res.json();
+      datasetVersion = data.dataset_version || null;
+      contentHash = data.content_hash || null;
+      generatedAt = data.generated_at || null;
+      window.__DATASET_VERSION__ = datasetVersion;
     }
   } catch (err) {
-    console.warn('Failed to load version', err);
+    console.warn('Failed to load version.json', err);
+  }
+
+  // 2) build.json（Pages ビルドのコミット情報）を取得：常に最新を取りにいく
+  let shortSha = null;
+  try {
+    const res = await fetch('./build.json?cache=' + Date.now(), { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      window.__APP_VERSION__ = data.commit || 'dev';
+      shortSha = data.short_sha || (data.commit ? data.commit.slice(0,7) : null);
+    } else {
+      throw new Error('build.json not found');
+    }
+  } catch (err) {
+    console.warn('Failed to load build.json', err);
+  }
+
+  // 3) 画面に表示
+  const parts = [];
+  if (datasetVersion) parts.push(`Dataset v${datasetVersion}`);
+  if (contentHash)    parts.push(String(contentHash).slice(0, 8));
+  if (generatedAt)    parts.push(new Date(generatedAt).toLocaleString());
+  if (shortSha)       parts.push(`commit: ${shortSha}`);
+  const el = document.getElementById('ver');
+  if (el) {
+    el.textContent = parts.length ? parts.join(' • ') : 'local build';
+    el.style.fontSize = 'small';
+    el.style.opacity  = '0.7';
+    el.style.textAlign= 'center';
   }
 }
 
