@@ -43,11 +43,10 @@ jobs:
 
           # 2) Assert thresholds (fail workflow if under)
           npx -y @lhci/cli@0.15.1 assert \
-            --assert.preset=none \
-            --assert.assertions.categories.performance="error:>=0.80" \
-            --assert.assertions.categories.accessibility="error:>=0.90" \
-            --assert.assertions.categories.best-practices="error:>=0.90" \
-            --assert.assertions.categories.seo="error:>=0.90"
+            --assertions.categories:performance="error:>=0.80" \
+            --assertions.categories:accessibility="error:>=0.90" \
+            --assertions.categories:best-practices="error:>=0.90" \
+            --assertions.categories:seo="error:>=0.90"
 
           # 3) Upload reports to artifacts-friendly directory
           npx -y @lhci/cli@0.15.1 upload \
