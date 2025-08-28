@@ -319,9 +319,16 @@ function updateStartButton() {
 
 async function loadDataset() {
   try {
-    const res = await fetch(DATASET_URL, { cache: 'no-store' });
+    // TEST/Mock: URL に ?mock=1 があれば軽量データセットを使用
+    let datasetUrl = DATASET_URL;
+    const mock = __SEARCH_PARAMS__.get('mock') === '1';
+    if (mock) {
+      datasetUrl = './mock/dataset.json';
+      try { console.info('[MOCK_DATASET] using', datasetUrl); } catch (_) {}
+    }
+    const res = await fetch(datasetUrl, { cache: 'no-store' });
     const data = await res.json();
-    tracks = data.tracks;
+    tracks = data.tracks || data; // 互換
     datasetLoaded = true;
     updateStartButton();
   } catch (err) {

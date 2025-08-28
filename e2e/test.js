@@ -44,7 +44,7 @@ async function dumpArtifacts(page, prefix = 'failure') {
   try {
     const base = process.env.APP_URL || 'http://127.0.0.1:8080/app/';
     // TEST_MODE + 決定シードで起動
-    const params = ['test=1', 'seed=e2e'];
+    const params = ['test=1', 'mock=1', 'seed=e2e'];
     const url = base.includes('?') ? (base + '&' + params.join('&')) : (base + '?' + params.join('&'));
     await page.goto(url, {
       waitUntil: 'domcontentloaded',
@@ -55,7 +55,7 @@ async function dumpArtifacts(page, prefix = 'failure') {
     // TEST_MODE では SW 未登録なので、キャッシュ関連の更新待ちは軽くなる
     // 以降の待機ロジックは既存のままでOK
     await page.waitForResponse(
-      (resp) => resp.url().endsWith('/build/dataset.json') && resp.ok(),
+      (resp) => resp.url().endsWith('/dataset.json') && resp.ok(),
       { timeout: TIMEOUT }
     );
     let picked = false;
