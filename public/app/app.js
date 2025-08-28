@@ -22,9 +22,10 @@ const HASH_KEY = 'dataset_hash';
 // TEST MODE: URL に ?test=1 が付いていたら Service Worker を無効化
 const __SEARCH_PARAMS__ = new URLSearchParams(location.search);
 const __IS_TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
+const __DEBUG__ = __SEARCH_PARAMS__.get('debug') === '1';
 
 // DETERMINISTIC RNG: URL に ?seed=xxx があれば Math.random を決定化
-(() => {
+function initSeededRandom() {
   const seedParam = __SEARCH_PARAMS__.get('seed');
   if (!seedParam) return;
   // xfnv1a + mulberry32 の組み合わせで決定的 PRNG を作る
@@ -47,19 +48,19 @@ const __IS_TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
   }
   const seedInt = xfnv1a(String(seedParam));
   const rng = mulberry32(seedInt);
-  // 以後の乱択をすべて決定的にする
-  const origRandom = Math.random;
+  const origRandom = window.__ORIG_RANDOM__ || Math.random;
   Object.defineProperty(Math, 'random', {
     value: rng,
     configurable: true,
     writable: true,
   });
-  // デバッグ用に記録（E2Eのtrace/consoleで確認可能）
   try { console.info('[SEED]', seedParam, seedInt); } catch (_) {}
-  // 必要なら元に戻せるよう window に退避
   window.__ORIG_RANDOM__ = origRandom;
   window.__SEED__ = seedParam;
-})();
+  window.__SEED_INT__ = seedInt;
+}
+
+initSeededRandom();
 
 async function readVersionNoStore(){
   const r = await fetch(VERSION_URL,{cache:'no-store'});
@@ -443,6 +444,7 @@ function exportMinhaya() {
 }
 
 function startQuiz() {
+  initSeededRandom();
   currentRunId = Date.now();
   const modeSelect = document.getElementById('mode');
   questionMode = modeSelect.value;
@@ -453,9 +455,39 @@ function startQuiz() {
   let n = parseInt(countSelect.value, 10) || 5;
   const deduped = distinctBy(['title', 'game', 'composer'], tracks);
   n = Math.min(n, deduped.length);
-  const selected = spreadByBucket(deduped, t => yearBucket(t.year), n);
+  const candidates = spreadByBucket(deduped, t => yearBucket(t.year), deduped.length);
   const types = selectedTypes();
-  questions = selected.map(track => ({ track, type: types[Math.floor(Math.random() * types.length)] }));
+  const built = [];
+  const maxAttempts = n * 10;
+  let attempts = 0;
+  while (built.length < n && attempts < maxAttempts && candidates.length) {
+    const track = candidates.pop();
+    attempts++;
+    const type = types[Math.floor(Math.random() * types.length)];
+    if (questionMode === 'multiple-choice') {
+      const opts = generateChoices(track, type, tracks, canonical);
+      const canon = new Set(opts.map(o => canonical(o)));
+      if (opts.length < 4 || canon.size < 4) {
+        if (__DEBUG__) console.info('[DEBUG] skip', trackId(track), 'opts', opts);
+        continue;
+      }
+      built.push({ track, type, options: opts.sort(() => Math.random() - 0.5) });
+      if (__DEBUG__) console.info('[DEBUG] add', trackId(track), type);
+    } else {
+      built.push({ track, type });
+      if (__DEBUG__) console.info('[DEBUG] add', trackId(track), type);
+    }
+  }
+  if (built.length < n) {
+    console.warn(`question build shortfall: ${built.length}/${n} after ${attempts} attempts`);
+    if (__DEBUG__) {
+      const reason = attempts >= maxAttempts ? 'maxAttempts' : 'candidates_exhausted';
+      console.info('[DEBUG] attempts', attempts, 'max', maxAttempts, 'reason', reason);
+    }
+  } else if (__DEBUG__) {
+    console.info('[DEBUG] attempts', attempts);
+  }
+  questions = built;
   current = 0;
   score = 0;
   showQuestion();
@@ -490,7 +522,7 @@ function showQuestion() {
   if (questionMode === 'multiple-choice') {
     answer.style.display = 'none';
     submit.style.display = 'none';
-    const opts = generateChoices(q.track, q.type, tracks, canonical).sort(() => Math.random() - 0.5);
+    const opts = q.options || generateChoices(q.track, q.type, tracks, canonical).sort(() => Math.random() - 0.5);
     q.options = opts;
     choiceButtons.forEach((btn, idx) => {
       const opt = opts[idx];
