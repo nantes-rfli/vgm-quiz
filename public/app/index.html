@@ -3,6 +3,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VGM Quiz</title>
 <link rel="manifest" href="manifest.webmanifest">
+<!-- Preload for ESM startup -->
+<link rel="modulepreload" href="app.js">
 
 <h1>VGM Quiz</h1>
 <main>
@@ -73,5 +75,16 @@
 
 </main>
 
-<script src="../mc.js"></script>
+<!-- Skip analytics script only in LHCI test mode (?test=1) -->
+<script>
+  (function () {
+    if (!location.search.includes('test=1')) {
+      var s = document.createElement('script');
+      s.src = '../mc.js';
+      s.async = true; // analyticsは asyncで十分
+      document.head.appendChild(s);
+    }
+  })();
+  // app entry
+</script>
 <script src="app.js" type="module"></script>
