@@ -5,6 +5,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 
 <h1>VGM Quiz</h1>
+<main>
 
 <div id="start-view">
   <fieldset>
@@ -42,16 +43,17 @@
 </div>
 
 <div id="question-view" style="display:none">
-  <div id="score-bar"></div>
-  <div id="countdown" style="display:none; margin-top:6px;"></div>
-  <div id="prompt"></div>
+  <div id="score-bar" aria-label="score bar"></div>
+  <div id="countdown" aria-live="polite" style="display:none; margin-top:6px;"></div>
+  <div id="prompt" aria-live="polite"></div>
   <div id="choices" style="display:none; margin-top:8px">
-    <button class="choice"></button>
-    <button class="choice"></button>
-    <button class="choice"></button>
-    <button class="choice"></button>
+    <button class="choice" aria-label="choice 1"></button>
+    <button class="choice" aria-label="choice 2"></button>
+    <button class="choice" aria-label="choice 3"></button>
+    <button class="choice" aria-label="choice 4"></button>
   </div>
-  <input id="answer" type="text" autocomplete="off">
+  <label for="answer">Your answer</label>
+  <input id="answer" type="text" autocomplete="off" aria-describedby="prompt">
   <button id="submit-btn">Submit</button>
   <button id="next-btn" style="display:none">Next</button>
   <div id="feedback"></div>
@@ -67,7 +69,9 @@
   <button id="restart-btn">Restart</button>
 </div>
 
-<footer id="ver"></footer>
+<footer id="ver" role="contentinfo"></footer>
+
+</main>
 
 <script src="../mc.js"></script>
 <script src="app.js" type="module"></script>
