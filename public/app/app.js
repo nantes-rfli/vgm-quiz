@@ -23,6 +23,44 @@ const HASH_KEY = 'dataset_hash';
 const __SEARCH_PARAMS__ = new URLSearchParams(location.search);
 const __IS_TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
 
+// DETERMINISTIC RNG: URL に ?seed=xxx があれば Math.random を決定化
+(() => {
+  const seedParam = __SEARCH_PARAMS__.get('seed');
+  if (!seedParam) return;
+  // xfnv1a + mulberry32 の組み合わせで決定的 PRNG を作る
+  function xfnv1a(str) {
+    // 32-bit FNV-1a
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function mulberry32(a) {
+    return function () {
+      let t = (a += 0x6D2B79F5) >>> 0;
+      t = Math.imul(t ^ (t >>> 15), t | 1) >>> 0;
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const seedInt = xfnv1a(String(seedParam));
+  const rng = mulberry32(seedInt);
+  // 以後の乱択をすべて決定的にする
+  const origRandom = Math.random;
+  Object.defineProperty(Math, 'random', {
+    value: rng,
+    configurable: true,
+    writable: true,
+  });
+  // デバッグ用に記録（E2Eのtrace/consoleで確認可能）
+  try { console.info('[SEED]', seedParam, seedInt); } catch (_) {}
+  // 必要なら元に戻せるよう window に退避
+  window.__ORIG_RANDOM__ = origRandom;
+  window.__SEED__ = seedParam;
+})();
+
 async function readVersionNoStore(){
   const r = await fetch(VERSION_URL,{cache:'no-store'});
   return r.json();
