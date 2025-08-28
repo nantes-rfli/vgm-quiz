@@ -21,7 +21,7 @@ jobs:
           node-version: 20
 
       - name: Install Lighthouse CI CLI
-        run: npm install -g @lhci/cli@0.13.0
+        run: npm install -g @lhci/cli@0.14.0
 
       - name: Run Lighthouse (prod URL, SW disabled via ?test=1)
         env:
