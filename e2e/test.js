@@ -18,10 +18,14 @@ async function dumpArtifacts(page, prefix = 'failure') {
   const page = await browser.newPage();
 
   try {
-    await page.goto(process.env.APP_URL || 'http://127.0.0.1:8080/app/', {
+    const base = process.env.APP_URL || 'http://127.0.0.1:8080/app/';
+    const url = base.includes('?') ? (base + '&test=1') : (base + '?test=1');
+    await page.goto(url, {
       waitUntil: 'domcontentloaded',
       timeout: 60000,
     });
+    // TEST_MODE では SW 未登録なので、キャッシュ関連の更新待ちは軽くなる
+    // 以降の待機ロジックは既存のままでOK
     await page.waitForResponse(
       (resp) => resp.url().endsWith('/build/dataset.json') && resp.ok(),
       { timeout: TIMEOUT }

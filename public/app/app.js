@@ -19,6 +19,10 @@ const DATASET_URL = '../build/dataset.json';
 const ALIASES_URL = '../build/aliases.json';
 const HASH_KEY = 'dataset_hash';
 
+// TEST MODE: URL に ?test=1 が付いていたら Service Worker を無効化
+const __SEARCH_PARAMS__ = new URLSearchParams(location.search);
+const __IS_TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
+
 async function readVersionNoStore(){
   const r = await fetch(VERSION_URL,{cache:'no-store'});
   return r.json();
@@ -686,21 +690,25 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
 loadVersion().then(() => {
   if ('serviceWorker' in navigator) {
     const v = window.__APP_VERSION__ || 'dev';
-    navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(v)}`).then(reg => {
-      swRegistration = reg;
-      if (swRegistration.waiting) {
-        showUpdateBanner();
-      }
-      swRegistration.addEventListener('updatefound', () => {
-        const newWorker = swRegistration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (swRegistration.waiting) {
-              showUpdateBanner();
-            }
-          });
+    if (__IS_TEST_MODE__) {
+      // E2E / CI 用。SW は登録しない
+    } else {
+      navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(v)}`).then(reg => {
+        swRegistration = reg;
+        if (swRegistration.waiting) {
+          showUpdateBanner();
         }
+        swRegistration.addEventListener('updatefound', () => {
+          const newWorker = swRegistration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (swRegistration.waiting) {
+                showUpdateBanner();
+              }
+            });
+          }
+        });
       });
-    });
+    }
   }
 });
