@@ -66,12 +66,8 @@ const SETTINGS_KEY = 'quiz-options';
 function loadSettings() {
   try {
     const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
-    if (s.mode === 'mc4') s.mode = 'multiple-choice';
-    if (s.mode === 'text') s.mode = 'free';
     const q = new URLSearchParams(location.search).get('mode');
-    if (q) {
-      s.mode = q === 'mc4' ? 'multiple-choice' : q === 'text' ? 'free' : q;
-    }
+    if (q) s.mode = q;
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
     return s;
   } catch {
@@ -307,18 +303,29 @@ async function loadAliases() {
 }
 
 async function loadVersion() {
+  let datasetVersion = null;
+  let contentHash = null;
+  let generatedAt = null;
   try {
     const res = await fetch(VERSION_URL, { cache: 'no-store' });
     const data = await res.json();
     window.__DATASET_VERSION__ = data.dataset_version || null;
-    const commit = data.commit || 'dev';
-    window.__APP_VERSION__ = commit;
-    const parts = [
-      `Dataset v${data.dataset_version}`,
-      data.content_hash.slice(0, 8),
-      new Date(data.generated_at).toLocaleString(),
-      `commit: ${commit.slice(0, 7)}`
-    ];
+    datasetVersion = data.dataset_version;
+    contentHash = data.content_hash;
+    generatedAt = data.generated_at;
+  } catch (err) {
+    console.warn('Failed to load version', err);
+  }
+  try {
+    const res = await fetch('./build.json?cache=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('build.json missing');
+    const data = await res.json();
+    window.__APP_VERSION__ = data.commit || 'dev';
+    const parts = [];
+    if (datasetVersion) parts.push(`Dataset v${datasetVersion}`);
+    if (contentHash) parts.push(contentHash.slice(0, 8));
+    if (generatedAt) parts.push(new Date(generatedAt).toLocaleString());
+    if (data.short_sha) parts.push(`commit: ${data.short_sha}`);
     const el = document.getElementById('ver');
     if (el) {
       el.textContent = parts.join(' • ');
@@ -327,7 +334,14 @@ async function loadVersion() {
       el.style.textAlign = 'center';
     }
   } catch (err) {
-    console.warn('Failed to load version', err);
+    const el = document.getElementById('ver');
+    if (el) {
+      el.textContent = 'local build';
+      el.style.fontSize = 'small';
+      el.style.opacity = '0.7';
+      el.style.textAlign = 'center';
+    }
+    console.warn('Failed to load build info', err);
   }
 }
 

@@ -1,13 +1,8 @@
 name: Pages
 on:
   push:
-    branches: [ main ]
-    paths:
-      - "public/**"
-      - "src/**"
-      - "build.clj"
-      - ".github/workflows/pages.yml"
-  workflow_dispatch: {}
+    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -44,6 +39,25 @@ jobs:
       - name: Publish
         run: clojure -T:build publish
 
+      - name: Generate build metadata
+        run: |
+          commit=$(git rev-parse HEAD)
+          short_sha=$(git rev-parse --short HEAD)
+          branch="$GITHUB_REF_NAME"
+          built_at=$(date --iso-8601=seconds)
+          ci_run_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          cat <<EOF > public/build.json
+          {
+            "commit": "$commit",
+            "short_sha": "$short_sha",
+            "branch": "$branch",
+            "built_at": "$built_at",
+            "ci_run_url": "$ci_run_url"
+          }
+          EOF
+          mkdir -p public/app
+          cp public/build.json public/app/build.json
+
       - name: Guards
         run: |
           test -f public/app/index.html
@@ -53,6 +67,9 @@ jobs:
           test -f public/build/dataset.json
           grep -q "const VERSION_URL = '../build/version.json'" public/app/app.js
           grep -q "register(\`./sw.js" public/app/app.js
+          grep -Rq 'option value="multiple-choice"' public || (echo "missing multiple-choice option" && exit 1)
+          grep -Rq 'option value="free"' public || (echo "missing free option" && exit 1)
+          test -f public/build.json || (echo "build.json not found" && exit 1)
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
