@@ -1,0 +1,58 @@
+name: lighthouse (nightly)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "10 18 * * *" # UTC 18:10 ≒ JST 03:10
+
+jobs:
+  lhci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install Chrome for headless Lighthouse
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Lighthouse CI CLI
+        run: npm install -g @lhci/cli@0.13.0
+
+      - name: Run Lighthouse (prod URL, SW disabled via ?test=1)
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+        run: |
+          mkdir -p lhci-report
+          # Run once; you can add more URLs if needed
+          URL="https://nantes-rfli.github.io/vgm-quiz/app/?test=1"
+          echo "Target URL: $URL"
+          # Collect reports and assert minimal scores
+          lhci collect \
+            --url="$URL" \
+            --numberOfRuns=1 \
+            --settings.chromePath="$(which chrome)" \
+            --settings.emulatedFormFactor=desktop \
+            --settings.disableStorageReset=true \
+            --outputPath="./lhci-report"
+
+          # Assert thresholds (fail workflow if under)
+          lhci assert \
+            --assert.preset=none \
+            --assert.assertions.performance="error:>=0.80" \
+            --assert.assertions.accessibility="error:>=0.90" \
+            --assert.assertions.best-practices="error:>=0.90" \
+            --assert.assertions.seo="error:>=0.90" \
+            --reportDirectory="./lhci-report"
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lhci-report/**
+          if-no-files-found: ignore
