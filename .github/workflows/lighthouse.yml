@@ -43,6 +43,7 @@ jobs:
 
           # 2) Assert thresholds (fail workflow if under)
           npx -y @lhci/cli@0.15.1 assert \
+            --preset=none \
             --assertions.categories:performance="error:>=0.80" \
             --assertions.categories:accessibility="error:>=0.90" \
             --assertions.categories:best-practices="error:>=0.90" \
