@@ -20,6 +20,7 @@ self.addEventListener('fetch', event => {
     return;
   }
   const url = new URL(req.url);
+  // ... existing routes ...
   if (url.pathname.endsWith('/build/dataset.json')) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -50,10 +51,28 @@ self.addEventListener('fetch', event => {
     })());
     return;
   }
+
+  // NEW: build.json は常に最新（network-first）かつキャッシュしない
+  if (url.pathname.endsWith('/build.json') || url.pathname.endsWith('/app/build.json')) {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(req, { cache: 'no-store' });
+        if (fresh && fresh.ok) return fresh;
+      } catch (e) {
+        // fallthrough
+      }
+      // 最悪でもキャッシュを試す（ただし通常は入っていない想定）
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(req);
+      return cached || fetch(req, { cache: 'no-store' });
+    })());
+    return;
+  }
+
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(req);
-    const fetchPromise = fetch(req).then(async r => {
+    const fetchPromise = fetch(req, { cache: 'no-store' }).then(async r => {
       if (r.ok) await cache.put(req, r.clone());
       return r;
     }).catch(() => {});
