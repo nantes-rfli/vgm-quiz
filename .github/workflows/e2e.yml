@@ -1,14 +1,9 @@
-name: e2e
+name: e2e (on-demand)
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths:
-      - "public/**"
-      - "src/**"
-      - "e2e/**"
-      - ".github/workflows/e2e.yml"
   workflow_dispatch: {}
+  schedule:
+    - cron: "0 18 * * *"  # JST 03:00 頃に相当（不要ならこのブロックを削除）
 
 jobs:
   e2e:
