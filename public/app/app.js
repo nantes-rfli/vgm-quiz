@@ -791,6 +791,11 @@ loadVersion().then(() => {
 });
 // --- A11y shim: focus/roles/progressbar ARIA without changing visuals ---
 (() => {
+  // 本番では実行しない。E2E/LHCI等、?test=1 の時だけ有効化
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get('test') !== '1') return;
+  } catch (_) { /* noop */ }
   const once = (fn) => {
     let done = false;
     return (...args) => { if (!done) { done = true; fn(...args); } };
