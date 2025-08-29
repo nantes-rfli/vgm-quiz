@@ -62,9 +62,35 @@ function initSeededRandom() {
 
 initSeededRandom();
 
-async function readVersionNoStore(){
-  const r = await fetch(VERSION_URL,{cache:'no-store'});
-  return r.json();
+// === バージョン読み取りのメモ化（60s TTL） ========================
+const VERSION_TTL_MS = 60_000;
+let __readVersionCache = { ts: 0, data: null, etag: null };
+
+async function readVersionNoStore(force = false) {
+  if (!force && __readVersionCache.data && (Date.now() - __readVersionCache.ts) < VERSION_TTL_MS) {
+    return __readVersionCache.data;
+  }
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 3000);
+  try {
+    const init = { signal: ctrl.signal, cache: 'no-store', headers: {} };
+    if (__readVersionCache.etag) init.headers['If-None-Match'] = __readVersionCache.etag;
+    const res = await fetch(VERSION_URL, init);
+    if (res.status === 304 && __readVersionCache.data) {
+      __readVersionCache.ts = Date.now();
+      return __readVersionCache.data;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const etag = res.headers.get('ETag');
+    const data = await res.json();
+    __readVersionCache = { ts: Date.now(), data, etag };
+    return data;
+  } catch (_) {
+    if (__readVersionCache.data) return __readVersionCache.data;
+    return { dataset: 'mock', commit: 'local', content_hash: 'local' };
+  } finally {
+    clearTimeout(t);
+  }
 }
 function rememberHash(h){ localStorage.setItem(HASH_KEY,h); }
 function currentHash(){ return localStorage.getItem(HASH_KEY); }
@@ -756,7 +782,7 @@ loadAliases();
 
 navigator.serviceWorker?.addEventListener('message', async (e)=>{
   if(e.data?.type==='version-refreshed'){
-    const {content_hash} = await readVersionNoStore();
+    const {content_hash} = await readVersionNoStore(true);
     if(currentHash() !== content_hash){ showUpdateBanner(); }
   }
 });
