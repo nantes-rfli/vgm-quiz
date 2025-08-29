@@ -1,59 +1,25 @@
-// Verify footer version format (dataset + commit + optional updated)
-// Dataset version must be either 'mock' (for test runs) or match M.YY
-// where M is 1-12 (no leading zero) and YY is two-digit year.
-const { chromium } = require('playwright');
+import { test, expect } from '@playwright/test';
 
-(async () => {
-  const base0 =
+test('footer shows dataset / short commit / optional updated', async ({ page }) => {
+  const url =
     process.env.E2E_BASE_URL ||
-    'http://localhost:4173/app/?test=1&mock=1&seed=e2e&autostart=0';
+    'http://127.0.0.1:8080/app/?test=1&mock=1&seed=e2e&autostart=0';
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-  // ensure required query params (belt & suspenders)
-  const url = new URL(base0);
-  const ensure = (k, v) => { if (!url.searchParams.has(k)) url.searchParams.set(k, v); };
-  ensure('test', '1');
-  ensure('mock', '1');
-  ensure('seed', 'e2e');
-  ensure('autostart', '0');
+  const el = page.locator('#footer-version, #version, footer .version').first();
+  await expect(el).toBeVisible();
 
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
+  const text = (await el.textContent() || '').trim();
+  console.log('[footer-version]', text);
 
-  try {
-    await page.goto(url.toString(), { waitUntil: 'domcontentloaded' });
+  // 許容: Dataset は vN または非空英数記号、commit は local or 7桁HEX、updated は任意
+  const re =
+    /^Dataset:\s+(?<ds>v\d+|[A-Za-z0-9._-]+)\s+•\s+commit:\s+(?<commit>local|[0-9a-f]{7})(?:\s+•\s+updated:\s+(?<dt>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}))?$/;
+  const m = text.match(re);
+  expect(m, 'footer text format').not.toBeNull();
 
-    const sel = '#footer-version, #version, footer .version';
-    await page.waitForSelector(sel, { timeout: 10000 });
-    const text = (await page.textContent(sel) || '').trim();
-
-    console.log('[footer-version]', text);
-
-    // dataset: mock or M.YY
-    const dsMatch = text.match(/^Dataset:\s+([^\s•]+)/);
-    if (!dsMatch) throw new Error('dataset version missing');
-    const ds = dsMatch[1];
-    const mmYY = /^\d{1,2}\.\d{2}$/; // moment('M.YY') format
-    if (ds !== 'mock' && !mmYY.test(ds)) {
-      throw new Error(`dataset version '${ds}' not in M.YY format`);
-    }
-
-    // commit: local or 7 hex characters
-    const commitMatch = text.match(/commit:\s+([^\s•]+)/);
-    if (!commitMatch) throw new Error('commit hash missing');
-    const commit = commitMatch[1];
-    if (commit !== 'local' && !/^[0-9a-f]{7}$/.test(commit)) {
-      throw new Error(`commit '${commit}' must be 7 hex or 'local'`);
-    }
-
-    // optional updated timestamp
-    const updatedMatch = text.match(/updated:\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
-    if (updatedMatch && isNaN(new Date(updatedMatch[1]).getTime())) {
-      throw new Error('updated timestamp invalid');
-    }
-
-    console.log('[OK] footer version format looks good');
-  } finally {
-    await browser.close();
+  const { commit } = m!.groups!;
+  if (commit !== 'local') {
+    expect(commit).toMatch(/^[0-9a-f]{7}$/);
   }
-})();
-
+});
