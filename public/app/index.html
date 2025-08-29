@@ -104,10 +104,13 @@
 
 </main>
 
-<!-- Skip analytics script only in LHCI test mode (?test=1) -->
+<!-- Only skip analytics/MC helper in Lighthouse audit runs (lhci=1).
+E2E uses ?test=1, but should still load mc.js (logic helpers live there). -->
 <script>
   (function () {
-    if (!location.search.includes('test=1')) {
+    // Only skip analytics/MC helper in Lighthouse audit runs (lhci=1).
+    // E2E uses ?test=1, but should still load mc.js (logic helpers live there).
+    if (!location.search.includes('lhci=1')) {
       var s = document.createElement('script');
       s.src = '../mc.js';
       s.async = true; // analyticsは asyncで十分

@@ -27,7 +27,7 @@ jobs:
       - name: LHCI version check
         run: npx -y @lhci/cli@0.15.1 --version
 
-      - name: Run Lighthouse (prod URL, SW disabled via ?test=1)
+      - name: Run Lighthouse (prod URL, SW disabled via ?test=1; analytics via &lhci=1)
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
         run: |
@@ -35,10 +35,10 @@ jobs:
           mkdir -p lhci-report
           # Run once; you can add more URLs if needed
           # NOTE:
-          # - We append ?test=1 to disable analytics script (mc.js) during audits.
-          #   See public/app/index.html: analytics is skipped when location.search contains test=1.
+          # - We append ?test=1&lhci=1 to disable analytics script (mc.js) during audits.
+          #   See public/app/index.html: analytics is skipped when location.search contains lhci=1.
           # - This keeps production UX unchanged while making perf measurements more stable.
-          URL="https://nantes-rfli.github.io/vgm-quiz/app/?test=1"
+          URL="https://nantes-rfli.github.io/vgm-quiz/app/?test=1&lhci=1"
           echo "Target URL: $URL"
 
           # 1) Collect Lighthouse results into .lighthouseci/
