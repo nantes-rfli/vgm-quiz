@@ -816,9 +816,12 @@ loadVersion().then(() => {
       if (m) bar.setAttribute('aria-valuenow', String(Math.round(parseFloat(m[1]))));
     };
     updateNow();
-    // 変化を監視して now を追従
-    const mo = new MutationObserver(() => updateNow());
-    mo.observe(bar, { attributes: true, attributeFilter: ['style'] });
+    // 変化を監視して now を追従（重複バインド防止）
+    if (!bar.dataset._a11yProgressMoBound) {
+      const mo = new MutationObserver(() => updateNow());
+      mo.observe(bar, { attributes: true, attributeFilter: ['style'] });
+      bar.dataset._a11yProgressMoBound = '1';
+    }
   };
 
   const annotateChoices = () => {
@@ -828,14 +831,17 @@ loadVersion().then(() => {
       el.setAttribute('role', 'button'); // button要素でも冗長OK
       if (!el.hasAttribute('aria-pressed')) el.setAttribute('aria-pressed', 'false');
     });
-    // クリックで aria-pressed をトグル（選択反映）
-    container.addEventListener('click', (e) => {
-      const target = e.target.closest('button, .choice, [data-testid="choice"]');
-      if (!target) return;
-      container.querySelectorAll('button, .choice, [data-testid="choice"]').forEach((el) => {
-        el.setAttribute('aria-pressed', el === target ? 'true' : 'false');
-      });
-    }, { passive: true });
+    // クリックで aria-pressed をトグル（選択反映）: 重複バインド防止
+    if (!container.dataset._a11yChoiceBound) {
+      container.addEventListener('click', (e) => {
+        const target = e.target.closest('button, .choice, [data-testid="choice"]');
+        if (!target) return;
+        container.querySelectorAll('button, .choice, [data-testid="choice"]').forEach((el) => {
+          el.setAttribute('aria-pressed', el === target ? 'true' : 'false');
+        });
+      }, { passive: true });
+      container.dataset._a11yChoiceBound = '1';
+    }
   };
 
   const focusFirstControl = once(() => {
@@ -849,10 +855,12 @@ loadVersion().then(() => {
   const observeQuiz = () => {
     const quizView = document.querySelector('#question-view') || document.querySelector('[data-testid="quiz-view"]');
     if (!quizView) return;
-    // 出題レンダ後にA11yを適用
+    // 出題レンダ後にA11yを適用（属性変化は監視しない＝自己再帰ループ回避）
     const apply = () => { ensureTimerAria(); ensureProgressbarAria(); annotateChoices(); focusFirstControl(); };
-    const mo = new MutationObserver(() => apply());
-    mo.observe(quizView, { childList: true, subtree: true, attributes: true });
+    const mo = new MutationObserver((mutations) => {
+      if (mutations.some(m => m.type === 'childList')) apply();
+    });
+    mo.observe(quizView, { childList: true, subtree: true }); // attributes: false
     apply();
   };
 
