@@ -38,6 +38,7 @@ jobs:
         run: |
           node e2e/test.js
           node e2e/test_free_aria.js
+          node e2e/test_footer_version.js
 
       - name: Upload e2e artifacts
         if: always()
@@ -78,6 +79,7 @@ jobs:
         run: |
           node e2e/test.js
           node e2e/test_free_aria.js
+          node e2e/test_footer_version.js
       - name: Upload e2e artifacts
         if: always()
         uses: actions/upload-artifact@v4
