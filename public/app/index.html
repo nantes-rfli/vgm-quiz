@@ -7,8 +7,9 @@
 <!-- Preload for ESM startup -->
 <link rel="modulepreload" href="app.js">
 
+<a href="#main" class="skip-link">Skip to main content</a>
 <h1>VGM Quiz</h1>
-<main>
+<main id="main">
 
 <div id="start-view">
   <fieldset>
@@ -46,9 +47,13 @@
 </div>
 
 <div id="question-view" style="display:none">
-  <div id="score-bar" aria-label="score bar"></div>
-  <div id="countdown" aria-live="polite" style="display:none; margin-top:6px;"></div>
-  <div id="prompt" aria-live="polite"></div>
+  <div id="hud">
+    <div id="lives" aria-label="lives" aria-live="polite" aria-atomic="true"></div>
+    <div id="timer" aria-label="timer" aria-live="polite" aria-atomic="true"></div>
+  </div>
+  <div id="score-bar" aria-label="score bar" aria-live="polite" aria-atomic="true"></div>
+  <div id="countdown" aria-live="polite" aria-atomic="true" style="display:none; margin-top:6px;"></div>
+  <div id="prompt" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="choices" style="display:none; margin-top:8px">
     <button class="choice" aria-label="choice 1"></button>
     <button class="choice" aria-label="choice 2"></button>
@@ -56,7 +61,7 @@
     <button class="choice" aria-label="choice 4"></button>
   </div>
   <label for="answer">Your answer</label>
-  <input id="answer" type="text" autocomplete="off" aria-describedby="prompt">
+  <input id="answer" type="text" autocomplete="off" aria-describedby="prompt" autofocus>
   <button id="submit-btn">Submit</button>
   <button id="next-btn" style="display:none">Next</button>
   <div id="feedback"></div>
@@ -73,6 +78,21 @@
 </div>
 
 <footer id="ver" role="contentinfo"></footer>
+
+<style>
+  /* Visually-hidden but keyboard-focusable skip link */
+  .skip-link {
+    position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;
+  }
+  .skip-link:focus, .skip-link:focus-visible {
+    position:static; width:auto; height:auto; padding:6px 10px; outline:2px solid; display:inline-block;
+  }
+  /* Ensure keyboard focus is clearly visible for interactive elements */
+  :focus-visible {
+    outline: 2px solid;
+    outline-offset: 2px;
+  }
+</style>
 
 </main>
 
