@@ -57,7 +57,21 @@ async function dumpArtifacts(page, prefix = 'failure') {
 
   try {
     const base = process.env.E2E_BASE_URL || process.env.APP_URL || 'http://127.0.0.1:8080/app/';
-    const url = base.includes('?') ? `${base}&mock=1&seed=e2e` : `${base}?mock=1&seed=e2e`;
+    // 必要なクエリ（test/mock/seed/autostart）を“必ず”付ける
+    const url = (() => {
+      try {
+        const u = new URL(base);
+        const p = u.searchParams;
+        if (!p.has('test'))      p.set('test', '1');
+        if (!p.has('mock'))      p.set('mock', '1');
+        if (!p.has('seed'))      p.set('seed', 'e2e');
+        if (!p.has('autostart')) p.set('autostart', '0');
+        return u.toString();
+      } catch (_) {
+        // base が相対URL等でも壊れないようにフォールバック
+        return base + (base.includes('?') ? '&' : '?') + 'test=1&mock=1&seed=e2e&autostart=0';
+      }
+    })();
     await page.goto(url, {
       waitUntil: 'domcontentloaded',
       timeout: 60000,

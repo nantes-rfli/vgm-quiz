@@ -31,10 +31,10 @@ jobs:
           echo "Running E2E against deployed site"
           echo "APP_URL=https://nantes-rfli.github.io/vgm-quiz/app/"
 
-      - name: Run E2E (prod URL, test+mock+seed are appended by test.js)
+      - name: Run E2E (prod URL, test+mock+seed+autostart fixed)
         env:
           APP_URL: https://nantes-rfli.github.io/vgm-quiz/app/
-          E2E_BASE_URL: https://nantes-rfli.github.io/vgm-quiz/app/?test=1
+          E2E_BASE_URL: https://nantes-rfli.github.io/vgm-quiz/app/?test=1&mock=1&seed=e2e&autostart=0
         run: |
           node e2e/test.js
           node e2e/test_free_aria.js
@@ -74,7 +74,7 @@ jobs:
         run: python3 -m http.server 8080 -d public &
       - name: Run E2E
         env:
-          E2E_BASE_URL: http://127.0.0.1:8080/app/?test=1
+          E2E_BASE_URL: http://127.0.0.1:8080/app/?test=1&mock=1&seed=e2e&autostart=0
         run: |
           node e2e/test.js
           node e2e/test_free_aria.js
