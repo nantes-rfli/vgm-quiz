@@ -1,5 +1,9 @@
 name: lighthouse (nightly)
 
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch: {}
   schedule:
@@ -70,3 +74,4 @@ jobs:
           name: lighthouse-report
           path: lhci-report/**
           if-no-files-found: ignore
+          retention-days: 7
