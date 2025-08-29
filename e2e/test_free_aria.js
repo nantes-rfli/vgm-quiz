@@ -28,15 +28,34 @@ const { chromium } = require('playwright');
     const prompt1 = (await page.textContent('[data-testid="prompt"]')).trim();
     if (!prompt1) throw new Error('Prompt empty after start');
 
-    // Timer/lives regions present, aria-live updates over time
-    await page.waitForSelector('[data-testid="timer"]');
-    await page.waitForTimeout(300); // allow live region to tick at least once
+    // Timer region: element must exist; may be hidden when timer is off
+    await page.waitForSelector('[data-testid="timer"]', { state: 'attached', timeout: 30000 });
+    const timerState = await page.evaluate(() => {
+      const el = document.querySelector('[data-testid="timer"]');
+      if (!el) return { present: false };
+      const cs = getComputedStyle(el);
+      const visible = !(cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0');
+      return {
+        present: true,
+        visible,
+        ariaLive: el.getAttribute('aria-live'),
+        ariaAtomic: el.getAttribute('aria-atomic'),
+        role: el.getAttribute('role')
+      };
+    });
+    if (!timerState.present) throw new Error('timer element is missing');
+    // ARIA attributes must always be present
+    if (timerState.ariaLive !== 'polite') throw new Error('timer aria-live must be "polite"');
+    if (timerState.ariaAtomic !== 'true') throw new Error('timer aria-atomic must be "true"');
+    // allow live region to tick at least once
+    await page.waitForTimeout(300);
     const timer1 = (await page.textContent('[data-testid="timer"]')).trim();
     await page.waitForTimeout(700);
     const timer2 = (await page.textContent('[data-testid="timer"]')).trim();
     if (timer1 === timer2) {
       console.warn('Timer text did not change within 1s; continuing (non-fatal).');
     }
+    console.log('[A11y] timer present; visible=', timerState.visible, 'aria-live=', timerState.ariaLive, 'aria-atomic=', timerState.ariaAtomic);
 
     // Free answer flow: type wrong answer once to see HUD change (lives or prompt)
     await page.fill('[data-testid="answer"]', 'dummy wrong answer');
