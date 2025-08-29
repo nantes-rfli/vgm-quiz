@@ -34,7 +34,10 @@ jobs:
       - name: Run E2E (prod URL, test+mock+seed are appended by test.js)
         env:
           APP_URL: https://nantes-rfli.github.io/vgm-quiz/app/
-        run: node e2e/test.js
+          E2E_BASE_URL: https://nantes-rfli.github.io/vgm-quiz/app/?test=1
+        run: |
+          node e2e/test.js
+          node e2e/test_free_aria.js
 
       - name: Upload e2e artifacts
         if: always()
@@ -68,8 +71,12 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Start static server
         run: python3 -m http.server 8080 -d public &
-      - name: Run test
-        run: node e2e/test.js
+      - name: Run E2E
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8080/app/?test=1
+        run: |
+          node e2e/test.js
+          node e2e/test_free_aria.js
       - name: Upload e2e artifacts
         if: always()
         uses: actions/upload-artifact@v4

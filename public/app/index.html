@@ -19,12 +19,12 @@
 <h1>VGM Quiz</h1>
 <main id="main">
 
-<div id="start-view">
+<div id="start-view" data-testid="start-view">
   <fieldset>
     <legend>Question types</legend>
-    <label><input type="checkbox" id="type-title-game" name="qtype" value="title-game" checked> title→game</label>
-    <label><input type="checkbox" id="type-game-composer" name="qtype" value="game-composer" checked> game→composer</label>
-    <label><input type="checkbox" id="type-title-composer" name="qtype" value="title-composer" checked> title→composer</label>
+    <label><input type="checkbox" id="type-title-game" name="qtype" value="title-game" checked data-testid="qtype-title-game"> title→game</label>
+    <label><input type="checkbox" id="type-game-composer" name="qtype" value="game-composer" checked data-testid="qtype-game-composer"> game→composer</label>
+    <label><input type="checkbox" id="type-title-composer" name="qtype" value="title-composer" checked data-testid="qtype-title-composer"> title→composer</label>
   </fieldset>
   <label>Mode:
     <select id="mode">
@@ -42,7 +42,7 @@
       <option value="20">20</option>
     </select>
   </label>
-  <button id="start-btn" disabled>Start</button>
+  <button id="start-btn" disabled data-testid="start-btn">Start</button>
   <div id="dataset-error" style="display:none;color:red;"></div>
   <button id="history-btn">History</button>
   <button id="export-aliases-btn">Export alias proposals (.edn)</button>
@@ -54,14 +54,14 @@
   <button id="history-back-btn">Back</button>
 </div>
 
-<div id="question-view" style="display:none">
+<div id="question-view" style="display:none" data-testid="quiz-view">
   <div id="hud">
-    <div id="lives" aria-label="lives" aria-live="polite" aria-atomic="true"></div>
-    <div id="timer" aria-label="timer" aria-live="polite" aria-atomic="true"></div>
+    <div id="lives" aria-label="lives" aria-live="polite" aria-atomic="true" data-testid="lives"></div>
+    <div id="timer" aria-label="timer" aria-live="polite" aria-atomic="true" data-testid="timer"></div>
   </div>
-  <div id="score-bar" aria-label="score bar" aria-live="polite" aria-atomic="true"></div>
-  <div id="countdown" aria-live="polite" aria-atomic="true" style="display:none; margin-top:6px;"></div>
-  <div id="prompt" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="score-bar" aria-label="score bar" aria-live="polite" aria-atomic="true" data-testid="score-bar"></div>
+  <div id="countdown" aria-live="polite" aria-atomic="true" style="display:none; margin-top:6px;" data-testid="countdown"></div>
+  <div id="prompt" role="status" aria-live="polite" aria-atomic="true" data-testid="prompt"></div>
   <div id="choices" style="display:none; margin-top:8px">
     <button class="choice" aria-label="choice 1"></button>
     <button class="choice" aria-label="choice 2"></button>
@@ -69,8 +69,8 @@
     <button class="choice" aria-label="choice 4"></button>
   </div>
   <label for="answer">Your answer</label>
-  <input id="answer" type="text" autocomplete="off" aria-describedby="prompt" autofocus>
-  <button id="submit-btn">Submit</button>
+  <input id="answer" type="text" autocomplete="off" aria-describedby="prompt" autofocus data-testid="answer">
+  <button id="submit-btn" data-testid="submit-btn">Submit</button>
   <button id="next-btn" style="display:none">Next</button>
   <div id="feedback"></div>
   <button id="propose-alias-btn" style="display:none">別名として提案</button>
