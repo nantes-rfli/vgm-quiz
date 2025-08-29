@@ -29,10 +29,22 @@ const { chromium } = require('playwright');
     });
 
     if (!quizVisible) {
-      const startSel = '#start-btn, [data-testid="start-btn"], text=Start';
-      const hasStart = await page.$(startSel);
-      if (hasStart) {
-        await page.click(startSel);
+      // Start ボタン検出（CSSとtext/roleを混在しない）
+      const startCss = page.locator('#start-btn, [data-testid="start-btn"]');
+      if (await startCss.count()) {
+        await startCss.first().click();
+      } else {
+        // アクセシブルネーム（英/日）で検索
+        const startByRole = page.getByRole('button', { name: /^(start|開始|はじめる|スタート)$/i });
+        if (await startByRole.count()) {
+          await startByRole.first().click();
+        } else {
+          // 最後の手段：テキスト一致
+          const startByText = page.getByText(/^start$/i);
+          if (await startByText.count()) {
+            await startByText.first().click();
+          }
+        }
       }
       // どのみち quiz-view が見えるまで待つ
       await page.waitForSelector('#quiz-view, [data-testid="quiz-view"]', { timeout: 10000 });
