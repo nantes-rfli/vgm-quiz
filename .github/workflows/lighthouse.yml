@@ -30,10 +30,16 @@ jobs:
           set -euo pipefail
           mkdir -p lhci-report
           # Run once; you can add more URLs if needed
+          # NOTE:
+          # - We append ?test=1 to disable analytics script (mc.js) during audits.
+          #   See public/app/index.html: analytics is skipped when location.search contains test=1.
+          # - This keeps production UX unchanged while making perf measurements more stable.
           URL="https://nantes-rfli.github.io/vgm-quiz/app/?test=1"
           echo "Target URL: $URL"
 
           # 1) Collect Lighthouse results into .lighthouseci/
+          # Use 'provided' to rely on the actual GitHub runner performance instead of DevTools throttling.
+          # This matches our CI environment better and reduces TBT variance for this fast static app.
           npx -y @lhci/cli@0.15.1 collect \
             --url="$URL" \
             --numberOfRuns=1 \
@@ -43,6 +49,7 @@ jobs:
             --settings.chromePath="$(which google-chrome)"
 
           # 2) Assert thresholds (fail workflow if under)
+          # Assert only the thresholds we explicitly define (no implicit presets / no .lighthouserc).
           npx -y @lhci/cli@0.15.1 assert \
             --no-lighthouserc \
             --assertions.categories:performance="error:>=0.80" \
