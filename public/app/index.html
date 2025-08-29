@@ -8,7 +8,8 @@
 <meta name="theme-color" content="#111111">
 <title>VGM Quiz</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="preload" as="script" href="app.js">
+<!-- ESM の事前解決は modulepreload を使う。credentials 警告回避に crossorigin を明示 -->
+<link rel="modulepreload" href="app.js" crossorigin="anonymous">
 <!-- Open Graph (optional but useful for previews) -->
 <meta property="og:title" content="VGM Quiz">
 <meta property="og:description" content="Play a fast, browser-based Video Game Music quiz with multiple modes and composers/titles matching.">

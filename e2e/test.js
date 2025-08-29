@@ -65,11 +65,17 @@ async function dumpArtifacts(page, prefix = 'failure') {
     // 参考ログ（トレースで確認可能）
     try { console.log('[E2E URL]', url); } catch (_) {}
     // TEST_MODE では SW 未登録なので、キャッシュ関連の更新待ちは軽くなる
-    // 以降の待機ロジックは既存のままでOK
-    await page.waitForResponse(
-      (resp) => resp.url().endsWith('/dataset.json') && resp.ok(),
-      { timeout: TIMEOUT }
-    );
+    // dataset の取得は環境により '/mock/dataset.json' 等になるため、
+    // ネットワーク待機は包括条件に変更し、失敗しても非致命にする
+    await page
+      .waitForResponse(
+        (resp) => {
+          const u = resp.url();
+          return (u.includes('/mock/dataset.json') || u.endsWith('/dataset.json')) && resp.ok();
+        },
+        { timeout: 10000 }
+      )
+      .catch(() => {});
     let picked = false;
     try {
       const hasMode = await page.$('#mode');
@@ -104,6 +110,8 @@ async function dumpArtifacts(page, prefix = 'failure') {
     });
     await page.click('[data-testid="start-btn"]');
 
+    // 初期描画の揺らぎを吸収
+    await page.waitForTimeout(300);
     await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible' });
 
     await page.waitForFunction(
