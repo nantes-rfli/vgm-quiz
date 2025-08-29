@@ -17,4 +17,4 @@ e2e:
 	APP_URL="http://127.0.0.1:8080/app/" node e2e/test.js
 
 trace:
-	npx playwright show-trace e2e-artifacts/trace.zip
+        npx playwright show-trace artifacts/trace.zip

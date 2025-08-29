@@ -7,6 +7,8 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
+  // --- diagnostics: tracing ---
+  try { await ctx.tracing.start({ screenshots: true, snapshots: true, sources: true }); } catch {}
 
   try {
     await page.goto(base, { waitUntil: 'domcontentloaded' });
@@ -54,6 +56,13 @@ const { chromium } = require('playwright');
 
     console.log('[OK] free-mode, timer, aria-live basic checks passed');
   } finally {
+    try {
+      require('fs').mkdirSync('artifacts', { recursive: true });
+      await ctx.tracing.stop({ path: 'artifacts/trace_free_aria.zip' });
+      await page.screenshot({ path: 'artifacts/fail_free_aria.png', fullPage: true }).catch(()=>{});
+      const html = await page.content().catch(()=>null);
+      if (html) require('fs').writeFileSync('artifacts/dom_free_aria.html', html, 'utf-8');
+    } catch {}
     await ctx.close();
     await browser.close();
   }

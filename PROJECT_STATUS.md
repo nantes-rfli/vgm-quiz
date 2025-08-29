@@ -28,8 +28,8 @@
 3. Footer should show: `Dataset vX • <content_hash> • <generated_at> • commit: <short_sha>`
 
 ## E2E artifacts (for failures)
-- Artifacts directory: `e2e-artifacts/`
-  - `trace.zip` — Open with `npx playwright show-trace e2e-artifacts/trace.zip`
+- Artifacts directory: `artifacts/`
+  - `trace.zip` — Open with `npx playwright show-trace artifacts/trace.zip`
   - `console.log` — Console messages, page errors
   - `network.log` — Failed/Non-OK requests
   - `*.html` / `*.png` — DOM snapshot and screenshot at failure
