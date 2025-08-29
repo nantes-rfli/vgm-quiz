@@ -1,5 +1,18 @@
+/* eslint-disable no-restricted-globals */
+'use strict';
 self.__APP_VERSION__ = new URL(self.location).searchParams.get('v');
 const CACHE_NAME = 'vgm-quiz-' + (self.__APP_VERSION__ || 'dev');
+
+// --- バージョン監視の安定化設定 ----------------------------------------
+const VERSION_URL = self.VERMETA_URL || './build/version.json';
+const MIN_CHECK_INTERVAL_MS = 60 * 1000; // 最短60秒
+const CLIENT_POST_DEBOUNCE_MS = 60 * 1000; // 通知も最短60秒にデボンス
+let __versionWatchStarted = false;
+let __lastCheckAt = 0;
+let __lastNotifyAt = 0;
+let __lastETag = null;
+let __lastHash = null;
+// -----------------------------------------------------------------------
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -81,9 +94,57 @@ self.addEventListener('fetch', event => {
   })());
 });
 
+// ====== バージョン定期チェック =======================================
+async function safeFetchVersion() {
+  try {
+    const init = { cache: 'no-store', headers: {} };
+    if (__lastETag) init.headers['If-None-Match'] = __lastETag;
+    const res = await fetch(VERSION_URL, init);
+    if (res.status === 304) return { notModified: true };
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    __lastETag = res.headers.get('ETag');
+    const j = await res.json();
+    return { json: j };
+  } catch (err) {
+    return { error: String(err) };
+  }
+}
+
+async function checkAndNotify() {
+  const now = Date.now();
+  if (now - __lastCheckAt < MIN_CHECK_INTERVAL_MS) return;
+  __lastCheckAt = now;
+  const { json, notModified } = await safeFetchVersion();
+  if (notModified || !json) return;
+  const newHash = json.content_hash || json.hash || json.commit || null;
+  if (!newHash || newHash === __lastHash) return;
+  __lastHash = newHash;
+  if (now - __lastNotifyAt < CLIENT_POST_DEBOUNCE_MS) return;
+  __lastNotifyAt = now;
+  const all = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+  for (const c of all) {
+    c.postMessage({ type: 'version-refreshed', content_hash: newHash });
+  }
+}
+
+function startVersionWatch() {
+  if (__versionWatchStarted) return;
+  __versionWatchStarted = true;
+  const loop = async () => {
+    await checkAndNotify();
+    setTimeout(loop, MIN_CHECK_INTERVAL_MS);
+  };
+  loop();
+}
+
+startVersionWatch();
+
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'force-version-check') {
+    checkAndNotify();
   }
 });
 
