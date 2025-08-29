@@ -42,7 +42,7 @@ jobs:
           # This matches our CI environment better and reduces TBT variance for this fast static app.
           npx -y @lhci/cli@0.15.1 collect \
             --url="$URL" \
-            --numberOfRuns=1 \
+            --numberOfRuns=3 \
             --settings.emulatedFormFactor=desktop \
             --settings.throttlingMethod=provided \
             --settings.disableStorageReset=true \
@@ -55,7 +55,8 @@ jobs:
             --assertions.categories:performance="error:>=0.80" \
             --assertions.categories:accessibility="error:>=0.90" \
             --assertions.categories:best-practices="error:>=0.90" \
-            --assertions.categories:seo="error:>=0.90"
+            --assertions.categories:seo="error:>=0.90" \
+            --assertions.categories:performance="warn:>=0.95"
 
           # 3) Upload reports to artifacts-friendly directory
           npx -y @lhci/cli@0.15.1 upload \
