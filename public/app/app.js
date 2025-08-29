@@ -392,36 +392,72 @@ async function loadVersion() {
     const isTest = params.get('test') === '1';
     const el = document.querySelector('#ver') || document.querySelector('[data-testid="ver"]');
     if (!el) { window.__verResolved = true; return; }
+    // 表示の中央寄せを明示（他要素へ影響しないよう #ver のみ）
+    try { if (!el.style.textAlign) el.style.textAlign = 'center'; } catch (_) {}
     if (isTest) {
-      // テスト時は即フォールバック表示（ネットワークなし）
       el.textContent = 'Dataset: mock • commit: local';
       window.__verResolved = true;
       return;
     }
-    const fetchWithTimeout = (url, ms = 3000) => {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), ms);
-      return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).finally(() => clearTimeout(t));
-    };
-    // GitHub Pages での相対パス差異に備えて候補を順に試す（最大各1回）
-    const candidates = ['version.json', 'build.json', './version.json', './build.json'];
-    for (const path of candidates) {
-      try {
-        const res = await fetchWithTimeout(path, 3000);
-        if (!res.ok) continue;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 3000);
+    let datasetLabel = 'unknown';
+    let commitLabel = 'local';
+    try {
+      const res = await fetch(VERSION_URL, { signal: ctrl.signal, cache: 'no-store' });
+      if (res.ok) {
         const j = await res.json();
-        const ds = j.dataset || j.Dataset || j.data || j.name || 'unknown';
-        const commit = j.commit || j.Commit || j.sha || j.revision || 'local';
-        el.textContent = `Dataset: ${ds} • commit: ${commit}`;
-        window.__verResolved = true;
-        window.__verFetchInFlight = false;
-        return;
-      } catch (_) { /* 次の候補へ */ }
+        datasetLabel = j.dataset || j.Dataset || j.data || j.name || datasetLabel;
+        commitLabel = j.commit || j.Commit || j.sha || j.revision || commitLabel;
+      } else {
+        datasetLabel = 'mock'; commitLabel = 'local';
+      }
+    } catch {
+      datasetLabel = 'mock'; commitLabel = 'local';
+    } finally {
+      clearTimeout(t);
     }
-    // 取得失敗時は静的表示にフォールバック（ループせず終了）
-    el.textContent = 'Dataset: mock • commit: local';
-  } catch (e) {
-    console.warn('loadVersion failed:', e);
+
+    // 補助: dataset が取れなかった場合のみ、一度だけフォールバックを試す
+    if (datasetLabel === 'unknown') {
+      const fetchJSON = async (u) => {
+        const c = new AbortController();
+        const t = setTimeout(() => c.abort(), 3000);
+        try {
+          const r = await fetch(u, { signal: c.signal, cache: 'no-store' });
+          if (!r.ok) return null;
+          return await r.json();
+        } catch {
+          return null;
+        } finally {
+          clearTimeout(t);
+        }
+      };
+      // VERSION_URL のディレクトリから推測した build.json / dataset.json を順に1回ずつ
+      try {
+        const base = new URL(VERSION_URL, location.href);
+        const dir  = base.href.replace(/[^/]+$/, ''); // 末尾ファイル名をディレクトリに
+        const fallbacks = [
+          dir + 'build.json',
+          dir + 'dataset.json',
+          './build.json',
+          './dataset.json',
+        ];
+        for (const url of fallbacks) {
+          const j = await fetchJSON(url);
+          if (!j) continue;
+          const ds =
+            j.dataset || j.Dataset || j.data || j.name ||
+            (j.meta && (j.meta.dataset || j.meta.name)) ||
+            (j.build && j.build.dataset) ||
+            null;
+          if (ds && typeof ds === 'string' && ds.trim()) { datasetLabel = ds.trim(); break; }
+        }
+      } catch (_) { /* no-op */ }
+    }
+
+    // 最終表示
+    el.textContent = `Dataset: ${datasetLabel} • commit: ${commitLabel}`;
   } finally {
     window.__verResolved = true;
     window.__verFetchInFlight = false;
