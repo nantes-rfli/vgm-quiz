@@ -58,11 +58,14 @@ const { chromium } = require('playwright');
     console.log('[A11y] timer present; visible=', timerState.visible, 'aria-live=', timerState.ariaLive, 'aria-atomic=', timerState.ariaAtomic);
 
     // === 追加A11yチェック: フォーカス・MCのaria-pressed・progressbar ===
-    // Start → Quiz へ（Startは test.js 側でも押しているが、このテスト単体でも安全に進める）
-    const startBtn = await page.$('[data-testid="start-btn"], #start-btn');
-    if (startBtn) {
+    // Start → Quiz へ。既にクイズ可視ならStartは押さない（自動開始対策）
+    const quizVisible = await page.isVisible('[data-testid="quiz-view"]');
+    if (!quizVisible) {
+      await page.waitForSelector('[data-testid="start-btn"]:not([disabled])', { state: 'visible', timeout: 30000 });
       await page.click('[data-testid="start-btn"]');
       await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible', timeout: 30000 });
+    } else {
+      console.log('[A11y] quiz already visible; skipping Start');
     }
 
     // フォーカス: 最初の操作対象に来ているか（Free: answer / MC: 最初のchoice）
