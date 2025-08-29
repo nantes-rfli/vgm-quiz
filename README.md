@@ -30,9 +30,9 @@ APP_URL="http://127.0.0.1:8080/app/" node e2e/test.js
 - **e2e (on-demand)**: manual/nightly — stable E2E with mock+seed+test
 
 ### Debugging E2E failures
-- Download `e2e-artifacts/trace.zip` and view:
+- Download `artifacts/trace.zip` and view:
 ```bash
-npx playwright show-trace e2e-artifacts/trace.zip
+npx playwright show-trace artifacts/trace.zip
 ```
 - Check `console.log` and `network.log` in the same artifact.
 

@@ -44,8 +44,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-artifacts-nightly
-          path: e2e-artifacts/**
+          path: artifacts/**
           if-no-files-found: ignore
+          retention-days: 7
   e2e:
     runs-on: ubuntu-latest
     steps:
@@ -83,5 +84,6 @@ jobs:
         with:
           name: e2e-artifacts
           path: |
-            e2e-artifacts/**
+            artifacts/**
           if-no-files-found: ignore
+          retention-days: 7

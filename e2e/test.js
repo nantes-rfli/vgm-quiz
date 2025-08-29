@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const TIMEOUT = 45000;
-const ART_DIR = 'e2e-artifacts';
+const ART_DIR = 'artifacts';
 
 async function dumpArtifacts(page, prefix = 'failure') {
   try {
@@ -32,20 +32,32 @@ async function dumpArtifacts(page, prefix = 'failure') {
       fs.appendFileSync(`${ART_DIR}/${name}`, text + '\n');
     } catch (_) {}
   };
-  page.on('console', (msg) => log('console.log', `[${msg.type()}] ${msg.text()}`));
-  page.on('pageerror', (err) => log('console.log', `[pageerror] ${err?.message || err}`));
-  page.on('requestfailed', (req) =>
-    log('network.log', `[fail] ${req.method()} ${req.url()} - ${req.failure()?.errorText}`)
-  );
+  page.on('console', (msg) => {
+    const text = `[${msg.type()}] ${msg.text()}`;
+    log('console.log', text);
+    try { console.log('[console]', msg.type(), msg.text()); } catch (_) {}
+  });
+  page.on('pageerror', (err) => {
+    const text = `[pageerror] ${err?.message || err}`;
+    log('console.log', text);
+    try { console.error('[pageerror]', err); } catch (_) {}
+  });
+  page.on('requestfailed', (req) => {
+    const text = `[fail] ${req.method()} ${req.url()} - ${req.failure()?.errorText}`;
+    log('network.log', text);
+    try { console.warn('[requestfailed]', req.url(), req.failure()?.errorText); } catch (_) {}
+  });
   page.on('response', async (res) => {
-    if (!res.ok()) log('network.log', `[${res.status()}] ${res.request().method()} ${res.url()}`);
+    if (!res.ok()) {
+      const text = `[${res.status()}] ${res.request().method()} ${res.url()}`;
+      log('network.log', text);
+      try { console.warn('[response]', text); } catch (_) {}
+    }
   });
 
   try {
-    const base = process.env.APP_URL || 'http://127.0.0.1:8080/app/';
-    // TEST_MODE + 決定シードで起動
-    const params = ['test=1', 'mock=1', 'seed=e2e'];
-    const url = base.includes('?') ? (base + '&' + params.join('&')) : (base + '?' + params.join('&'));
+    const base = process.env.E2E_BASE_URL || process.env.APP_URL || 'http://127.0.0.1:8080/app/';
+    const url = base.includes('?') ? `${base}&mock=1&seed=e2e` : `${base}?mock=1&seed=e2e`;
     await page.goto(url, {
       waitUntil: 'domcontentloaded',
       timeout: 60000,
@@ -86,11 +98,13 @@ async function dumpArtifacts(page, prefix = 'failure') {
       // continue even if mode selection fails
     }
 
-    await page.waitForSelector('#start', {
+    await page.waitForSelector('[data-testid="start-btn"]', {
       state: 'visible',
       timeout: 15000,
     });
-    await page.click('#start');
+    await page.click('[data-testid="start-btn"]');
+
+    await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible' });
 
     await page.waitForFunction(
       () => {
@@ -103,11 +117,11 @@ async function dumpArtifacts(page, prefix = 'failure') {
     await page.click('#choices button');
 
     await page.waitForFunction(
-      () => /Score: 1/.test(document.getElementById('score-bar').textContent),
+      () => /Score: 1/.test(document.querySelector('[data-testid="score-bar"]').textContent),
       { timeout: TIMEOUT }
     );
   } catch (e) {
-    await dumpArtifacts(page);
+    await dumpArtifacts(page, 'fail_test_js');
     throw e;
   } finally {
     try {

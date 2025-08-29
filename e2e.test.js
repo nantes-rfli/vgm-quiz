@@ -4,12 +4,12 @@ const TIMEOUT = 45000;
 
 async function dumpArtifacts(page, prefix = 'failure') {
   try {
-    fs.mkdirSync('e2e-artifacts', { recursive: true });
+    fs.mkdirSync('artifacts', { recursive: true });
     await page
-      .screenshot({ path: `e2e-artifacts/${prefix}.png`, fullPage: true })
+      .screenshot({ path: `artifacts/${prefix}.png`, fullPage: true })
       .catch(() => {});
     const html = await page.content().catch(() => '');
-    fs.writeFileSync(`e2e-artifacts/${prefix}.html`, html);
+    fs.writeFileSync(`artifacts/${prefix}.html`, html);
   } catch (_) {}
 }
 
@@ -71,20 +71,22 @@ async function dumpArtifacts(page, prefix = 'failure') {
       // continue even if mode selection fails
     }
 
-    // Be tolerant: #start might appear slightly late on CI
+    // Be tolerant: start button might appear slightly late on CI
     try {
-      await page.waitForSelector('#start', { state: 'visible', timeout: 20000 });
+      await page.waitForSelector('[data-testid="start-btn"]', { state: 'visible', timeout: 20000 });
     } catch {
       // one soft retry after a small settle time, with artifact if still failing
       await page.waitForTimeout(1000);
       try {
-        await page.waitForSelector('#start', { state: 'visible', timeout: 10000 });
+        await page.waitForSelector('[data-testid="start-btn"]', { state: 'visible', timeout: 10000 });
       } catch (e) {
         await dumpArtifacts(page, 'start-visible');
         throw e;
       }
     }
-    await page.click('#start');
+    await page.click('[data-testid="start-btn"]');
+
+    await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible' });
 
     await page.waitForFunction(
       () => {
@@ -97,7 +99,7 @@ async function dumpArtifacts(page, prefix = 'failure') {
     await page.click('#choices button');
 
     await page.waitForFunction(
-      () => /Score: 1/.test(document.getElementById('score-bar').textContent),
+      () => /Score: 1/.test(document.querySelector('[data-testid="score-bar"]').textContent),
       { timeout: TIMEOUT }
     );
   } catch (e) {
