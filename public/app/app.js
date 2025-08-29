@@ -789,3 +789,78 @@ loadVersion().then(() => {
     }
   }
 });
+// --- A11y shim: focus/roles/progressbar ARIA without changing visuals ---
+(() => {
+  const once = (fn) => {
+    let done = false;
+    return (...args) => { if (!done) { done = true; fn(...args); } };
+  };
+
+  const ensureTimerAria = () => {
+    const t = document.querySelector('[data-testid="timer"], #timer');
+    if (!t) return;
+    if (!t.getAttribute('aria-live'))   t.setAttribute('aria-live', 'polite');
+    if (!t.getAttribute('aria-atomic')) t.setAttribute('aria-atomic', 'true');
+  };
+
+  const ensureProgressbarAria = () => {
+    const bar = document.querySelector('[data-testid="score-bar"], #score-bar');
+    if (!bar) return;
+    bar.setAttribute('role', 'progressbar');
+    bar.setAttribute('aria-valuemin', '0');
+    bar.setAttribute('aria-valuemax', '100');
+    const updateNow = () => {
+      // 期待: style="width: NN%"
+      const w = (bar.style && bar.style.width) || '';
+      const m = w.match(/(\d+(?:\.\d+)?)%/);
+      if (m) bar.setAttribute('aria-valuenow', String(Math.round(parseFloat(m[1]))));
+    };
+    updateNow();
+    // 変化を監視して now を追従
+    const mo = new MutationObserver(() => updateNow());
+    mo.observe(bar, { attributes: true, attributeFilter: ['style'] });
+  };
+
+  const annotateChoices = () => {
+    const container = document.querySelector('#choices') || document.querySelector('[data-testid="choices"]');
+    if (!container) return;
+    container.querySelectorAll('button, .choice, [data-testid="choice"]').forEach((el) => {
+      el.setAttribute('role', 'button'); // button要素でも冗長OK
+      if (!el.hasAttribute('aria-pressed')) el.setAttribute('aria-pressed', 'false');
+    });
+    // クリックで aria-pressed をトグル（選択反映）
+    container.addEventListener('click', (e) => {
+      const target = e.target.closest('button, .choice, [data-testid="choice"]');
+      if (!target) return;
+      container.querySelectorAll('button, .choice, [data-testid="choice"]').forEach((el) => {
+        el.setAttribute('aria-pressed', el === target ? 'true' : 'false');
+      });
+    }, { passive: true });
+  };
+
+  const focusFirstControl = once(() => {
+    // Free: answer、MC: 最初の選択肢
+    const answer = document.querySelector('[data-testid="answer"], #answer');
+    if (answer) { answer.focus?.(); return; }
+    const firstChoice = document.querySelector('#choices button, .choice, [data-testid="choice"]');
+    firstChoice?.focus?.();
+  });
+
+  const observeQuiz = () => {
+    const quizView = document.querySelector('#question-view') || document.querySelector('[data-testid="quiz-view"]');
+    if (!quizView) return;
+    // 出題レンダ後にA11yを適用
+    const apply = () => { ensureTimerAria(); ensureProgressbarAria(); annotateChoices(); focusFirstControl(); };
+    const mo = new MutationObserver(() => apply());
+    mo.observe(quizView, { childList: true, subtree: true, attributes: true });
+    apply();
+  };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // Start押下後にもフォーカスが飛ぶよう保険
+    const startBtn = document.querySelector('[data-testid="start-btn"], #start-btn');
+    if (startBtn) startBtn.addEventListener('click', () => setTimeout(() => focusFirstControl(), 0), { once: true });
+    observeQuiz();
+  });
+})();
+// --- /A11y shim ---
