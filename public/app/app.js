@@ -392,23 +392,42 @@ async function loadVersion() {
     const isTest = params.get('test') === '1';
     const el = document.querySelector('#ver') || document.querySelector('[data-testid="ver"]');
     if (!el) { window.__verResolved = true; return; }
-    // 表示の中央寄せを明示（他要素へ影響しないよう #ver のみ）
-    try { if (!el.style.textAlign) el.style.textAlign = 'center'; } catch (_) {}
+    // 中央寄せ（親がflexでも負けない最小限の指定）
+    try {
+      el.style.display   = el.style.display   || 'block';
+      el.style.width     = el.style.width     || '100%';
+      el.style.textAlign = el.style.textAlign || 'center';
+      el.style.margin    = el.style.margin    || '0 auto';
+    } catch (_) {}
     if (isTest) {
       el.textContent = 'Dataset: mock • commit: local';
       window.__verResolved = true;
       return;
     }
+    // ---- version.json を1回だけ取得して表示を構成 ----
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 3000);
     let datasetLabel = 'unknown';
-    let commitLabel = 'local';
+    let commitLabel  = 'local';
+    let updatedIso   = '';
     try {
       const res = await fetch(VERSION_URL, { signal: ctrl.signal, cache: 'no-store' });
       if (res.ok) {
         const j = await res.json();
-        datasetLabel = j.dataset || j.Dataset || j.data || j.name || datasetLabel;
-        commitLabel = j.commit || j.Commit || j.sha || j.revision || commitLabel;
+        // dataset は dataset_version 優先（なければ content_hash 先頭8文字）
+        const dv = j.dataset_version ?? j.datasetVersion;
+        if (dv !== undefined && dv !== null) {
+          datasetLabel = `v${String(dv)}`;
+        } else if (j.dataset || j.Dataset || j.data || j.name) {
+          datasetLabel = (j.dataset || j.Dataset || j.data || j.name);
+        } else if (j.content_hash) {
+          datasetLabel = String(j.content_hash).slice(0, 8);
+        }
+        // commit は7桁に短縮
+        const rawCommit = j.commit || j.Commit || j.sha || j.revision || 'local';
+        commitLabel = (rawCommit && String(rawCommit).length >= 7) ? String(rawCommit).slice(0, 7) : String(rawCommit);
+        // 最終更新
+        updatedIso = j.generated_at || j.updated_at || j.date || '';
       } else {
         datasetLabel = 'mock'; commitLabel = 'local';
       }
@@ -417,47 +436,17 @@ async function loadVersion() {
     } finally {
       clearTimeout(t);
     }
-
-    // 補助: dataset が取れなかった場合のみ、一度だけフォールバックを試す
-    if (datasetLabel === 'unknown') {
-      const fetchJSON = async (u) => {
-        const c = new AbortController();
-        const t = setTimeout(() => c.abort(), 3000);
-        try {
-          const r = await fetch(u, { signal: c.signal, cache: 'no-store' });
-          if (!r.ok) return null;
-          return await r.json();
-        } catch {
-          return null;
-        } finally {
-          clearTimeout(t);
-        }
-      };
-      // VERSION_URL のディレクトリから推測した build.json / dataset.json を順に1回ずつ
+    // 表示用の時刻フォーマット（YYYY-MM-DD HH:mm）
+    let updatedPart = '';
+    if (updatedIso) {
       try {
-        const base = new URL(VERSION_URL, location.href);
-        const dir  = base.href.replace(/[^/]+$/, ''); // 末尾ファイル名をディレクトリに
-        const fallbacks = [
-          dir + 'build.json',
-          dir + 'dataset.json',
-          './build.json',
-          './dataset.json',
-        ];
-        for (const url of fallbacks) {
-          const j = await fetchJSON(url);
-          if (!j) continue;
-          const ds =
-            j.dataset || j.Dataset || j.data || j.name ||
-            (j.meta && (j.meta.dataset || j.meta.name)) ||
-            (j.build && j.build.dataset) ||
-            null;
-          if (ds && typeof ds === 'string' && ds.trim()) { datasetLabel = ds.trim(); break; }
-        }
-      } catch (_) { /* no-op */ }
+        const d = new Date(updatedIso);
+        const Z = (n)=>String(n).padStart(2,'0');
+        const ts = `${d.getFullYear()}-${Z(d.getMonth()+1)}-${Z(d.getDate())} ${Z(d.getHours())}:${Z(d.getMinutes())}`;
+        updatedPart = ` • updated: ${ts}`;
+      } catch {}
     }
-
-    // 最終表示
-    el.textContent = `Dataset: ${datasetLabel} • commit: ${commitLabel}`;
+    el.textContent = `Dataset: ${datasetLabel} • commit: ${commitLabel}${updatedPart}`;
   } finally {
     window.__verResolved = true;
     window.__verFetchInFlight = false;
