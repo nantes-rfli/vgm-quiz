@@ -120,3 +120,19 @@ Run a small script to verify required files without network access:
 sh scripts/validate_sandbox.sh web
 sh scripts/validate_sandbox.sh build
 ```
+
+# CI / Lighthouse Notes
+
+We run a nightly Lighthouse CI against GitHub Pages.
+
+- **Audit URL:** `https://nantes-rfli.github.io/vgm-quiz/app/?test=1`  
+  The `?test=1` flag prevents the analytics script (`mc.js`) from loading during audits, so perf numbers are not skewed by third-party or tracking code. Production users are unaffected.
+- **Throttling:** `throttlingMethod=provided` to use the actual GitHub runner performance (more stable TBT for this static app).
+- **Thresholds (assert):**  
+  - Performance ≥ **0.80**  
+  - Accessibility ≥ **0.90**  
+  - Best Practices ≥ **0.90**  
+  - SEO ≥ **0.90**
+- **Manual run:** GitHub Actions → *lighthouse (nightly)* → **Run workflow**
+
+If you raise thresholds later, start with A11y/SEO and confirm the artifact HTML reports to identify the exact audits to fix. For perf, prefer deferring heavy work and keeping analytics off in audit runs via `?test=1`.
