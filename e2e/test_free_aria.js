@@ -57,6 +57,78 @@ const { chromium } = require('playwright');
     }
     console.log('[A11y] timer present; visible=', timerState.visible, 'aria-live=', timerState.ariaLive, 'aria-atomic=', timerState.ariaAtomic);
 
+    // === 追加A11yチェック: フォーカス・MCのaria-pressed・progressbar ===
+    // Start → Quiz へ（Startは test.js 側でも押しているが、このテスト単体でも安全に進める）
+    const startBtn = await page.$('[data-testid="start-btn"], #start-btn');
+    if (startBtn) {
+      await page.click('[data-testid="start-btn"]');
+      await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible', timeout: 30000 });
+    }
+
+    // フォーカス: 最初の操作対象に来ているか（Free: answer / MC: 最初のchoice）
+    const focusOk = await page.evaluate(() => {
+      const ae = document.activeElement;
+      if (!ae) return false;
+      const answer = document.querySelector('[data-testid="answer"], #answer');
+      const firstChoice = document.querySelector('#choices button, .choice, [data-testid="choice"]');
+      return ae === answer || ae === firstChoice;
+    });
+    console.log('[A11y] focus on first control:', focusOk);
+
+    // MCなら role="button" と aria-pressed のトグルを確認
+    const isMC = await page.evaluate(() => {
+      const el = document.querySelector('#choices');
+      return !!el && getComputedStyle(el).display !== 'none';
+    });
+    if (isMC) {
+      await page.waitForFunction(() => {
+        const btns = Array.from(document.querySelectorAll('#choices button, .choice, [data-testid="choice"]'));
+        return btns.length >= 4;
+      }, { timeout: 30000 });
+      const firstSel = '#choices button:nth-of-type(1), .choice:nth-of-type(1), [data-testid="choice"]:nth-of-type(1)';
+      // role="button" 付与
+      const roleOk = await page.getAttribute(firstSel, 'role');
+      if (roleOk !== 'button') throw new Error('choice role must be "button"');
+      // クリックで aria-pressed が true
+      await page.click(firstSel);
+      const pressed = await page.getAttribute(firstSel, 'aria-pressed');
+      if (pressed !== 'true') throw new Error('clicked choice aria-pressed should be "true"');
+    }
+
+    // スコアバー: progressbar + now が数値で、正解時に増加（0から上がる）※可視は問わない
+    const barSel = '[data-testid="score-bar"], #score-bar';
+    const bar = await page.$(barSel);
+    if (bar) {
+      const role = await page.getAttribute(barSel, 'role');
+      if (role !== 'progressbar') throw new Error('score-bar must have role="progressbar"');
+      const val0 = parseInt((await page.getAttribute(barSel, 'aria-valuenow')) || '0', 10) || 0;
+      // 正解を1回入れて上昇を観測（FreeとMC両対応）
+      await page.waitForFunction(() => !!window.__expectedAnswer, { timeout: 30000 });
+      const expected = await page.evaluate(() => window.__expectedAnswer);
+      const mc = await page.evaluate(() => {
+        const el = document.querySelector('#choices');
+        return !!el && getComputedStyle(el).display !== 'none';
+      });
+      if (mc) {
+        // 正解ボタンを探してクリック（なければ先頭）
+        const texts = await page.$$eval('#choices button, .choice, [data-testid="choice"]', btns => btns.map(b => b.textContent.trim()));
+        const idx = Math.max(0, texts.findIndex(t => t === expected));
+        const sel = `#choices button:nth-of-type(${idx + 1}), .choice:nth-of-type(${idx + 1}), [data-testid="choice"]:nth-of-type(${idx + 1})`;
+        await page.click(sel);
+      } else {
+        await page.fill('[data-testid="answer"]', expected || 'test');
+        const submit = await page.$('[data-testid="submit-btn"], #submit-btn, [data-testid="submit"]');
+        if (submit) await submit.click();
+      }
+      // 値の上昇を待つ
+      await page.waitForFunction((sel, prev) => {
+        const el = document.querySelector(sel);
+        if (!el) return false;
+        const now = parseInt(el.getAttribute('aria-valuenow') || '0', 10) || 0;
+        return now > prev;
+      }, barSel, val0, { timeout: 30000 });
+    }
+
     // Free answer flow: type wrong answer once to see HUD change (lives or prompt)
     await page.fill('[data-testid="answer"]', 'dummy wrong answer');
     const livesBefore = (await page.textContent('[data-testid="lives"]')).trim();
