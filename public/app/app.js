@@ -383,75 +383,69 @@ async function loadAliases() {
   }
 }
 
-// 版表示: #ver へ一度だけ反映。繰り返し呼ばれてもネットワークを発生させない
-async function loadVersion() {
+function shortCommit(s) {
+  if (!s) return 'local';
+  s = String(s);
+  // 40桁SHAは7桁に、長い文字列も安全側で7桁に短縮
+  if (/^[0-9a-f]{40}$/i.test(s)) return s.slice(0, 7);
+  return s.length > 12 ? s.slice(0, 7) : s;
+}
+
+function fmtYmdHm(ts) {
   try {
-    if (window.__verResolved || window.__verFetchInFlight) return;
-    window.__verFetchInFlight = true;
-    const params = new URLSearchParams(location.search);
-    const isTest = params.get('test') === '1';
-    const el = document.querySelector('#ver') || document.querySelector('[data-testid="ver"]');
-    if (!el) { window.__verResolved = true; return; }
-    // 中央寄せ（親がflexでも負けない最小限の指定）
-    try {
-      el.style.display   = el.style.display   || 'block';
-      el.style.width     = el.style.width     || '100%';
-      el.style.textAlign = el.style.textAlign || 'center';
-      el.style.margin    = el.style.margin    || '0 auto';
-    } catch (_) {}
-    if (isTest) {
-      el.textContent = 'Dataset: mock • commit: local';
-      window.__verResolved = true;
-      return;
-    }
-    // ---- version.json を1回だけ取得して表示を構成 ----
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 3000);
-    let datasetLabel = 'unknown';
-    let commitLabel  = 'local';
-    let updatedIso   = '';
-    try {
-      const res = await fetch(VERSION_URL, { signal: ctrl.signal, cache: 'no-store' });
-      if (res.ok) {
-        const j = await res.json();
-        // dataset は dataset_version 優先（なければ content_hash 先頭8文字）
-        const dv = j.dataset_version ?? j.datasetVersion;
-        if (dv !== undefined && dv !== null) {
-          datasetLabel = `v${String(dv)}`;
-        } else if (j.dataset || j.Dataset || j.data || j.name) {
-          datasetLabel = (j.dataset || j.Dataset || j.data || j.name);
-        } else if (j.content_hash) {
-          datasetLabel = String(j.content_hash).slice(0, 8);
-        }
-        // commit は7桁に短縮
-        const rawCommit = j.commit || j.Commit || j.sha || j.revision || 'local';
-        commitLabel = (rawCommit && String(rawCommit).length >= 7) ? String(rawCommit).slice(0, 7) : String(rawCommit);
-        // 最終更新
-        updatedIso = j.generated_at || j.updated_at || j.date || '';
-      } else {
-        datasetLabel = 'mock'; commitLabel = 'local';
-      }
-    } catch {
-      datasetLabel = 'mock'; commitLabel = 'local';
-    } finally {
-      clearTimeout(t);
-    }
-    // 表示用の時刻フォーマット（YYYY-MM-DD HH:mm）
-    let updatedPart = '';
-    if (updatedIso) {
-      try {
-        const d = new Date(updatedIso);
-        const Z = (n)=>String(n).padStart(2,'0');
-        const ts = `${d.getFullYear()}-${Z(d.getMonth()+1)}-${Z(d.getDate())} ${Z(d.getHours())}:${Z(d.getMinutes())}`;
-        updatedPart = ` • updated: ${ts}`;
-      } catch {}
-    }
-    el.textContent = `Dataset: ${datasetLabel} • commit: ${commitLabel}${updatedPart}`;
-  } finally {
-    window.__verResolved = true;
-    window.__verFetchInFlight = false;
+    const d = new Date(ts);
+    if (isNaN(d)) return null;
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } catch (_) {
+    return null;
   }
 }
+
+async function loadVersion() {
+  const el =
+    document.getElementById('version') ||
+    document.querySelector('#footer-version, footer .version');
+  const setText = (t) => { if (el) el.textContent = t; };
+
+  try {
+    // VERSION_URL は既存の定義をそのまま利用（例: '../build/version.json'）
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 3000);
+    // 'no-cache' は再検証を要求するだけで、無限取得にはなりません
+    const res = await fetch(VERSION_URL, { cache: 'no-cache', signal: ctrl.signal });
+    clearTimeout(to);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const v = await res.json();
+
+    // dataset候補を総当り（数値なら vN、文字ならそのまま、無ければ content_hash 先頭8）
+    const dsRaw = v.dataset_version ?? v.dataset ?? v.data?.dataset ?? v.name ?? v.title;
+    let ds = (typeof dsRaw === 'number') ? `v${dsRaw}`
+           : (typeof dsRaw === 'string' && dsRaw.trim()) ? dsRaw.trim()
+           : (v.content_hash ? String(v.content_hash).slice(0, 8) : 'unknown');
+
+    // commit は各種キーから拾って7桁短縮
+    const commit = shortCommit(
+      v.commit ?? v.git_commit ?? v.sha ?? v.revision
+    );
+
+    // 代表的な日時キーを許容
+    const updated = fmtYmdHm(
+      v.generated_at ?? v.updated_at ?? v.date ?? v.timestamp
+    );
+
+    const text = updated
+      ? `Dataset: ${ds} • commit: ${commit} • updated: ${updated}`
+      : `Dataset: ${ds} • commit: ${commit}`;
+    setText(text);
+  } catch (e) {
+    setText && setText('Dataset: unknown • commit: local');
+    console.warn('[version] load failed:', e);
+  }
+}
+
+// 二重実行防止の once 付き
+document.addEventListener('DOMContentLoaded', loadVersion, { once: true });
 
 function escapeCsv(str) {
   return '"' + String(str).replace(/"/g, '""') + '"';
@@ -813,7 +807,6 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
 });
 // 初期化時に1回だけ実行（以降の呼び出しはガードで即return）
 window.addEventListener('DOMContentLoaded', () => {
-  loadVersion();
   if ('serviceWorker' in navigator) {
     const v = window.__APP_VERSION__ || 'dev';
     if (__IS_TEST_MODE__) {
