@@ -357,51 +357,48 @@ async function loadAliases() {
   }
 }
 
+// 版表示: #ver へ一度だけ反映。繰り返し呼ばれてもネットワークを発生させない
 async function loadVersion() {
-  // 1) version.json（データセット情報）を取得
-  let datasetVersion = null;
-  let contentHash = null;
-  let generatedAt = null;
   try {
-    const res = await fetch(VERSION_URL, { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      datasetVersion = data.dataset_version || null;
-      contentHash = data.content_hash || null;
-      generatedAt = data.generated_at || null;
-      window.__DATASET_VERSION__ = datasetVersion;
+    if (window.__verResolved || window.__verFetchInFlight) return;
+    window.__verFetchInFlight = true;
+    const params = new URLSearchParams(location.search);
+    const isTest = params.get('test') === '1';
+    const el = document.querySelector('#ver') || document.querySelector('[data-testid="ver"]');
+    if (!el) { window.__verResolved = true; return; }
+    if (isTest) {
+      // テスト時は即フォールバック表示（ネットワークなし）
+      el.textContent = 'Dataset: mock • commit: local';
+      window.__verResolved = true;
+      return;
     }
-  } catch (err) {
-    console.warn('Failed to load version.json', err);
-  }
-
-  // 2) build.json（Pages ビルドのコミット情報）を取得：常に最新を取りにいく
-  let shortSha = null;
-  try {
-    const res = await fetch('./build.json?cache=' + Date.now(), { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      window.__APP_VERSION__ = data.commit || 'dev';
-      shortSha = data.short_sha || (data.commit ? data.commit.slice(0,7) : null);
-    } else {
-      throw new Error('build.json not found');
+    const fetchWithTimeout = (url, ms = 3000) => {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), ms);
+      return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).finally(() => clearTimeout(t));
+    };
+    // GitHub Pages での相対パス差異に備えて候補を順に試す（最大各1回）
+    const candidates = ['version.json', 'build.json', './version.json', './build.json'];
+    for (const path of candidates) {
+      try {
+        const res = await fetchWithTimeout(path, 3000);
+        if (!res.ok) continue;
+        const j = await res.json();
+        const ds = j.dataset || j.Dataset || j.data || j.name || 'unknown';
+        const commit = j.commit || j.Commit || j.sha || j.revision || 'local';
+        el.textContent = `Dataset: ${ds} • commit: ${commit}`;
+        window.__verResolved = true;
+        window.__verFetchInFlight = false;
+        return;
+      } catch (_) { /* 次の候補へ */ }
     }
-  } catch (err) {
-    console.warn('Failed to load build.json', err);
-  }
-
-  // 3) 画面に表示
-  const parts = [];
-  if (datasetVersion) parts.push(`Dataset v${datasetVersion}`);
-  if (contentHash)    parts.push(String(contentHash).slice(0, 8));
-  if (generatedAt)    parts.push(new Date(generatedAt).toLocaleString());
-  if (shortSha)       parts.push(`commit: ${shortSha}`);
-  const el = document.getElementById('ver');
-  if (el) {
-    el.textContent = parts.length ? parts.join(' • ') : 'local build';
-    el.style.fontSize = 'small';
-    el.style.opacity  = '0.7';
-    el.style.textAlign= 'center';
+    // 取得失敗時は静的表示にフォールバック（ループせず終了）
+    el.textContent = 'Dataset: mock • commit: local';
+  } catch (e) {
+    console.warn('loadVersion failed:', e);
+  } finally {
+    window.__verResolved = true;
+    window.__verFetchInFlight = false;
   }
 }
 
@@ -763,8 +760,9 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
     if(currentHash() !== content_hash){ showUpdateBanner(); }
   }
 });
-
-loadVersion().then(() => {
+// 初期化時に1回だけ実行（以降の呼び出しはガードで即return）
+window.addEventListener('DOMContentLoaded', () => {
+  loadVersion();
   if ('serviceWorker' in navigator) {
     const v = window.__APP_VERSION__ || 'dev';
     if (__IS_TEST_MODE__) {
