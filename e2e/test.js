@@ -118,26 +118,36 @@ async function dumpArtifacts(page, prefix = 'failure') {
     await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible', timeout: 15000 });
     await page.waitForTimeout(200);
 
-    await page.waitForFunction(
-      () => {
-        const first = document.querySelector('#choices button');
-        return first && first.textContent.trim() === window.__expectedAnswer;
-      },
-      { timeout: TIMEOUT }
-    );
+    // 出題準備：正解テキストがセットされるのを待つ
+    await page.waitForFunction(() => !!window.__expectedAnswer, { timeout: TIMEOUT });
 
-    // MC なら 1 択クリック、Free なら誤答を一度送って HUD 変化を観測
+    // MCかFreeか判定（#choices が可視ならMC）
+    const isMC = await page.evaluate(() => {
+      const el = document.querySelector('#choices');
+      return !!el && getComputedStyle(el).display !== 'none';
+    });
+
     let acted = false;
-    {
-      const choiceEls = await page.$$('.choice');
-      if (choiceEls.length > 0) {
-        await choiceEls[0].click();
-        acted = true;
-      } else if (await page.isVisible('[data-testid="answer"]')) {
-        await page.fill('[data-testid="answer"]', 'dummy wrong answer');
-        await page.click('[data-testid="submit-btn"]');
-        acted = true;
-      }
+    if (isMC) {
+      // 4択が全て描画されるまで待つ
+      await page.waitForFunction(() => {
+        const btns = Array.from(document.querySelectorAll('#choices button'));
+        return btns.length >= 4 && btns.every((b) => (b.textContent || '').trim().length > 0);
+      }, { timeout: TIMEOUT });
+      // 正解テキストと一致するボタンをクリック（無ければ先頭）
+      const expected = await page.evaluate(() => window.__expectedAnswer);
+      const texts = await page.$$eval('#choices button', (btns) => btns.map((b) => b.textContent.trim()));
+      const idx = texts.findIndex((t) => t === expected);
+      const sel = idx >= 0 ? `#choices button:nth-of-type(${idx + 1})` : '#choices button:nth-of-type(1)';
+      await page.click(sel);
+      acted = true;
+    } else {
+      // Free入力：正解を入れて送信
+      const expected = await page.evaluate(() => window.__expectedAnswer);
+      await page.fill('[data-testid="answer"]', expected || 'test');
+      const submitBtn = await page.$('[data-testid="submit-btn"], #submit-btn');
+      if (submitBtn) await submitBtn.click();
+      acted = true;
     }
 
     // 何らかの状態変化を確認（次へ / フィードバック / プロンプト変化）
