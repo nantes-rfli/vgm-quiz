@@ -1,4 +1,6 @@
-# vgm-quiz
+# VGM Quiz
+
+[![Lighthouse nightly](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml/badge.svg)](../../actions/workflows/lighthouse.yml)
 
 A small quiz app for video game music.
 
