@@ -104,13 +104,18 @@ async function dumpArtifacts(page, prefix = 'failure') {
       // continue even if mode selection fails
     }
 
-    await page.waitForSelector('[data-testid="start-btn"]', {
-      state: 'visible',
-      timeout: 15000,
-    });
-    await page.click('[data-testid="start-btn"]');
+    // 1) すでにクイズ中（question-viewが表示）ならそのまま進む
+    const quizVisible = await page.isVisible('[data-testid="quiz-view"]');
+    if (!quizVisible) {
+      // 2) Startボタンがある場合のみクリックして開始
+      const hasStart = await page.isVisible('[data-testid="start-btn"]');
+      if (hasStart) {
+        await page.waitForSelector('[data-testid="start-btn"]:not([disabled])', { timeout: 15000 });
+        await page.click('[data-testid="start-btn"]');
+      }
+    }
 
-    // 初期描画の揺らぎを吸収
+    // 初期描画の揺らぎを吸収してクイズ画面を待つ
     await page.waitForTimeout(300);
     await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible' });
 
@@ -122,7 +127,19 @@ async function dumpArtifacts(page, prefix = 'failure') {
       { timeout: TIMEOUT }
     );
 
-    await page.click('#choices button');
+    // pick first choice in MC mode if available
+    {
+      const choiceEls = await page.$$('.choice');
+      if (choiceEls.length > 0) {
+        await choiceEls[0].click();
+      } else {
+        // 自由入力モードの時は適当な回答を一度送ってHUDの更新を確認
+        if (await page.isVisible('[data-testid="answer"]')) {
+          await page.fill('[data-testid="answer"]', 'dummy wrong answer');
+          await page.click('[data-testid="submit-btn"]');
+        }
+      }
+    }
 
     await page.waitForFunction(
       () => /Score: 1/.test(document.querySelector('[data-testid="score-bar"]').textContent),
