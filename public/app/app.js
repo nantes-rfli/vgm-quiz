@@ -1,4 +1,5 @@
 import { normalize as normalizeV2 } from './normalize.mjs';
+import { orderByYearBucket } from './question_pipeline.mjs';
 
 let tracks = [];
 let questions = [];
@@ -28,6 +29,14 @@ const HASH_KEY = 'dataset_hash';
 const __SEARCH_PARAMS__ = new URLSearchParams(location.search);
 const __IS_TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
 const __DEBUG__ = __SEARCH_PARAMS__.get('debug') === '1';
+
+// URLクエリのbool取得（既存があればそれを使用、なければ補助）
+function getQueryBool(key) {
+  try {
+    const v = new URLSearchParams(location.search).get(key);
+    return v === '1' || v === 'true';
+  } catch { return false; }
+}
 
 // DETERMINISTIC RNG: URL に ?seed=xxx があれば Math.random を決定化
 function initSeededRandom() {
@@ -281,6 +290,23 @@ function norm(str) {
 function canonical(str) {
   const n = norm(str);
   return aliases[n] || n;
+}
+
+// 質問配列が作られた直後（既存ロジックの直後）で並べ替えを適用
+// 例：buildQuestions() / startGame() の直後など、questions が最終確定した箇所にフック
+function afterQuestionsBuiltHook() {
+  try {
+    if (getQueryBool('qp') && Array.isArray(questions) && questions.length > 0) {
+      // 既存のシード RNG を使う（なければ Math.random）
+      const rng = (typeof window.__rng === 'function') ? window.__rng : Math.random;
+      const order = orderByYearBucket(questions, rng);
+      questions = order.map(i => questions[i]);
+    }
+    // test=1 のとき E2E から見えるように公開（IDが無ければ title を代替）
+    if (getQueryBool('test') && Array.isArray(questions)) {
+      window.__questionIds = questions.map(q => q?.track?.id ?? q?.track?.title ?? '').join(',');
+    }
+  } catch (_) {}
 }
 
 // --- lives（残機）: 誤答数をHUDに反映 ---
@@ -582,6 +608,7 @@ function startQuiz() {
     console.info('[DEBUG] attempts', attempts);
   }
   questions = built;
+  afterQuestionsBuiltHook();
   current = 0;
   score = 0;
   showQuestion();
