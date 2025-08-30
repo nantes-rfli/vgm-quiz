@@ -1,5 +1,7 @@
 # VGM Quiz
 
+[![Lighthouse nightly](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml)
+
 A small quiz app for video game music. Runs on GitHub Pages.
 
 - **Live:** https://nantes-rfli.github.io/vgm-quiz/app/
@@ -106,4 +108,11 @@ node e2e/test_normalize_cases.mjs   # Node-only assertions for normalize v1.2
 ## License
 
 MIT
+
+## Documentation
+
+- [Ops Runbook](./docs/ops-runbook.md)
+- [Query Flags](./docs/flags.md)
+- [CI & E2E](./docs/ci.md)
+- [Troubleshooting](./docs/troubleshooting.md)
 
