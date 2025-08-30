@@ -635,6 +635,20 @@ window.loadVersionForce = async () => {
   try { await loadVersion(); } catch (_) {}
 };
 
+// デバッグ/検証用：TTL/in-flight 共有の“通常経路”を叩くための公開フック
+if (typeof window.loadVersionPublic !== 'function') {
+  window.loadVersionPublic = async () => {
+    try { await readVersionNoStore(false); } catch (_) {}
+    try { await loadVersion(); } catch (_) {}
+  };
+}
+
+// （任意）キャッシュの中身を覗く/クリアする簡易デバッグ
+window.versionDebug = {
+  stats: () => ({ ttlMs: 60000, cache: __readVersionCache }),
+  clear: () => { __readVersionCache = { ts: 0, data: null, etag: null }; }
+};
+
 // 二重実行防止の once 付き
 document.addEventListener('DOMContentLoaded', loadVersion, { once: true });
 
