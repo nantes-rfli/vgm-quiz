@@ -44,6 +44,7 @@ jobs:
           node e2e/test_pipeline_flag.mjs
           node e2e/test_media_button.mjs
           node e2e/test_results_modal_a11y.mjs
+          node e2e/test_lives_rule_end.mjs
           node e2e/test_daily_mode.mjs
           node e2e/test_answer_normalize.mjs
 
@@ -92,6 +93,7 @@ jobs:
           node e2e/test_pipeline_flag.mjs
           node e2e/test_media_button.mjs
           node e2e/test_results_modal_a11y.mjs
+          node e2e/test_lives_rule_end.mjs
           node e2e/test_daily_mode.mjs
           node e2e/test_answer_normalize.mjs
       - name: Upload e2e artifacts
