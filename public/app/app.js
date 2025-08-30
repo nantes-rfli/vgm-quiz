@@ -3,6 +3,8 @@ import { orderByYearBucket } from './question_pipeline.mjs';
 
 let tracks = [];
 let questions = [];
+// パイプライン用の乱数。既定は Math.random（seed 初期化後に差し替える）
+let rngForPipeline = Math.random;
 const MAX_LIVES = 3;
 let mistakes = 0;
 let __livesInterval = null;
@@ -70,8 +72,11 @@ function initSeededRandom() {
   });
   try { console.info('[SEED]', seedParam, seedInt); } catch (_) {}
   window.__ORIG_RANDOM__ = origRandom;
-  window.__SEED__ = seedParam;
-  window.__SEED_INT__ = seedInt;
+  // v0.2: seed RNG を公開＆パイプラインで使用できるようにする
+  window.__SEED__ = window.__SEED__ ?? seedParam;
+  window.__SEED_INT__ = window.__SEED_INT__ ?? seedInt;
+  window.__rng = rng;
+  rngForPipeline = rng;
 }
 
 initSeededRandom();
@@ -297,14 +302,18 @@ function canonical(str) {
 function afterQuestionsBuiltHook() {
   try {
     if (getQueryBool('qp') && Array.isArray(questions) && questions.length > 0) {
-      // 既存のシード RNG を使う（なければ Math.random）
-      const rng = (typeof window.__rng === 'function') ? window.__rng : Math.random;
-      const order = orderByYearBucket(questions, rng);
+      // v0.2: ここで明示的に seed RNG を使う（フォールバックは rngForPipeline 側で済）
+      const order = orderByYearBucket(questions, rngForPipeline);
       questions = order.map(i => questions[i]);
     }
-    // test=1 のとき E2E から見えるように公開（IDが無ければ title を代替）
+    // test=1 のとき、確認しやすい詳細も公開
     if (getQueryBool('test') && Array.isArray(questions)) {
       window.__questionIds = questions.map(q => q?.track?.id ?? q?.track?.title ?? '').join(',');
+      window.__questionDebug = questions.map(q => ({
+        title: q?.track?.title ?? '',
+        year: q?.track?.year ?? null,
+        type: q?.type ?? '',
+      }));
     }
   } catch (_) {}
 }
