@@ -4,9 +4,6 @@ on:
   # 通常ルート: main に入れば必ず実行
   push:
     branches: [ main ]
-  # PR でも build チェックを出す（ブランチ保護の "build" 対応用）
-  pull_request:
-    branches: [ "**" ]
   # 保険ルート: CI Fast が成功で完了したら実行（重複は concurrency で抑止）
   workflow_run:
     workflows: [ "CI Fast" ]
