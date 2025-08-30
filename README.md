@@ -1,6 +1,6 @@
 # VGM Quiz
 
-[![Lighthouse nightly](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml)
+[![Lighthouse nightly](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml) [![E2E](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e.yml) [![Pages](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/pages.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/pages.yml)
 
 A small quiz app for video game music. Runs on GitHub Pages.
 
@@ -114,5 +114,7 @@ MIT
 - [Ops Runbook](./docs/ops-runbook.md)
 - [Query Flags](./docs/flags.md)
 - [CI & E2E](./docs/ci.md)
+- [Data Pipeline](./docs/pipeline.md)
+- [Release & Deployment](./docs/release.md)
 - [Troubleshooting](./docs/troubleshooting.md)
 
