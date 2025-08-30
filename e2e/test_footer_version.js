@@ -1,25 +1,46 @@
-import { test, expect } from '@playwright/test';
+// Standalone footer format check (CommonJS). Run with: node e2e/test_footer_version.js
+const { chromium } = require('playwright');
 
-test('footer shows dataset / short commit / optional updated', async ({ page }) => {
-  const url =
+(async () => {
+  const base =
     process.env.E2E_BASE_URL ||
-    'http://127.0.0.1:8080/app/?test=1&mock=1&seed=e2e&autostart=0';
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+    'https://nantes-rfli.github.io/vgm-quiz/app/?test=1&mock=1&seed=e2e&autostart=0';
 
-  const el = page.locator('#footer-version, #version, footer .version').first();
-  await expect(el).toBeVisible();
+  const url = new URL(base);
+  const ensure = (k, v) => { if (!url.searchParams.has(k)) url.searchParams.set(k, v); };
+  ensure('test', '1'); ensure('mock', '1'); ensure('seed', 'e2e'); ensure('autostart', '0');
 
-  const text = (await el.textContent() || '').trim();
-  console.log('[footer-version]', text);
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
 
-  // 許容: Dataset は vN または非空英数記号、commit は local or 7桁HEX、updated は任意
-  const re =
-    /^Dataset:\s+(?<ds>v\d+|[A-Za-z0-9._-]+)\s+•\s+commit:\s+(?<commit>local|[0-9a-f]{7})(?:\s+•\s+updated:\s+(?<dt>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}))?$/;
-  const m = text.match(re);
-  expect(m, 'footer text format').not.toBeNull();
+  try {
+    console.log('[footer-version check] URL:', url.toString());
+    await page.goto(url.toString(), { waitUntil: 'domcontentloaded' });
 
-  const { commit } = m!.groups!;
-  if (commit !== 'local') {
-    expect(commit).toMatch(/^[0-9a-f]{7}$/);
+    // footer テキストの取得（#footer-version / #version / .version いずれか）
+    const loc = page.locator('#footer-version, #version, footer .version').first();
+    await loc.waitFor({ state: 'visible', timeout: 10000 });
+    const text = (await loc.textContent() || '').trim();
+    console.log('[footer-version]', text);
+
+    // 許容: Dataset は vN or 英数、commit は local or 7桁HEX、updated は任意
+    const re = /^Dataset:\s+(v\d+|[A-Za-z0-9._-]+)\s+•\s+commit:\s+(local|[0-9a-f]{7})(?:\s+•\s+updated:\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})?$/;
+    const m = text.match(re);
+    if (!m) throw new Error('footer text format mismatch');
+
+    const commit = m[2];
+    if (commit !== 'local' && !/^[0-9a-f]{7}$/.test(commit)) {
+      throw new Error(`commit not short 7: ${commit}`);
+    }
+
+    console.log('[OK] footer format looks good');
+  } catch (err) {
+    console.error('[NG] footer check failed:', err?.message || err);
+    process.exitCode = 1;
+  } finally {
+    await ctx.close().catch(() => {});
+    await browser.close().catch(() => {});
   }
-});
+})();
+
