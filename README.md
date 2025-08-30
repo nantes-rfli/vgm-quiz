@@ -1,140 +1,109 @@
 # VGM Quiz
 
-[![Lighthouse nightly](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml/badge.svg)](../../actions/workflows/lighthouse.yml)
+A small quiz app for video game music. Runs on GitHub Pages.
 
-A small quiz app for video game music.
+- **Live:** https://nantes-rfli.github.io/vgm-quiz/app/
+- **Repo:** https://github.com/nantes-rfli/vgm-quiz
 
-## Runbook (Ops quick guide)
+## Quick start (local)
 
-### URLs
+```bash
+# 1) serve /app for local testing
+npx http-server -p 8080 -c-1 .    # or any static server
+
+# 2) open
+http://127.0.0.1:8080/app/?test=1&mock=1&autostart=0
+```
+
+## Core features
+
+- Quiz modes: Multiple Choice / Free-form; types: **title→game / game→composer / title→composer**
+- Deterministic ordering: **seeded RNG** (`?seed=abc`) + **year-bucket pipeline** (`?qp=1`)
+- HUD & A11y: lives HUD (`Misses: x/y`), score bar (role=progressbar), timer (`aria-live="polite"`), focus management
+- Results modal: **accessible dialog** (initial focus, Tab trap, Escape to close), **share** & **copy** (toast auto disappears in ~2s)
+- Media preview: **YouTube** (nocookie first → fallback domain / "Open in YouTube" link); fully **stubbed in tests** (`?test=1` / `?lhci=1` / `?nomedia=1`)
+- Daily: **1‑question daily** via `?daily=1` (JST) or `?daily=YYYY-MM-DD` (map in `public/app/daily.json`)
+- Lives rule (optional): `?lives=on` (or `?lives=5`) → **on reaching limit, finish immediately** (default is display‑only)
+
+## Ops runbook
+
+### Useful URLs
 - Normal: `/app/`
-- Test (no SW): `/app/?test=1`
+- Test (no SW registration): `/app/?test=1`
+- Mock dataset: `/app/?test=1&mock=1`
 - Deterministic: `/app/?test=1&seed=demo`
-- Mock (fast): `/app/?test=1&mock=1&seed=demo`
+- Year-bucket pipeline: add `&qp=1`
+- Daily (today JST): add `&daily=1` (or `&daily=YYYY-MM-DD`)
+- Disable media embeds: `&nomedia=1`
+- Lighthouse audit: `/app/?test=1&lhci=1`
 
-### Local
-```bash
-# Build static site into public/
-clojure -T:build publish
+### Footer (version)
+Footer shows: **`Dataset: vN • commit: abcdefg • updated: YYYY-MM-DD HH:mm`** (local time).
+`loadVersion()` uses **8s timeout, in‑flight sharing, 60s TTL** to avoid redundant fetches.
 
-# Lightweight HTML contract test (no real browser)
-npm run smoke
+#### Debug helpers
+- `window.__rng` / `window.__SEED__` – seeded RNG (function) / seed string
+- `window.__questionIds` – string of track IDs/titles (when `?test=1`)
+- `window.__questionDebug` – array of `{{ title, year, type }}` (when `?test=1`)
+- `window.loadVersionPublic()` – non‑force refresh (TTL/in‑flight適用)
+- `window.loadVersionForce()` – force refresh (即取得)
+- `window.versionDebug.stats()` / `.clear()` – TTLキャッシュの確認/クリア
 
-# E2E locally (uses TEST_MODE + seed + mock via the test runner)
-APP_URL="http://127.0.0.1:8080/app/" node e2e/test.js
-```
+### Service Worker
+- SW polls `version.json` ~every 60s to notify updates.
+- **Handshake:** app sends the absolute `version.json` URL to SW at startup; SW uses it (prevents 404 on scoped paths).
 
-### GitHub Actions
-- **CI Fast**: PR/main — unit tests + guards + smoke  
-- **Pages**: main push (and CI Fast success fallback) — deploy to GitHub Pages  
-- **e2e (on-demand)**: manual/nightly — stable E2E with mock+seed+test
+### Query flags (summary)
+`test, mock, seed, qp, daily, autostart, lhci, nomedia, lives`
 
-### Debugging E2E failures
-- Download `artifacts/trace.zip` and view:
-```bash
-npx playwright show-trace artifacts/trace.zip
-```
-- Check `console.log` and `network.log` in the same artifact.
+| Flag | Example | Purpose |
+|---|---|---|
+| `test` | `?test=1` | No SW registration; expose debug vars; stub media |
+| `mock` | `?mock=1` | Use mock dataset for fast/dev checks |
+| `seed` | `?seed=alpha` | Deterministic RNG |
+| `qp` | `?qp=1` | Enable year‑bucket order pipeline |
+| `daily` | `?daily=1` / `?daily=2000-01-01` | 1‑question daily mode (JST or fixed date) |
+| `autostart` | `?autostart=0` | Require manual Start |
+| `lhci` | `?lhci=1` | Stub media for Lighthouse |
+| `nomedia` | `?nomedia=1` | Manually stub media |
+| `lives` | `?lives=on` / `?lives=5` | End immediately when misses reach limit |
 
-## Project Status
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for current progress.
+## Data & pipeline (overview)
 
-## 要件
-- Clojure CLI（`clojure`コマンド）
+- Clojure/CLJC pipeline exports: `public/build/dataset.json`, `aliases.json`, `version.json`.
+- Aliases: app merges `../build/aliases.json` with optional `./aliases_local.json` (**local overrides** → easy PRs).
 
-## 使い方
-```bash
-clojure -M:test # テスト実行
-clojure -M -m vgm.cli # 既定: 5問
-clojure -M -m vgm.cli 3 # 3問
-```
+## Development & tests
 
-Kaocha is configured via `tests.edn`.
-
-### みんはや向けエクスポート
-
-```bash
-# 既定: 30問、タブ区切り
-clojure -M -m vgm.cli export
-# CSV 形式
-clojure -M -m vgm.cli export --format csv > out.csv
-```
-
-## Contributing data
-
-Candidates go to `resources/candidates/*.edn` (map/vector of tracks). `:meta/*` allowed.
-
-Provide a CSV file with the header `title,game,composer,year`:
-
-```csv
-title,game,composer,year
-Megalovania,UNDERTALE,Toby Fox,2015
-```
-
-Then merge it into the dataset:
+### E2E (Playwright)
+We run in CI and locally. Local quick run:
 
 ```bash
-clojure -M -m vgm.cli import-csv new_tracks.csv resources/data/tracks.edn
+node e2e/test.js
+node e2e/test_free_aria.js
+node e2e/test_footer_version.js
+node e2e/test_results_share.mjs
+node e2e/test_lives_visual.mjs
+node e2e/test_pipeline_flag.mjs
+node e2e/test_media_button.mjs
+node e2e/test_results_modal_a11y.mjs
+node e2e/test_lives_rule_end.mjs
+node e2e/test_normalize_cases.mjs   # Node-only assertions for normalize v1.2
 ```
 
-## Alias proposals
+### CI workflows (GitHub Actions)
+- `ci.yml` / `ci-fast.yml` – Clojure + JS basic tests
+- `e2e.yml` – Playwright end‑to‑end
+- `pages.yml` – auto deploy to Pages on `main`
+- `release.yml` – release
+- `lighthouse.yml` – nightly Lighthouse CI against production (`?test=1&lhci=1`)
 
-クイズで誤答した際に表示される「別名として提案」ボタンから候補を保存できます。
+## Answer normalization v1.2
 
-1. 提案を溜めたら、スタート画面の「Export alias proposals (.edn)」ボタンでダウンロード。
-2. `resources/alias_proposals/` に `.edn` ファイルを配置して PR を作成すると、ワークフローが自動で `aliases.edn` に統合し、"Update aliases (auto-merge proposals)" という別PRを作成します。
-3. ローカルで確認する場合は次のコマンドでもマージできます。
+- Base: NFKC + lower; ignore punctuation/elongation/whitespace; roman ↔ arabic numerals
+- **v1.2 adds:** leading English articles ignored (`the|a|an`), dash/hyphen normalization, `&/＆ → and`, stronger roman numeral handling (word‑boundary; I–XX).
 
-```bash
-clojure -M -m vgm.aliases merge resources/alias_proposals/*.edn resources/data/aliases.edn
-```
+## License
 
-## 概要
+MIT
 
-* `resources/data/tracks.edn` を読み込み
-* 簡単な問題をランダム生成（作曲者/作品など）
-* 正解・不正解の判定とスコア表示
-
-## Web Preview
-
-```bash
-clojure -T:build publish
-python -m http.server -d public 4444
-# or: npx serve public
-```
-
-CI builds provide the current commit hash via the `GITHUB_SHA` environment variable.
-`build.clj` reads this with `System/getenv` to write `public/build/app-meta.json`
-for cache-busting purposes.
-
-Index page displays dataset version and track count.
-
-## Snapshot
-
-- [Code Snapshot](https://<owner>.github.io/<repo>/)
-- [Live App](https://<owner>.github.io/<repo>/app/)
-
-## Codex sandbox validation
-
-Run a small script to verify required files without network access:
-
-```bash
-sh scripts/validate_sandbox.sh web
-sh scripts/validate_sandbox.sh build
-```
-
-# CI / Lighthouse Notes
-
-We run a nightly Lighthouse CI against GitHub Pages.
-
-- **Audit URL:** `https://nantes-rfli.github.io/vgm-quiz/app/?test=1`  
-  The `?test=1` flag prevents the analytics script (`mc.js`) from loading during audits, so perf numbers are not skewed by third-party or tracking code. Production users are unaffected.
-- **Throttling:** `throttlingMethod=provided` to use the actual GitHub runner performance (more stable TBT for this static app).
-- **Thresholds (assert):**  
-  - Performance ≥ **0.80**  
-  - Accessibility ≥ **0.90**  
-  - Best Practices ≥ **0.90**  
-  - SEO ≥ **0.90**
-- **Manual run:** GitHub Actions → *lighthouse (nightly)* → **Run workflow**
-
-If you raise thresholds later, start with A11y/SEO and confirm the artifact HTML reports to identify the exact audits to fix. For perf, prefer deferring heavy work and keeping analytics off in audit runs via `?test=1`.
