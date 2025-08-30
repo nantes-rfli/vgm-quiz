@@ -47,6 +47,7 @@ jobs:
           node e2e/test_lives_rule_end.mjs
           node e2e/test_daily_mode.mjs
           node e2e/test_answer_normalize.mjs
+          node e2e/test_normalize_cases.mjs
 
       - name: Upload e2e artifacts
         if: always()
@@ -96,6 +97,7 @@ jobs:
           node e2e/test_lives_rule_end.mjs
           node e2e/test_daily_mode.mjs
           node e2e/test_answer_normalize.mjs
+          node e2e/test_normalize_cases.mjs
       - name: Upload e2e artifacts
         if: always()
         uses: actions/upload-artifact@v4

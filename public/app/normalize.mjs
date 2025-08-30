@@ -1,47 +1,68 @@
-// Answer normalization v1.1
+// Answer normalization v1.2
 // - NFKC + lowercase
-// - Roman numerals (I,V,X,L,C,D,M / Ⅶ 等もNFKCでOK) → Arabic numerals
-// - 非意味文字の除去：空白/各種ダッシュ/スラッシュ/中点/長音「ー」/記号/括弧 等
-// - 依存なし・小さく実装。ブラウザ/Nodeのどちらでも動作。
+// - &/＆ → and
+// - Leading articles (the/a/an) stripped
+// - Dash/long vowel normalization to spaces
+// - Punctuation removal
+// - Roman numerals ↔ Arabic numerals (1–20)
 
-function toNFKCLower(s) {
-  return String(s ?? '').normalize('NFKC').trim().toLowerCase();
+// 先頭冠詞を剥がす（英語のみ・語頭限定）
+function stripLeadingArticles(s) {
+  return s.replace(/^(?:the|a|an)\s+/, '');
 }
 
-function romanToIntToken(tok) {
-  const map = { i:1, v:5, x:10, l:50, c:100, d:500, m:1000 };
-  let total = 0, prev = 0;
-  for (let i = tok.length - 1; i >= 0; i--) {
-    const val = map[tok[i]];
-    if (!val) return null;
-    if (val < prev) total -= val; else { total += val; prev = val; }
+// &/＆ → and
+function ampToAnd(s) {
+  return s.replace(/(?:&|＆)/g, ' and ');
+}
+
+// ダッシュ/ハイフンの空白正規化
+function dashNormalize(s) {
+  return s.replace(/[\-‐‒–—―ｰー－]+/g, ' ');
+}
+
+// ローマ数字相互変換（単語境界で安全に）
+const ROMAN = [
+  ['xx',20],['xix',19],['xviii',18],['xvii',17],['xvi',16],['xv',15],
+  ['xiv',14],['xiii',13],['xii',12],['xi',11],['x',10],
+  ['ix',9],['viii',8],['vii',7],['vi',6],['v',5],['iv',4],['iii',3],['ii',2],['i',1]
+];
+function romanToArabicSafe(s) {
+  for (const [r, n] of ROMAN) {
+    const re = new RegExp(`\\b${r}\\b`, 'g');
+    s = s.replace(re, String(n));
   }
-  if (total <= 0 || total > 3999) return null;
-  return total;
-}
-
-function replaceRomanNumerals(s) {
-  // 単独トークンのローマ数字だけ数値化（英数以外に挟まれているものを対象）
-  return s.replace(/(^|[^a-z0-9])([mdclxvi]{1,7})(?=($|[^a-z0-9]))/g, (m, pre, tok) => {
-    const n = romanToIntToken(tok);
-    if (n == null) return m;
-    return pre + String(n);
-  });
-}
-
-const NON_MEANINGFUL_CLASS = [
-  '\\s','\\u00A0','\\u2000-\\u200B','\\u202F\\u205F\\u3000', // 空白
-  '、。·・，．','!"#$%&\\\'“”‘’\\(\\)\\[\\]｢｣「」『』【】〈〉《》{}＜＞<>', // 句読点/括弧
-  ':：;；\\.?？,!！','_','\\\\','\\/', // 区切り類
-  '\\u2010-\\u2015','\\u2212','\\u30FB','\\u30FC','\\-－−' // ダッシュ/中点/長音/マイナス
-].join('');
-const NON_MEANINGFUL_RE = new RegExp('[' + NON_MEANINGFUL_CLASS + ']+', 'g');
-
-export function normalize(input) {
-  let s = toNFKCLower(input);
-  s = replaceRomanNumerals(s);        // 先にローマ数字を処理
-  s = s.replace(NON_MEANINGFUL_RE, ''); // 非意味文字を除去
   return s;
+}
+function arabicToRomanSafe(s) {
+  // 1–20 に限定（誤変換防止）
+  const map = {
+    20:'xx',19:'xix',18:'xviii',17:'xvii',16:'xvi',15:'xv',
+    14:'xiv',13:'xiii',12:'xii',11:'xi',10:'x',9:'ix',8:'viii',
+    7:'vii',6:'vi',5:'v',4:'iv',3:'iii',2:'ii',1:'i'
+  };
+  return s.replace(/\b([1-9]|1[0-9]|20)\b/g, (_, d) => map[d] || _);
+}
+
+export function normalize(str) {
+  if (str == null) return '';
+  let s = String(str);
+  // v1.1: NFKC + lower
+  s = s.normalize('NFKC').toLowerCase();
+  // v1.2: 追加の軽微ルール
+  s = dashNormalize(s);
+  s = ampToAnd(s);
+  s = stripLeadingArticles(s);
+  // 余分な空白を一旦畳む
+  s = s.replace(/[\s\u3000]+/g, ' ').trim();
+  // 記号・句読点の削除（既存＋軽微拡張）
+  s = s.replace(/[!"#$%\'()*+,./:;<=>?@\[\]^_`{|}~。、！？”’]/g, ' ');
+  s = s.replace(/・/g, '');
+  // ローマ数字 ←→ アラビア数字（境界安全）
+  s = romanToArabicSafe(s);
+  s = arabicToRomanSafe(s);
+  // 最終空白畳み
+  return s.replace(/\s+/g, ' ').trim();
 }
 
 export default { normalize };

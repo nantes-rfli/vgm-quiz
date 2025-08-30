@@ -563,15 +563,23 @@ async function loadDataset() {
 async function loadAliases() {
   try {
     const res = await fetch(ALIASES_URL, { cache: 'no-store' });
-    if (!res.ok) return;
-    const data = await res.json();
-    Object.values(data).forEach(cat => {
-      Object.entries(cat).forEach(([canon, list]) => {
-        const canonN = norm(canon);
-        aliases[canonN] = canonN;
-        list.forEach(a => { aliases[norm(a)] = canonN; });
+    if (res.ok) {
+      const data = await res.json();
+      Object.values(data).forEach(cat => {
+        Object.entries(cat).forEach(([canon, list]) => {
+          const canonN = norm(canon);
+          aliases[canonN] = canonN;
+          list.forEach(a => { aliases[norm(a)] = canonN; });
+        });
       });
-    });
+    }
+    try {
+      const r2 = await fetch('./aliases_local.json', { cache: 'no-store' });
+      if (r2.ok) {
+        const local = await r2.json();
+        Object.entries(local).forEach(([k, v]) => { aliases[k] = v; });
+      }
+    } catch (_) {}
   } catch (err) {
     console.warn('Failed to load aliases', err);
   }
