@@ -33,6 +33,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.DAILY_PR_PAT }}
           commit-message: "chore(daily): update daily.json"
           title: "chore(daily): update daily.json"
           body: |
