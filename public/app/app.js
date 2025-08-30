@@ -1348,3 +1348,6 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 })();
 // --- /A11y shim ---
+
+// デバッグ/検証用（TTL/in-flight挙動の確認に使用）
+window.loadVersionPublic = async () => { await readVersionNoStore(false); await loadVersion(); };
