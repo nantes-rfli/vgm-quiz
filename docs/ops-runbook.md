@@ -40,6 +40,22 @@ This document captures day‑to‑day operations for **vgm-quiz**.
 - `?daily=1` uses *today (JST)*. `?daily=YYYY-MM-DD` for fixed day.
 - Mapping is in `public/app/daily.json`.
 
+## Daily 1-question (automation)
+
+- Source of truth: `public/app/daily.json`
+  ```json
+  { "version": 1, "tz": "Asia/Tokyo", "map": { "YYYY-MM-DD": { "title": "..." } } }
+  ```
+- Update policy: **nightly (00:00 JST)** via GitHub Actions → `.github/workflows/daily.yml`  
+  The generator selects 1 title deterministically from the current dataset based on the date (JST).
+- Manual run (local):
+  ```bash
+  node scripts/generate_daily.js               # for today (JST)
+  DAILY_DATE=2025-09-01 node scripts/generate_daily.js
+  DATASET_URL=https://nantes-rfli.github.io/vgm-quiz/build/dataset.json node scripts/generate_daily.js
+  ```
+- Notes: selection avoids repeating the same title within the last **30 days** (configurable via `AVOID_DAYS`).
+
 ## Debugging
 
 - `window.__rng`/`__SEED__` – seeded RNG function & seed.

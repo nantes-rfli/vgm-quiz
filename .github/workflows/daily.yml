@@ -1,0 +1,41 @@
+name: daily.json generator (JST)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Run at 15:00 UTC (00:00 JST next day)
+    - cron: "0 15 * * *"
+
+jobs:
+  generate-daily:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate public/app/daily.json (JST)
+        env:
+          DATASET_URL: https://nantes-rfli.github.io/vgm-quiz/build/dataset.json
+          OUTPUT_PATH: public/app/daily.json
+          TZ: Asia/Tokyo
+        run: |
+          node scripts/generate_daily.js
+
+      - name: Commit & Push if changed
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add public/app/daily.json
+            git commit -m "chore(daily): update daily.json [skip e2e]"
+            git push
+          else
+            echo "No changes in daily.json"
+          fi
