@@ -716,6 +716,90 @@ function showResult() {
     li.textContent = `${TYPE_LABELS[q.type]} - ${q.correct ? '✅' : '❌'} - ${q.expected} - ${q.userAnswer || ''} - ${q.track.year} - ${q.track.game} - ${q.elapsed}s`;
     list.appendChild(li);
   });
+
+  // v2: 結果の共有導線（コピー／Share）をセットアップ
+  setupResultShare();
+}
+
+// --- Share helpers (結果画面専用) ---
+function canonicalAppUrl() {
+  // 現在の URL から検証用クエリを取り除いた共有用URLを返す
+  try {
+    const u = new URL(location.href);
+    const rm = ['test','mock','autostart','lhci','debug'];
+    rm.forEach(k => u.searchParams.delete(k));
+    return u.toString();
+  } catch {
+    return location.origin + location.pathname;
+  }
+}
+
+function buildResultShareText() {
+  const total = questions.length || 0;
+  const correct = score || 0;
+  const acc = total ? Math.round((correct / total) * 100) : 0;
+  const types = selectedTypes().map(t => TYPE_LABELS[t] || t).join(', ');
+  const mode = (questionMode === 'multiple-choice') ? '4択' : '自由入力';
+  const seed = window.__SEED__ || new URLSearchParams(location.search).get('seed') || '';
+  const timer = useTimer ? '20s' : 'off';
+  const url = canonicalAppUrl();
+  return [
+    'VGM Quiz',
+    `Score: ${correct}/${total} (${acc}%)`,
+    `Mode: ${mode}${seed ? ` | seed: ${seed}` : ''} | Timer: ${timer}`,
+    `Types: ${types}`,
+    `Play: ${url}`
+  ].join('\n');
+}
+
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    const toast = document.getElementById('copy-toast');
+    if (toast) toast.textContent = 'コピーしました';
+  } catch (e) {
+    alert('コピーに失敗しました: ' + e.message);
+  }
+}
+
+function setupResultShare() {
+  const copyBtn = document.getElementById('copy-result-btn');
+  const shareBtn = document.getElementById('share-result-btn');
+  const toast = document.getElementById('copy-toast');
+  if (toast) toast.textContent = ''; // 直前の表示をリセット
+  if (!copyBtn || !shareBtn) return;
+  if (!copyBtn.dataset._bound) {
+    copyBtn.addEventListener('click', async () => {
+      await copyToClipboard(buildResultShareText());
+    }, { passive: true });
+    copyBtn.dataset._bound = '1';
+  }
+  // Web Share API がある環境だけ Share を出す
+  if (typeof navigator.share === 'function') {
+    shareBtn.style.display = '';
+    if (!shareBtn.dataset._bound) {
+      shareBtn.addEventListener('click', async () => {
+        const text = buildResultShareText();
+        try { await navigator.share({ title: 'VGM Quiz', text, url: canonicalAppUrl() }); }
+        catch (e) {
+          // キャンセル等は無視。それ以外はコピーにフォールバック
+          if (e && e.name !== 'AbortError') await copyToClipboard(text);
+        }
+      }, { passive: true });
+      shareBtn.dataset._bound = '1';
+    }
+  } else {
+    shareBtn.style.display = 'none';
+  }
 }
 
 function restart() {
