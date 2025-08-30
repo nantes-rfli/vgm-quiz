@@ -27,28 +27,47 @@ import { chromium } from 'playwright';
   await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible', timeout: TIMEOUT });
 
   const answerWrongOnce = async () => {
-    // Free/MC 両対応の不正解送出
+    // Free/MC 両対応の“不正解”を必ず送出し、回答後は「Result or Next」を先に待つ
     const isMC = await page.evaluate(() => {
       const el = document.querySelector('#choices');
       return !!el && getComputedStyle(el).display !== 'none';
     });
     if (isMC) {
       await page.waitForSelector('#choices button, .choice, [data-testid="choice"]', { timeout: TIMEOUT });
-      // 正解インデックスを避けて1番目を押す（best-effort）
-      await page.click('#choices button, .choice, [data-testid="choice"]');
+      // 正解テキスト（__expectedAnswer）を取得し、それ以外のボタンをクリック
+      const expected = await page.evaluate(() => window.__expectedAnswer || '');
+      const wrongIdx = await page.$$eval(
+        '#choices button, .choice, [data-testid="choice"]',
+        (els, expected) => {
+          const e = String(expected || '').trim().toLowerCase();
+          for (let i = 0; i < els.length; i++) {
+            const t = (els[i].textContent || '').trim().toLowerCase();
+            if (t && t !== e) return i;
+          }
+          return 0; // 全部同じ等の異常系は先頭にフォールバック
+        },
+        expected
+      );
+      await page.click(`#choices button:nth-of-type(${wrongIdx + 1}), .choice:nth-of-type(${wrongIdx + 1}), [data-testid="choice"]:nth-of-type(${wrongIdx + 1})`);
     } else {
       await page.fill('#answer, [data-testid="answer"]', 'totally wrong');
       await page.click('#submit-btn, [data-testid="submit-btn"]');
     }
-    await page.waitForSelector('#next-btn, [data-testid="next-btn"]', { state: 'visible', timeout: TIMEOUT });
-    await page.click('#next-btn, [data-testid="next-btn"]');
+    // 回答後、まずはリザルトが出たかを短めに確認 → 出ていれば終了
+    const resQuick = await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 1500 }).catch(() => null);
+    if (resQuick) return true;
+    // まだ出ていなければ Next で遷移
+    const nextBtn = await page.waitForSelector('#next-btn, [data-testid="next-btn"]', { state: 'visible', timeout: TIMEOUT });
+    await nextBtn.click();
+    // 遷移後にもリザルト出現をチェック（早期終了の取りこぼし防止）
+    const resAfter = await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 1500 }).catch(() => null);
+    return !!resAfter;
   };
 
   // 3回わざと誤答 → ここで早期終了し、結果ビューが出る
   for (let i = 0; i < 3; i++) {
-    await answerWrongOnce();
-    const resultVisible = await page.$('#result-view[role="dialog"]');
-    if (resultVisible) break;
+    const ended = await answerWrongOnce();
+    if (ended) break;
   }
 
   await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: TIMEOUT });
