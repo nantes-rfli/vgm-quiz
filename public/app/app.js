@@ -86,6 +86,87 @@ function initSeededRandom() {
 
 initSeededRandom();
 
+// ---------------------
+// Daily 1-question mode
+// ---------------------
+const DAILY = {
+  active: false,
+  dateStr: null,        // 'YYYY-MM-DD'
+  wanted: null,         // { id?: string, title?: string }
+  mapLoaded: false,
+};
+
+function getQueryParam(name) {
+  try { return new URLSearchParams(location.search).get(name); }
+  catch { return null; }
+}
+
+function todayJST() {
+  // 'YYYY-MM-DD' を JST で作る
+  const fmt = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const [{value: y}, , {value: m}, , {value: d}] = fmt.formatToParts(new Date());
+  return `${y}-${m}-${d}`;
+}
+
+function detectDailyParam() {
+  const v = getQueryParam('daily');
+  if (!v) return null;
+  if (v === '1' || v === 'true') return todayJST();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  return null;
+}
+
+async function preloadDailyMap() {
+  try {
+    const res = await fetch('./daily.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`daily.json ${res.status}`);
+    const data = await res.json();
+    DAILY.map = data?.map || {};
+    DAILY.mapLoaded = true;
+  } catch (e) {
+    console.warn('[daily] failed to load daily.json:', e);
+    DAILY.map = {};
+    DAILY.mapLoaded = true;
+  }
+}
+
+function initDaily() {
+  const date = detectDailyParam();
+  if (!date) return;
+  DAILY.active = true;
+  DAILY.dateStr = date;
+}
+
+// タイトル/IDの正規化一致
+function normKey(s) { return normalizeV2(String(s || '')); }
+function pickDailyWantedFromMap() {
+  if (!DAILY.active) return;
+  const entry = DAILY.map?.[DAILY.dateStr];
+  if (!entry) return;
+  if (typeof entry === 'string') {
+    DAILY.wanted = { id: entry }; // 旧式：そのままID扱い
+  } else if (entry && typeof entry === 'object') {
+    DAILY.wanted = { id: entry.id, title: entry.title };
+  }
+}
+
+// 質問配列を 1 問に絞る（可能なら該当トラックを優先）
+function applyDailyRestriction() {
+  if (!DAILY.active || !Array.isArray(questions) || questions.length === 0) return;
+  // 優先順位: ID → タイトル（正規化一致）
+  let idx = -1;
+  if (DAILY.wanted?.id) {
+    const target = normKey(DAILY.wanted.id);
+    idx = questions.findIndex(q => normKey(q?.track?.id) === target);
+  }
+  if (idx < 0 && DAILY.wanted?.title) {
+    const target = normKey(DAILY.wanted.title);
+    idx = questions.findIndex(q => normKey(q?.track?.title) === target);
+  }
+  if (idx < 0) idx = 0; // フォールバック
+  questions = [questions[idx]];
+}
+
 // === バージョン読み取りのメモ化（60s TTL） ========================
 const VERSION_TTL_MS = 60_000;
 let __readVersionCache = { ts: 0, data: null, etag: null };
@@ -306,12 +387,24 @@ function canonical(str) {
 // 例：buildQuestions() / startGame() の直後など、questions が最終確定した箇所にフック
 function afterQuestionsBuiltHook() {
   try {
+    // (1) 出題順の分散（フラグ qp=1 のとき）
     if (getQueryBool('qp') && Array.isArray(questions) && questions.length > 0) {
       // v0.2: ここで明示的に seed RNG を使う（フォールバックは rngForPipeline 側で済）
       const order = orderByYearBucket(questions, rngForPipeline);
       questions = order.map(i => questions[i]);
     }
-    // test=1 のとき、確認しやすい詳細も公開（再入しても問題ない冪等処理）
+    // (2) デイリー1問（フラグ daily=... のとき）
+    if (DAILY.active) {
+      if (!DAILY.mapLoaded) {
+        // 先読み未完の場合は同期的に見えるところで諦め、次回以降に反映（安全策）
+        console.warn('[daily] map not loaded yet; using fallback (first question)');
+        questions = [questions[0]];
+      } else {
+        pickDailyWantedFromMap();
+        applyDailyRestriction();
+      }
+    }
+    // (3) test=1 のときデバッグ公開
     if (getQueryBool('test') && Array.isArray(questions)) {
       window.__questionIds = questions.map(q => q?.track?.id ?? q?.track?.title ?? '').join(',');
       window.__questionDebug = questions.map(q => ({
@@ -989,9 +1082,14 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
     if(currentHash() !== content_hash){ showUpdateBanner(); }
   }
 });
-// 既存の開始/遷移UIにフックして lives を更新
+// ---------------------
+// 起動時フック
+// ---------------------
 window.addEventListener('DOMContentLoaded', () => {
   try {
+    // Daily 検出＆先読み開始
+    initDaily();
+    if (DAILY.active) { preloadDailyMap(); }
     // Start を押したらリセット
     const startBtn = document.getElementById('start-btn') || document.querySelector('[data-testid="start-btn"]');
     if (startBtn && !startBtn.dataset._livesbound) {
