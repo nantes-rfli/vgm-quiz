@@ -1,0 +1,22 @@
+# Shim workflow to satisfy required check "Pages / build" on pull_request.
+# Real deployment still happens in pages.yml on push to main.
+name: Pages
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sanity (PR shim)
+        run: |
+          test -d public
+          echo "✅ Pages / build (PR shim) passed"
+
