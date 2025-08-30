@@ -4,7 +4,12 @@ import { orderByYearBucket } from './question_pipeline.mjs';
 let tracks = [];
 let questions = [];
 // パイプライン用の乱数。既定は Math.random（seed 初期化後に差し替える）
-let rngForPipeline = Math.random;
+// フォールバックとして、常に window.__rng は function にしておく（デバッグ容易化）
+if (typeof window.__rng !== 'function') {
+  // Math.random の現在値を束縛（後で seed 初期化が走れば上書き）
+  window.__rng = Math.random.bind(Math);
+}
+let rngForPipeline = window.__rng;
 const MAX_LIVES = 3;
 let mistakes = 0;
 let __livesInterval = null;
@@ -70,13 +75,13 @@ function initSeededRandom() {
     configurable: true,
     writable: true,
   });
-  try { console.info('[SEED]', seedParam, seedInt); } catch (_) {}
-  window.__ORIG_RANDOM__ = origRandom;
-  // v0.2: seed RNG を公開＆パイプラインで使用できるようにする
+  // 先に公開しておく（以後のログや例外があっても __rng が常に function になる）
   window.__SEED__ = window.__SEED__ ?? seedParam;
   window.__SEED_INT__ = window.__SEED_INT__ ?? seedInt;
   window.__rng = rng;
   rngForPipeline = rng;
+  try { console.info('[SEED]', seedParam, seedInt); } catch (_) {}
+  window.__ORIG_RANDOM__ = origRandom;
 }
 
 initSeededRandom();
@@ -306,7 +311,7 @@ function afterQuestionsBuiltHook() {
       const order = orderByYearBucket(questions, rngForPipeline);
       questions = order.map(i => questions[i]);
     }
-    // test=1 のとき、確認しやすい詳細も公開
+    // test=1 のとき、確認しやすい詳細も公開（再入しても問題ない冪等処理）
     if (getQueryBool('test') && Array.isArray(questions)) {
       window.__questionIds = questions.map(q => q?.track?.id ?? q?.track?.title ?? '').join(',');
       window.__questionDebug = questions.map(q => ({
@@ -626,6 +631,17 @@ function startQuiz() {
 function showQuestion() {
   awaitingNext = false;
   showView('question-view');
+  // test=1 時はデバッグ情報を常に同期しておく（冪等）
+  try {
+    if (getQueryBool('test') && Array.isArray(questions)) {
+      window.__questionIds = questions.map(q => q?.track?.id ?? q?.track?.title ?? '').join(',');
+      window.__questionDebug = questions.map(q => ({
+        title: q?.track?.title ?? '',
+        year: q?.track?.year ?? null,
+        type: q?.type ?? '',
+      }));
+    }
+  } catch (_) {}
   const q = questions[current];
   const prompt = document.getElementById('prompt');
   const answer = document.getElementById('answer');
