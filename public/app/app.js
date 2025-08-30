@@ -11,9 +11,10 @@ if (typeof window.__rng !== 'function') {
   window.__rng = Math.random.bind(Math);
 }
 let rngForPipeline = window.__rng;
-const MAX_LIVES = 3;
+let MAX_LIVES = 3; // 既定値（?lives=on などで上書き可）
 let mistakes = 0;
 let __livesInterval = null;
+const LIVES = { enabled: false, limit: 3, triggered: false };
 let current = 0;
 let score = 0;
 let awaitingNext = false;
@@ -437,7 +438,8 @@ function updateLivesDisplay() {
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', 'polite');
   el.setAttribute('aria-atomic', 'true');
-  el.textContent = `Misses: ${mistakes}/${MAX_LIVES}`;
+  const lim = LIVES.enabled ? LIVES.limit : MAX_LIVES;
+  el.textContent = `Misses: ${mistakes}/${lim}`;
 }
 
 function recomputeMistakes() {
@@ -449,6 +451,7 @@ function recomputeMistakes() {
     // フォールバック（何もしない）
   }
   updateLivesDisplay();
+  maybeEndGameByLives();
 }
 
 function startLivesTicker() {
@@ -945,6 +948,7 @@ function showResult() {
 
   // v2: 結果の共有導線（コピー／Share）をセットアップ
   setupResultShare();
+  // （必要ならここで LIVES.triggered は true のままでOK）
   // v2.1: 終了ダイアログのA11y制御（初期フォーカス / Tabトラップ / Escで閉じる）
   openResultDialogA11y();
 }
@@ -1222,6 +1226,8 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
 // ---------------------
 window.addEventListener('DOMContentLoaded', () => {
   try {
+    // Lives ルールを起動時に解釈
+    initLivesRule();
     // Daily 検出＆先読み開始
     initDaily();
     if (DAILY.active) { preloadDailyMap(); }
@@ -1230,6 +1236,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (startBtn && !startBtn.dataset._livesbound) {
       startBtn.addEventListener('click', () => {
         mistakes = 0;
+        LIVES.triggered = false;
         startLivesTicker();
       }, { passive: true });
       startBtn.dataset._livesbound = '1';
@@ -1248,6 +1255,35 @@ window.addEventListener('DOMContentLoaded', () => {
     // 他の初期化があれば既存処理…
   } catch (_) {}
 });
+
+// --- Lives ルール: 3ミスで即終了（?lives=on または ?lives=3 等数値指定） ---
+function initLivesRule() {
+  const v = getQueryParam('lives');
+  if (!v) { LIVES.enabled = false; LIVES.limit = MAX_LIVES; return; }
+  if (v === 'on' || v === 'true') { LIVES.enabled = true; LIVES.limit = 3; MAX_LIVES = 3; return; }
+  const n = parseInt(v, 10);
+  if (Number.isFinite(n) && n > 0 && n <= 9) {
+    LIVES.enabled = true;
+    LIVES.limit = n;
+    MAX_LIVES = n;
+    return;
+  }
+  // デフォルト
+  LIVES.enabled = true; LIVES.limit = 3; MAX_LIVES = 3;
+}
+function maybeEndGameByLives() {
+  if (!LIVES.enabled || LIVES.triggered) return;
+  if (mistakes >= LIVES.limit) {
+    LIVES.triggered = true;
+    try { stopLivesTicker(); } catch (_) {}
+    // 可能なUI操作を止めて安全に結果へ
+    try {
+      document.querySelectorAll('#choices button,[data-testid="choice"],#submit-btn')
+        .forEach(el => el.setAttribute('disabled', 'true'));
+    } catch (_) {}
+    showResult();
+  }
+}
 // 初期化時に1回だけ実行（以降の呼び出しはガードで即return）
 window.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
