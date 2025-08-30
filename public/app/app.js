@@ -1,3 +1,5 @@
+import { normalize as normalizeV2 } from './normalize.mjs';
+
 let tracks = [];
 let questions = [];
 let current = 0;
@@ -268,7 +270,9 @@ async function exportAliasProposals() {
 }
 
 function norm(str) {
-  return str.normalize('NFKC').trim().toLowerCase();
+  // v1.1: 強化版ノーマライズ（normalize.mjs）へ委譲。失敗時は従来フォールバック。
+  try { return normalizeV2(String(str)); }
+  catch (_) { return String(str ?? '').normalize('NFKC').trim().toLowerCase(); }
 }
 
 function canonical(str) {
@@ -374,8 +378,9 @@ async function loadAliases() {
     const data = await res.json();
     Object.values(data).forEach(cat => {
       Object.entries(cat).forEach(([canon, list]) => {
-        aliases[canon] = canon;
-        list.forEach(a => aliases[a] = canon);
+        const canonN = norm(canon);
+        aliases[canonN] = canonN;
+        list.forEach(a => { aliases[norm(a)] = canonN; });
       });
     });
   } catch (err) {
