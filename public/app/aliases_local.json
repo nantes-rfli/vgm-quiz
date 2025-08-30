@@ -1,0 +1,5 @@
+{
+  "//": "ここに 'normalize後キー': '正規化後ターゲット' を追記すると build/aliases.json に上書きされます。",
+  "//2": "例: 'final fantasy 6': 'final fantasy vi'"
+}
+
