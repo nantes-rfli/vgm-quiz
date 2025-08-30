@@ -1,0 +1,28 @@
+name: CI Fast
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '**'   # 何を変えても必ず実行（workflow変更/daily.jsonだけでもOK）
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:  # ← ラベルが「CI Fast / build (pull_request)」になる
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fast checks
+        run: |
+          node -v
+          echo "CI Fast PR ok"
