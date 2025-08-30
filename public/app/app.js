@@ -1365,3 +1365,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // デバッグ/検証用（TTL/in-flight挙動の確認に使用）
 window.loadVersionPublic = async () => { await readVersionNoStore(false); await loadVersion(); };
+
+function swSetVersionUrl() {
+  try {
+    // app側が実際に参照しているVERSION_URLを組み立て（既存の定義があればそれを優先）
+    const url = (typeof VERSION_URL === 'string' && VERSION_URL) ||
+                new URL('../build/version.json', document.baseURI).toString();
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'version_url', url });
+      console.log('[app→sw] version_url:', url);
+    }
+  } catch (e) {
+    console.warn('[app→sw] version_url post failed:', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // test=1 でも SW が既に稼働中のことはあるので、常に通知だけは試みる
+  swSetVersionUrl();
+}, { once: true });

@@ -3,12 +3,29 @@
 self.__APP_VERSION__ = new URL(self.location).searchParams.get('v');
 const CACHE_NAME = 'vgm-quiz-' + (self.__APP_VERSION__ || 'dev');
 
-// --- バージョン監視の安定化設定 ----------------------------------------
-// /app/ 配下に SW がいても /build/version.json を確実に指す
-const VERSION_URL = (() => {
-  if (self.VERMETA_URL) return self.VERMETA_URL;
+let VERMETA_URL = undefined; // app側から受け取る最優先URL
+
+// app から version.json の絶対URLを受け取る
+self.addEventListener('message', (event) => {
   try {
-    return new URL('../build/version.json', self.registration.scope).toString();
+    const data = event?.data || {};
+    if (data.type === 'version_url' && typeof data.url === 'string' && data.url) {
+      VERMETA_URL = data.url;
+      // デバッグに活用したい場合は次行を有効化
+      // console.log('[sw] set version_url:', VERMETA_URL);
+    }
+  } catch (e) {}
+});
+
+function computeVersionUrl() {
+  // 1) app から受け取った絶対URLがあればそれを使う
+  if (VERMETA_URL) return VERMETA_URL;
+  // 2) 既存ロジック（スコープ依存の相対→絶対解決）
+  try {
+    const u = new URL('../build/version.json', self.registration.scope);
+    // /app/build/ に解決されてしまう環境では /build/ に補正
+    const s = u.toString().replace(/\/app\/build\//, '/build/');
+    return s;
   } catch (_) {
     try {
       return new URL('../build/version.json', self.location).toString();
@@ -16,7 +33,7 @@ const VERSION_URL = (() => {
       return './build/version.json';
     }
   }
-})();
+}
 const MIN_CHECK_INTERVAL_MS = 60 * 1000; // 最短60秒
 const CLIENT_POST_DEBOUNCE_MS = 60 * 1000; // 通知も最短60秒にデボンス
 let __versionWatchStarted = false;
@@ -111,7 +128,7 @@ async function safeFetchVersion() {
   try {
     const init = { cache: 'no-store', headers: {} };
     if (__lastETag) init.headers['If-None-Match'] = __lastETag;
-    const res = await fetch(VERSION_URL, init);
+    const res = await fetch(computeVersionUrl(), init);
     if (res.status === 304) return { notModified: true };
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     __lastETag = res.headers.get('ETag');
