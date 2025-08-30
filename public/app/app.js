@@ -919,6 +919,8 @@ function showResult() {
 
   // v2: 結果の共有導線（コピー／Share）をセットアップ
   setupResultShare();
+  // v2.1: 終了ダイアログのA11y制御（初期フォーカス / Tabトラップ / Escで閉じる）
+  openResultDialogA11y();
 }
 
 // --- Share helpers (結果画面専用) ---
@@ -952,6 +954,7 @@ function buildResultShareText() {
   ].join('\n');
 }
 
+let _copyToastTimer = null;
 async function copyToClipboard(text) {
   try {
     if (navigator.clipboard?.writeText) {
@@ -965,7 +968,16 @@ async function copyToClipboard(text) {
       document.body.removeChild(ta);
     }
     const toast = document.getElementById('copy-toast');
-    if (toast) toast.textContent = 'コピーしました';
+    if (toast) {
+      toast.textContent = 'コピーしました';
+      toast.setAttribute('aria-live', 'polite');
+      // 数秒で自動クリア（多重クリックにも対応）
+      if (_copyToastTimer) clearTimeout(_copyToastTimer);
+      _copyToastTimer = setTimeout(() => {
+        toast.textContent = '';
+        _copyToastTimer = null;
+      }, 2000);
+    }
   } catch (e) {
     alert('コピーに失敗しました: ' + e.message);
   }
@@ -1001,6 +1013,91 @@ function setupResultShare() {
     shareBtn.style.display = 'none';
   }
 }
+
+// --- Result dialog A11y: focus trap / initial focus / ESC close ---
+let _resultDialogPrevFocus = null;
+let _resultDialogKeydown = null;
+function focusablesIn(node) {
+  const sel = [
+    'a[href]', 'button:not([disabled])', 'input:not([disabled])',
+    'select:not([disabled])', 'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ].join(',');
+  return Array.from(node.querySelectorAll(sel)).filter(el => {
+    const s = getComputedStyle(el);
+    return s.visibility !== 'hidden' && s.display !== 'none';
+  });
+}
+function openResultDialogA11y() {
+  const dlg = document.getElementById('result-view');
+  if (!dlg) return;
+  // 保存：開く前のフォーカス
+  _resultDialogPrevFocus = document.activeElement;
+  // 初期フォーカス（コピー > 共有 > リスタート の優先）
+  const first =
+    document.getElementById('copy-result-btn') ||
+    document.getElementById('share-result-btn') ||
+    document.getElementById('restart-btn') ||
+    dlg;
+  first.focus();
+  // Tabトラップ
+  _resultDialogKeydown = (ev) => {
+    if (ev.key === 'Tab') {
+      const list = focusablesIn(dlg);
+      if (!list.length) return;
+      const first = list[0], last = list[list.length - 1];
+      if (ev.shiftKey && document.activeElement === first) {
+        last.focus(); ev.preventDefault();
+      } else if (!ev.shiftKey && document.activeElement === last) {
+        first.focus(); ev.preventDefault();
+      }
+    } else if (ev.key === 'Escape' || ev.key === 'Esc') {
+      // Escで結果を閉じて Start に戻す（安全に戻れない場合はフォーカスだけ返す）
+      closeResultDialogA11y(true);
+    }
+  };
+  dlg.addEventListener('keydown', _resultDialogKeydown);
+  // 念のため属性を強化
+  dlg.setAttribute('aria-modal', 'true');
+  dlg.setAttribute('role', 'dialog');
+  dlg.setAttribute('tabindex', '-1');
+}
+function closeResultDialogA11y(goStart = false) {
+  const dlg = document.getElementById('result-view');
+  if (dlg && _resultDialogKeydown) {
+    dlg.removeEventListener('keydown', _resultDialogKeydown);
+  }
+  _resultDialogKeydown = null;
+  // 戻り先：Startビュー or 直前フォーカス
+  if (goStart) {
+    try {
+      showView('start-view');
+      const sb = document.getElementById('start-btn') || document.querySelector('[data-testid="start-btn"]');
+      sb?.focus();
+      return;
+    } catch (_) {}
+  }
+  if (_resultDialogPrevFocus && _resultDialogPrevFocus.focus) {
+    _resultDialogPrevFocus.focus();
+  }
+  _resultDialogPrevFocus = null;
+}
+
+// Restartボタンで閉じるときもフォーカスを安全に処理
+(() => {
+  const bind = () => {
+    const r = document.getElementById('restart-btn');
+    if (r && !r.dataset._a11yBound) {
+      r.addEventListener('click', () => closeResultDialogA11y(false), { passive: true });
+      r.dataset._a11yBound = '1';
+    }
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind, { once: true });
+  } else {
+    bind();
+  }
+})();
 
 function restart() {
   showView('start-view');

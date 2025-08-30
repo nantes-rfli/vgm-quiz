@@ -78,7 +78,10 @@
   <button id="propose-alias-btn" style="display:none">別名として提案</button>
 </div>
 
-<div id="result-view" style="display:none">
+<div
+  id="result-view"
+  role="dialog" aria-modal="true" aria-labelledby="final-score" tabindex="-1"
+  style="display:none" data-testid="result-dialog">
   <div id="final-score"></div>
   <div id="summary">
     <h2>Summary</h2>
