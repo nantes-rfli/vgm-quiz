@@ -4,7 +4,19 @@ self.__APP_VERSION__ = new URL(self.location).searchParams.get('v');
 const CACHE_NAME = 'vgm-quiz-' + (self.__APP_VERSION__ || 'dev');
 
 // --- バージョン監視の安定化設定 ----------------------------------------
-const VERSION_URL = self.VERMETA_URL || './build/version.json';
+// /app/ 配下に SW がいても /build/version.json を確実に指す
+const VERSION_URL = (() => {
+  if (self.VERMETA_URL) return self.VERMETA_URL;
+  try {
+    return new URL('../build/version.json', self.registration.scope).toString();
+  } catch (_) {
+    try {
+      return new URL('../build/version.json', self.location).toString();
+    } catch (_) {
+      return './build/version.json';
+    }
+  }
+})();
 const MIN_CHECK_INTERVAL_MS = 60 * 1000; // 最短60秒
 const CLIENT_POST_DEBOUNCE_MS = 60 * 1000; // 通知も最短60秒にデボンス
 let __versionWatchStarted = false;
