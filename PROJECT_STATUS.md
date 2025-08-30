@@ -22,10 +22,13 @@
 
 ## Pages deploy verification
 1. Confirm **Pages** workflow ran automatically on push to `main` (or via `workflow_run` from **CI Fast**).  
-2. Check `build.json` responses (should show latest `short_sha`):  
+2. Check `build.json` responses (CI metadata: should show latest `short_sha`):
+   - Note: dataset/version metadata is served from `public/build/version.json`. For sanity check, open:
+   - `/build/version.json` (dataset_version, commit, generated_at)
+   - `/app/../build/version.json` (same; SW handshake ensures correct path)  
    - `/build.json?ts=NOW`  
    - `/app/build.json?ts=NOW`  
-3. Footer should show: `Dataset vX • <content_hash> • <generated_at> • commit: <short_sha>`
+3. Footer should show: `Dataset: vN • commit: abcdefg • updated: YYYY-MM-DD HH:mm`
 
 ## E2E artifacts (for failures)
 - Artifacts directory: `artifacts/`
