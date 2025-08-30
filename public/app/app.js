@@ -170,32 +170,44 @@ function applyDailyRestriction() {
 
 // === バージョン読み取りのメモ化（60s TTL） ========================
 const VERSION_TTL_MS = 60_000;
+const VERSION_TIMEOUT_MS = 8_000; // 8s に延長
 let __readVersionCache = { ts: 0, data: null, etag: null };
+let __readVersionInflight = null;  // ★ in-flight共有
 
 async function readVersionNoStore(force = false) {
-  if (!force && __readVersionCache.data && (Date.now() - __readVersionCache.ts) < VERSION_TTL_MS) {
-    return __readVersionCache.data;
+  // 1) in-flight共有
+  if (!force) {
+    if (__readVersionInflight) return __readVersionInflight;
+    if (__readVersionCache.data && (Date.now() - __readVersionCache.ts) < VERSION_TTL_MS) {
+      return __readVersionCache.data;
+    }
   }
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 3000);
+  const t = setTimeout(() => ctrl.abort(), VERSION_TIMEOUT_MS);
   try {
     const init = { signal: ctrl.signal, cache: 'no-store', headers: {} };
     if (__readVersionCache.etag) init.headers['If-None-Match'] = __readVersionCache.etag;
-    const res = await fetch(VERSION_URL, init);
-    if (res.status === 304 && __readVersionCache.data) {
-      __readVersionCache.ts = Date.now();
-      return __readVersionCache.data;
-    }
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const etag = res.headers.get('ETag');
-    const data = await res.json();
-    __readVersionCache = { ts: Date.now(), data, etag };
+    const p = (async () => {
+      const res = await fetch(VERSION_URL, init);
+      if (res.status === 304 && __readVersionCache.data) {
+        __readVersionCache.ts = Date.now();
+        return __readVersionCache.data;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const etag = res.headers.get('ETag');
+      const data = await res.json();
+      __readVersionCache = { ts: Date.now(), data, etag };
+      return data;
+    })();
+    __readVersionInflight = p;
+    const data = await p;
     return data;
   } catch (_) {
     if (__readVersionCache.data) return __readVersionCache.data;
     return { dataset: 'mock', commit: 'local', content_hash: 'local' };
   } finally {
     clearTimeout(t);
+    __readVersionInflight = null; // in-flight解除
   }
 }
 function rememberHash(h){ localStorage.setItem(HASH_KEY,h); }
@@ -588,14 +600,8 @@ async function loadVersion() {
   const setText = (t) => { if (el) el.textContent = t; };
 
   try {
-    // VERSION_URL は既存の定義をそのまま利用（例: '../build/version.json'）
-    const ctrl = new AbortController();
-    const to = setTimeout(() => ctrl.abort(), 3000);
-    // 'no-cache' は再検証を要求するだけで、無限取得にはなりません
-    const res = await fetch(VERSION_URL, { cache: 'no-cache', signal: ctrl.signal });
-    clearTimeout(to);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const v = await res.json();
+    // 必ず readVersionNoStore() を経由（60s TTL / in-flight共有 / 8s timeout）
+    const v = await readVersionNoStore(false);
 
     // dataset候補を総当り（数値なら vN、文字ならそのまま、無ければ content_hash 先頭8）
     const dsRaw = v.dataset_version ?? v.dataset ?? v.data?.dataset ?? v.name ?? v.title;
@@ -622,6 +628,12 @@ async function loadVersion() {
     console.warn('[version] load failed:', e);
   }
 }
+
+// SWなどから明示的に更新を促したい場合のフック（強制再取得）
+window.loadVersionForce = async () => {
+  try { await readVersionNoStore(true); } catch (_) {}
+  try { await loadVersion(); } catch (_) {}
+};
 
 // 二重実行防止の once 付き
 document.addEventListener('DOMContentLoaded', loadVersion, { once: true });
