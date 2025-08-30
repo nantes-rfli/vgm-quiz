@@ -2,6 +2,9 @@ import { normalize as normalizeV2 } from './normalize.mjs';
 
 let tracks = [];
 let questions = [];
+const MAX_LIVES = 3;
+let mistakes = 0;
+let __livesInterval = null;
 let current = 0;
 let score = 0;
 let awaitingNext = false;
@@ -278,6 +281,43 @@ function norm(str) {
 function canonical(str) {
   const n = norm(str);
   return aliases[n] || n;
+}
+
+// --- lives（残機）: 誤答数をHUDに反映 ---
+function updateLivesDisplay() {
+  const el = document.getElementById('lives') || document.querySelector('[data-testid="lives"]');
+  if (!el) return;
+  // A11y: role/status として polite に更新
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', 'polite');
+  el.setAttribute('aria-atomic', 'true');
+  el.textContent = `Misses: ${mistakes}/${MAX_LIVES}`;
+}
+
+function recomputeMistakes() {
+  try {
+    // 既に回答済みの設問から誤答をカウント
+    // （構造: q.correct が boolean / userAnswer が入るのを想定）
+    mistakes = (questions || []).filter(q => q && q.userAnswer != null && q.correct === false).length;
+  } catch (_) {
+    // フォールバック（何もしない）
+  }
+  updateLivesDisplay();
+}
+
+function startLivesTicker() {
+  stopLivesTicker();
+  // 次の問題表示や手動/自動の遷移に追随するため、軽い定期更新
+  __livesInterval = setInterval(recomputeMistakes, 400);
+  // 開始時に即時1回
+  recomputeMistakes();
+}
+
+function stopLivesTicker() {
+  if (__livesInterval) {
+    clearInterval(__livesInterval);
+    __livesInterval = null;
+  }
 }
 
 function levenshtein(a, b) {
@@ -709,6 +749,9 @@ function showResult() {
   }
   showView('result-view');
   document.getElementById('final-score').textContent = `Score: ${score}/${questions.length}`;
+  // 結果画面では定期更新を停止し、最終値を表示
+  stopLivesTicker();
+  recomputeMistakes();
   const list = document.getElementById('summary-list');
   list.innerHTML = '';
   questions.forEach(q => {
@@ -893,6 +936,32 @@ navigator.serviceWorker?.addEventListener('message', async (e)=>{
     const {content_hash} = await readVersionNoStore(true);
     if(currentHash() !== content_hash){ showUpdateBanner(); }
   }
+});
+// 既存の開始/遷移UIにフックして lives を更新
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    // Start を押したらリセット
+    const startBtn = document.getElementById('start-btn') || document.querySelector('[data-testid="start-btn"]');
+    if (startBtn && !startBtn.dataset._livesbound) {
+      startBtn.addEventListener('click', () => {
+        mistakes = 0;
+        startLivesTicker();
+      }, { passive: true });
+      startBtn.dataset._livesbound = '1';
+    }
+
+    // Next（次の問題へ）で再集計
+    document.addEventListener('click', (e) => {
+      const t = e.target;
+      const id = t && (t.id || t.getAttribute?.('data-testid')) || '';
+      if (id === 'next-btn') {
+        // DOM更新後に集計する
+        setTimeout(recomputeMistakes, 0);
+      }
+    }, { passive: true });
+
+    // 他の初期化があれば既存処理…
+  } catch (_) {}
 });
 // 初期化時に1回だけ実行（以降の呼び出しはガードで即return）
 window.addEventListener('DOMContentLoaded', () => {
