@@ -1,5 +1,6 @@
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
+import { createMediaControl } from './media_player.mjs';
 
 let tracks = [];
 let questions = [];
@@ -724,6 +725,8 @@ function startQuiz() {
 function showQuestion() {
   awaitingNext = false;
   showView('question-view');
+  // media reset
+  try { document.getElementById('media-slot')?.replaceChildren(); } catch (_) {}
   // test=1 時はデバッグ情報を常に同期しておく（冪等）
   try {
     if (getQueryBool('test') && Array.isArray(questions)) {
@@ -745,6 +748,15 @@ function showQuestion() {
   const aliasBtn = document.getElementById('propose-alias-btn');
   const choices = document.getElementById('choices');
   const countdown = document.getElementById('countdown');
+  // --- v: メディア（任意） ---
+  try {
+    const media = q?.media || q?.track?.media;
+    const slot = document.getElementById('media-slot');
+    if (slot && media && media.provider) {
+      const ctrl = createMediaControl(media);
+      slot.replaceChildren(ctrl);
+    }
+  } catch (_) {}
   clearInterval(timerId);
   remaining = 20;
   answer.value = '';
