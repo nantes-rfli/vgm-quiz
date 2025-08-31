@@ -1,6 +1,7 @@
 name: json-validate
 
 on:
+  workflow_dispatch: {}
   push:
     branches: [ "main" ]
   pull_request:
@@ -16,3 +17,7 @@ jobs:
           node-version: 20
       - name: Validate JSONs (daily/aliases/dataset)
         run: node scripts/validate_json.js
+
+      - name: Step Summary (success)
+        if: success()
+        run: echo "✅ JSON validate passed" >> "$GITHUB_STEP_SUMMARY"
