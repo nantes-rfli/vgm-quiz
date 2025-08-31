@@ -11,7 +11,7 @@
    ```bash
    node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
    ```
-2. 難易度付与（score）  
+2. 難易度付与（score）
    ```bash
    node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
    ```
@@ -19,6 +19,21 @@
    ```bash
    node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored.jsonl --date 2025-09-01 --out public/app/daily_auto.json
    ```
+
+4. （任意）メディア開始秒の精度を上げる（enrich）  
+   ```bash
+   node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+   ```
+
+5. （任意）ディストラクタを付与して出力（with-choices）  
+   ```bash
+   node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date 2025-09-01 --out public/app/daily_auto.json --with-choices
+   ```
+
+### daily-auto.yml の入力
+- `date`: 空なら JST 今日
+- `with_choices`: **false** 既定（true で composer/game の選択肢を付与）
+- `apply_to_main`: **false** 既定（PRを作る場合 true）
 
 ## 方針
 - 既存 `scripts/generate_daily.js` は**一切変更しない**（既存の `daily.json` は温存）
