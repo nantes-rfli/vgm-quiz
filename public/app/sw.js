@@ -4,24 +4,10 @@ self.__APP_VERSION__ = new URL(self.location).searchParams.get('v');
 const CACHE_NAME = 'vgm-quiz-' + (self.__APP_VERSION__ || 'dev');
 
 // Accept client message to activate a waiting SW immediately.
-self.addEventListener('message', (event) => {
-  try {
-    const data = event && event.data;
-    const isSkip =
-      data === 'SKIP_WAITING' ||
-      (data && typeof data === 'object' && data.type === 'SKIP_WAITING');
-    if (isSkip && self && self.skipWaiting) {
-      event.waitUntil(self.skipWaiting());
-    }
-  } catch (e) {
-    // ignore
-  }
-});
+
 
 // Ensure clients are controlled ASAP after activation.
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients && self.clients.claim ? self.clients.claim() : Promise.resolve());
-});
+
 
 let VERMETA_URL = undefined; // app側から受け取る最優先URL
 
@@ -66,15 +52,6 @@ let __lastHash = null;
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
 });
-
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
-    await self.clients.claim();
-  })());
-});
-
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.mode === 'navigate') {
@@ -188,12 +165,28 @@ function startVersionWatch() {
 
 startVersionWatch();
 
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  if (event.data && event.data.type === 'force-version-check') {
-    checkAndNotify();
-  }
+// === Consolidated listeners ===
+self.addEventListener('message', (event) => {
+  try {
+    const data = event && event.data;
+    const isSkip = data === 'SKIP_WAITING' || (data && typeof data === 'object' && data.type === 'SKIP_WAITING');
+    if (isSkip && self && self.skipWaiting) {
+      event.waitUntil(self.skipWaiting());
+      return;
+    }
+    if (data && typeof data === 'object' && data.type === 'force-version-check') {
+      try { if (typeof checkAndNotify === 'function') checkAndNotify(); } catch (_) {}
+      return;
+    }
+  } catch (_) {}
+});
+
+self.addEventListener('activate', (event) => {
+  // Keep existing cache cleanup logic (defined elsewhere) and ensure clients are controlled ASAP.
+  event.waitUntil((async () => {
+    try {
+      if (self.clients && self.clients.claim) await self.clients.claim();
+    } catch (_) {}
+  })());
 });
 
