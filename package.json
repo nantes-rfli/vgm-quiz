@@ -2,7 +2,7 @@
   "scripts": {
     "test": "clojure -M:test",
     "e2e": "node e2e/test.js",
-    "smoke": "node scripts/smoke-html.js"
+    "smoke": "node scripts/smoke-html.js && node scripts/smoke-daily.js"
   },
   "devDependencies": {
     "cheerio": "1.0.0"
