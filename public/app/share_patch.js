@@ -44,6 +44,8 @@
         }
       } catch (e) { console.error('share_patch copy failed', e); }
     };
+    // E2E/監視用：パッチ適用を示すフラグを立てる（当日文字列を埋め込む）
+    try { window.__sharePatchReady = `daily:${date}`; } catch (_) {}
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', applyOverride, { once: true });
