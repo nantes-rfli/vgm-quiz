@@ -15,6 +15,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate DAILY_PR_PAT token
+        env:
+          DAILY_PR_PAT: ${{ secrets.DAILY_PR_PAT }}
+        run: |
+          if [ -z "${DAILY_PR_PAT}" ]; then
+            echo "::error title=Missing DAILY_PR_PAT::The DAILY_PR_PAT secret is empty or not configured. Create a fine-grained PAT (repo:contents write, pull_requests write) and add it as a repository secret."
+            exit 1
+          fi
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${DAILY_PR_PAT}" https://api.github.com/user)
+          if [ "$code" -ne 200 ]; then
+            echo "::error title=Invalid/expired DAILY_PR_PAT::GitHub API /user returned HTTP ${code}. The token may be expired or lacks scopes. Re-issue the PAT and update the secret."
+            exit 1
+          fi
+
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
 
