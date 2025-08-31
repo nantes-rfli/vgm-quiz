@@ -20,6 +20,7 @@ async function run() {
 
   await ok('Ｍｅｇａｌｏｍａｎｉａ', 'Megalomania', 'NFKC fold full-width');
   await ok('Pokemon', 'Pokémon', 'diacritics fold');
+  await ok('Pokemon', 'Poke\u0301mon', 'diacritics fold (precomposed vs combining)');
   await ok('キングダムハーツ', 'キングダムハーツ', 'NFKC vs NFD combine');
   await ok('Final Fantasy IV', 'Final Fantasy 4', 'Roman↔Arabic (1–20)');
   await ok('The Legend of Zelda', 'Legend of Zelda', 'Articles ignored');

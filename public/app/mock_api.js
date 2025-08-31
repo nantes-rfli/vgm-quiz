@@ -25,8 +25,15 @@
 
   function removeDiacritics(s) {
     // Convert to NFKD and strip combining marks (accents/diacritics)
-    // \p{M} matches all marks; requires Unicode flag.
-    return s.normalize('NFKD').replace(/\p{M}+/gu, '');
+    // Use explicit ranges for broad browser compatibility.
+    // Combining Diacritical Marks:      U+0300–U+036F
+    // Combining Diacritical Marks Ext.: U+1AB0–U+1AFF
+    // Combining Diacritical Marks Sup.: U+1DC0–U+1DFF
+    // Combining Diacritical Marks for Symbols: U+20D0–U+20FF
+    // Combining Half Marks: U+FE20–U+FE2F
+    return s
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20ff\uFE20-\uFE2F]/g, '');
   }
 
   function nfkcLower(s) {
