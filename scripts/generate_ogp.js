@@ -4,15 +4,25 @@ const path = require('path');
 const { chromium } = require('playwright');
 
 function jstDateString(d = new Date()) {
-  const tz = 'Asia/Tokyo';
-  const y = d.toLocaleString('ja-JP', { timeZone: tz, year: 'numeric' });
-  const m = d.toLocaleString('ja-JP', { timeZone: tz, month: '2-digit' });
-  const dd = d.toLocaleString('ja-JP', { timeZone: tz, day: '2-digit' });
-  return `${y}-${m}-${dd}`;
+  // en-CA は ISO っぽい 4桁年-2桁月-2桁日 を返す
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = fmt.formatToParts(d).reduce((acc, p) => {
+    if (p.type === 'year' || p.type === 'month' || p.type === 'day') acc[p.type] = p.value;
+    return acc;
+  }, {});
+  return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
 (async () => {
-  const date = process.env.DAILY_DATE || jstDateString();
+  // DAILY_DATE が未指定なら JST の ISO 文字列を採用
+  const date = process.env.DAILY_DATE && /^\d{4}-\d{2}-\d{2}$/.test(process.env.DAILY_DATE)
+    ? process.env.DAILY_DATE
+    : jstDateString();
   const repoRoot = process.cwd();
   const outDir = path.join(repoRoot, 'public', 'ogp');
   fs.mkdirSync(outDir, { recursive: true });
