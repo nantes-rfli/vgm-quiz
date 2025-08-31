@@ -4,6 +4,7 @@
   <title>VGM Quiz — Daily index</title>
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="./index.html">
+  <link rel="alternate" type="application/rss+xml" title="VGM Quiz — Daily" href="./feed.xml">
   <style>
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;margin:24px;line-height:1.6;}
     h1{font-size:20px;margin:0 0 12px} ul{padding-left:18px;margin:0}
@@ -12,8 +13,34 @@
   </style>
 </head><body>
   <h1>VGM Quiz — Daily index</h1>
-  <div class="meta">today: 2025-08-31 / count: 1</div>
-  <ul>
-    <li><a href="./2025-08-31.html">2025-08-31</a></li>
+  <p><a href="./feed.xml">RSSフィード</a>（購読できます）</p>
+  <div class="meta">today: 2025-09-01 / count: 2</div>
+  <label>検索: <input id="q" placeholder="YYYY-MM-DD など"></label>
+  <div id="nav"></div>
+  <ul id="list">
+    <li data-date="2025-09-01"><a href="./2025-09-01.html">2025-09-01</a></li>
+    <li data-date="2025-08-31"><a href="./2025-08-31.html">2025-08-31</a></li>
   </ul>
+  <script>
+    (function(){
+      var q = document.getElementById("q");
+      var list = document.getElementById("list");
+      var items = [].slice.call(list.querySelectorAll("li"));
+      function apply(){
+        var v = (q.value||"").trim();
+        items.forEach(function(li){
+          var d = li.getAttribute("data-date");
+          li.style.display = (!v || d.indexOf(v) !== -1) ? "" : "none";
+        });
+      }
+      q.addEventListener("input", apply);
+      apply();
+      // prev/next (relative to latest)
+      var dates = items.map(function(li){return li.getAttribute("data-date");});
+      var latest = dates[0];
+      var prev = dates[1] || null;
+      var nav = document.getElementById("nav");
+      if (prev) nav.innerHTML = '<p><a href="./'+prev+'.html">← 前日: '+prev+'</a> ・ <a href="./latest.html">本日</a></p>';
+    })();
+  </script>
 </body></html>
