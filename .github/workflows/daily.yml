@@ -40,6 +40,10 @@ jobs:
           TZ: Asia/Tokyo
         run: node scripts/generate_daily.js
 
+      - name: Derive OGP subtitle into daily.json
+        run: |
+          node scripts/derive_daily_meta.js
+
       - name: Prepare Playwright for OGP
         run: |
           set -eux

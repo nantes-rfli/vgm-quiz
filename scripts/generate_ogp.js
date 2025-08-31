@@ -80,11 +80,11 @@ function deriveTypeLabel(daily) {
   const outDir = path.join(repoRoot, 'public', 'ogp');
   fs.mkdirSync(outDir, { recursive: true });
 
-  // daily.json から出題タイプを推定（失敗したら "Daily Question"）
+  // daily.json からサブタイトルを取得（優先順位: ogp.subtitle > 推定 > 既定）
   let subtitle = 'Daily Question';
   try {
     const dailyJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'public', 'app', 'daily.json'), 'utf8'));
-    const label = deriveTypeLabel(dailyJson);
+    const label = dailyJson?.ogp?.subtitle || deriveTypeLabel(dailyJson);
     if (label) subtitle = label;
   } catch (_) { /* noop */ }
 
@@ -98,5 +98,5 @@ function deriveTypeLabel(daily) {
   await page.screenshot({ path: outPath });
   await browser.close();
 
-  console.log(`OGP generated: ${path.relative(repoRoot, outPath)}`);
+  console.log(`OGP generated: ${path.relative(repoRoot, outPath)}  (subtitle="${subtitle}")`);
 })();
