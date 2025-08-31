@@ -3,13 +3,16 @@
   "tz": "Asia/Tokyo",
   "map": {
     "2000-01-01": {
-      "title": "Stickerbrush Symphony"
+      "title": "Stickerbrush Symphony",
+      "type": "title→game"
     },
     "2025-08-30": {
-      "title": "Stickerbrush Symphony"
+      "title": "Stickerbrush Symphony",
+      "type": "title→game"
     },
     "2025-08-31": {
-      "title": "Megalovania"
+      "title": "Megalovania",
+      "type": "title→game"
     }
   },
   "ogp": {}
