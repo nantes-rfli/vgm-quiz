@@ -80,12 +80,14 @@ function deriveTypeLabel(daily) {
   const outDir = path.join(repoRoot, 'public', 'ogp');
   fs.mkdirSync(outDir, { recursive: true });
 
-  // daily.json からサブタイトルを取得（優先順位: ogp.subtitle > 推定 > 既定）
-  let subtitle = 'Daily Question';
+  // サブタイトル優先順位: 環境変数 OGP_SUBTITLE > daily.json の ogp.subtitle > 推定 > 既定
+  let subtitle = process.env.OGP_SUBTITLE || 'Daily Question';
   try {
     const dailyJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'public', 'app', 'daily.json'), 'utf8'));
-    const label = dailyJson?.ogp?.subtitle || deriveTypeLabel(dailyJson);
-    if (label) subtitle = label;
+    if (!process.env.OGP_SUBTITLE) {
+      const label = dailyJson?.ogp?.subtitle || deriveTypeLabel(dailyJson);
+      if (label) subtitle = label;
+    }
   } catch (_) { /* noop */ }
 
   const fileUrl = 'file://' + path.join(repoRoot, 'tools', 'ogp', 'daily.html');
