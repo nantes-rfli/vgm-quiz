@@ -60,7 +60,15 @@
     <div id="lives" aria-label="lives" aria-live="polite" aria-atomic="true" data-testid="lives"></div>
     <div id="timer" aria-label="timer" aria-live="polite" aria-atomic="true" data-testid="timer"></div>
   </div>
-  <div id="score-bar" aria-label="score bar" aria-live="polite" aria-atomic="true" data-testid="score-bar"></div>
+  <div
+    id="score-bar"
+    role="progressbar"
+    aria-label="score bar"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-live="polite"
+    aria-atomic="true"
+    data-testid="score-bar"></div>
   <div id="countdown" aria-live="polite" aria-atomic="true" style="display:none; margin-top:6px;" data-testid="countdown"></div>
   <div id="media-slot" aria-label="audio preview area"></div>
   <div id="prompt" role="status" aria-live="polite" aria-atomic="true" data-testid="prompt"></div>

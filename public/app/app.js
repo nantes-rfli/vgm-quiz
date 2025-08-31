@@ -1318,13 +1318,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
-// --- A11y shim: focus/roles/progressbar ARIA without changing visuals ---
+// --- A11y: focus/roles/progressbar（視覚は不変）を常時有効化 ---
 (() => {
-  // 本番では実行しない。E2E/LHCI等、?test=1 の時だけ有効化
-  try {
-    const params = new URLSearchParams(location.search);
-    if (params.get('test') !== '1') return;
-  } catch (_) { /* noop */ }
   const once = (fn) => {
     let done = false;
     return (...args) => { if (!done) { done = true; fn(...args); } };
@@ -1403,9 +1398,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.querySelector('[data-testid="start-btn"], #start-btn');
     if (startBtn) startBtn.addEventListener('click', () => setTimeout(() => focusFirstControl(), 0), { once: true });
     observeQuiz();
-  });
+    // 初期描画時にも最低限のA11yを適用
+    ensureTimerAria();
+    ensureProgressbarAria();
+    focusFirstControl();
+  }, { once: true });
 })();
-// --- /A11y shim ---
+// --- /A11y ---
 
 // デバッグ/検証用（TTL/in-flight挙動の確認に使用）
 window.loadVersionPublic = async () => { await readVersionNoStore(false); await loadVersion(); };
