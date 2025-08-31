@@ -19,6 +19,9 @@ const path = require('path');
 const DATASET_URL = process.env.DATASET_URL || 'https://nantes-rfli.github.io/vgm-quiz/build/dataset.json';
 const OUTPUT_PATH = process.env.OUTPUT_PATH || path.join('public', 'app', 'daily.json');
 const AVOID_DAYS = parseInt(process.env.AVOID_DAYS || '30', 10);
+// Question type for the day's share/OGP. Defaults to title→game.
+// You can override via env DAILY_TYPE=game→composer (or title→composer).
+const DEFAULT_TYPE = process.env.DAILY_TYPE || 'title→game';
 
 function todayJST() {
   try {
@@ -160,7 +163,8 @@ function daysBetween(a, b) {
   }
 
   // 5) Update map and write file
-  daily.map[DATE] = { title };
+  // Keep backward compatibility: include title and new type field.
+  daily.map[DATE] = { title, type: DEFAULT_TYPE };
 
   // Ensure directory exists
   const dir = path.dirname(OUTPUT_PATH);
