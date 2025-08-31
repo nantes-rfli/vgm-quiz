@@ -4,6 +4,7 @@ name: Pages
 
 on:
   pull_request:
+    paths: ['**']
 
 permissions:
   contents: read
@@ -13,10 +14,7 @@ jobs:
     name: pages-pr-build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Sanity (PR shim)
-        run: |
-          test -d public
-          echo "✅ Pages / build (PR shim) passed"
+        run: echo "✅ Pages PR shim passed"

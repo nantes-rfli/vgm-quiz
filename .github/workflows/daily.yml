@@ -3,45 +3,37 @@ name: daily.json generator (JST)
 on:
   workflow_dispatch: {}
   schedule:
-    # Run at 15:00 UTC (00:00 JST next day)
-    - cron: "0 15 * * *"
+    - cron: "0 15 * * *"   # 00:00 JST
 
 jobs:
   generate-daily:
+    name: daily-generate
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
 
       - name: Generate public/app/daily.json (JST)
         env:
           DATASET_URL: https://nantes-rfli.github.io/vgm-quiz/build/dataset.json
           OUTPUT_PATH: public/app/daily.json
           TZ: Asia/Tokyo
-        run: |
-          node scripts/generate_daily.js
+        run: node scripts/generate_daily.js
 
-      # Create a PR instead of pushing to main (branch protection requires checks)
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
+          branch: bot/daily
           commit-message: "chore(daily): update daily.json"
           title: "chore(daily): update daily.json"
-          body: |
-            Automated update of `public/app/daily.json` (JST).
-            This PR is created by the scheduled workflow to comply with branch protection rules.
-          branch: bot/daily
-          delete-branch: true
           add-paths: |
             public/app/daily.json
-          labels: "automation,daily"
+          delete-branch: true
           signoff: true
+          labels: "automation,daily"
