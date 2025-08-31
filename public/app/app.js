@@ -228,27 +228,9 @@ async function applyUpdateAndReload(){
 }
 
 let swRegistration = null;
-function showUpdateBanner(){
-  if(document.getElementById('sw-update') || !swRegistration) return;
-  const banner = document.createElement('div');
-  banner.id = 'sw-update';
-  banner.style.position = 'fixed';
-  banner.style.bottom = '0';
-  banner.style.left = '0';
-  banner.style.right = '0';
-  banner.style.background = '#333';
-  banner.style.color = '#fff';
-  banner.style.padding = '8px';
-  banner.style.textAlign = 'center';
-  const btn = document.createElement('button');
-  btn.textContent = '更新があります。リロードしますか？';
-  btn.addEventListener('click', () => {
-    swRegistration.waiting?.postMessage({type:'SKIP_WAITING'});
-    navigator.serviceWorker.addEventListener('controllerchange', applyUpdateAndReload);
-  });
-  banner.appendChild(btn);
-  document.body.appendChild(banner);
-}
+// DEPRECATED: legacy SW update banner. Replaced by public/app/sw_update.js.
+// Keeping function for compatibility with older calls; no-op to avoid double banners.
+function showUpdateBanner(){ /* no-op: handled by sw_update.js */ }
 
 const SETTINGS_KEY = 'quiz-options';
 function loadSettings() {
