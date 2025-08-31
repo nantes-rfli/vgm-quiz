@@ -85,12 +85,14 @@ function jstDateString(d = new Date()) {
     dailyHash = crypto.createHash('sha1').update(buf).digest('hex').slice(0, 12);
   } catch (_) { /* noop */ }
   const ogpUrlWithV = dailyHash ? `${ogpUrl}?v=${dailyHash}` : ogpUrl;
-  // タイプ推定（失敗時は空→後で置換）
-  let typeLabel = '';
+  // サブタイトル優先順位: 環境変数 OGP_SUBTITLE > daily.json 推定 > 空
+  let typeLabel = process.env.OGP_SUBTITLE || '';
   try {
-    const dailyJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'public', 'app', 'daily.json'), 'utf8'));
-    const { deriveTypeLabel } = module.exports;
-    typeLabel = deriveTypeLabel(dailyJson) || '';
+    if (!process.env.OGP_SUBTITLE) {
+      const dailyJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'public', 'app', 'daily.json'), 'utf8'));
+      const { deriveTypeLabel } = module.exports;
+      typeLabel = deriveTypeLabel(dailyJson) || '';
+    }
   } catch (_) { /* noop */ }
   const ogTitle = typeLabel ? `VGM Quiz — Daily ${date} — ${typeLabel}` : `VGM Quiz — Daily ${date}`;
   const ogDesc  = typeLabel ? `1日1問のVGMクイズ（${typeLabel}）。今日の問題に挑戦！` : `1日1問のVGMクイズ。今日の問題に挑戦！`;
