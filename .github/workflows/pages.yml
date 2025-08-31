@@ -109,6 +109,16 @@ jobs:
             node scripts/generate_daily_feed.js
           fi
 
+      - name: Inject search/nav script into /daily/index.html
+        run: |
+          set -euo pipefail
+          f="public/daily/index.html"
+          if [ -f "$f" ]; then
+            if ! grep -q 'index-tools.js' "$f"; then
+              sed -i 's#</body>#  <script src="index-tools.js" defer></script>\n</body>#' "$f"
+            fi
+          fi
+
       - name: Upload artifact (entire public)
         uses: actions/upload-pages-artifact@v3
         with:
