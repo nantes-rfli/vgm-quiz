@@ -24,6 +24,8 @@
 ### Share page
 - 毎日の共有用静的ページ: `public/daily/YYYY-MM-DD.html`
 - そのURLをSNSに貼ると、上記 OGP 画像のプレビューとともに **`/app/?daily=YYYY-MM-DD`** へ自動リダイレクトします。
+- 一覧: `/daily/index.html`（過去分のリンク集）
+- 常に当日: `/daily/latest.html`（メタリフレッシュで当日の share page へ）
 
   A small quiz app for video game music. Runs on GitHub Pages.
 
