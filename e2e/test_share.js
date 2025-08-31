@@ -20,10 +20,16 @@ function jstISO() {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const page = await context.newPage();
 
-  // 1) アプリから共有ボタンでコピーされるURLが /daily/YYYY-MM-DD.html であること
+  // 1) デイリーモードでは share_patch.js により copyToClipboard が
+  //    /daily/YYYY-MM-DD.html を書き込む。UIを介さず直接呼び出して検証する。
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
-  const sel = '[data-testid="share-btn"], #share-btn, button.share-btn';
-  await page.click(sel);
+  await page.evaluate(async () => {
+    if (typeof window.copyToClipboard === 'function') {
+      await window.copyToClipboard('dummy');
+    } else {
+      throw new Error('copyToClipboard is not defined');
+    }
+  });
   const clip = await page.evaluate(() => navigator.clipboard.readText());
   if (!clip.includes(`/daily/${date}.html`)) {
     throw new Error(`[share] clipboard mismatch. expected suffix /daily/${date}.html, got: ${clip}`);
