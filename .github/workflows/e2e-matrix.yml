@@ -25,15 +25,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
-      - name: Install deps (only if package.json exists)
-        if: ${{ hashFiles('**/package.json') != '' }}
+
+      - name: Prepare Playwright runtime (no repo deps)
         run: |
-          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
-            npm ci
-          else
-            npm install
+          set -eux
+          # このワークフロー専用の仮 package.json を作成して Playwright を入れる
+          if [ ! -f package.json ]; then
+            npm init -y
           fi
+          npm i -D playwright
+          # ブラウザ本体とOS依存パッケージもインストール
+          npx playwright install --with-deps
 
       - name: Env
         run: |
