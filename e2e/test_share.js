@@ -14,6 +14,7 @@ function jstISO() {
   const appUrl = `${APP_URL}?daily=${date}&test=1&autostart=0`;
   const publicBase = APP_URL.replace(/\/app\/?.*$/, '');
   const shareUrl = `${publicBase}/daily/${date}.html`;
+  const latestUrl = `${publicBase}/daily/latest.html`;
   const sharePatchUrl = `${publicBase}/app/share_patch.js`;
 
   const browser = await chromium.launch();
@@ -73,6 +74,18 @@ function jstISO() {
     console.warn(`[share] share page 404 (ok for manual runs before daily). url=${shareUrl}`);
   } else {
     throw new Error(`[share] unexpected HTTP ${resp.status()} for ${shareUrl}`);
+  }
+
+  // 4) latest.html は常に当日へ meta refresh（手動でも生成される想定）
+  const respLatest = await page.request.get(latestUrl);
+  if (respLatest.status() === 200) {
+    const html = await respLatest.text();
+    const refreshToday = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${date}\\.html`).test(html);
+    if (!refreshToday) {
+      throw new Error(`[share] latest.html does not redirect to today (${date})`);
+    }
+  } else {
+    console.warn(`[share] latest.html HTTP ${respLatest.status()} (unexpected); url=${latestUrl}`);
   }
 
   // 3) ?daily=1 でも同様に当日(JST)のURLがコピーされる

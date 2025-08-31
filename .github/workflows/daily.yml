@@ -82,6 +82,11 @@ jobs:
           node scripts/generate_share_page.js
           ls -lah public/daily || true
 
+      - name: Generate Daily index & latest
+        run: |
+          node scripts/generate_daily_index.js
+          ls -lah public/daily || true
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
