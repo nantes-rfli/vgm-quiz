@@ -68,3 +68,25 @@ clojure -M:test
 - Give jobs stable, unique `name:` values; if you rename jobs, update Rulesets together.
 - Keep PR checks light; shift heavy suites to nightly or `workflow_dispatch`.
 
+## E2E（並列マトリクス版）
+
+### 目的
+- どの観点で落ちたか（smoke/a11y/footer）を **一発で特定**。
+- 並列化で **実行時間短縮**、失敗時は該当スイートだけログ確認。
+
+### ワークフロー
+- ファイル: `.github/workflows/e2e-matrix.yml`
+- トリガ: **manual (`workflow_dispatch`)** 導入 → 問題なければ夜間スケジュールへ移行可能。
+- マトリクス: `smoke`（`e2e/test.js`）、`a11y`（`e2e/test_free_aria.js`）、`footer`（`e2e/test_footer_version.js`）
+- 共通環境:
+  - `APP_URL=https://nantes-rfli.github.io/vgm-quiz/app/`
+  - `E2E_BASE_URL=https://nantes-rfli.github.io/vgm-quiz/app/?test=1`
+
+### 使い方
+1. Actions → **E2E (matrix, manual)** → **Run workflow**。
+2. 3 本のジョブが並列に走る（smoke/a11y/footer）。
+3. 失敗したスイートのアーティファクト（`e2e/*.log` / `e2e/screenshots`）をダウンロードして確認。
+
+### 既存の夜間 E2E との関係
+- 当面は **併存**（既存は夜間/手動、matrix は手動のみ）。
+- 安定確認後に、`e2e-matrix.yml` に `schedule` を追加し、旧ワークフローの夜間実行を停止（`on.schedule`を外す/ファイル削除）するとよい。
