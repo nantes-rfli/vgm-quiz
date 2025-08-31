@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [smoke, a11y, footer]
+        suite: [smoke, a11y, footer, share]
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +56,7 @@ jobs:
             smoke)  node e2e/test.js ;;
             a11y)   node e2e/test_free_aria.js ;;
             footer) node e2e/test_footer_version.js ;;
+            share)  node e2e/test_share.js ;;
             *) echo "unknown suite"; exit 1 ;;
           esac
 
