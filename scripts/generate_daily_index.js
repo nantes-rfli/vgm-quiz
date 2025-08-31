@@ -26,6 +26,7 @@ function jstISO(d = new Date()) {
   <title>VGM Quiz — Daily index</title>
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="./index.html">
+  <link rel="alternate" type="application/rss+xml" title="VGM Quiz — Daily" href="./feed.xml">
   <style>
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;margin:24px;line-height:1.6;}
     h1{font-size:20px;margin:0 0 12px} ul{padding-left:18px;margin:0}
@@ -34,6 +35,7 @@ function jstISO(d = new Date()) {
   </style>
 </head><body>
   <h1>VGM Quiz — Daily index</h1>
+  <p><a href="./feed.xml">RSSフィード</a>（購読できます）</p>
   <div class="meta">today: ${today} / count: ${files.length}</div>
   <ul>
     ${files.map(d => `<li><a href="./${d}.html">${d}</a></li>`).join('\n    ')}

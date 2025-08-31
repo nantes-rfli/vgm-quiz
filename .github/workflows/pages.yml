@@ -52,6 +52,11 @@ jobs:
         with:
           cli: latest
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Clean
         run: clojure -T:build clean || true
 
@@ -91,6 +96,19 @@ jobs:
       - name: Ensure .nojekyll
         run: |
           touch public/.nojekyll
+
+      - name: Generate daily index (idempotent)
+        run: |
+          if [ -f scripts/generate_daily_index.js ]; then
+            node scripts/generate_daily_index.js
+          fi
+
+      - name: Generate daily RSS feed (idempotent)
+        run: |
+          if [ -f scripts/generate_daily_feed.js ]; then
+            node scripts/generate_daily_feed.js
+          fi
+
       - name: Upload artifact (entire public)
         uses: actions/upload-pages-artifact@v3
         with:
