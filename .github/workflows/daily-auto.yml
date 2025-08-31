@@ -7,6 +7,10 @@ on:
         description: 'Target date (YYYY-MM-DD). Default = today (JST).'
         required: false
         type: string
+      with_choices:
+        description: 'Attach multiple-choice distractors (composer/game) to output'
+        required: false
+        type: boolean
       apply_to_main:
         description: 'Create PR to update public/app/daily_auto.json'
         required: false
@@ -47,11 +51,15 @@ jobs:
       - name: Step 2/3 score
         run: node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
 
+      - name: Step 2.5 enrich media start
+        run: node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+
       - name: Step 3/3 generate (for date)
         run: |
           DATE="${{ github.event.inputs.date }}"
           if [ -z "$DATE" ]; then DATE="$(TZ=Asia/Tokyo date +%F)"; fi
-          node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored.jsonl --date "$DATE" --out public/app/daily_auto.json
+          WITH_CHOICES="${{ github.event.inputs.with_choices }}"
+          node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date "$DATE" --out public/app/daily_auto.json ${WITH_CHOICES=='true' && '--with-choices' || ''}
 
       - name: Upload artifact (daily_auto.json)
         uses: actions/upload-artifact@v4
@@ -61,7 +69,7 @@ jobs:
 
       - name: Summary details
         run: |
-          node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('public/app/daily_auto.json','utf-8'));const entries=Object.entries(j.by_date||{});const last=entries[entries.length-1];const s=[];s.push('### daily (auto) details');if(last){const [d,v]=last;s.push(`- date: **${d}**`);s.push(`- pick: ${v.title} / ${v.game} / ${v.composer} (diff=${v.difficulty||'n/a'})`);}fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');"
+          node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('public/app/daily_auto.json','utf-8'));const entries=Object.entries(j.by_date||{});const last=entries[entries.length-1];const s=[];s.push('### daily (auto) details');if(last){const [d,v]=last;s.push(`- date: **${d}**`);s.push(`- pick: ${v.title} / ${v.game} / ${v.composer} (diff=${v.difficulty||'n/a'})`);if(v.choices){s.push(`- choices: composer[${v.choices.composer.join(', ')}], game[${v.choices.game.join(', ')}]`);}}fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');"
 
       - name: Create PR (optional)
         if: ${{ github.event.inputs.apply_to_main == 'true' }}
