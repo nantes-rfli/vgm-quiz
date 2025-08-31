@@ -21,3 +21,16 @@ jobs:
       - name: Step Summary (success)
         if: success()
         run: echo "✅ JSON validate passed" >> "$GITHUB_STEP_SUMMARY"
+      - name: Step Summary (failure)
+        if: failure()
+        run: |
+          {
+            echo "❌ JSON validate failed";
+            echo;
+            echo "Check the 'Validate JSONs' step logs for details.";
+            echo;
+            echo "- よくある原因:";
+            echo "  - aliases 正規化キーの重複";
+            echo "  - 同一エイリアスの別ターゲット衝突";
+            echo "  - dataset の正規化重複（title/game/composer）";
+          } >> "$GITHUB_STEP_SUMMARY"

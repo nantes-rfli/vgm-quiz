@@ -1,0 +1,90 @@
+name: daily (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Do not open PR; upload generated files as artifact only'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java (Temurin 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build dataset (clojure -T:build publish)
+        run: clojure -T:build publish
+
+      - name: Generate daily.json
+        run: node scripts/generate_daily.js
+
+      - name: Generate daily index & feed
+        run: |
+          node scripts/generate_daily_index.js
+          node scripts/generate_daily_feed.js
+
+      - name: Upload artifact (dry run)
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-dry-run
+          path: |
+            public/app/daily.json
+            public/daily/*.html
+            public/daily/feed.xml
+
+      - name: Create PR (manual daily)
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.DAILY_PR_PAT }}
+          commit-message: "chore(daily): manual daily update"
+          title: "chore(daily): manual daily update"
+          body: |
+            Manual run of the daily generator (JST).
+
+            - Generated `public/app/daily.json`
+            - Updated `/daily/index.html` and `/daily/feed.xml`
+
+            If this fails CI, please check required job names and rerun.
+          add-paths: |
+            public/app/daily.json
+            public/daily/*.html
+            public/daily/feed.xml
+          branch: chore/manual-daily
+          delete-branch: true
+          author: GitHub Actions <actions@github.com>
+
+      - name: Step Summary
+        if: always()
+        run: |
+          {
+            echo "### daily (manual) result";
+            if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+              echo "- Mode: **dry run** (artifact uploaded: daily-dry-run)";
+            else
+              echo "- Mode: **PR** (branch: chore/manual-daily)";
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
