@@ -54,6 +54,7 @@ jobs:
       - name: Generate OGP card (1200x630)
         env:
           DAILY_DATE: ""
+          OGP_SUBTITLE: "title→game"
         run: |
           node scripts/generate_ogp.js
           ls -lah public/ogp || true
@@ -76,6 +77,7 @@ jobs:
         env:
           DAILY_DATE: ""
           PUBLIC_BASE: ${{ env.PUBLIC_BASE }}
+          OGP_SUBTITLE: "title→game"
         run: |
           node scripts/generate_share_page.js
           ls -lah public/daily || true
