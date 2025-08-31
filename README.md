@@ -16,7 +16,12 @@
   </a>
 </p>
 
-A small quiz app for video game music. Runs on GitHub Pages.
+### Daily OGP
+- 自動生成された OGP 画像は `public/ogp/daily-YYYY-MM-DD.png`
+- 画像は GitHub Pages からも配信可能（例: `/vgm-quiz/ogp/daily-YYYY-MM-DD.png`）
+- 今は日付のみのシンプル版。後続で楽曲名・出題タイプなどを載せる拡張が可能です。
+
+  A small quiz app for video game music. Runs on GitHub Pages.
 
 - **Live:** https://nantes-rfli.github.io/vgm-quiz/app/
 - **Repo:** https://github.com/nantes-rfli/vgm-quiz
