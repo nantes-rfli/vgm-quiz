@@ -3,6 +3,10 @@ name: CI Fast
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -11,55 +15,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Cache Clojure deps (~/.m2, ~/.gitlibs, ~/.clojure)
-      - name: Cache Clojure deps
-        uses: actions/cache@v4
+      # Java / Clojure 環境
+      - uses: actions/setup-java@v4
         with:
-          path: |
-            ~/.m2/repository
-            ~/.gitlibs
-            ~/.clojure
-          key: clojure-${{ runner.os }}-${{ hashFiles('deps.edn') }}
-
-      # Cache npm deps (~/.npm)
-      - name: Cache npm deps
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package.json') }}
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 21
-
-      - name: Setup Clojure CLI
-        uses: DeLaGuardo/setup-clojure@13.4
+          distribution: temurin
+          java-version: '21'
+      - uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
 
-      # Build the site so that public/build/{dataset.json,version.json} exist for tests
-      - name: Publish (build public/)
+      # ここが重要：テスト前に dataset/aliases/version を生成
+      - name: Build dataset (publish)
         run: clojure -T:build publish
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      # Node 側（スモーク等）
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install deps
+        run: npm ci || npm install --no-audit --no-fund
 
-      - name: Install Node deps (no lockfile)
-        run: npm install --no-audit --no-fund
-
-      - name: Run unit tests
+      - name: Run unit tests (Clojure)
         run: clojure -M:test
 
       - name: Static guards
         run: |
-          grep -Rq 'option value="multiple-choice"' public/app/index.html
-          grep -Rq 'option value="free"' public/app/index.html
           test -f public/build/dataset.json
           test -f public/build/version.json
+          grep -Rq 'option value="multiple-choice"' public/app/index.html
+          grep -Rq 'option value="free"' public/app/index.html
 
-      - name: Smoke HTML test
+      - name: Smoke HTML
         run: npm run smoke
