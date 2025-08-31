@@ -3,6 +3,26 @@
 self.__APP_VERSION__ = new URL(self.location).searchParams.get('v');
 const CACHE_NAME = 'vgm-quiz-' + (self.__APP_VERSION__ || 'dev');
 
+// Accept client message to activate a waiting SW immediately.
+self.addEventListener('message', (event) => {
+  try {
+    const data = event && event.data;
+    const isSkip =
+      data === 'SKIP_WAITING' ||
+      (data && typeof data === 'object' && data.type === 'SKIP_WAITING');
+    if (isSkip && self && self.skipWaiting) {
+      event.waitUntil(self.skipWaiting());
+    }
+  } catch (e) {
+    // ignore
+  }
+});
+
+// Ensure clients are controlled ASAP after activation.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients && self.clients.claim ? self.clients.claim() : Promise.resolve());
+});
+
 let VERMETA_URL = undefined; // app側から受け取る最優先URL
 
 // app から version.json の絶対URLを受け取る
