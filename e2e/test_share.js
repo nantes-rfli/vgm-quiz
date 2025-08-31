@@ -51,6 +51,21 @@ function jstISO() {
     throw new Error(`[share] unexpected HTTP ${resp.status()} for ${shareUrl}`);
   }
 
+  // 3) ?daily=1 でも同様に当日(JST)のURLがコピーされる
+  const appUrlToday = `${APP_URL}?daily=1&test=1&autostart=0`;
+  await page.goto(appUrlToday, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(async () => {
+    if (typeof window.copyToClipboard === 'function') {
+      await window.copyToClipboard('dummy');
+    } else {
+      throw new Error('copyToClipboard is not defined');
+    }
+  });
+  const clip2 = await page.evaluate(() => navigator.clipboard.readText());
+  if (!clip2.includes(`/daily/${date}.html`)) {
+    throw new Error(`[share] (?daily=1) clipboard mismatch. expected suffix /daily/${date}.html, got: ${clip2}`);
+  }
+
   await browser.close();
   console.log('[E2E share] OK');
 })();

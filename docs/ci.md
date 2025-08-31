@@ -82,6 +82,7 @@ clojure -M:test
 - アプリの共有ボタンでコピーされるURLが **`/daily/YYYY-MM-DD.html`** であること
 - 共有ページ（存在すれば）のHTMLに **OGP画像** と **`/app/?daily=...`** への meta refresh があること  
 （手動実行で当日の共有ページ未生成の場合は 404 を許容）
+- `?daily=1`（当日JST指定）でも **同じ共有URL** がコピーされることを検証します。
 - 共通環境:
   - `APP_URL=https://nantes-rfli.github.io/vgm-quiz/app/`
   - `E2E_BASE_URL=https://nantes-rfli.github.io/vgm-quiz/app/?test=1`

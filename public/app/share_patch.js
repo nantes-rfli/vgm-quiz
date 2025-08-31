@@ -4,9 +4,16 @@
   function getQP(k) {
     try { return new URLSearchParams(location.search).get(k); } catch { return null; }
   }
+  function jstISO(d = new Date()) {
+    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const parts = Object.fromEntries(fmt.formatToParts(d).map(p => [p.type, p.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  }
   function resolveDailyDate() {
     const q = getQP('daily');
-    return (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) ? q : null;
+    if (!q) return null;
+    if (q === '1') return jstISO(); // 当日(JST)
+    return (/^\d{4}-\d{2}-\d{2}$/.test(q)) ? q : null;
   }
   function publicBase() {
     // /vgm-quiz/app/... -> /vgm-quiz
