@@ -1,0 +1,19 @@
+name: normalize (parity)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run parity test
+        run: node scripts/test_normalize_parity.js
+
