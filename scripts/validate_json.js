@@ -6,7 +6,7 @@
  *      and values {title:string, type:string in allowed}
  *  - public/build/aliases.json (if exists): object<string, string[]>
  *  - public/app/aliases_local.json (if exists): object<string, string|string[]>
- *  - public/build/dataset.json (if exists): array; spot-check items have title/game/composer strings
+ *  - public/build/dataset.json (if exists): array or object with `tracks` array; spot-check items have title/game/composer strings
  */
 
 const fs = require('fs');
@@ -72,13 +72,44 @@ function checkAliasesJSON(p) {
   console.log(`[validate] ${path.basename(p)} OK (${n} keys)`);
 }
 
+function checkAliasesCollisionsObject(o, label) {
+  if (!o) {
+    console.log(`[validate] skip collisions (${label})`);
+    return true;
+  }
+  let ok = true;
+  const targets = Array.isArray(o) || typeof o !== 'object' ? { top: o } : o;
+  for (const [cat, m] of Object.entries(targets)) {
+    if (!m || typeof m !== 'object') continue;
+    const seen = new Map();
+    for (const [k, v0] of Object.entries(m)) {
+      const vals = Array.isArray(v0) ? v0 : [v0];
+      for (const v of vals) {
+        if (typeof v !== 'string') continue;
+        const prev = seen.get(v);
+        if (prev && prev !== k) {
+          console.error(`[validate] alias collision in ${label}/${cat}: "${v}" -> ${prev} / ${k}`);
+          ok = false;
+        } else {
+          seen.set(v, k);
+        }
+      }
+    }
+  }
+  if (ok) {
+    console.log(`[validate] ${label} collision check OK`);
+  }
+  return ok;
+}
+
 function spotCheckDataset(p) {
   if (!exists(p)) {
     console.log(`[validate] skip (not found): ${p}`);
     return;
   }
-  const arr = readJSON(p);
-  assert(Array.isArray(arr), 'dataset.json must be an array');
+  const data = readJSON(p);
+  const arr = Array.isArray(data?.tracks) ? data.tracks : (Array.isArray(data) ? data : null);
+  assert(Array.isArray(arr), 'dataset.json must be an array or object with tracks array');
   const size = arr.length;
   assert(size > 0, 'dataset.json must not be empty');
   const samples = [arr[0], arr[Math.floor(size / 2)], arr[size - 1]].filter(Boolean);
@@ -91,12 +122,52 @@ function spotCheckDataset(p) {
   console.log(`[validate] dataset.json OK (spot-checked ${samples.length}/${size})`);
 }
 
+function checkDatasetDuplicates(ds) {
+  if (!ds) {
+    console.log('[validate] skip dataset duplicate check');
+    return true;
+  }
+  const arr = Array.isArray(ds?.tracks) ? ds.tracks : (Array.isArray(ds) ? ds : null);
+  if (!Array.isArray(arr)) {
+    console.log('[validate] skip dataset duplicate check');
+    return true;
+  }
+  const seen = new Set();
+  let ok = true;
+  for (const t of arr) {
+    const id = t && t['track/id'];
+    if (typeof id !== 'string') continue;
+    if (seen.has(id)) {
+      console.error(`[validate] duplicate track/id: ${id}`);
+      ok = false;
+    } else {
+      seen.add(id);
+    }
+  }
+  if (ok) {
+    console.log(`[validate] dataset duplicates OK (${seen.size} ids)`);
+  }
+  return ok;
+}
+
 function main() {
   const root = path.join(__dirname, '..');
   checkDailyJSON(root);
+  const a1 = (function(){ try { return readJSON(path.join(root, 'public', 'build', 'aliases.json')); } catch (_) { return null; } })();
+  const a2 = (function(){ try { return readJSON(path.join(root, 'public', 'app', 'aliases_local.json')); } catch (_) { return null; } })();
+  const ds = (function(){ try { return readJSON(path.join(root, 'public', 'build', 'dataset.json')); } catch (_) { return null; } })();
   checkAliasesJSON(path.join(root, 'public', 'build', 'aliases.json'));
   checkAliasesJSON(path.join(root, 'public', 'app', 'aliases_local.json'));
   spotCheckDataset(path.join(root, 'public', 'build', 'dataset.json'));
+  const okExtra = (
+    checkAliasesCollisionsObject(a1, 'aliases.json') &&
+    checkAliasesCollisionsObject(a2, 'aliases_local.json') &&
+    checkDatasetDuplicates(ds)
+  );
+  if (!okExtra) {
+    console.error('[validate] extra checks failed');
+    process.exit(1);
+  }
   console.log('[validate] all checks passed');
 }
 
