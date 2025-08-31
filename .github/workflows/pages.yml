@@ -9,7 +9,7 @@ on:
     workflows: [ "CI Fast" ]
     types:
       - completed
-  # 手動実行も残す
+  # 手動で再デプロイできるように
   workflow_dispatch: {}
 
 permissions:
@@ -88,9 +88,10 @@ jobs:
 
       # Contract checks have moved to CI Fast; this workflow handles deploy only.
 
-      - name: Upload artifact
+      - name: Upload artifact (entire public)
         uses: actions/upload-pages-artifact@v3
         with:
+          # /app だけでなく /daily や /ogp も含めて配信
           path: public
 
   deploy:
