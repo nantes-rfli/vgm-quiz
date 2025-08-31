@@ -23,8 +23,15 @@
     [11,'XI'],[12,'XII'],[13,'XIII'],[14,'XIV'],[15,'XV'],[16,'XVI'],[17,'XVII'],[18,'XVIII'],[19,'XIX'],[20,'XX']
   ].map(([n,r]) => [r, String(n)]));
 
+  function removeDiacritics(s) {
+    // Convert to NFKD and strip combining marks (accents/diacritics)
+    // \p{M} matches all marks; requires Unicode flag.
+    return s.normalize('NFKD').replace(/\p{M}+/gu, '');
+  }
+
   function nfkcLower(s) {
-    return s.normalize('NFKC').toLowerCase();
+    // Normalize to NFKC and lowercase first, then remove diacritics to fold "é" -> "e"
+    return removeDiacritics(s.normalize('NFKC').toLowerCase());
   }
 
   function stripPunctSpacesLongDash(s) {

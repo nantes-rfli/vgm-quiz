@@ -7,9 +7,37 @@ async function run() {
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-  // Try to find an answer input in a generic way
-  const input = await page.locator('input[type="text"], input[role="textbox"], [contenteditable="true"]').first();
-  await input.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  // Ensure the quiz is started if there's a start screen
+  async function ensureStarted() {
+    // If input already visible, we're good
+    const maybeInput = page.locator('input[data-testid="answer"], input[type="text"], input[role="textbox"], [contenteditable="true"]').first();
+    if (await maybeInput.isVisible().catch(() => false)) return;
+
+    // Try to click a visible start-like button
+    const btns = page.locator('button, [role="button"]');
+    const n = await btns.count();
+    const re = /start|begin|play|go|quiz|開始|スタート|はじめる/i;
+    for (let i = 0; i < n; i++) {
+      const b = btns.nth(i);
+      if (!(await b.isVisible().catch(() => false))) continue;
+      const txt = (await b.innerText().catch(() => '')).trim();
+      if (re.test(txt)) {
+        await b.click().catch(() => {});
+        await page.waitForTimeout(400);
+        break;
+      }
+    }
+
+    // Fallback: press Enter to start
+    await page.keyboard.press('Enter').catch(() => {});
+    await page.waitForTimeout(400);
+  }
+
+  await ensureStarted();
+
+  // Try to find an answer input in a generic way (after starting)
+  const input = await page.locator('input[data-testid="answer"], input[type="text"], input[role="textbox"], [contenteditable="true"]').first();
+  await input.waitFor({ state: 'visible', timeout: 8000 });
 
   // Submit 3 obviously wrong answers. We keep this generic to avoid tight UI coupling.
   for (let i = 0; i < 3; i++) {
