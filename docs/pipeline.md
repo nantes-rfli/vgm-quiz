@@ -1,58 +1,48 @@
-# Data Pipeline Overview
+# Daily Pipeline (Candidates → Score → Publish) — skeleton
 
-This document covers dataset generation and daily scheduling.
+本パッチは **既存フローを変更しません（デフォルトOFF）**。候補収集～スコアリング～公開の骨組みを追加します。
 
-## Build
+## 生成物
+- `public/app/daily_candidates.jsonl` … 候補のJSON Lines（1行=1候補）
+- `public/app/daily_auto.json` … 自動パイプライン専用の公開予定マップ（date→candidate）
 
-Run:
+## ステップ
+1. 候補収集（harvest）  
+   ```bash
+   node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
+   ```
+2. 難易度付与（score）  
+   ```bash
+   node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
+   ```
+3. 当日分の選定（generate）  
+   ```bash
+   node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored.jsonl --date 2025-09-01 --out public/app/daily_auto.json
+   ```
 
-```bash
-clojure -T:build publish
-```
+## 方針
+- 既存 `scripts/generate_daily.js` は**一切変更しない**（既存の `daily.json` は温存）
+- 自動パイプラインは `daily_auto.json` を別系統として作成（切替は後日）
 
-Generates `public/build/dataset.json` and related artifacts; tests assume these are present.
+---
 
-## Daily generation
-
-`scripts/generate_daily.js` (JST-based, FNV1a; avoids duplicates in last 30 days) writes:
-
+### 候補スキーマ（JSON Lines）
+各行は下記の形。
 ```json
 {
-  "YYYY-MM-DD": { "title": "...", "type": "title→game | game→composer | title→composer" },
-  "...": "..."
+  "title": "Corridors of Time",
+  "game": "Chrono Trigger",
+  "composer": "Yasunori Mitsuda",
+  "platform": "SNES",
+  "year": 1995,
+  "media": { "kind": "youtube", "id": "xxxxxxxxxxx", "start": 45 },
+  "source": "dataset",
+  "norm": { "title": "corridorsoftime", "game": "chronotrigger", "composer": "yasunorimitsuda" }
 }
 ```
+`media` は**空でも可**（将来の自動補完を想定）。
 
-`scripts/generate_daily_index.js` outputs:
+---
 
-- `public/daily/index.html` (descending list)
-- `public/daily/latest.html` (redirect to `/app/?daily=YYYY-MM-DD`)
-
-`scripts/generate_daily_feed.js` outputs:
-
-- `public/daily/feed.xml` (RSS 2.0, JST midnight as pubDate, newest 60 entries)
-
-`daily.yml` (00:00 JST) creates a PR including:
-
-- `public/app/daily.json`
-- `public/daily/*.html`
-- `public/daily/feed.xml`
-
-Pages deploy (`pages.yml`) also regenerates index/feed as a safety net.
-
-## Sharing / OGP
-
-`scripts/generate_share_page.js` and `scripts/generate_ogp.js` produce per-day static share HTML and OGP images.
-Subtitle selection:
-
-1. Prefer `public/app/daily.json[date].type` → `"Title → Game" / "Game → Composer" / "Title → Composer"`
-2. Fallback to env `OGP_SUBTITLE` (for backward compatibility)
-
-## Service Worker
-
-Version handshake via `version.json`. SW polls roughly every 60 seconds for updates.
-
-- `public/app/sw_update.js` listens to registration (`updatefound`/`waiting`) and shows an accessible banner.
-- Clicking “更新” sends `{type: 'SKIP_WAITING'}` to SW; on `controllerchange` the page reloads.
-- SW handles `message: SKIP_WAITING` and calls `clients.claim()` on `activate`.
-- Legacy in-app banner in `app.js` is **deprecated** and no-op.
+### ワークフロー（dispatchのみ）
+- `candidates-harvest.yml` … 候補の収集・Artifact化（PRしない）
