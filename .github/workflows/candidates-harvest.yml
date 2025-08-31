@@ -1,0 +1,29 @@
+name: candidates (harvest)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Harvest from dataset
+        run: node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
+
+      - name: Upload candidates artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-candidates
+          path: public/app/daily_candidates.jsonl
+
+      - name: Summary
+        run: |
+          echo "### candidates (harvest)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- artifact: **daily-candidates**" >> "$GITHUB_STEP_SUMMARY"
