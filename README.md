@@ -8,9 +8,13 @@
   <a href="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e-matrix.yml">
     <img alt="E2E (matrix)" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e-matrix.yml/badge.svg">
   </a>
+  <a href="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml">
+    <img alt="Lighthouse (nightly)" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml/badge.svg">
+  </a>
+  <a href="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/pages.yml">
+    <img alt="Pages (deploy on main)" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/pages.yml/badge.svg?branch=main">
+  </a>
 </p>
-
-[![Lighthouse nightly](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/lighthouse.yml) [![E2E](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e.yml) [![Pages](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/pages.yml/badge.svg?branch=main)](https://github.com/nantes-rfli/vgm-quiz/actions/workflows/pages.yml)
 
 A small quiz app for video game music. Runs on GitHub Pages.
 
