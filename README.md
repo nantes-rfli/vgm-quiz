@@ -22,6 +22,13 @@
   </a>
 </p>
 
+## Operations / Runbook
+日々の運用で迷いやすいポイントは **[docs/ops.md](docs/ops.md)** に集約しています。
+- SW更新確認フロー（waiting→更新バナー）
+- Required ジョブ名の注意・Checks が待機のままの対処
+- DAILY_PR_PAT の期限切れ兆候と対処
+- Actions からの手動実行（json-validate / Pages 再配信）
+
 ### Daily OGP
 - 自動生成された OGP 画像は `public/ogp/daily-YYYY-MM-DD.png`（**出題タイプ**：title→game / game→composer / title→composer を表示。判定できない場合は “Daily Question”）
 - 画像は GitHub Pages からも配信可能（例: `/vgm-quiz/ogp/daily-YYYY-MM-DD.png`）
@@ -81,5 +88,5 @@ See [docs/pipeline.md](./docs/pipeline.md).
 
 ## Operations
 
-See [docs/ops-runbook.md](./docs/ops-runbook.md) and [docs/troubleshooting.md](./docs/troubleshooting.md).
+See [docs/ops.md](./docs/ops.md) and [docs/troubleshooting.md](./docs/troubleshooting.md).
 Admin guide for PAT/Rulesets/Pages is in [docs/github-admin.md](./docs/github-admin.md).
