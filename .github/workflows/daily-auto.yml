@@ -73,8 +73,36 @@ jobs:
           path: public/app/daily_auto.json
 
       - name: Summary details
+        env:
+          INPUT_DATE: ${{ github.event.inputs.date }}
         run: |
-          node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('public/app/daily_auto.json','utf-8'));const entries=Object.entries(j.by_date||{});const last=entries[entries.length-1];const s=[];s.push('### daily (auto) details');if(last){const [d,v]=last;s.push(`- date: **${d}**`);s.push(`- pick: ${v.title} / ${v.game} / ${v.composer} (diff=${v.difficulty||'n/a'})`);const hasChoices=!!(v.choices&&Array.isArray(v.choices.composer)&&v.choices.composer.length);s.push(`- choices_override: ${hasChoices?'**available**':'none'}`);if(v.choices){s.push(`- choices: composer[${v.choices.composer.join(', ')}], game[${v.choices.game.join(', ')}]`);} } fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');"
+          node -e "
+          const fs=require('fs');
+          const TZ='Asia/Tokyo';
+          const j=JSON.parse(fs.readFileSync('public/app/daily_auto.json','utf-8'));
+          const by=j.by_date||{};
+          function todayJST(){
+            try{ return new Date(new Date().toLocaleString('en-US',{timeZone:TZ})).toISOString().slice(0,10); }
+            catch(e){ const d=new Date(); return new Date(d.getTime()+9*3600*1000).toISOString().slice(0,10); }
+          }
+          const inp=(process.env.INPUT_DATE||'').trim();
+          const date = (/^\d{4}-\d{2}-\d{2}$/.test(inp) ? inp : todayJST());
+          const v = by[date];
+          const s=[];
+          s.push('### daily (auto) details');
+          s.push(`- date: **${date}**`);
+          if(v){
+            s.push(`- pick: ${v.title} / ${v.game} / ${v.composer} (diff=${v.difficulty??'n/a'})`);
+            const comp=(v.choices&&v.choices.composer)||[];
+            const game=(v.choices&&v.choices.game)||[];
+            const avail = (comp.length>0 || game.length>0);
+            s.push(`- choices_override: ${avail? '**available**':'none'}`);
+            if(avail) s.push(`- choices: composer[${comp.join(', ')}], game[${game.join(', ')}]`);
+          }else{
+            s.push('- pick: (no entry for this date)');
+          }
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');
+          "
 
       - name: Create PR (optional)
         if: ${{ github.event.inputs.apply_to_main == 'true' }}
