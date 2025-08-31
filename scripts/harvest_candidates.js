@@ -22,6 +22,19 @@ function parseArgs(){
   return { out, src };
 }
 
+function resolveSrc(src){
+  if (fs.existsSync(src)) return src;
+  // Try common alternatives (CI/cwd variance)
+  const alts = [
+    path.join(process.cwd(), 'public/build/dataset.json'),
+    path.join(process.cwd(), 'build/dataset.json'),
+  ];
+  for (const p of alts){
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
 function toCandidate(rec){
   const title = rec.title || rec.track || '';
   const game  = rec.game  || '';
@@ -42,9 +55,13 @@ function toCandidate(rec){
 }
 
 function main(){
-  const { out, src } = parseArgs();
-  if(!fs.existsSync(src)){
-    console.error(`[harvest] source not found: ${src}`);
+  const { out, src: srcArg } = parseArgs();
+  const src = resolveSrc(srcArg);
+  if(!src){
+    console.error(`[harvest] source not found: ${srcArg}`);
+    console.error('[harvest] Tips:');
+    console.error('  - Ensure dataset exists (run: clojure -T:build publish)');
+    console.error('  - Or pass a path: node scripts/harvest_candidates.js --src path/to/dataset.json');
     process.exit(1);
   }
   const dataset = readJSON(src);
