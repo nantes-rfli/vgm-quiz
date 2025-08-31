@@ -55,6 +55,7 @@ jobs:
         run: node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
 
       - name: Step 3/3 generate (for date)
+        id: gen
         run: |
           DATE="${{ github.event.inputs.date }}"
           if [ -z "$DATE" ]; then DATE="$(TZ=Asia/Tokyo date +%F)"; fi
@@ -64,6 +65,9 @@ jobs:
             EXTRA="--with-choices"
           fi
           echo "with_choices=$WITH_CHOICES (extra flag: $EXTRA)"
+          # Export resolved date for later steps
+          echo "RESOLVED_DATE=$DATE" >> "$GITHUB_ENV"
+          echo "resolved-date=$DATE" >> "$GITHUB_OUTPUT"
           node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date "$DATE" --out public/app/daily_auto.json $EXTRA
 
       - name: Upload artifact (daily_auto.json)
@@ -75,6 +79,7 @@ jobs:
       - name: Summary details
         env:
           INPUT_DATE: ${{ github.event.inputs.date }}
+          RESOLVED_DATE: ${{ env.RESOLVED_DATE }}
         run: |
           node - <<'NODE'
           const fs = require('fs');
@@ -91,7 +96,11 @@ jobs:
             }
           }
           const inp = (process.env.INPUT_DATE||'').trim();
-          const date = (/^\d{4}-\d{2}-\d{2}$/.test(inp) ? inp : todayJST());
+          const resolved = (process.env.RESOLVED_DATE||'').trim();
+          // Prefer the actual resolved date from the generate step; fall back to input; then JST today
+          const date =
+            (/^\d{4}-\d{2}-\d{2}$/.test(resolved) ? resolved :
+             (/^\d{4}-\d{2}-\d{2}$/.test(inp) ? inp : todayJST()));
           const v = by[date];
           const lines = ['### daily (auto) details', `- date: **${date}**`];
           if (v){
@@ -137,11 +146,11 @@ jobs:
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: squash
 
-      - name: Summary
+      - name: Summary (result)
         run: |
           {
             echo "### daily (auto) result";
-            echo "- date: ${{ github.event.inputs.date || 'today (JST)' }}";
+            if [ -n "$RESOLVED_DATE" ]; then echo "- date: $RESOLVED_DATE"; else echo "- date: ${{ github.event.inputs.date || 'today (JST)' }}"; fi
             if [ "${{ github.event.inputs.apply_to_main }}" = "true" ]; then
               echo "- mode: PR (chore/daily-auto)";
             else
