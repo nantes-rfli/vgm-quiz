@@ -1,0 +1,59 @@
+name: E2E (matrix, manual)
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: e2e-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [smoke, a11y, footer]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci || npm i
+
+      - name: Env
+        run: |
+          echo "APP_URL=https://nantes-rfli.github.io/vgm-quiz/app/" >> $GITHUB_ENV
+          echo "E2E_BASE_URL=https://nantes-rfli.github.io/vgm-quiz/app/?test=1" >> $GITHUB_ENV
+
+      - name: Run E2E (${{ matrix.suite }})
+        env:
+          APP_URL: ${{ env.APP_URL }}
+          E2E_BASE_URL: ${{ env.E2E_BASE_URL }}
+        run: |
+          set -euxo pipefail
+          case "${{ matrix.suite }}" in
+            smoke)  node e2e/test.js ;;
+            a11y)   node e2e/test_free_aria.js ;;
+            footer) node e2e/test_footer_version.js ;;
+            *) echo "unknown suite"; exit 1 ;;
+          esac
+
+      - name: Upload artifacts (logs/screenshots if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-${{ matrix.suite }}-artifacts
+          path: |
+            e2e/*.log
+            e2e/screenshots/**
+          if-no-files-found: ignore
