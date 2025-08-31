@@ -10,6 +10,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <!-- ESM の事前解決は modulepreload を使う。credentials 警告回避に crossorigin を明示 -->
 <link rel="modulepreload" href="app.js" crossorigin="anonymous">
+<!-- Load auto choices (no-op unless ?auto=1 or ?daily_auto=1) BEFORE mc.js so it can consult overrides -->
+<script type="module" src="./auto_choices_loader.mjs"></script>
+
   <script>
     // Conditionally load test API when ?mock=1
     (function() {
