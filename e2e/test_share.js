@@ -53,8 +53,15 @@ function jstISO() {
     const html = await resp.text();
     const ogImgOk = html.includes(`/ogp/daily-${date}.png`);
     const refreshOk = html.includes(`/app/?daily=${date}`);
-    if (!ogImgOk || !refreshOk) {
-      throw new Error(`[share] share HTML missing tags: og:image ok? ${ogImgOk}, refresh ok? ${refreshOk}`);
+    const ogW = /property=["']og:image:width["'][^>]+content=["']1200["']/.test(html);
+    const ogH = /property=["']og:image:height["'][^>]+content=["']630["']/.test(html);
+    const twTitle = /name=["']twitter:title["'][^>]+content=["'][^"']*Daily\s+${date}[^"']*["']/.test(html);
+    const twImage = /name=["']twitter:image["'][^>]+content=["'][^"']*\/ogp\/daily-${date}\.png/.test(html);
+    if (!ogImgOk || !refreshOk || !ogW || !ogH || !twTitle || !twImage) {
+      throw new Error(
+        `[share] share HTML meta check failed. og:image:${ogImgOk} refresh:${refreshOk} ` +
+        `og:w:${ogW} og:h:${ogH} tw:title:${twTitle} tw:image:${twImage}`
+      );
     }
   } else if (resp.status() === 404) {
     // 当日の daily.yml がまだ走ってない手動実行ケースはスキップ

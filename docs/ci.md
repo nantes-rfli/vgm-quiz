@@ -80,7 +80,7 @@ clojure -M:test
 - マトリクス: `smoke`（`e2e/test.js`）、`a11y`（`e2e/test_free_aria.js`）、`footer`（`e2e/test_footer_version.js`）、`share`（`e2e/test_share.js`）
 `share` は:
 - アプリの共有ボタンでコピーされるURLが **`/daily/YYYY-MM-DD.html`** であること
-- 共有ページ（存在すれば）のHTMLに **OGP画像** と **`/app/?daily=...`** への meta refresh があること  
+- 共有ページ（存在すれば）のOGタグ・Twitterカード・画像サイズ・meta refreshを検証
 （手動実行で当日の共有ページ未生成の場合は 404 を許容）
 - `?daily=1`（当日JST指定）でも **同じ共有URL** がコピーされることを検証します。
 - 共通環境:
