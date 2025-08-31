@@ -30,6 +30,38 @@ jobs:
 
       - name: Run Lighthouse CI (with budgets & asserts)
         run: |
+          set -o pipefail
           lhci autorun \
             --config=tools/lighthouse/lighthouserc.ci.json \
-            --collect.settings.budgetsPath=tools/lighthouse/budgets.json
+            --collect.settings.budgetsPath=tools/lighthouse/budgets.json | tee lhci.out
+
+      - name: Extract & publish Lighthouse report URL
+        if: always()
+        run: |
+          url=$(grep -Eo 'https?://storage.googleapis.com[^ ]+\.report\.html' lhci.out | tail -n1 || true)
+          if [ -n "$url" ]; then
+            echo "::notice title=Lighthouse report::$url"
+            {
+              echo "### Lighthouse report"
+              echo ""
+              echo "$url"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "REPORT_URL=$url" >> $GITHUB_ENV
+          else
+            echo "No report URL found in lhci output."
+          fi
+
+      - name: Download HTML report
+        if: always() && env.REPORT_URL
+        run: |
+          mkdir -p lhci-report
+          curl -fsSL "$REPORT_URL" -o lhci-report/report.html || true
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lhci-report/report.html
+          if-no-files-found: ignore
+          retention-days: 7
