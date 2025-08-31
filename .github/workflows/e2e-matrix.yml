@@ -1,7 +1,10 @@
-name: E2E (matrix, manual)
+name: E2E (matrix)
 
 on:
   workflow_dispatch: {}
+  schedule:
+    # UTC 19:40 = JST 04:40（Lighthouse 03:10の後・Pages混雑も回避）
+    - cron: "40 19 * * *"
 
 concurrency:
   group: e2e-matrix-${{ github.ref }}
@@ -14,6 +17,7 @@ jobs:
   e2e:
     name: ${{ matrix.suite }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -64,3 +68,4 @@ jobs:
             e2e/*.log
             e2e/screenshots/**
           if-no-files-found: ignore
+          retention-days: 7

@@ -83,10 +83,22 @@ clojure -M:test
   - `E2E_BASE_URL=https://nantes-rfli.github.io/vgm-quiz/app/?test=1`
 
 ### 使い方
-1. Actions → **E2E (matrix, manual)** → **Run workflow**。
+1. Actions → **E2E (matrix)** → **Run workflow**。
 2. 3 本のジョブが並列に走る（smoke/a11y/footer）。
 3. 失敗したスイートのアーティファクト（`e2e/*.log` / `e2e/screenshots`）をダウンロードして確認。
 
 ### 既存の夜間 E2E との関係
 - 当面は **併存**（既存は夜間/手動、matrix は手動のみ）。
 - 安定確認後に、`e2e-matrix.yml` に `schedule` を追加し、旧ワークフローの夜間実行を停止（`on.schedule`を外す/ファイル削除）するとよい。
+
+### Nightly スケジュール（導入済み）
+- 実行時刻: **JST 04:40**（= UTC 19:40）  
+  - `daily.json`（JST 00:00）と **Lighthouse (03:10 JST)** の後に走るため、衝突や帯域競合を回避。
+- 失敗時の確認手順:
+  1. Actions → **E2E (matrix)** の当日実行を開く
+  2. 赤いスイートだけを見る（smoke / a11y / footer）
+  3. 右上 “Artifacts” から `e2e-<suite>-artifacts` を取得（ログ/スクショ）
+  4. `docs/troubleshooting.md` の該当節へ
+
+### Artifact 保持
+- E2E のログ/スクショは **7日間** 保持（`upload-artifact@v4` の `retention-days: 7`）。
