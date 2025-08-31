@@ -18,3 +18,33 @@ Fix: use an alternative ID; use the fallback “別ドメイン” button or “
 ## Same-seed but different order?
 
 Verify you are checking after Start, and that `window.__rng` is `"function"`; use `?qp=1` and compare `window.__questionIds`.
+
+---
+
+## PR stuck at “Expected — waiting for status to be reported”
+
+**Likely causes & fixes**
+
+- **PR created with `GITHUB_TOKEN`** (author shows `github-actions[bot]`)  
+  → Use a Fine‑grained PAT and set `token: ${{ secrets.DAILY_PR_PAT }}` in `daily.yml`.  
+  Verify:
+  ```bash
+  gh pr view <PR#> -R nantes-rfli/vgm-quiz --json author | jq -r '.author.login'
+  ```
+
+- **Required checks mismatch** (registered the UI string like “CI Fast / build (pull_request)” instead of the **job name**)  
+  → In Rulesets, require **`pages-pr-build`** and **`ci-fast-pr-build`** (job names).
+
+- **Workflows missing on the PR branch**  
+  → Click **Update branch** or push an empty commit to refresh checks:
+  ```bash
+  git commit --allow-empty -m "chore: refresh checks"
+  git push
+  ```
+
+- **Two “Pages / build” entries** on PRs  
+  → Ensure `pages.yml` does **not** have `pull_request:` (deploy runs only on `push: main`). PR uses the shim `pages-pr-build.yml`.
+
+- **PR CI skipped by path filters**  
+  → Ensure `ci-fast-pr.yml` has `paths: ['**']`.
+

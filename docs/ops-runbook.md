@@ -61,3 +61,40 @@ This document captures day‑to‑day operations for **vgm-quiz**.
 - `window.__rng`/`__SEED__` – seeded RNG function & seed.
 - `window.__questionIds` / `__questionDebug` – available under `?test=1`.
 - `window.versionDebug.stats()/clear()` – inspect/clear version TTL cache.
+
+---
+
+## PR checks & branch protection (definitive rules)
+
+- **Required status checks are evaluated against *job names***, not the UI display string.
+  - Register these two **job names** in Rulesets → *Status checks that are required*:
+    - `pages-pr-build`
+    - `ci-fast-pr-build`
+- `pages.yml` (deploy) **must not** run on PRs. Keep it scoped to `push: main` only.
+- `ci-fast.yml` runs on `push: main`; `ci-fast-pr.yml` runs on `pull_request`.
+
+### 5‑minute verification (after any CI change or PAT rotation)
+
+**GUI**
+1. Actions → **daily.json generator (JST)** → *Run workflow* (branch: `main`).
+2. A PR from `bot/daily` opens. Confirm **Author = your account** (PAT owner), not `github-actions[bot]`.
+3. In **Checks**, ensure only:
+   - **Pages / pages-pr-build**
+   - **CI Fast / ci-fast-pr-build**
+   appear and are green → PR auto‑merges → Pages deploy runs.
+
+**CLI**
+```bash
+gh pr list -R nantes-rfli/vgm-quiz --search "head:bot/daily" -L 1 --json number,author,url
+gh pr checks <PR#> -R nantes-rfli/vgm-quiz
+```
+
+### Daily PR author (PAT)
+
+- `daily.yml` must create PRs with: `token: ${{ secrets.DAILY_PR_PAT }}` (Fine‑grained; repo‑scoped; **Contents: RW**, **Pull requests: RW**).
+- Verify author:
+```bash
+gh pr view <PR#> -R nantes-rfli/vgm-quiz --json author | jq -r '.author.login'
+# => should be your username (not github-actions[bot])
+```
+
