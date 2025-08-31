@@ -14,6 +14,35 @@
         "composer": "光田康典"
       },
       "difficulty": 4
+    },
+    "2025-09-01": {
+      "title": "メインテーマ",
+      "game": "ゼルダの伝説",
+      "composer": "近藤浩治",
+      "platform": null,
+      "year": 1986,
+      "media": null,
+      "source": "dataset",
+      "norm": {
+        "title": "メインテマ",
+        "game": "ゼルダの伝説",
+        "composer": "近藤浩治"
+      },
+      "difficulty": 4,
+      "choices": {
+        "composer": [
+          "Toby Fox",
+          "近藤浩治",
+          "すぎやまこういち",
+          "光田康典"
+        ],
+        "game": [
+          "ゼルダの伝説",
+          "クロノ・トリガー",
+          "ドラゴンクエスト",
+          "UNDERTALE"
+        ]
+      }
     }
   }
 }
