@@ -5,6 +5,7 @@ const path = require('path');
 const repoRoot = process.cwd();
 const dailyDir = path.join(repoRoot, 'public', 'daily');
 const appDailyJson = path.join(repoRoot, 'public', 'app', 'daily.json');
+const feedXml = path.join(dailyDir, 'feed.xml');
 
 if (!fs.existsSync(dailyDir)) {
   console.error('Missing directory: public/daily');
@@ -38,6 +39,11 @@ try {
 }
 if (missingType > 0) {
   console.warn(`[smoke-daily] WARN: ${missingType} entries in daily.json have no 'type'. (Will default to 'title→game')`);
+}
+
+// Feed presence
+if (!fs.existsSync(feedXml)) {
+  console.warn(`[smoke-daily] WARN: ${feedXml} not found (RSS feed generation is recommended).`);
 }
 
 console.log('Daily pages OK. Count=', days.length, 'Example=', days.slice(-3).join(', '));

@@ -87,17 +87,21 @@ jobs:
           node scripts/generate_daily_index.js
           ls -lah public/daily || true
 
+      - name: Generate Daily RSS feed
+        run: node scripts/generate_daily_feed.js
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
           branch: bot/daily
-          commit-message: "chore(daily): update daily.json (JST), OGP, and share page"
-          title: "chore(daily): update daily.json (JST), OGP, and share page"
+          commit-message: "chore(daily): update daily.json (JST), OGP, share page, and feed"
+          title: "chore(daily): update daily.json (JST), OGP, share page, and feed"
           add-paths: |
             public/app/daily.json
             public/ogp/*.png
             public/daily/*.html
+            public/daily/feed.xml
           delete-branch: true
           signoff: true
           labels: "automation,daily"
