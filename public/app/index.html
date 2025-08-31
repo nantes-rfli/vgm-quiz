@@ -10,6 +10,18 @@
 <link rel="manifest" href="manifest.webmanifest">
 <!-- ESM の事前解決は modulepreload を使う。credentials 警告回避に crossorigin を明示 -->
 <link rel="modulepreload" href="app.js" crossorigin="anonymous">
+  <script>
+    // Conditionally load test API when ?mock=1
+    (function() {
+      var p = new URLSearchParams(location.search);
+      if (p.get("mock") === "1") {
+        var s = document.createElement("script");
+        s.src = "./mock_api.js";
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+    })();
+  </script>
 <!-- Open Graph (optional but useful for previews) -->
 <meta property="og:title" content="VGM Quiz">
 <meta property="og:description" content="Play a fast, browser-based Video Game Music quiz with multiple modes and composers/titles matching.">
