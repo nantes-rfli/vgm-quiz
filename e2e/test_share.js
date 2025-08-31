@@ -14,15 +14,27 @@ function jstISO() {
   const appUrl = `${APP_URL}?daily=${date}&test=1&autostart=0`;
   const publicBase = APP_URL.replace(/\/app\/?.*$/, '');
   const shareUrl = `${publicBase}/daily/${date}.html`;
+  const sharePatchUrl = `${publicBase}/app/share_patch.js`;
 
   const browser = await chromium.launch();
   const context = await browser.newContext();
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const page = await context.newPage();
 
-  // 1) デイリーモードでは share_patch.js により copyToClipboard が
-  //    /daily/YYYY-MM-DD.html を書き込む。UIを介さず直接呼び出して検証する。
+  // 1) デイリーモード（明示日付）でコピーされるURLが /daily/YYYY-MM-DD.html
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
+  // SWやキャッシュの影響で share_patch が未適用の場合、待って→ダメなら動的注入
+  const ready = await page.waitForFunction(
+    () => typeof window.copyToClipboard === 'function' || !!window.__sharePatchReady,
+    { timeout: 3000 }
+  ).catch(() => null);
+  if (!ready) {
+    await page.addScriptTag({ url: `${sharePatchUrl}?e2e=${Date.now()}` });
+    await page.waitForFunction(
+      () => typeof window.copyToClipboard === 'function' || !!window.__sharePatchReady,
+      { timeout: 5000 }
+    );
+  }
   await page.evaluate(async () => {
     if (typeof window.copyToClipboard === 'function') {
       await window.copyToClipboard('dummy');
@@ -54,6 +66,17 @@ function jstISO() {
   // 3) ?daily=1 でも同様に当日(JST)のURLがコピーされる
   const appUrlToday = `${APP_URL}?daily=1&test=1&autostart=0`;
   await page.goto(appUrlToday, { waitUntil: 'domcontentloaded' });
+  const ready2 = await page.waitForFunction(
+    () => typeof window.copyToClipboard === 'function' || !!window.__sharePatchReady,
+    { timeout: 3000 }
+  ).catch(() => null);
+  if (!ready2) {
+    await page.addScriptTag({ url: `${sharePatchUrl}?e2e=${Date.now()}` });
+    await page.waitForFunction(
+      () => typeof window.copyToClipboard === 'function' || !!window.__sharePatchReady,
+      { timeout: 5000 }
+    );
+  }
   await page.evaluate(async () => {
     if (typeof window.copyToClipboard === 'function') {
       await window.copyToClipboard('dummy');
