@@ -88,6 +88,9 @@ jobs:
 
       # Contract checks have moved to CI Fast; this workflow handles deploy only.
 
+      - name: Ensure .nojekyll
+        run: |
+          touch public/.nojekyll
       - name: Upload artifact (entire public)
         uses: actions/upload-pages-artifact@v3
         with:
