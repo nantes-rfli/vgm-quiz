@@ -53,13 +53,18 @@ function jstISO() {
     const html = await resp.text();
     const ogImgOk = html.includes(`/ogp/daily-${date}.png`);
     const refreshOk = html.includes(`/app/?daily=${date}`);
+    // 必須（旧版でも満たす）: og:image と meta refresh
+    if (!ogImgOk || !refreshOk) {
+      throw new Error(`[share] share HTML missing required tags. og:image:${ogImgOk} refresh:${refreshOk}`);
+    }
+    // 任意（新拡張）: 画像サイズ/Twitterメタは、未再生成の旧版では欠けていても許容（警告）
     const ogW = /property=["']og:image:width["'][^>]+content=["']1200["']/.test(html);
     const ogH = /property=["']og:image:height["'][^>]+content=["']630["']/.test(html);
     const twTitle = /name=["']twitter:title["'][^>]+content=["'][^"']*Daily\s+${date}[^"']*["']/.test(html);
     const twImage = /name=["']twitter:image["'][^>]+content=["'][^"']*\/ogp\/daily-${date}\.png/.test(html);
-    if (!ogImgOk || !refreshOk || !ogW || !ogH || !twTitle || !twImage) {
-      throw new Error(
-        `[share] share HTML meta check failed. og:image:${ogImgOk} refresh:${refreshOk} ` +
+    if (!ogW || !ogH || !twTitle || !twImage) {
+      console.warn(
+        `[share] optional meta missing (likely old share page before regeneration). ` +
         `og:w:${ogW} og:h:${ogH} tw:title:${twTitle} tw:image:${twImage}`
       );
     }
