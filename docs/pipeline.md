@@ -1,48 +1,58 @@
 # Data Pipeline Overview
 
-This document describes the **data contracts** and artifacts produced for the app.
-It focuses on *what the app expects* rather than the internal implementation details.
+This document covers dataset generation and daily scheduling.
 
-## Build artifacts (consumed by the app)
+## Build
 
-- `public/build/dataset.json` — quiz tracks and metadata
-- `public/build/aliases.json` — normalization aliases (merged with `public/app/aliases_local.json` if present)
-- `public/build/version.json` — deployment metadata used by the footer & SW
+Run:
 
-### `version.json` (contract)
+```bash
+clojure -T:build publish
+```
+
+Generates `public/build/dataset.json` and related artifacts; tests assume these are present.
+
+## Daily generation
+
+`scripts/generate_daily.js` (JST-based, FNV1a; avoids duplicates in last 30 days) writes:
 
 ```json
 {
-  "dataset": "v1",
-  "commit": "abcdef1",
-  "content_hash": "sha256:...",
-  "generated_at": "2025-08-30T06:39:00Z"
+  "YYYY-MM-DD": { "title": "...", "type": "title→game | game→composer | title→composer" },
+  "...": "..."
 }
 ```
 
-**App behavior**
+`scripts/generate_daily_index.js` outputs:
 
-- Footer shows `Dataset: v1 • commit: abcdef1 • updated: YYYY-MM-DD HH:mm` (local time)
-- The app uses 8s timeout, in-flight sharing, and 60s TTL when fetching `version.json`
-- The app exposes `window.loadVersionPublic()` (TTL/in-flight適用) and `window.loadVersionForce()` (強制)
+- `public/daily/index.html` (descending list)
+- `public/daily/latest.html` (redirect to `/app/?daily=YYYY-MM-DD`)
 
-### Aliases
+`scripts/generate_daily_feed.js` outputs:
 
-- App loads `../build/aliases.json`
-- If present, `./aliases_local.json` is merged **on top** (local overrides → easy small PRs)
+- `public/daily/feed.xml` (RSS 2.0, JST midnight as pubDate, newest 60 entries)
 
-### Mock dataset
+`daily.yml` (00:00 JST) creates a PR including:
 
-- For development and CI, `?mock=1` routes the app to `public/app/mock/dataset.json`
-- Media previews are stubbed under `?test=1` / `?lhci=1` / `?nomedia=1`
+- `public/app/daily.json`
+- `public/daily/*.html`
+- `public/daily/feed.xml`
 
-## Deterministic ordering (RNG & pipeline)
+Pages deploy (`pages.yml`) also regenerates index/feed as a safety net.
 
-- `?seed=...` → deterministic RNG (`window.__rng` is exposed under `?test=1`)
-- `?qp=1` → year-bucket pipeline for better spread
+## Sharing / OGP
 
-## Daily mapping
+`scripts/generate_share_page.js` and `scripts/generate_ogp.js` produce per-day static share HTML and OGP images.
+Subtitle selection:
 
-- `public/app/daily.json` maps dates to a single track (by `id` or `title`)
-- `?daily=1` uses **today (JST)**; `?daily=YYYY-MM-DD` uses a fixed date
+1. Prefer `public/app/daily.json[date].type` → `"Title → Game" / "Game → Composer" / "Title → Composer"`
+2. Fallback to env `OGP_SUBTITLE` (for backward compatibility)
 
+## Service Worker
+
+Version handshake via `version.json`. SW polls roughly every 60 seconds for updates.
+
+- `public/app/sw_update.js` listens to registration (`updatefound`/`waiting`) and shows an accessible banner.
+- Clicking “更新” sends `{type: 'SKIP_WAITING'}` to SW; on `controllerchange` the page reloads.
+- SW handles `message: SKIP_WAITING` and calls `clients.claim()` on `activate`.
+- Legacy in-app banner in `app.js` is **deprecated** and no-op.
