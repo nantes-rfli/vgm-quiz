@@ -27,8 +27,10 @@
   <script>
     function getQP(name, d='') { try { return new URLSearchParams(location.search).get(name) || d; } catch { return d; } }
     const date = getQP('date', '');
+    const subtitle = getQP('subtitle', 'Daily Question');
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('ogp-date').textContent = date;
+      document.getElementById('ogp-subtitle').textContent = subtitle;
     });
   </script>
   </head>
@@ -36,7 +38,7 @@
   <div class="ogp">
     <div class="card">
       <div class="title">VGM QUIZ</div>
-      <div class="subtitle">Daily Question</div>
+      <div class="subtitle" id="ogp-subtitle">Daily Question</div>
       <div class="date" id="ogp-date">YYYY-MM-DD</div>
     </div>
   </div>

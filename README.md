@@ -17,7 +17,7 @@
 </p>
 
 ### Daily OGP
-- 自動生成された OGP 画像は `public/ogp/daily-YYYY-MM-DD.png`
+- 自動生成された OGP 画像は `public/ogp/daily-YYYY-MM-DD.png`（**出題タイプ**：title→game / game→composer / title→composer を表示。判定できない場合は “Daily Question”）
 - 画像は GitHub Pages からも配信可能（例: `/vgm-quiz/ogp/daily-YYYY-MM-DD.png`）
 - 今は日付のみのシンプル版。後続で楽曲名・出題タイプなどを載せる拡張が可能です。
 
