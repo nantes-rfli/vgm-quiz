@@ -61,16 +61,32 @@ jobs:
           # "年" を含む誤命名ファイルを削除（過去の誤作成ぶんも除去）
           find public/ogp -maxdepth 1 -type f -name 'daily-*年*' -delete || true
 
+      - name: Compute PUBLIC_BASE for GitHub Pages
+        run: |
+          set -eux
+          owner="${GITHUB_REPOSITORY%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
+          echo "PUBLIC_BASE=https://${owner}.github.io/${repo}" >> $GITHUB_ENV
+
+      - name: Generate Daily share page
+        env:
+          DAILY_DATE: ""
+          PUBLIC_BASE: ${{ env.PUBLIC_BASE }}
+        run: |
+          node scripts/generate_share_page.js
+          ls -lah public/daily || true
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
           branch: bot/daily
-          commit-message: "chore(daily): update daily.json (JST) and OGP"
-          title: "chore(daily): update daily.json (JST) and OGP"
+          commit-message: "chore(daily): update daily.json (JST), OGP, and share page"
+          title: "chore(daily): update daily.json (JST), OGP, and share page"
           add-paths: |
             public/app/daily.json
             public/ogp/*.png
+            public/daily/*.html
           delete-branch: true
           signoff: true
           labels: "automation,daily"

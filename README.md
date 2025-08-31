@@ -21,6 +21,10 @@
 - 画像は GitHub Pages からも配信可能（例: `/vgm-quiz/ogp/daily-YYYY-MM-DD.png`）
 - 今は日付のみのシンプル版。後続で楽曲名・出題タイプなどを載せる拡張が可能です。
 
+### Share page
+- 毎日の共有用静的ページ: `public/daily/YYYY-MM-DD.html`
+- そのURLをSNSに貼ると、上記 OGP 画像のプレビューとともに **`/app/?daily=YYYY-MM-DD`** へ自動リダイレクトします。
+
   A small quiz app for video game music. Runs on GitHub Pages.
 
 - **Live:** https://nantes-rfli.github.io/vgm-quiz/app/
