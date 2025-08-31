@@ -8,6 +8,7 @@ on:
 
 jobs:
   generate-daily:
+    name: daily-generate
     runs-on: ubuntu-latest
     permissions:
       contents: write

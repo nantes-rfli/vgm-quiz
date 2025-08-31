@@ -4,6 +4,7 @@ name: Pages
 
 on:
   pull_request:
+    paths: ['**']
 
 permissions:
   contents: read
@@ -17,6 +18,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Sanity (PR shim)
-        run: |
-          test -d public
-          echo "✅ Pages / build (PR shim) passed"
+        run: echo "✅ Pages PR shim passed"

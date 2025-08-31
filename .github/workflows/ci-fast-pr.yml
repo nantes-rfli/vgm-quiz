@@ -3,27 +3,44 @@ name: CI Fast
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - '**'   # 何を変えても必ず実行（workflow変更/daily.jsonだけでもOK）
+    paths: ['**']   # 何を変えても必ず走る
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ci-fast-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  build:  # ← ラベルが「CI Fast / build (pull_request)」になる
-    name: ci-fast-pr-build
+  build:
+    name: ci-fast-pr-build  # Required check はこのジョブ名で突き合わせ
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
+      - name: Run unit tests (Clojure)
+        run: clojure -M:test
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Fast checks
-        run: |
-          node -v
-          echo "CI Fast PR ok"
+
+      - name: Install deps
+        run: npm ci || npm install --no-audit --no-fund
+
+      - name: Smoke HTML
+        run: npm run smoke
+

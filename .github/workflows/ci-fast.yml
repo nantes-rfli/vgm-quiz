@@ -1,12 +1,12 @@
 name: CI Fast
 
 on:
-  pull_request:
   push:
     branches: [ "main" ]
 
 jobs:
   build:
+    name: ci-fast-main-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
