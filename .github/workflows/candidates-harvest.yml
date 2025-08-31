@@ -33,6 +33,10 @@ jobs:
       - name: Harvest from dataset
         run: node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
 
+      - name: Summary details
+        run: |
+          node -e "const fs=require('fs');const f='public/app/daily_candidates.jsonl';const lines=fs.readFileSync(f,'utf-8').trim().split(/\n+/);const N=lines.length;const pick=(i)=>{try{return JSON.parse(lines[i])}catch(e){return null}};const s=[];s.push('### candidates (harvest) details');s.push(`- count: **${N}**`);for(let i=0;i<Math.min(3,N);i++){const o=pick(i);if(o){s.push(`- sample${i+1}: ${o.title} / ${o.game} / ${o.composer}`)}};fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');"
+
       - name: Upload candidates artifact
         uses: actions/upload-artifact@v4
         with:

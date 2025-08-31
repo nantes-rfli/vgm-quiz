@@ -59,6 +59,10 @@ jobs:
           name: daily-auto-json
           path: public/app/daily_auto.json
 
+      - name: Summary details
+        run: |
+          node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('public/app/daily_auto.json','utf-8'));const entries=Object.entries(j.by_date||{});const last=entries[entries.length-1];const s=[];s.push('### daily (auto) details');if(last){const [d,v]=last;s.push(`- date: **${d}**`);s.push(`- pick: ${v.title} / ${v.game} / ${v.composer} (diff=${v.difficulty||'n/a'})`);}fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');"
+
       - name: Create PR (optional)
         if: ${{ github.event.inputs.apply_to_main == 'true' }}
         uses: peter-evans/create-pull-request@v6
