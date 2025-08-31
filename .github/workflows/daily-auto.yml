@@ -59,7 +59,12 @@ jobs:
           DATE="${{ github.event.inputs.date }}"
           if [ -z "$DATE" ]; then DATE="$(TZ=Asia/Tokyo date +%F)"; fi
           WITH_CHOICES="${{ github.event.inputs.with_choices }}"
-          node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date "$DATE" --out public/app/daily_auto.json ${WITH_CHOICES=='true' && '--with-choices' || ''}
+          EXTRA=""
+          if [ "$WITH_CHOICES" = "true" ]; then
+            EXTRA="--with-choices"
+          fi
+          echo "with_choices=$WITH_CHOICES (extra flag: $EXTRA)"
+          node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date "$DATE" --out public/app/daily_auto.json $EXTRA
 
       - name: Upload artifact (daily_auto.json)
         uses: actions/upload-artifact@v4
@@ -73,6 +78,7 @@ jobs:
 
       - name: Create PR (optional)
         if: ${{ github.event.inputs.apply_to_main == 'true' }}
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
@@ -90,6 +96,15 @@ jobs:
           branch: chore/daily-auto
           delete-branch: true
           author: GitHub Actions <actions@github.com>
+
+      - name: Enable auto-merge (squash)
+        if: ${{ github.event.inputs.apply_to_main == 'true' && steps.cpr.outputs.pull-request-number }}
+        uses: peter-evans/enable-pull-request-automerge@v3
+        continue-on-error: true
+        with:
+          token: ${{ secrets.DAILY_PR_PAT }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
 
       - name: Summary
         run: |
