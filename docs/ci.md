@@ -77,14 +77,18 @@ clojure -M:test
 ### ワークフロー
 - ファイル: `.github/workflows/e2e-matrix.yml`
 - トリガ: **manual (`workflow_dispatch`)** 導入 → 問題なければ夜間スケジュールへ移行可能。
-- マトリクス: `smoke`（`e2e/test.js`）、`a11y`（`e2e/test_free_aria.js`）、`footer`（`e2e/test_footer_version.js`）
+- マトリクス: `smoke`（`e2e/test.js`）、`a11y`（`e2e/test_free_aria.js`）、`footer`（`e2e/test_footer_version.js`）、`share`（`e2e/test_share.js`）
+`share` は:
+- アプリの共有ボタンでコピーされるURLが **`/daily/YYYY-MM-DD.html`** であること
+- 共有ページ（存在すれば）のHTMLに **OGP画像** と **`/app/?daily=...`** への meta refresh があること  
+（手動実行で当日の共有ページ未生成の場合は 404 を許容）
 - 共通環境:
   - `APP_URL=https://nantes-rfli.github.io/vgm-quiz/app/`
   - `E2E_BASE_URL=https://nantes-rfli.github.io/vgm-quiz/app/?test=1`
 
 ### 使い方
 1. Actions → **E2E (matrix)** → **Run workflow**。
-2. 3 本のジョブが並列に走る（smoke/a11y/footer）。
+2. 4 本のジョブが並列に走る（smoke/a11y/footer/share）。
 3. 失敗したスイートのアーティファクト（`e2e/*.log` / `e2e/screenshots`）をダウンロードして確認。
 
 ### 既存の夜間 E2E との関係
@@ -96,7 +100,7 @@ clojure -M:test
   - `daily.json`（JST 00:00）と **Lighthouse (03:10 JST)** の後に走るため、衝突や帯域競合を回避。
 - 失敗時の確認手順:
   1. Actions → **E2E (matrix)** の当日実行を開く
-  2. 赤いスイートだけを見る（smoke / a11y / footer）
+  2. 赤いスイートだけを見る（smoke / a11y / footer / share）
   3. 右上 “Artifacts” から `e2e-<suite>-artifacts` を取得（ログ/スクショ）
   4. `docs/troubleshooting.md` の該当節へ
 
