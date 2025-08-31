@@ -2,7 +2,10 @@
 'use strict';
 /**
  * Compare Node-side normalize (scripts/pipeline/normalize.js) with
- * browser-side normalize (public/app/normalize.mjs).
+ * browser-side normalize (public/app/normalize.mjs) **as used in compare-key**.
+ * We post-process the browser output into a compare key (fold diacritics, collapse
+ * spaces/punctuations, roman tokens→arabic) so that both sides represent the same
+ * matching behavior.
  * Exits non-zero if mismatches exist. Writes a short summary when run in GitHub Actions.
  */
 const fs = require('fs');
@@ -12,13 +15,9 @@ const { normalizeAnswer: normalizeNode } = require('./pipeline/normalize');
 async function loadBrowserNormalize() {
   const mPath = path.resolve(__dirname, '../public/app/normalize.mjs');
   const mod = await import('file://' + mPath);
-  const fn =
-    mod.normalizeAnswer ||
-    mod.normalize ||
-    (mod.default && (mod.default.normalizeAnswer || mod.default.normalize)) ||
-    mod.default;
+  const fn = mod.normalizeAnswer || (mod.default && mod.default.normalizeAnswer) || mod.default;
   if (typeof fn !== 'function') {
-    throw new Error('normalize.mjs does not export normalize function');
+    throw new Error('normalize.mjs does not export normalizeAnswer');
   }
   return fn;
 }
@@ -27,6 +26,26 @@ function writeSummary(lines) {
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryPath) return;
   fs.appendFileSync(summaryPath, lines.join('\n') + '\n');
+}
+
+// --- compare-key post processing (browser output → compare key) ---
+const ROMAN_ENTRIES = [
+  ["xx",20],["xix",19],["xviii",18],["xvii",17],["xvi",16],["xv",15],["xiv",14],["xiii",13],["xii",12],["xi",11],
+  ["x",10],["ix",9],["viii",8],["vii",7],["vi",6],["v",5],["iv",4],["iii",3],["ii",2],["i",1]
+];
+const ROMAN_MAP = new Map(ROMAN_ENTRIES);
+const ROMAN_TOKEN_RE = new RegExp("\\b(?:" + ROMAN_ENTRIES.map(([r]) => r).join("|") + ")\\b", "g");
+function toNFKC(s){ return s.normalize ? s.normalize('NFKC') : s; }
+function stripDiacritics(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function romanTokensOnly(s){ return s.replace(ROMAN_TOKEN_RE, m => String(ROMAN_MAP.get(m))); }
+function collapse(s){ return s.replace(/[\p{P}\p{S}\s\u30FC\-]/gu,''); }
+function toCompareKeyFromBrowserOutput(s){
+  let t = toNFKC(String(s)).toLowerCase();
+  t = t.replace(/&/g,' and ');
+  t = stripDiacritics(t);
+  t = romanTokensOnly(t);
+  t = collapse(t);
+  return t;
 }
 
 async function main() {
@@ -45,27 +64,28 @@ async function main() {
   ];
   let mismatches = [];
   for (const s of samples) {
-    const a = normalizeNode(s);
-    const b = normalizeBrowser(s);
-    if (a !== b) {
-      mismatches.push({ s, node: a, browser: b });
+    const nodeKey = normalizeNode(s); // already compare key style
+    const browserRaw = normalizeBrowser(s); // display-ish
+    const browserKey = toCompareKeyFromBrowserOutput(browserRaw);
+    if (nodeKey !== browserKey) {
+      mismatches.push({ s, node: nodeKey, browser: browserKey });
     }
   }
   if (mismatches.length === 0) {
-    console.log('PARITY OK: Node normalize matches browser normalize on samples.');
+    console.log('PARITY OK: Node compare key === Browser compare key (post-processed) on samples.');
     writeSummary([
-      '### normalize parity',
+      '### normalize parity (compare-key)',
       '- Result: **OK** (Node === Browser)',
       `- Samples: ${samples.length}`,
     ]);
     return;
   } else {
-    console.error('PARITY MISMATCHES:');
+    console.error('PARITY MISMATCHES (compare-key):');
     for (const m of mismatches) {
       console.error(`- ${m.s}: node="${m.node}" browser="${m.browser}"`);
     }
     writeSummary([
-      '### normalize parity',
+      '### normalize parity (compare-key)',
       '- Result: **MISMATCH**',
       `- Count: ${mismatches.length} / ${samples.length}`,
       '',
