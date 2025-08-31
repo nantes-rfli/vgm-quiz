@@ -37,9 +37,33 @@ function jstISO(d = new Date()) {
   <h1>VGM Quiz — Daily index</h1>
   <p><a href="./feed.xml">RSSフィード</a>（購読できます）</p>
   <div class="meta">today: ${today} / count: ${files.length}</div>
-  <ul>
-    ${files.map(d => `<li><a href="./${d}.html">${d}</a></li>`).join('\n    ')}
+  <label>検索: <input id="q" placeholder="YYYY-MM-DD など"></label>
+  <div id="nav"></div>
+  <ul id="list">
+    ${files.map(d => `<li data-date="${d}"><a href="./${d}.html">${d}</a></li>`).join('\n    ')}
   </ul>
+  <script>
+    (function(){
+      var q = document.getElementById("q");
+      var list = document.getElementById("list");
+      var items = [].slice.call(list.querySelectorAll("li"));
+      function apply(){
+        var v = (q.value||"").trim();
+        items.forEach(function(li){
+          var d = li.getAttribute("data-date");
+          li.style.display = (!v || d.indexOf(v) !== -1) ? "" : "none";
+        });
+      }
+      q.addEventListener("input", apply);
+      apply();
+      // prev/next (relative to latest)
+      var dates = items.map(function(li){return li.getAttribute("data-date");});
+      var latest = dates[0];
+      var prev = dates[1] || null;
+      var nav = document.getElementById("nav");
+      if (prev) nav.innerHTML = '<p><a href="./'+prev+'.html">← 前日: '+prev+'</a> ・ <a href="./latest.html">本日</a></p>';
+    })();
+  </script>
 </body></html>`;
 
   const mkLatest = (d) => `<!doctype html>

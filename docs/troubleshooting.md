@@ -20,7 +20,7 @@
 
 ## SW update banner doesn’t show up
 
-- Ensure `public/app/sw_update.js` is included **after** SW registration script in `index.html`
+- The app now attaches three ways: `navigator.serviceWorker.ready`, polling `getRegistration()` for up to 30s, **and** a `window` event dispatched at registration. If any of these are missing, update `app.js` and `sw_update.js` per latest main.
 - Open DevTools → Application → Service Workers; confirm **Waiting** state appears on update
 - As a quick test, do an empty commit to trigger deploy (see Ops Runbook), keep the old tab open, and watch for the banner
 
