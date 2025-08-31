@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 function jstDateString(d = new Date()) {
   const fmt = new Intl.DateTimeFormat('en-CA', {
@@ -77,6 +78,13 @@ function jstDateString(d = new Date()) {
   const appUrl = `${base}/app/?daily=${date}`;
   const ogpUrl = `${base}/ogp/daily-${date}.png`;
   const pageUrl = `${base}/daily/${date}.html`;
+  // daily.json の内容ハッシュ（変更があれば share HTML も確実に変わる）
+  let dailyHash = '';
+  try {
+    const buf = fs.readFileSync(path.join(repoRoot, 'public', 'app', 'daily.json'));
+    dailyHash = crypto.createHash('sha1').update(buf).digest('hex').slice(0, 12);
+  } catch (_) { /* noop */ }
+  const ogpUrlWithV = dailyHash ? `${ogpUrl}?v=${dailyHash}` : ogpUrl;
   // タイプ推定（失敗時は空→後で置換）
   let typeLabel = '';
   try {
@@ -99,10 +107,11 @@ function jstDateString(d = new Date()) {
   <meta property="og:site_name" content="VGM Quiz">
   <meta property="og:title" content="${ogTitle}">
   <meta property="og:description" content="${ogDesc}">
-  <meta property="og:image" content="${ogpUrl}">
+  <meta property="og:image" content="${ogpUrlWithV}">
   <meta property="og:url" content="${pageUrl}">
   <meta name="twitter:card" content="summary_large_image">
   <meta http-equiv="refresh" content="0; url=${appUrl}">
+  <!-- daily-hash:${dailyHash} -->
 </head>
 <body>
   <p>Redirecting to <a href="${appUrl}">VGM Quiz — Daily ${date}</a> …</p>
