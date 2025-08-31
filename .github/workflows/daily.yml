@@ -54,6 +54,13 @@ jobs:
           node scripts/generate_ogp.js
           ls -lah public/ogp || true
 
+      - name: Cleanup legacy JP-named OGP files (once)
+        run: |
+          set -eux
+          mkdir -p public/ogp
+          # "年" を含む誤命名ファイルを削除（過去の誤作成ぶんも除去）
+          find public/ogp -maxdepth 1 -type f -name 'daily-*年*' -delete || true
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
