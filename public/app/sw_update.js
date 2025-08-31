@@ -107,8 +107,37 @@
     setInterval(() => reg.update().catch(() => {}), 60 * 1000);
   }
 
+  // Wait until a registration exists (retry up to 30s)
+  function waitForRegistration(timeoutMs = 30000, interval = 1000) {
+    return new Promise((resolve) => {
+      const deadline = Date.now() + timeoutMs;
+      const tick = () => {
+        navigator.serviceWorker.getRegistration().then((reg) => {
+          if (reg) return resolve(reg);
+          if (Date.now() < deadline) setTimeout(tick, interval);
+          else resolve(null);
+        }).catch(() => {
+          if (Date.now() < deadline) setTimeout(tick, interval);
+          else resolve(null);
+        });
+      };
+      tick();
+    });
+  }
+
+  let attachedReg = null;
+  function attach(reg) {
+    if (!reg || reg === attachedReg) return;
+    attachedReg = reg;
+    listenOnRegistration(reg);
+  }
+
   // Attach to any current registration
-  navigator.serviceWorker.getRegistration().then(listenOnRegistration).catch(() => {});
+  navigator.serviceWorker.getRegistration().then(attach).catch(() => {});
+  navigator.serviceWorker.ready.then(attach).catch(() => {});
+  waitForRegistration().then(attach);
+  window.addEventListener('sw-registered', (e) => attach(e.detail));
+
   // Also watch future registrations
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     // No-op here; reload is handled on button click path.

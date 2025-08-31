@@ -1283,6 +1283,7 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
       navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(v)}`).then(reg => {
         swRegistration = reg;
+        try { window.dispatchEvent(new CustomEvent('sw-registered', { detail: swRegistration })); } catch (_) {}
         if (swRegistration.waiting) {
           showUpdateBanner();
         }
