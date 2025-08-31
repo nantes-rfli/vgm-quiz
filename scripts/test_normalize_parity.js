@@ -15,9 +15,28 @@ const { normalizeAnswer: normalizeNode } = require('./pipeline/normalize');
 async function loadBrowserNormalize() {
   const mPath = path.resolve(__dirname, '../public/app/normalize.mjs');
   const mod = await import('file://' + mPath);
-  const fn = mod.normalizeAnswer || (mod.default && mod.default.normalizeAnswer) || mod.default;
+  // pick function by common names or heuristics
+  const candidates = [];
+  if (typeof mod.normalizeAnswer === 'function') candidates.push(mod.normalizeAnswer);
+  if (typeof mod.normalize === 'function') candidates.push(mod.normalize);
+  if (typeof mod.default === 'function') candidates.push(mod.default);
+  if (mod.default && typeof mod.default.normalizeAnswer === 'function') candidates.push(mod.default.normalizeAnswer);
+  if (mod.default && typeof mod.default.normalize === 'function') candidates.push(mod.default.normalize);
+  // last resort: search any function with "normalize" in key
+  for (const [k, v] of Object.entries(mod)) {
+    if (typeof v === 'function' && /normalize/i.test(k)) candidates.push(v);
+  }
+  if (mod.default && typeof mod.default === 'object') {
+    for (const [k, v] of Object.entries(mod.default)) {
+      if (typeof v === 'function' && /normalize/i.test(k)) candidates.push(v);
+    }
+  }
+  const fn = candidates[0];
   if (typeof fn !== 'function') {
-    throw new Error('normalize.mjs does not export normalizeAnswer');
+    const keys = Object.keys(mod).concat(mod.default && typeof mod.default === 'object' ? Object.keys(mod.default) : []);
+    const err = new Error('normalize.mjs does not export a normalize function');
+    err.exportedKeys = keys;
+    throw err;
   }
   return fn;
 }
@@ -49,7 +68,7 @@ function toCompareKeyFromBrowserOutput(s){
 }
 
 async function main() {
-  const normalizeBrowser = await loadBrowserNormalize();
+  const normalizeBrowser = await loadBrowserNormalize().catch(err => { console.error(err.message); if (err.exportedKeys) console.error('exported keys:', err.exportedKeys.join(', ')); throw err; });
   const samples = [
     'Megalovania',
     'Toby Fox',
@@ -74,7 +93,7 @@ async function main() {
   if (mismatches.length === 0) {
     console.log('PARITY OK: Node compare key === Browser compare key (post-processed) on samples.');
     writeSummary([
-      '### normalize parity (compare-key)',
+      '### normalize parity (compare-key) ✅',
       '- Result: **OK** (Node === Browser)',
       `- Samples: ${samples.length}`,
     ]);
@@ -85,7 +104,7 @@ async function main() {
       console.error(`- ${m.s}: node="${m.node}" browser="${m.browser}"`);
     }
     writeSummary([
-      '### normalize parity (compare-key)',
+      '### normalize parity (compare-key) ❌',
       '- Result: **MISMATCH**',
       `- Count: ${mismatches.length} / ${samples.length}`,
       '',
