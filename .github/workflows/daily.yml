@@ -40,15 +40,30 @@ jobs:
           TZ: Asia/Tokyo
         run: node scripts/generate_daily.js
 
+      - name: Prepare Playwright for OGP
+        run: |
+          set -eux
+          npm init -y
+          npm i -D playwright
+          npx playwright install --with-deps
+
+      - name: Generate OGP card (1200x630)
+        env:
+          DAILY_DATE: ""
+        run: |
+          node scripts/generate_ogp.js
+          ls -lah public/ogp || true
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
           branch: bot/daily
-          commit-message: "chore(daily): update daily.json"
-          title: "chore(daily): update daily.json"
+          commit-message: "chore(daily): update daily.json (JST) and OGP"
+          title: "chore(daily): update daily.json (JST) and OGP"
           add-paths: |
             public/app/daily.json
+            public/ogp/*.png
           delete-branch: true
           signoff: true
           labels: "automation,daily"
