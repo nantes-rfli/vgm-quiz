@@ -105,13 +105,20 @@ function jstDateString(d = new Date()) {
   <title>${ogTitle}</title>
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="${appUrl}">
+  <meta property="og:locale" content="ja_JP">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="VGM Quiz">
   <meta property="og:title" content="${ogTitle}">
   <meta property="og:description" content="${ogDesc}">
   <meta property="og:image" content="${ogpUrlWithV}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:url" content="${pageUrl}">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${ogTitle}">
+  <meta name="twitter:description" content="${ogDesc}">
+  <meta name="twitter:image" content="${ogpUrlWithV}">
+  <meta name="twitter:url" content="${pageUrl}">
   <meta http-equiv="refresh" content="0; url=${appUrl}">
   <!-- daily-hash:${dailyHash} -->
 </head>
