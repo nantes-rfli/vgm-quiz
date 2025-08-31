@@ -69,7 +69,7 @@ jobs:
 
       - name: Summary details
         run: |
-          node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('public/app/daily_auto.json','utf-8'));const entries=Object.entries(j.by_date||{});const last=entries[entries.length-1];const s=[];s.push('### daily (auto) details');if(last){const [d,v]=last;s.push(`- date: **${d}**`);s.push(`- pick: ${v.title} / ${v.game} / ${v.composer} (diff=${v.difficulty||'n/a'})`);if(v.choices){s.push(`- choices: composer[${v.choices.composer.join(', ')}], game[${v.choices.game.join(', ')}]`);}}fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');"
+          node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('public/app/daily_auto.json','utf-8'));const entries=Object.entries(j.by_date||{});const last=entries[entries.length-1];const s=[];s.push('### daily (auto) details');if(last){const [d,v]=last;s.push(`- date: **${d}**`);s.push(`- pick: ${v.title} / ${v.game} / ${v.composer} (diff=${v.difficulty||'n/a'})`);const hasChoices=!!(v.choices&&Array.isArray(v.choices.composer)&&v.choices.composer.length);s.push(`- choices_override: ${hasChoices?'**available**':'none'}`);if(v.choices){s.push(`- choices: composer[${v.choices.composer.join(', ')}], game[${v.choices.game.join(', ')}]`);} } fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,s.join('\n')+'\n');"
 
       - name: Create PR (optional)
         if: ${{ github.event.inputs.apply_to_main == 'true' }}
