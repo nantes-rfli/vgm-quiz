@@ -41,29 +41,36 @@ function toJSRedirect(targetUrl) {
 }
 
 function rewriteHtml(html) {
-  // 1) Detect meta refresh
-  // Matches: <meta http-equiv="refresh" content="0; url=..."> (variations tolerated)
-  const metaRegex = /<meta\s+http-equiv=["']?refresh["']?\s+content=["']?\s*\d+\s*;\s*url=([^"'>\s]+)["']?\s*\/?>/i;
-  const m = html.match(metaRegex);
+  // Find any <meta ... http-equiv="refresh" ...> regardless of attribute order/newlines.
+  const metaTagRegex = /<meta[^>]*http-equiv=["']?\s*refresh\s*["']?[^>]*>/ig;
+  let firstTargetUrl = null;
 
-  if (!m) {
-    // Already converted or no redirect present; return as-is
-    return html;
+  // Replace ALL refresh meta tags and capture the first URL
+  let out = html.replace(metaTagRegex, (tag) => {
+    const contentMatch = tag.match(/content=["']?([^"'>]*)["']?/i);
+    if (contentMatch) {
+      const content = contentMatch[1];
+      const urlMatch = content.match(/url\s*=\s*([^;\s"']+)/i);
+      if (!firstTargetUrl && urlMatch) {
+        firstTargetUrl = urlMatch[1];
+      }
+    }
+    return '';
+  });
+
+  if (!firstTargetUrl) {
+    // No usable URL extracted; just return without injecting JS
+    return out;
   }
-  const targetUrl = m[1];
 
-  // 2) Remove meta tag and inject JS redirect (preferably near the end of <head>)
-  let out = html.replace(metaRegex, '');
+  // Inject JS snippet near </head>
   const headCloseIdx = out.search(/<\/head>/i);
-  const snippet = toJSRedirect(targetUrl) + '\n';
-
+  const snippet = toJSRedirect(firstTargetUrl) + '\n';
   if (headCloseIdx !== -1) {
     out = out.slice(0, headCloseIdx) + snippet + out.slice(headCloseIdx);
   } else {
-    // No </head> found; append at end
     out += '\n' + snippet;
   }
-
   return out;
 }
 
