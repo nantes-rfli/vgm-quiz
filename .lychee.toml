@@ -1,0 +1,22 @@
+# lychee link checker config
+# Docs: https://github.com/lycheeverse/lychee
+verbosity = "info"
+max_redirects = 5
+timeout = 20
+retry_wait_time = 2
+retry_count = 2
+user_agent = "Mozilla/5.0 (compatible; vgm-quiz-docs-check/1.0; +https://github.com/nantes-rfli/vgm-quiz)"
+exclude_all_private = false
+
+# Accept temporary failures commonly seen with external sites
+accept = ["200..299", "403", "429", "500", "502", "503", "504"]
+
+# Ignore these patterns (tuned as needed)
+exclude = [
+  "mailto:*",
+  ".*#.*",
+  "https://github.com/nantes-rfli/vgm-quiz/actions/.*",
+  "https://img.shields.io/.*"
+]
+
+include_verbatim = true
