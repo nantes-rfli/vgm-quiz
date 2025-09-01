@@ -147,6 +147,14 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n')+'\n');
           NODE
 
+      - name: Summary (flags)
+        run: |
+          {
+            echo "### daily (auto) flags";
+            echo "- with_choices: ${{ github.event.inputs.with_choices || 'false' }}";
+            echo "- allow_heuristic_media: ${{ github.event.inputs.allow_heuristic_media || 'false' }}";
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Create PR (optional)
         if: ${{ github.event.inputs.apply_to_main == 'true' }}
         id: cpr
@@ -188,3 +196,7 @@ jobs:
               echo "- mode: artifact only (daily-auto-json)";
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summary (PR link)
+        if: ${{ steps.cpr.outputs.pull-request-url }}
+        run: echo "- pr: ${{ steps.cpr.outputs.pull-request-url }}" >> "$GITHUB_STEP_SUMMARY"
