@@ -1,3 +1,18 @@
+## /daily/*.html のリダイレクト仕様（2025-09-01 以降）
+
+`scripts/generate_share_page.js` により生成される `/public/daily/YYYY-MM-DD.html` は、
+**メタリフレッシュではなく JS リダイレクト**でアプリへ遷移します。
+
+デバッグ用途で以下のクエリをサポートします。
+
+- `?no-redirect=1` : リダイレクト抑止（ページ内の導線や「AUTOで遊ぶ」を目視確認可能）
+- `?redirectDelayMs=1500` : 指定ミリ秒だけ遅延してから遷移
+
+`latest.html` も同様に JS リダイレクト方式です。
+
+> 補足: `daily (auto …)` ワークフローは **HTML を生成・更新しません**（`public/app/daily_auto.json` のみ）。
+> `/daily/*.html` の更新は **`daily.json generator (JST)`** を実行してください。
+
 # Daily Pipeline (Candidates → Score → Publish) — skeleton
 
 本パッチは **既存フローを変更しません（デフォルトOFF）**。候補収集～スコアリング～公開の骨組みを追加します。

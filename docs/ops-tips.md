@@ -13,11 +13,10 @@
 - ワークフロー失敗でも Summary を必ず出すため、`if: ${{ always() }}` を活用する。
 
 ## 3. `/daily/*.html` のリダイレクト制御
-- 従来の **meta refresh** は即時遷移でデバッグ性が低い。
-- JS ベースのリダイレクトに置換し、以下の URL パラメータをサポートする。
+- `/public/daily/*.html` は JS ベースのリダイレクトでアプリへ遷移する。
+- 以下の URL パラメータをサポートする。
   - `?no-redirect=1` : リダイレクト抑止（デバッグ・検証用）
   - `?redirectDelayMs=1500` : 遅延（ミリ秒指定）
-- 変換用ユーティリティ: `node scripts/convert_daily_redirect_to_js.js`
 
 ## 4. 差分が無いと PR を作らないのは正常
 - `daily_auto.json` に変更がない場合、PR が作成されない。
