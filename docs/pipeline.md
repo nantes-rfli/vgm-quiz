@@ -39,8 +39,12 @@
 ### daily-auto.yml の入力
 - `date`: 空なら JST 今日
 - `with_choices`: **false** 既定（true で composer/game の選択肢を付与）
-- `allow_heuristic_media`: **false** 既定（media が空なら推定 start で作成）
 - `apply_to_main`: **false** 既定（PRを作る場合 true）
+- `allow_heuristic_media`: **false** 既定（media が空なら推定 start で作成）
+
+### e2e
+- `normalize (parity)` … Node と Browser の正規化比較
+- `e2e (auto choices smoke)` … AUTO choices の最小確認（Node）
 
 ## 方針
 - 既存 `scripts/generate_daily.js` は**一切変更しない**（既存の `daily.json` は温存）
