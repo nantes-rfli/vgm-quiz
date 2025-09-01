@@ -8,6 +8,10 @@ function isEnabled() {
   const sp = new URLSearchParams(location.search);
   return sp.get('auto') === '1' || sp.get('daily_auto') === '1';
 }
+function isForceAny() {
+  const sp = new URLSearchParams(location.search);
+  return sp.get('auto_any') === '1';
+}
 
 function todayJST() {
   // get YYYY-MM-DD in JST
@@ -53,9 +57,12 @@ async function bootstrap() {
   if (!entry) return;
   // store raw entry for mc.js to match canonically (alias-aware)
   window.__DAILY_AUTO_CHOSEN = entry;
+  if (isForceAny()) {
+    window.__DAILY_AUTO_FORCE = true;
+  }
   // Also expose a normalized fallback key for debugging/helpers
   window.__DAILY_AUTO_KEY_NORM = `${norm(entry.title)}|${norm(entry.game)}|${norm(entry.composer)}`;
-  console.log('[auto-choices] loaded for', date, entry.title, '/', entry.game);
+  console.log('[auto-choices] loaded for', date, entry.title, '/', entry.game, isForceAny() ? '(FORCE any)' : '');
 }
 
 bootstrap();

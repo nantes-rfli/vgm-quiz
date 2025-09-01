@@ -172,7 +172,14 @@ async function main(){
     ws.write(JSON.stringify(c) + '\n');
   }
   ws.end();
+  const stats = { in: total, updated: touched, createdHeuristic, out: output };
   console.log(`[enrich] in=${total}, updated=${touched}, createdHeuristic=${createdHeuristic}, out=${output}`);
+  try {
+    const statsPath = path.join(path.dirname(output), 'enrich_stats.json');
+    fs.writeFileSync(statsPath, JSON.stringify(stats, null, 2));
+  } catch (e) {
+    // non-fatal
+  }
 }
 
 if (require.main === module) main();
