@@ -1,0 +1,44 @@
+name: e2e (auto badge smoke)
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "Base app URL (must end with /app/)"
+        required: false
+        type: string
+      date:
+        description: "YYYY-MM-DD (optional, default JST today)"
+        required: false
+        type: string
+  schedule:
+    - cron: "25 19 * * *" # UTC 19:25 ≒ JST 04:25 (after daily.json generator)
+
+jobs:
+  auto-badge-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run AUTO badge smoke
+        env:
+          APP_URL: ${{ inputs.app_url || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+          DATE: ${{ inputs.date }}
+        run: node e2e/test_auto_badge_smoke.mjs
+
+      - name: Upload failure screenshot (if any)
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto_badge_failure
+          path: auto_badge_failure.png
+          if-no-files-found: ignore
