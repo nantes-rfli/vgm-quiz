@@ -26,6 +26,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install Playwright package
+        run: npm i --no-save playwright
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
