@@ -151,8 +151,8 @@ jobs:
         run: |
           {
             echo "### daily (auto) flags";
-            echo "- with_choices: ${{ github.event.inputs.with_choices || 'false' }}";
-            echo "- allow_heuristic_media: ${{ github.event.inputs.allow_heuristic_media || 'false' }}";
+            echo "- with_choices: ${{ github.event.inputs.with_choices }}";
+            echo "- allow_heuristic_media: ${{ github.event.inputs.allow_heuristic_media }}";
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create PR (optional)
@@ -177,12 +177,12 @@ jobs:
           author: GitHub Actions <actions@github.com>
 
       - name: Enable auto-merge (squash)
-        if: ${{ github.event.inputs.apply_to_main == 'true' && steps.cpr.outputs.pull-request-number }}
+        if: ${{ github.event.inputs.apply_to_main == 'true' && steps.cpr.outputs['pull-request-number'] }}
         uses: peter-evans/enable-pull-request-automerge@v3
         continue-on-error: true
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          pull-request-number: ${{ steps.cpr.outputs['pull-request-number'] }}
           merge-method: squash
 
       - name: Summary (result)
@@ -198,5 +198,5 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summary (PR link)
-        if: ${{ steps.cpr.outputs.pull-request-url }}
-        run: echo "- pr: ${{ steps.cpr.outputs.pull-request-url }}" >> "$GITHUB_STEP_SUMMARY"
+        if: ${{ steps.cpr.outputs['pull-request-url'] }}
+        run: echo "- pr: ${{ steps.cpr.outputs['pull-request-url'] }}" >> "$GITHUB_STEP_SUMMARY"
