@@ -58,6 +58,21 @@
           "ゼルダの伝説"
         ]
       }
+    },
+    "2025-08-28": {
+      "title": "クロノ・トリガー",
+      "game": "クロノ・トリガー",
+      "composer": "光田康典",
+      "platform": null,
+      "year": 1995,
+      "media": null,
+      "source": "dataset",
+      "norm": {
+        "title": "クロノトリガ",
+        "game": "クロノトリガ",
+        "composer": "光田康典"
+      },
+      "difficulty": 4
     }
   }
 }
