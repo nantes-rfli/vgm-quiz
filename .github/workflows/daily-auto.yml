@@ -154,6 +154,8 @@ jobs:
             echo "- with_choices: ${{ github.event.inputs.with_choices }}";
             echo "- allow_heuristic_media: ${{ github.event.inputs.allow_heuristic_media }}";
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Post-process daily HTML (JS redirect with no-redirect support)
+        run: node scripts/convert_daily_redirect_to_js.js
 
       - name: Create PR (optional)
         if: ${{ github.event.inputs.apply_to_main == 'true' }}
@@ -184,9 +186,6 @@ jobs:
           token: ${{ secrets.DAILY_PR_PAT }}
           pull-request-number: ${{ steps.cpr.outputs['pull-request-number'] }}
           merge-method: squash
-
-      - name: Post-process daily HTML (JS redirect with no-redirect support)
-        run: node scripts/convert_daily_redirect_to_js.js
 
       - name: Summary (result)
         if: ${{ always() }}
