@@ -80,6 +80,13 @@ jobs:
           echo "resolved-date=$DATE" >> "$GITHUB_OUTPUT"
           node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date "$DATE" --out public/app/daily_auto.json $EXTRA
 
+      - name: Read enrich stats
+        id: enrichstats
+        run: |
+          if [ -f public/app/enrich_stats.json ]; then
+            echo "stats=$(cat public/app/enrich_stats.json | tr -d '\n')" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload artifact (daily_auto.json)
         uses: actions/upload-artifact@v4
         with:
@@ -91,6 +98,7 @@ jobs:
           INPUT_DATE: ${{ github.event.inputs.date }}
           RESOLVED_DATE: ${{ env.RESOLVED_DATE }}
           ALLOW_HEURISTIC_MEDIA: ${{ github.event.inputs.allow_heuristic_media }}
+          ENRICH_JSON: ${{ steps.enrichstats.outputs.stats }}
         run: |
           node - <<'NODE'
           const fs = require('fs');
@@ -98,6 +106,8 @@ jobs:
           const raw = fs.readFileSync('public/app/daily_auto.json','utf-8');
           const j = JSON.parse(raw);
           const by = j.by_date || {};
+          let enrich = null;
+          try { enrich = JSON.parse(process.env.ENRICH_JSON||'null'); } catch {}
           function todayJST(){
             try {
               return new Date(new Date().toLocaleString('en-US', { timeZone: TZ })).toISOString().slice(0,10);
@@ -121,6 +131,10 @@ jobs:
             const avail = comp.length>0 || game.length>0;
             lines.push(`- choices_override: ${avail ? '**available**' : 'none'}`);
             if (avail) lines.push(`- choices: composer[${comp.join(', ')}], game[${game.join(', ')}]`);
+            if (enrich) {
+              const e = enrich;
+              lines.push(`- enrich: updated=${e.updated ?? 'n/a'}, createdHeuristic=${e.createdHeuristic ?? 'n/a'}`);
+            }
             // media glance
             if (v.media) {
               const kind = typeof v.media==='object' ? v.media.kind : 'n/a';
