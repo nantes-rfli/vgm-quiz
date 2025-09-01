@@ -109,6 +109,10 @@ jobs:
             node scripts/generate_daily_feed.js
           fi
 
+      - name: Inject "AUTOで遊ぶ" links into /daily pages
+        run: |
+          node scripts/postbuild_daily_links.js
+
       - name: Inject search/nav script into /daily/index.html
         run: |
           set -euo pipefail
