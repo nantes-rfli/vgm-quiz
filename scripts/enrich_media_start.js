@@ -5,9 +5,10 @@
  * - Prefer dataset-provided starts (public/build/dataset.json)
  * - Parse common YouTube params (?t=, ?start=, #t=1m23s)
  * - Fallback heuristic on title keywords; default 45s
+ * - (opt-in) If --allow-heuristic-media is set, create `media` when absent using heuristic start
  *
  * Usage:
- *   node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+ *   node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl [--allow-heuristic-media]
  */
 const fs = require('fs');
 const path = require('path');
@@ -79,7 +80,8 @@ function parseArgs(){
   const i = args.indexOf('--in');  const input = i>=0 ? args[i+1] : 'public/app/daily_candidates_scored.jsonl';
   const o = args.indexOf('--out'); const output = o>=0 ? args[o+1] : 'public/app/daily_candidates_scored_enriched.jsonl';
   const d = args.indexOf('--dataset'); const datasetPath = d>=0 ? args[d+1] : 'public/build/dataset.json';
-  return { input, output, datasetPath };
+  const ahm = args.indexOf('--allow-heuristic-media'); const allowHeuristicMedia = ahm>=0;
+  return { input, output, datasetPath, allowHeuristicMedia };
 }
 
 function buildMediaIndex(dataset){
@@ -124,7 +126,7 @@ function heuristicStart(c){
 }
 
 async function main(){
-  const { input, output, datasetPath } = parseArgs();
+  const { input, output, datasetPath, allowHeuristicMedia } = parseArgs();
   if (!fs.existsSync(input)) { console.error(`[enrich] not found: ${input}`); process.exit(1); }
   let mediaIndex = new Map();
   if (fs.existsSync(datasetPath)){
@@ -140,7 +142,7 @@ async function main(){
   const rows = await readJSONL(input);
   const outDir = path.dirname(output); ensureDir(outDir);
   const ws = fs.createWriteStream(output, 'utf-8');
-  let touched = 0, total=0;
+  let touched = 0, total=0, createdHeuristic=0;
   for(const c of rows){
     total++;
     const key = `${c.norm.title}|${c.norm.game}|${c.norm.composer}`;
@@ -161,12 +163,16 @@ async function main(){
         }
       }
     } else {
-      // no media at all; leave null
+      // no media at all
+      if (allowHeuristicMedia){
+        c.media = { kind: 'heuristic', start: heuristicStart(c) };
+        touched++; createdHeuristic++;
+      }
     }
     ws.write(JSON.stringify(c) + '\n');
   }
   ws.end();
-  console.log(`[enrich] in=${total}, updated=${touched}, out=${output}`);
+  console.log(`[enrich] in=${total}, updated=${touched}, createdHeuristic=${createdHeuristic}, out=${output}`);
 }
 
 if (require.main === module) main();

@@ -20,12 +20,18 @@
    node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored.jsonl --date 2025-09-01 --out public/app/daily_auto.json
    ```
 
-4. （任意）メディア開始秒の精度を上げる（enrich）  
+4. （任意）メディア開始秒の精度を上げる（enrich）
    ```bash
    node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
    ```
 
-5. （任意）ディストラクタを付与して出力（with-choices）  
+   - データに手掛かりが無い場合でも、**推定開始秒で media を作成**したいときは（検証用・既定OFF）:
+     ```bash
+     node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl --allow-heuristic-media
+     ```
+   - `daily-auto.yml` の `allow_heuristic_media: true` で同等指定が可能です（Summary に kind/start を表示）。
+
+5. （任意）ディストラクタを付与して出力（with-choices）
    ```bash
    node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date 2025-09-01 --out public/app/daily_auto.json --with-choices
    ```
@@ -33,6 +39,7 @@
 ### daily-auto.yml の入力
 - `date`: 空なら JST 今日
 - `with_choices`: **false** 既定（true で composer/game の選択肢を付与）
+- `allow_heuristic_media`: **false** 既定（media が空なら推定 start で作成）
 - `apply_to_main`: **false** 既定（PRを作る場合 true）
 
 ## 方針
