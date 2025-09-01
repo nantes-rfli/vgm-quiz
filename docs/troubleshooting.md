@@ -1,34 +1,18 @@
 # Troubleshooting
 
-## Pages deploy doesn’t reflect changes
+## YAML / GitHub Actions
+- **bad indentation of a mapping entry**: `- name:` 直下の `if:` / `run:` のインデントを揃える。`run: |` を使い複数行 echo を推奨。
+- **if に URL を置いてしまう**: `if: ${{ steps.cpr.outputs['pull-request-url'] != '' }}` のように真偽式にする。
+- **ハイフンキーの outputs**: かならず `['...']` で参照（例: `steps.cpr.outputs['pull-request-url']`）。
 
-- Ensure `pages.yml` uploads **`public/`** (with `.nojekyll`)
-- Check **Deployments → github-pages** and verify the deployed commit matches `main` HEAD
-- Run **Actions → Pages → Run workflow** (branch: `main`) to force redeploy
+## /daily の挙動
+- すぐリダイレクトして検証できない → `?no-redirect=1` を付与。
+- 遅延させたい → `?redirectDelayMs=1500` を付与。
+- 当日分が 404 → `daily.json generator (JST)` の実行状況を確認。
 
-## /daily/index.html or /daily/latest.html returns 404
+## AUTO が反映されない
+- `?auto=1` が付いているか、曲の正規化一致があるかを確認。
+- 検証では `&auto_any=1` を併用。
 
-- Ensure `scripts/generate_daily_index.js` runs in `daily.yml` and **`pages.yml`** (pre-deploy safety)
-- In `daily.yml`, include `public/daily/*.html` in `create-pull-request` `add-paths`
-- After merging the PR, re-run **Pages** deploy (or push an empty commit)
-
-## /daily/feed.xml returns 404
-
-- Confirm `scripts/generate_daily_feed.js` is invoked by `daily.yml` **and** by `pages.yml` (pre-deploy safety)
-- In the daily PR, verify `public/daily/feed.xml` is included
-- After merging, run **Pages** to publish the file
-
-## SW update banner doesn’t show up
-
-- The app now attaches three ways: `navigator.serviceWorker.ready`, polling `getRegistration()` for up to 30s, **and** a `window` event dispatched at registration. If any of these are missing, update `app.js` and `sw_update.js` per latest main.
-- Open DevTools → Application → Service Workers; confirm **Waiting** state appears on update
-- As a quick test, do an empty commit to trigger deploy (see Ops Runbook), keep the old tab open, and watch for the banner
-
-## Required checks keep “waiting…” on PR
-
-- Rulesets require **job names** `pages-pr-build` / `ci-fast-pr-build`
-- If you renamed jobs or workflows, update Rulesets accordingly
-
-## Daily PR authored by github-actions[bot]
-
-- `DAILY_PR_PAT` is missing/expired. Create a new PAT and update repo secrets.
+## PR が作られない
+- 差分が無い場合は正常。Summary に `(no changes / not created)` が出る。
