@@ -1,0 +1,36 @@
+name: Bug report
+description: 問題の報告（再現手順・URL・ログを含めてください）
+labels: bug
+body:
+  - type: input
+    id: url
+    attributes:
+      label: 関連URL（例：/app/ や /daily/ の完全URL）
+      placeholder: https://nantes-rfli.github.io/vgm-quiz/app/?daily=...
+  - type: input
+    id: date
+    attributes:
+      label: 関連日付（JST, YYYY-MM-DD）
+      placeholder: 2025-09-01
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 再現手順
+      description: できるだけ短い手順で再現方法を書いてください
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待される結果
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の結果
+  - type: textarea
+    id: logs
+    attributes:
+      label: 参考ログ / スクショ
+      description: ActionsのSummaryやブラウザコンソール、スクショなど
