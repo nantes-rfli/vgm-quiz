@@ -84,7 +84,7 @@ function jstDateString(d = new Date()) {
   <meta name="twitter:description" content="${ogDesc}">
   <meta name="twitter:image" content="${ogpUrlWithV}">
   <meta name="twitter:url" content="${pageUrl}">
-  <meta http-equiv="refresh" content="0; url=${appUrl}">
+  <script>(function(){try{var p=new URLSearchParams(location.search||"");if(p.get("no-redirect")==="1")return;var d=parseInt(p.get("redirectDelayMs")||"0",10);if(isNaN(d)||d<0)d=0;setTimeout(function(){location.replace(${JSON.stringify(appUrl)});},d);}catch(e){}})();</script>
   <!-- daily-hash:${dailyHash} -->
 </head>
 <body>
