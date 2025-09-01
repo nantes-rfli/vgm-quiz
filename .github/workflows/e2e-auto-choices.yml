@@ -1,0 +1,26 @@
+name: e2e (auto choices smoke)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run auto choices smoke
+        run: node scripts/tests/auto_choices_smoke.mjs
+
+      - name: Summary
+        run: |
+          {
+            echo "### e2e (auto choices smoke)";
+            echo "- result: **OK**";
+          } >> "$GITHUB_STEP_SUMMARY"
