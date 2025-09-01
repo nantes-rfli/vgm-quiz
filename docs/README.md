@@ -22,3 +22,6 @@
 
 ## CI Status
 - [CI / Ops バッジ一覧](ci-status.md)
+
+## Writing
+- [Docs Style Guide](STYLEGUIDE.md)
