@@ -1,0 +1,26 @@
+name: lighthouse (budgets, nightly)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "30 19 * * *" # UTC 19:30 ≒ JST 04:30 (after daily.json generator)
+
+jobs:
+  lhci-budgets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Lighthouse CI
+        run: npm i -g @lhci/cli@0.14
+
+      - name: Run LHCI (budgets)
+        run: lhci autorun --config=.lighthouserc.budgets.json

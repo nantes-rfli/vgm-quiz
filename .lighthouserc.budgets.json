@@ -1,0 +1,21 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 1,
+      "url": [
+        "https://nantes-rfli.github.io/vgm-quiz/app/",
+        "https://nantes-rfli.github.io/vgm-quiz/daily/latest.html?no-redirect=1"
+      ]
+    },
+    "assert": {
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "categories:performance": ["warn", {"minScore": 0.85}],
+        "budgets": ["warn", {"budgetsFile": "lighthouse/budgets.json"}]
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}
