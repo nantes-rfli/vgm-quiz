@@ -1,0 +1,29 @@
+name: Feature request
+description: 新機能 / 改善の提案
+labels: enhancement
+body:
+  - type: input
+    id: area
+    attributes:
+      label: 対象領域
+      placeholder: app / data pipeline / daily(auto) / docs / CI など
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 動機・メリット
+  - type: textarea
+    id: detail
+    attributes:
+      label: 詳細案（あれば）
+  - type: checkboxes
+    id: risk
+    attributes:
+      label: 影響範囲
+      options:
+        - label: 既存の本番動作に影響しない（別ワークフロー / 新規ファイルのみ）
+        - label: 既存のワークフローを変更する
+        - label: データスキーマや互換性に影響する可能性がある
