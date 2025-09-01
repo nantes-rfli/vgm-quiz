@@ -1,0 +1,33 @@
+name: e2e (daily share & latest smoke)
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "Base app URL (must end with /app/)"
+        required: false
+        type: string
+  schedule:
+    - cron: "20 19 * * *" # UTC 19:20 ≒ JST 04:20 (after daily.json generator)
+
+jobs:
+  daily-pages-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run share page smoke
+        env:
+          APP_URL: ${{ inputs.app_url || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+        run: node e2e/test_daily_share_page.js
+
+      - name: Run latest page smoke
+        env:
+          APP_URL: ${{ inputs.app_url || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+        run: node e2e/test_daily_latest_page.js
