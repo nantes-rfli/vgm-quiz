@@ -186,15 +186,24 @@ jobs:
           merge-method: squash
 
       - name: Summary (result)
+        if: ${{ always() }}
+        env:
+          INPUT_DATE: ${{ github.event.inputs.date }}
+          RESOLVED_DATE: ${{ env.RESOLVED_DATE }}
+          WITH_CHOICES: ${{ github.event.inputs.with_choices }}
+          APPLY_TO_MAIN: ${{ github.event.inputs.apply_to_main }}
         run: |
+          set -Eeuo pipefail
+          DATE="${RESOLVED_DATE:-${INPUT_DATE:-$(TZ=Asia/Tokyo date +%F)}}"
           {
-            echo "### daily (auto) result";
-            if [ -n "$RESOLVED_DATE" ]; then echo "- date: $RESOLVED_DATE"; else echo "- date: ${{ github.event.inputs.date || 'today (JST)' }}"; fi
-            if [ "${{ github.event.inputs.apply_to_main }}" = "true" ]; then
-              echo "- mode: PR (chore/daily-auto)";
+            echo "### daily (auto) result"
+            echo "- date: ${DATE}"
+            if [ "${APPLY_TO_MAIN}" = "true" ]; then
+              echo "- mode: PR (chore/daily-auto)"
             else
-              echo "- mode: artifact only (daily-auto-json)";
+              echo "- mode: artifact only (daily-auto-json)"
             fi
+            echo "- with_choices: ${WITH_CHOICES}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summary (PR link)
