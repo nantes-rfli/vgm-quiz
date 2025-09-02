@@ -52,6 +52,9 @@ jobs:
           APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
         run: node e2e/test_auto_settings_exists.mjs
 
+      - name: Check alias canonical no collision (normalized)
+        run: node e2e/test_alias_no_norm_collision.mjs
+
       - name: Upload artifacts on failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
