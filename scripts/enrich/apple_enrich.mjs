@@ -25,26 +25,48 @@ const dataset = readJsonMaybeJsonc(datasetPath);
 const overrides = readJsonMaybeJsonc(overridesPath);
 
 let count = 0;
+
+function applyApple(t, ov) {
+  t.media = t.media || {};
+  t.media.apple = { ...(t.media.apple || {}), ...(ov.media?.apple || {}) };
+  count++;
+}
+
+function norm(s) { return (s ?? "").toString().trim().toLowerCase(); }
+
+function byKeyMerge(arr, map) {
+  for (const t of arr) {
+    const key = t.id || t.slug || t.uid;
+    if (!key) continue;
+    const ov = map[key];
+    if (!ov) continue;
+    applyApple(t, ov);
+  }
+}
+
+function byMatchMerge(arr, arrOverrides) {
+  for (const ov of arrOverrides) {
+    const m = ov.match || {};
+    const mt = norm(m.title);
+    const mg = norm(m.game);
+    if (!mt && !mg) continue;
+    for (const t of arr) {
+      const tt = norm(t.title);
+      const tg = norm(t.game);
+      if ((mt ? tt === mt : true) && (mg ? tg === mg : true)) {
+        applyApple(t, ov);
+      }
+    }
+  }
+}
+
 if (Array.isArray(dataset)) {
-  for (const t of dataset) {
-    const key = t.id || t.slug || t.uid;
-    if (!key) continue;
-    const ov = overrides[key];
-    if (!ov) continue;
-    t.media = t.media || {};
-    t.media.apple = { ...(t.media.apple || {}), ...(ov.media?.apple || {}) };
-    count++;
-  }
-} else if (dataset && dataset.tracks) {
-  for (const t of dataset.tracks) {
-    const key = t.id || t.slug || t.uid;
-    if (!key) continue;
-    const ov = overrides[key];
-    if (!ov) continue;
-    t.media = t.media || {};
-    t.media.apple = { ...(t.media.apple || {}), ...(ov.media?.apple || {}) };
-    count++;
-  }
+  if (Array.isArray(overrides)) byMatchMerge(dataset, overrides);
+  else if (overrides && typeof overrides === 'object') byKeyMerge(dataset, overrides);
+} else if (dataset && Array.isArray(dataset.tracks)) {
+  const arr = dataset.tracks;
+  if (Array.isArray(overrides)) byMatchMerge(arr, overrides);
+  else if (overrides && typeof overrides === 'object') byKeyMerge(arr, overrides);
 } else {
   console.error("Unsupported dataset shape. Expected array or {tracks: []}.");
   process.exit(1);
