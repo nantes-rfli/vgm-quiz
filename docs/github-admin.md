@@ -8,6 +8,7 @@ PRs are required to pass these **job names**:
 
 - `pages-pr-build`
 - `ci-fast-pr-build`
+- `required-check`  （workflow: *e2e (light required)* の job 名）
 
 If you rename jobs or workflows, update Rulesets so PRs don’t get stuck in “waiting…”.  
 (Settings → Rules → Rulesets → Edit → **Require workflows**)
