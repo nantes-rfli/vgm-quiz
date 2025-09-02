@@ -1,21 +1,34 @@
 # Changelog
 
-## v1.1.0 (2025-08-30)
-- Footer: dataset/version display fixed (Dataset vN / 7‑char commit / local time updated)
-- E2E: added `test_footer_version.js` and wired into workflow
-- Seeded RNG: exported `window.__rng`; `?qp=1` year‑bucket pipeline; debug exports (`__questionIds`, `__questionDebug`)
-- Daily mode: `?daily=1|YYYY-MM-DD` (JST); `public/app/daily.json`
-- Media preview: YouTube embed with nocookie first + fallback domain; stubbed under `?test=1` / `?lhci=1` / `?nomedia=1`
-- Results modal A11y: initial focus, Tab trap, Escape to close; copy toast auto-dismiss
-- Version fetch: 8s timeout, in‑flight sharing, 60s TTL; `window.loadVersionPublic/Force`
-- Service Worker: app→SW handshake for correct `version.json` URL (no more 404 under /app/ scope)
-- Lives rule: `?lives=on` (or number) → end quiz immediately on reaching misses
-- Normalize v1.2: leading articles, dash unification, `&→and`, roman numerals I–XX (boundary-safe)
+All notable changes to this project will be documented in this file.
 
-## v1.0.0 (2025-08-27)
-- PWA(+IndexedDB)
-- Web aliases
-- CLJC pipeline
-- CLI export
-- CI hardening
-- Pages (code + app)
+## 2025-09-02
+
+### Added
+- **e2e (light regressions)**: 
+  - `e2e/test_keyboard_flow_smoke.mjs`（Tab→Enter で回答できるかの最小回帰）
+  - `e2e/test_share_cta_visibility.mjs`（`/daily/*.html?no-redirect=1` / `latest.html` のCTA/導線確認）
+  - `.github/workflows/e2e-light-regressions.yml`（手動＋Nightly JST 04:25）
+- **roadmap guard (non-blocking)**:
+  - `scripts/roadmap-guard.mjs` ＋ `.github/workflows/roadmap-guard.yml`
+  - `docs/FEATURES.yml` の planned が `docs/ROADMAP.md` に無い場合にPRへ**警告コメント**を付与（非ブロッキング）
+- **docs-enforcer**: コード変更のPRで `README` / `docs/**` / `FEATURES.*` / `ROADMAP` / `CHANGELOG` の**いずれか**が更新されていないと fail（`docs:skip`で除外可）
+
+### Changed
+- **README / docs** を現状仕様に同期:
+  - Share page は **JS リダイレクト**（`?no-redirect=1` / `redirectDelayMs` の抑止/遅延パラメータを明記）
+  - `docs/params.md` を新設し、クエリパラメータを網羅（`seed`, `qp`, `lives`, `lhci`, `nomedia` など）
+  - `docs/ci.md`, `docs/ci-status.md` を更新（新規ワークフロー・バッジ・Nightly時刻を追記）
+  - `docs/e2e-light-regressions.md` を新設（Keyboard/Shareの軽量回帰を解説）
+  - `docs/ops.md` を強化（JSリダイレクトのデバッグ、落とし穴、トラブルシューティング）
+  - `docs/labels.md` を新設（`docs:skip`, `roadmap:v1.x`, `ops:low/high-risk`）
+- **ROADMAP.md**: v1.4 を **a11yのハードニング**として明確化。冒頭に「正本は FEATURES.yml／Roadmapは背景の物語」を追記
+
+### Fixed
+- **latest.html テストの厳しさ**を調整：相対リンクやアンカーテキストでの当日誘導もOKに（`e2e/test_share_cta_visibility.mjs`）
+
+---
+
+## 既存のタグ
+- v1.0.1 以前：初期実装（MCQ/自由入力、正規化v1.2、SW更新、Daily/RSS、AUTO、A11yベースライン 等）
+
