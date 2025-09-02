@@ -1,0 +1,16 @@
+// Match by title (and optionally game). This format is supported by apple_enrich.mjs.
+[
+  {
+    // クロノ・トリガー（メインテーマ） — title で一致させる
+    "match": { "title": "クロノ・トリガー" },
+    "media": {
+      "apple": {
+        // Any one of url / embedUrl / previewUrl being truthy enables Apple path.
+        "url": "https://music.apple.com/jp/song/%E3%82%AF%E3%83%AD%E3%83%8E-%E3%83%88%E3%83%AA%E3%82%AC%E3%83%BC/324080961",
+        // "embedUrl": "https://embed.music.apple.com/jp/song/324080961",
+        // "previewUrl": "",
+        "previewOffset": 0
+      }
+    }
+  }
+]
