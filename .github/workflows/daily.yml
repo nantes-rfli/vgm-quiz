@@ -90,6 +90,9 @@ jobs:
       - name: Ensure meta description in latest.html
         run: node scripts/ensure_latest_meta.js
 
+      - name: Ensure CTA in latest.html
+        run: node scripts/ensure_latest_cta.js
+
       - name: Generate Daily RSS feed
         run: node scripts/generate_daily_feed.js
 
