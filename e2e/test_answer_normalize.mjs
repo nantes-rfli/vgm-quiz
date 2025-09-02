@@ -5,6 +5,8 @@ function eq(a, b, msg) {
   assert.equal(normalize(a), normalize(b), `${msg} | got "${normalize(a)}" vs "${normalize(b)}"`);
 }
 
+const cases = [];
+
 // Roman numerals ↔ Arabic
 eq('Final Fantasy VII', 'final-fantasy 7', 'Roman VII should equal 7');
 eq('Dragon Quest X', 'dragon quest 10', 'Roman X should equal 10');
@@ -21,4 +23,8 @@ eq('ドラゴン・クエスト', 'ドラゴンクエスト', 'Middle dot ignore
 eq('ドンキーコング', 'ドンキーーーコング', 'Long vowel marks ignored');
 
 console.log('[normalize] all tests passed');
-
+// Edge cases (light): series naming / punctuation / numerals
+cases.push(['Dragon Quest III', 'ドラゴン・クエストIII']);
+cases.push(['Castlevania Dracula X', 'Castlevania ＆ Dracula X']); // fullwidth & variant
+cases.push(['Chrono Trigger', 'chrono〜trigger']); // wave dash removal
+cases.push(['Street Fighter 2 Turbo', 'Street Fighter II Turbo']); // roman numeral boundaries
