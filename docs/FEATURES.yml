@@ -97,3 +97,38 @@
   title: AUTO ON toast (+ persistent setting)
   status: implemented
   since: 2025-09-02
+- id: composer-mode
+  area: content
+  title: Composer-focused question mode (JP+EN co-display via i18n)
+  status: planned
+  since: null
+- id: media-provider-order
+  area: media
+  title: Apple Music preview first; fallback to official YouTube
+  status: planned
+  since: null
+- id: clip-start-heuristics-v2
+  area: media
+  title: Improved clip start heuristics (query/meta/timecode; future: audio)
+  status: planned
+  since: null
+- id: difficulty-v2
+  area: pipeline
+  title: Difficulty v2 with extra signals (era/alias density/franchise popularity)
+  status: planned
+  since: null
+- id: trivia-pipeline-v1
+  area: pipeline
+  title: Trivia auto-pipeline with source links
+  status: planned
+  since: null
+- id: auto-authoring-v1
+  area: pipeline
+  title: End-to-end nightly authoring (candidates→publish)
+  status: planned
+  since: null
+- id: daily-rss-feed
+  area: ops
+  title: Daily RSS/Atom feed generation & publish
+  status: implemented
+  since: v1.0.3
