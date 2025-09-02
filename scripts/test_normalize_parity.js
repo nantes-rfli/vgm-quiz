@@ -80,6 +80,15 @@ async function main() {
     'Pokémon Red & Blue',
     'NieR:Automata',
     'Castlevania IV',
+    'Ｆｉｎａｌ Ｆａｎｔａｓｙ VII',
+    'ポケットモンスター\u3000青',
+    'ドラゴン・クエストIII',
+    'Street Fighter II Turbo',
+    'Castlevania ＆ Dracula X',
+    'chrono〜trigger',
+    'RockyIV',
+    'Metal Gear Solid — Peace Walker',
+    'Kingdom Hearts 358/2 Days'
   ];
   let mismatches = [];
   for (const s of samples) {
