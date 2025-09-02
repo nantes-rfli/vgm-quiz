@@ -2,6 +2,7 @@
 
 - アプリ: `/app/?daily=YYYY-MM-DD`（JST） / `/app/?daily=1`（当日）
   - `auto=1` : AUTO モード（`public/app/daily_auto.json` を 4 択に反映）
+  - **設定UI**: Start画面の「AUTOを有効にする」で永続ON（`localStorage: quiz-options.auto_enabled`）
   - `auto_any=1` : 曲一致を無視して強制適用（**検証用**）
   - `seed=abc` : シード固定（決定論的順序）
   - `qp=1` : 年次バケットパイプライン

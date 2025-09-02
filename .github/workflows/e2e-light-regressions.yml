@@ -47,6 +47,11 @@ jobs:
           APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
         run: node e2e/test_daily_latest_meta.mjs
 
+      - name: Check Start view has AUTO settings
+        env:
+          APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+        run: node e2e/test_auto_settings_exists.mjs
+
       - name: Upload artifacts on failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4

@@ -1,6 +1,7 @@
 ## Unreleased
 
 - docs: ROADMAP synced with FEATURES (`a11y-hardening`, `difficulty-badge`, `heuristic-media-guard`)
+- feat(ui): Start画面に「AUTOを有効にする」を追加（永続化）; バッジに aria-label を付与
 
 # Changelog
 
