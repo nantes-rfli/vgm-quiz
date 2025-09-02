@@ -26,5 +26,8 @@
 ## CI Status
 - [CI / Ops バッジ一覧](ci-status.md)
 
+## Changelog
+- [CHANGELOG.md](../CHANGELOG.md)
+
 ## Writing
 - [Docs Style Guide](STYLEGUIDE.md)
