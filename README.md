@@ -71,7 +71,7 @@ http://127.0.0.1:8080/app/?test=1&mock=1&autostart=0
 - `?lhci=1` / `?nomedia=1`（Lighthouse向けスタブ）
 - `/daily/*.html`: `?no-redirect=1` / `?redirectDelayMs=...`（JS リダイレクト制御）
 
-> 詳細は `docs/params.md` を参照。
+> 詳細は `docs/urls-and-params.md` を参照。
 
 ## Features
 

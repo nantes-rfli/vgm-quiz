@@ -13,6 +13,17 @@ This project is deployed via **GitHub Pages**. `main` → Pages auto-deploy.
 
 ## Formal release (tagged)
 
+> **Tagging policy**
+> - We **still support tagged releases** for milestones (e.g., v1.0.2). Use this for stable cutovers you want to pin.
+> - Quick fixes / docs-only changes can go via the **Fast path** without tagging.
+>
+> **How to tag**
+> ```bash
+> git tag vX.Y.Z
+> git push origin vX.Y.Z   # triggers release.yml (tag push)
+> # or run Actions → Release → Run workflow with input: tag=vX.Y.Z
+> ```
+
 > The repository includes `release.yml` for releases. Triggers may be **tag push** and/or **workflow_dispatch**.
 > Check the workflow file if unsure. Typical options:
 

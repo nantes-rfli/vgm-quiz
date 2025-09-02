@@ -7,7 +7,7 @@
 | 種別 | 正本 |
 |---|---|
 | 概要 / 入口 | `README.md`, `docs/README.md` |
-| パラメータ仕様 | `docs/params.md`（網羅）、`docs/urls-and-params.md`（抄） |
+| パラメータ仕様 | `docs/urls-and-params.md`（正本） |
 | ロードマップ（物語） | `docs/ROADMAP.md` |
 | 機能在庫（機械可読） | `docs/FEATURES.yml` + `docs/FEATURES.md` |
 | 運用 | `docs/ops.md` |
@@ -34,4 +34,4 @@
 
 ## 運用Tips
 
-- 新機能をPRで入れるときは、**FEATURES.yml → ROADMAP.md → docs/params.md** の順に整合を取ると漏れにくい。
+- 新機能をPRで入れるときは、**FEATURES.yml → ROADMAP.md → docs/urls-and-params.md** の順に整合を取ると漏れにくい。

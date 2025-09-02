@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **README / docs** を現状仕様に同期:
   - Share page は **JS リダイレクト**（`?no-redirect=1` / `redirectDelayMs` の抑止/遅延パラメータを明記）
-  - `docs/params.md` を新設し、クエリパラメータを網羅（`seed`, `qp`, `lives`, `lhci`, `nomedia` など）
+  - `docs/urls-and-params.md` を新設し、クエリパラメータを網羅（`seed`, `qp`, `lives`, `lhci`, `nomedia` など）
   - `docs/ci.md`, `docs/ci-status.md` を更新（新規ワークフロー・バッジ・Nightly時刻を追記）
   - `docs/e2e-light-regressions.md` を新設（Keyboard/Shareの軽量回帰を解説）
   - `docs/ops.md` を強化（JSリダイレクトのデバッグ、落とし穴、トラブルシューティング）
