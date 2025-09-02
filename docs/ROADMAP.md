@@ -142,3 +142,26 @@
 - Project ボード（ミニ）を作成し、v1.1 の DoD をカードで可視化
 - v1.1 が固まったら、v1.2 の設計メモ（media フォールバック順、difficulty 算出のルール）を下書き
 
+## v1.5 — 国際化（i18n）ベースライン
+**狙い**: vgm-quiz 全体の国際化に向けた土台整備。まずは UI 文字列から最小で始め、将来の拡張（問題文・説明など）に備える。
+
+**機能/変更**
+- **i18n コア（`i18n-core`）** — Internationalization baseline (JP/EN)
+  - キー駆動の UI 文言辞書（`public/app/i18n/{ja,en}.json` など）
+  - ロケール決定: `?lang=ja|en` > `localStorage.lang` > `navigator.language`（`ja`/`en`に正規化）
+  - Start 画面に **言語トグル**（JP/EN）を追加（アクセシブルな `<fieldset>` / `<legend>` / `<label>`）
+  - `<html lang="…">` / `<title>` / `<meta name="description">` のローカライズ
+  - A11y: `aria-label` / `aria-live` 文言のローカライズ
+  - E2E（light）: 言語切替でヘッダ/ボタン文言が切り替わることのスモーク
+
+**非対象（別フェーズで検討）**
+- データセット（曲名/ゲーム名/解説）の翻訳・翻字
+- OGP 画像の言語別レンダリング
+
+**DoD**
+- `?lang=ja` / `?lang=en` で UI 文言が切り替わる
+- Start の言語トグルで選択→リロード後も保持（`localStorage.lang`）
+- `<html lang>` と `<title>`/`<meta name="description">` がロケールに一致
+- E2E（light）で `/app/?test=1&lang=en` 時に英語 UI が確認できる
+
+
