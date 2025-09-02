@@ -9,16 +9,31 @@ permissions:
 jobs:
   enrich:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Java (for Clojure CLI)
+        uses: actions/setup-java@v4
         with:
-          node-version: '20'
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@11.0
+        with:
+          tools-deps: 'latest'
+
+      - name: Build dataset (EDN -> public/build/dataset.json)
+        run: |
+          set -euxo pipefail
+          clojure -T:build publish
+          test -f public/build/dataset.json
+          test -f public/build/version.json
 
       - name: Determine overrides file
         id: pick
@@ -37,17 +52,47 @@ jobs:
         run: |
           set -euxo pipefail
           echo "Using overrides: ${{ steps.pick.outputs.overrides }}"
-          node scripts/enrich/apple_enrich.mjs build/dataset.json "${{ steps.pick.outputs.overrides }}" \
-          --write build/dataset.json
+          node scripts/enrich/apple_enrich.mjs public/build/dataset.json "${{ steps.pick.outputs.overrides }}" --write public/build/dataset.json
+
+      - name: Refresh version.json hash (always after overrides)
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+          const dsPath = 'public/build/dataset.json';
+          const verPath = 'public/build/version.json';
+          const commit = process.env.GITHUB_SHA || 'dev';
+          if (!fs.existsSync(dsPath)) {
+            console.error('Missing '+dsPath);
+            process.exit(1);
+          }
+          const buf = fs.readFileSync(dsPath);
+          const hash = crypto.createHash('sha256').update(buf).digest('hex');
+          let generated_at = new Date().toISOString();
+          try {
+            const meta = JSON.parse(buf.toString());
+            if (meta && typeof meta === 'object' && meta.generated_at) {
+              generated_at = meta.generated_at;
+            }
+          } catch {}
+          let ver = { dataset_version: 1, content_hash: hash, generated_at, commit };
+          try {
+            const prev = JSON.parse(fs.readFileSync(verPath, 'utf8'));
+            ver = { ...prev, content_hash: hash, generated_at, commit };
+          } catch {}
+          fs.writeFileSync(verPath, JSON.stringify(ver));
+          console.log('[version] content_hash=', hash);
+          NODE
 
       - name: Commit changes (if any)
         run: |
           set -euxo pipefail
-          if ! git diff --quiet -- build/dataset.json; then
+          if ! git diff --quiet -- public/build/dataset.json public/build/version.json; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add build/dataset.json
-            git commit -m "chore(data): apply apple overrides"
+            git add public/build/dataset.json public/build/version.json
+            git commit -m "chore(data): build & apply apple overrides (dataset + version.json)"
             git push
           else
             echo "No changes to commit."
+
