@@ -24,6 +24,31 @@ const same = (a, b, msg) => assert.equal(n(a), n(b), msg || `${a} == ${b}`);
   // 句読点・空白
   same('Chrono  Trigger!!  ', 'chrono trigger', 'punct & spaces');
 
+  // JP/EN mix & fullwidth
+  same('Ｆｉｎａｌ Ｆａｎｔａｓｙ VII', 'Final Fantasy 7', 'Fullwidth letters + Roman→Arabic');
+  same('ロックマン＆フォルテ', 'ロックマン and フォルテ', 'Fullwidth ＆ becomes and');
+
+  // Articles: only leading
+  same('An Untitled Story', 'untitled story', 'strip leading "An"');
+  same('Legend of The Galactic Heroes', 'legend of the galactic heroes', 'inner "the" must remain (no strip)');
+
+  // Dashes & wave dashes
+  same('metal gear solid — peace walker', 'metal gear solid - peace walker', 'em-dash equals hyphen');
+  same('chrono〜trigger', 'chrono trigger', 'JP wave dash treated as separator');
+
+  // Roman numerals boundaries (word edges)
+  same('Street Fighter II Turbo', 'Street Fighter 2 Turbo', 'Roman II -> 2 at word boundary');
+  same('RockyIV', 'Rocky 4', 'Roman IV attached to word should normalize'); // if safe boundary, space inserted
+
+  // Slashes & punctuation clusters
+  same('Kingdom Hearts 358/2 Days', 'Kingdom Hearts 358 2 Days', 'Slashes removed');
+
+  // Long vowel mark (ー) collapse
+  same('ドンキーコーーング', 'ドンキーコング', 'Long vowel marks collapsed');
+
+  // Ampersand variants
+  same('Castlevania ＆ Dracula X', 'Castlevania & Dracula X', 'Fullwidth & equals ASCII & -> and');
+
   console.log('[OK] normalize v1.2 assertions passed');
 })();
 
