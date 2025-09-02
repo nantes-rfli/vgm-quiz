@@ -66,3 +66,17 @@
 - **latest.html の導線がテストで落ちる**: 実装が相対リンク・テキスト誘導の場合あり。テストは緩和済（相対/テキストも許容）。
 - **Playwright が見つからない**: `e2e-light-regressions.yml` は Playwright をインストールするステップ込。個別実行時は `npm i playwright && npx playwright install chromium` を確認。
 
+
+## Pages デプロイの確認（詳細）
+
+1. **Pages ワークフロー**が `main` への push（または CI Fast の `workflow_run`）で起動し、成功していることを確認。
+2. **CIメタデータ** の sanity check：
+   - `public/build/version.json`（`dataset_version`, `commit`(short_sha), `generated_at`）
+   - SW ハンドシェイクを確認するには、`/app/../build/version.json` も同値で取れることを確認
+   - `/build.json?ts=NOW` および `/app/build.json?ts=NOW` が 200 で返ること
+3. **フッターの表記** が最新であること：  
+   `Dataset: vN • commit: abcdefg • updated: YYYY-MM-DD HH:mm`
+
+> Quick links（本番。`NOW` はキャッシュバスター置換）  
+> - `/build/version.json` / `/app/../build/version.json`  
+> - `/build.json?ts=NOW` / `/app/build.json?ts=NOW`

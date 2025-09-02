@@ -8,5 +8,8 @@
   - CIステータス: `docs/ci-status.md`
   - 計画・優先度: `docs/ROADMAP.md`
   - 機能の正本: `docs/FEATURES.yml` / `docs/FEATURES.md`
+  - Pagesデプロイ確認: `docs/ops.md`（「Pages デプロイの確認（詳細）」節）
+  - 検証用URL一覧: `docs/urls-and-params.md`（「検証向けクイックリンク」節）
+  - E2Eアーティファクトの見方: `docs/ci.md`（「E2E アーティファクト」節）
 
 > 注: この一覧にあるファイルは、再導入しないでください（`docs/docs-architecture.md` を参照）。
