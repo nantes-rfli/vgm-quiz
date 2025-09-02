@@ -26,7 +26,12 @@ jobs:
       - name: Setup Clojure CLI
         uses: DeLaGuardo/setup-clojure@11.0
         with:
-          tools-deps: 'latest'
+          cli: 'latest'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Build dataset (EDN -> public/build/dataset.json)
         run: |
@@ -54,35 +59,12 @@ jobs:
           echo "Using overrides: ${{ steps.pick.outputs.overrides }}"
           node scripts/enrich/apple_enrich.mjs public/build/dataset.json "${{ steps.pick.outputs.overrides }}" --write public/build/dataset.json
 
-      - name: Refresh version.json hash (always after overrides)
+      - name: Refresh version.json hash (after overrides)
         run: |
-          node - <<'NODE'
-          const fs = require('fs');
-          const crypto = require('crypto');
-          const dsPath = 'public/build/dataset.json';
-          const verPath = 'public/build/version.json';
-          const commit = process.env.GITHUB_SHA || 'dev';
-          if (!fs.existsSync(dsPath)) {
-            console.error('Missing '+dsPath);
-            process.exit(1);
-          }
-          const buf = fs.readFileSync(dsPath);
-          const hash = crypto.createHash('sha256').update(buf).digest('hex');
-          let generated_at = new Date().toISOString();
-          try {
-            const meta = JSON.parse(buf.toString());
-            if (meta && typeof meta === 'object' && meta.generated_at) {
-              generated_at = meta.generated_at;
-            }
-          } catch {}
-          let ver = { dataset_version: 1, content_hash: hash, generated_at, commit };
-          try {
-            const prev = JSON.parse(fs.readFileSync(verPath, 'utf8'));
-            ver = { ...prev, content_hash: hash, generated_at, commit };
-          } catch {}
-          fs.writeFileSync(verPath, JSON.stringify(ver));
-          console.log('[version] content_hash=', hash);
-          NODE
+          set -euxo pipefail
+          HASH=$(sha256sum public/build/dataset.json | cut -d' ' -f1)
+          COMMIT="${GITHUB_SHA:-dev}"
+          node -e "const fs=require('fs');const vp='public/build/version.json';let v={dataset_version:1,content_hash:process.env.HASH,generated_at:new Date().toISOString(),commit:process.env.COMMIT};try{const p=JSON.parse(fs.readFileSync(vp,'utf8'));v={...p,content_hash:process.env.HASH,commit:process.env.COMMIT};}catch{}fs.writeFileSync(vp,JSON.stringify(v));"
 
       - name: Commit changes (if any)
         run: |
@@ -95,4 +77,3 @@ jobs:
             git push
           else
             echo "No changes to commit."
-
