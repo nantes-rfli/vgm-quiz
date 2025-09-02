@@ -18,6 +18,7 @@
 ## QA / Monitoring
 - [e2e (daily share & latest smoke)](e2e-daily-pages-smoke.md)
 - [e2e (auto badge smoke)](e2e-auto-badge-smoke.md)
+- [e2e (light regressions)](e2e-light-regressions.md)
 - [lighthouse (budgets, nightly)](lighthouse-budgets.md)
 
 ## CI Status

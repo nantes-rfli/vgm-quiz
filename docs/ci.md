@@ -8,8 +8,12 @@
 - **`pages-pr-build.yml`** – PR用 Pages シム（Required: `pages-pr-build`）
 - **`daily.yml`** – 00:00 JST に `public/app/daily.json` と `/daily/*.html` と `/daily/feed.xml` を含む **bot PR** を作成
 - **`e2e-matrix.yml`** – Playwright E2E（smoke / a11y / footer / share / **normalize** / **lives**）手動＋Nightly(JST 04:40)
+- **`e2e-light-regressions.yml`** – 軽量回帰（**Keyboard flow** / **Share CTA visibility**）。手動＋Nightly(JST 04:25)
 - **`lighthouse.yml`** – Nightly Lighthouse CI（`?test=1&lhci=1`、**budgets** + **asserts**）
+- **`lighthouse-budgets.yml`** – 予算重視の軽量版（budgets の早期検知）
 - **`json-validate.yml`** – `daily.json` / `aliases.json` / `dataset.json` の軽量バリデーション
+- **`docs-enforcer.yml`** – コード変更があるPRに **ドキュメント更新**（`README` / `docs/**` / `FEATURES.*` / `ROADMAP` / `CHANGELOG`）が無いと **fail**
+- **`roadmap-guard.yml`** – 非ブロッキング。`FEATURES.yml` の **planned** が `ROADMAP.md` に無い場合、PRに**警告コメント**を付与
 
 ## E2E Suite
 
@@ -20,10 +24,15 @@ node e2e/test_footer_version.js
 node e2e/test_share.js
 node e2e/test_normalize.js  # ?mock=1 の normalize API を直接検証
 node e2e/test_lives.js      # lives=on の汎用検証（入力/MCQ/Enter のフォールバック）
+
+# 軽量回帰（ヘッドレス/高速）
+node e2e/test_keyboard_flow_smoke.mjs           # Tab→Enter で回答確定できること
+node e2e/test_share_cta_visibility.mjs          # /daily/*.html?no-redirect=1 にCTA/導線があること
 ```
 
 ### Nightly スケジュール（導入済み）
-- 実行時刻: **JST 04:40**（UTC 19:40）
+- 実行時刻: **JST 04:40**（UTC 19:40） – `e2e-matrix.yml`
+- 実行時刻: **JST 04:25**（UTC 19:25） – `e2e-light-regressions.yml`
 - 失敗時は該当スイートのアーティファクトを確認
 
 ### Artifact 保持
@@ -37,3 +46,7 @@ node e2e/test_lives.js      # lives=on の汎用検証（入力/MCQ/Enter のフ
 ## Required checks（Rulesets）
 - **`pages-pr-build` / `ci-fast-pr-build`** の2本が PR の Required。
   - ジョブ名がズレると PR が永遠に「waiting」になるため、変更時は Rulesets 側も必ず更新。
+
+## Docs / Roadmap の整合性チェック
+- **docs-enforcer**: コード変更のPRで **ドキュメント差分**が無いと **fail**
+- **roadmap-guard**: **非ブロッキング**。`FEATURES.yml` の planned が ROADMAP に無い場合のみ **警告コメント**
