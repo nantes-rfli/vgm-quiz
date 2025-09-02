@@ -87,6 +87,9 @@ jobs:
           node scripts/generate_daily_index.js
           ls -lah public/daily || true
 
+      - name: Ensure meta description in latest.html
+        run: node scripts/ensure_latest_meta.js
+
       - name: Generate Daily RSS feed
         run: node scripts/generate_daily_feed.js
 
@@ -105,3 +108,4 @@ jobs:
           delete-branch: true
           signoff: true
           labels: "automation,daily"
+
