@@ -1,14 +1,11 @@
 ## Summary
-<!-- 変更の要約 -->
+<!-- 変更の概要を簡潔に -->
 
 ## Checklist
-- [ ] E2E / Lint / Build がすべて緑（必要に応じて）
-- [ ] ドキュメント更新（該当時）: `docs/` or README
-- [ ] `/daily` 生成に影響する変更の場合は `daily.json generator (JST)` での確認メモを添付
-- [ ] `daily (auto …)` 実行時の挙動に影響する変更の場合は `e2e (auto choices smoke)` の確認メモを添付
+- [ ] 実装に関する **Docs を更新**（`README.md` / `docs/FEATURES.*` / `docs/params.md` / `docs/ROADMAP.md` いずれか）
+- [ ] E2E / CI に影響がある場合、関連ワークフローやテストを更新
+- [ ] ドキュメント不要な変更の場合のみ **label: docs:skip** を付与
 
-## Screenshots / Logs
-<!-- UI / Summary / Actions のログなど -->
-
-## Related Issues / PRs
-- 
+## Links
+- 本番確認URL:
+- 関連Issue/PR:
