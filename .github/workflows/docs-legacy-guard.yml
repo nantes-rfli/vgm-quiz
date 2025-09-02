@@ -24,6 +24,8 @@ jobs:
             "docs/TODO.md"
             "NOTES.md"
             "docs/notes/*.md"
+            "docs/params.md"
+            "docs/flags.md"
           )
           echo "found=" >> $GITHUB_OUTPUT
           for p in "${patterns[@]}"; do

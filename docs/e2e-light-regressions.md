@@ -42,4 +42,4 @@
 ## 関連
 - `docs/ci.md` – CI全体像
 - `docs/ops-runbook.md` – 運用フロー
-- `docs/urls-and-params.md` / `docs/params.md` – URL/クエリ仕様
+- `docs/urls-and-params.md` / `docs/urls-and-params.md` – URL/クエリ仕様

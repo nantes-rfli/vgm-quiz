@@ -13,3 +13,8 @@
   - E2Eアーティファクトの見方: `docs/ci.md`（「E2E アーティファクト」節）
 
 > 注: この一覧にあるファイルは、再導入しないでください（`docs/docs-architecture.md` を参照）。
+
+## 2025-09-02
+
+- `docs/params.md` → 統合のため削除。**正本は `docs/urls-and-params.md`** を参照。
+- `docs/flags.md` → 統合のため削除。**正本は `docs/urls-and-params.md`** を参照。

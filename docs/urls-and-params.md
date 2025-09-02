@@ -17,7 +17,7 @@
 
 - 最新: `/daily/latest.html` でも上記クエリが利用可能。
 
-> 一覧性のために要点のみを抜粋しています。網羅版は **[docs/params.md](./params.md)** を参照してください。
+> 一覧性のために要点のみを抜粋しています。このドキュメントが**正本（canonical）**です。将来的な変更も本ドキュメントを更新します。
 
 ### 検証向けクイックリンク（本番）
 
@@ -27,7 +27,21 @@
   `/app/?test=1`
 - **決定論シード（UIの同一性検証）**:  
   `/app/?test=1&seed=demo`
-- **モックデータ（高速E2E）**:  
+- **モックデータ（高速E2E）**:
   `/app/?test=1&mock=1&seed=demo`
 
 > ※ CI/E2Eでは `?test=1` を使い、SWの影響を排除して安定化しています。
+
+### Common flags（共通フラグ）
+
+| Flag | Example | Purpose |
+|---|---|---|
+| `test` | `?test=1` | Disable SW registration; expose debug vars; stub media |
+| `mock` | `?mock=1` | Test API & mocks (enables `window.__testAPI.normalize`) |
+| `seed` | `?seed=alpha` | Deterministic RNG |
+| `qp` | `?qp=1` | Year-bucket order pipeline |
+| `daily` | `?daily=1` / `?daily=2000-01-01` | 1-question mode (JST or fixed date) |
+| `autostart` | `?autostart=0` | Require manual Start |
+| `lhci` | `?lhci=1` | Stub media for Lighthouse |
+| `nomedia` | `?nomedia=1` | Manually stub media |
+| `lives` | `?lives=on` / `?lives=5` | End immediately when misses reach limit |
