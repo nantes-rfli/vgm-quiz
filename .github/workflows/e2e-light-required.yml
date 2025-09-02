@@ -1,0 +1,23 @@
+name: e2e (light required)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  required-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check /daily/latest.html meta description (required)
+        env:
+          APP_URL: ${{ vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+        run: node e2e/test_daily_latest_meta.mjs
