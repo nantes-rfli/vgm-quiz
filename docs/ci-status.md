@@ -17,3 +17,8 @@
 
 - **daily.json generator (JST)**  
   *(既存ワークフロー名に合わせて必要なら差し替えてください)*
+
+### Required にするチェック（推奨・最小）
+- **e2e (light required) / required-check** をブランチプロテクションの **Required** に設定すると、
+  Pages の `latest.html` に `meta[name=description]` が常に存在することを PR 時に保証できます。
+  （軽量・安定で、他のチェックは非ブロッキングのまま運用可能）
