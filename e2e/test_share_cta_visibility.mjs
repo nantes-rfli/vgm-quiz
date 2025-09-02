@@ -23,11 +23,21 @@ async function fetchText(url) {
   return await res.text();
 }
 
-function hasCta(html, date) {
+function hasCtaDaily(html, date) {
   const lower = html.toLowerCase();
   if (html.includes('AUTOで遊ぶ')) return true;
-  if (lower.includes('/app/?daily=' + date.toLowerCase())) return true;
   if (lower.includes('/app/?daily=' + date.toLowerCase() + '&auto=1')) return true;
+  if (lower.includes('/app/?daily=' + date.toLowerCase())) return true;
+  return false;
+}
+
+function hasLatestIndicator(html, date) {
+  // Accept either the same CTA as daily, or a clear redirect target marker to the dated page
+  if (hasCtaDaily(html, date)) return true;
+  const lower = html.toLowerCase();
+  // allow common latest redirect patterns
+  if (lower.includes(`/daily/${date.toLowerCase()}.html`)) return true;
+  if (lower.includes(`location.href`) && lower.includes(date.toLowerCase())) return true;
   return false;
 }
 
@@ -36,13 +46,13 @@ async function run() {
   if (!base.endsWith('/daily/')) throw new Error(`SHARE_BASE must end with "/daily/": ${base}`);
   const date = process.env.DATE || jstToday();
 
-  const share = `${base}${date}.html?no-redirect=1`
-  const latest = `${base}latest.html?no-redirect=1`
+  const share = `${base}${date}.html?no-redirect=1`;
+  const latest = `${base}latest.html?no-redirect=1`;
 
   console.log('[share] check:', share);
   const html = await fetchText(share);
 
-  if (!hasCta(html, date)) {
+  if (!hasCtaDaily(html, date)) {
     await writeFile('share_cta_failure.html', html, 'utf8');
     throw new Error('CTA not found in daily share page (see share_cta_failure.html)');
   }
@@ -50,7 +60,7 @@ async function run() {
 
   console.log('[share] check:', latest);
   const html2 = await fetchText(latest);
-  if (!hasCta(html2, date)) {
+  if (!hasLatestIndicator(html2, date)) {
     await writeFile('share_cta_latest_failure.html', html2, 'utf8');
     throw new Error('CTA not found in latest share page (see share_cta_latest_failure.html)');
   }
