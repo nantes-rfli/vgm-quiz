@@ -42,3 +42,6 @@ All notable changes to this project will be documented in this file.
 ## 既存のタグ
 - v1.0.1 以前：初期実装（MCQ/自由入力、正規化v1.2、SW更新、Daily/RSS、AUTO、A11yベースライン 等）
 
+## v1.0.2 — 2025-09-02
+
+- v1.1(AUTO可視性) deliverables shipped（AUTOトースト/設定UI/バッジA11y/latest CTA & meta/E2E）
