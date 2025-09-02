@@ -42,6 +42,11 @@ jobs:
           DATE: ${{ inputs.date }}
         run: node e2e/test_share_cta_visibility.mjs
 
+      - name: Check /daily/latest.html CTA presence
+        env:
+          APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+        run: node e2e/test_latest_cta_presence.mjs
+
       - name: Check /daily/latest.html meta description
         env:
           APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
