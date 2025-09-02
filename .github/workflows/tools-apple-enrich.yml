@@ -35,7 +35,6 @@ jobs:
 
       - name: Build dataset (EDN -> public/build/dataset.json)
         run: |
-          set -euxo pipefail
           clojure -T:build publish
           test -f public/build/dataset.json
           test -f public/build/version.json
@@ -43,7 +42,6 @@ jobs:
       - name: Determine overrides file
         id: pick
         run: |
-          set -e
           if [ -f "resources/data/apple_overrides.jsonc" ]; then
             echo "overrides=resources/data/apple_overrides.jsonc" >> "$GITHUB_OUTPUT"
           elif [ -f "data/apple_overrides.jsonc" ]; then
@@ -55,20 +53,15 @@ jobs:
       - name: Apply Apple overrides (if present)
         if: ${{ steps.pick.outputs.overrides != '' }}
         run: |
-          set -euxo pipefail
           echo "Using overrides: ${{ steps.pick.outputs.overrides }}"
           node scripts/enrich/apple_enrich.mjs public/build/dataset.json "${{ steps.pick.outputs.overrides }}" --write public/build/dataset.json
 
-      - name: Refresh version.json hash (after overrides)
+      - name: Refresh version.json hash
         run: |
-          set -euxo pipefail
-          HASH=$(sha256sum public/build/dataset.json | cut -d' ' -f1)
-          COMMIT="${GITHUB_SHA:-dev}"
-          node -e "const fs=require('fs');const vp='public/build/version.json';let v={dataset_version:1,content_hash:process.env.HASH,generated_at:new Date().toISOString(),commit:process.env.COMMIT};try{const p=JSON.parse(fs.readFileSync(vp,'utf8'));v={...p,content_hash:process.env.HASH,commit:process.env.COMMIT};}catch{}fs.writeFileSync(vp,JSON.stringify(v));"
+          node scripts/enrich/version_refresh.mjs public/build/dataset.json public/build/version.json
 
       - name: Commit changes (if any)
         run: |
-          set -euxo pipefail
           if ! git diff --quiet -- public/build/dataset.json public/build/version.json; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
