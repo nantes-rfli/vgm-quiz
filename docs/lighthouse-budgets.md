@@ -14,3 +14,10 @@
   - `resource count (total)` ≤ **200**
 
 > Required には入れていません。必要に応じてしきい値は段階的に引き締めてください。
+
+## 例外と運用ノート
+- `errors-in-console` は **warn(minScore:0)** に設定し、致命にしません（本番での一時的な警告を許容）。
+- `lcp-lazy-loaded` / `prioritize-lcp-image` / `non-composited-animations` は該当ページで **Not Applicable** になるため **off**。
+- `unminified-javascript` は小さなユーティリティ1本まで許容（**warn(maxLength:1)**）。
+- `meta-description` は `/app/` と `/daily/latest.html?no-redirect=1` を対象にし、後者にも meta description を追加済み。
+

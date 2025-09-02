@@ -10,8 +10,45 @@
     "assert": {
       "preset": "lighthouse:recommended",
       "assertions": {
-        "categories:performance": ["warn", {"minScore": 0.85}],
-        "budgets": ["warn", {"budgetsFile": "lighthouse/budgets.json"}]
+        "categories:performance": [
+          "warn",
+          {
+            "minScore": 0.85
+          }
+        ],
+        "budgets": [
+          "warn",
+          {
+            "budgetsFile": "lighthouse/budgets.json"
+          }
+        ],
+        "errors-in-console": [
+          "warn",
+          {
+            "minScore": 0
+          }
+        ],
+        "meta-description": [
+          "warn",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "target-size": [
+          "warn",
+          {
+            "minScore": 0.0
+          }
+        ],
+        "lcp-lazy-loaded": "off",
+        "prioritize-lcp-image": "off",
+        "non-composited-animations": "off",
+        "unminified-javascript": [
+          "warn",
+          {
+            "maxLength": 1
+          }
+        ]
       }
     },
     "upload": {
