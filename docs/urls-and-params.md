@@ -45,3 +45,7 @@
 | `lhci` | `?lhci=1` | Stub media for Lighthouse |
 | `nomedia` | `?nomedia=1` | Manually stub media |
 | `lives` | `?lives=on` / `?lives=5` | End immediately when misses reach limit |
+
+
+#### provider（dev）
+- `?provider=apple|youtube|auto` — **開発用強制切替**。既定は `auto`（*Apple Music preview* があれば優先、無ければ YouTube 公式へフォールバック）。
