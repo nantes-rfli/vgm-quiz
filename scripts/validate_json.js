@@ -11,6 +11,22 @@
 
 const fs = require('fs');
 const path = require('path');
+let allAliases = {};
+function warnAliasTargetExistence(allAliases, datasetTitles) {
+  const exists = new Set(datasetTitles.map(t => String(t).toLowerCase()));
+  const issues = [];
+  for (const [canon, alist] of Object.entries(allAliases)) {
+    if (!exists.has(String(canon).toLowerCase())) {
+      issues.push(`  - Canonical not found in dataset: "${canon}"`);
+    }
+  }
+  if (issues.length) {
+    console.warn(`[validate] alias referential integrity (non-blocking):\n` + issues.join('\n'));
+    if (process.env.ALIAS_STRICT === '1') {
+      throw new Error(`alias referential integrity failed: ${issues.length} issue(s)`);
+    }
+  }
+}
 
 function readJSON(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -156,6 +172,7 @@ function main() {
   const a1 = (function(){ try { return readJSON(path.join(root, 'public', 'build', 'aliases.json')); } catch (_) { return null; } })();
   const a2 = (function(){ try { return readJSON(path.join(root, 'public', 'app', 'aliases_local.json')); } catch (_) { return null; } })();
   const ds = (function(){ try { return readJSON(path.join(root, 'public', 'build', 'dataset.json')); } catch (_) { return null; } })();
+  allAliases = Object.assign({}, a1 || {}, a2 || {});
   checkAliasesJSON(path.join(root, 'public', 'build', 'aliases.json'));
   checkAliasesJSON(path.join(root, 'public', 'app', 'aliases_local.json'));
   spotCheckDataset(path.join(root, 'public', 'build', 'dataset.json'));
@@ -172,4 +189,16 @@ function main() {
 }
 
 main();
+
+// Non-blocking referential integrity check (toggle strict via ALIAS_STRICT=1)
+try {
+  const dsPath = path.join(process.cwd(), 'public', 'app', 'dataset.json');
+  if (fs.existsSync(dsPath)) {
+    const ds = JSON.parse(fs.readFileSync(dsPath, 'utf8'));
+    const titles = Array.isArray(ds) ? ds.map(x => x && (x.title || x.name || x.id)).filter(Boolean) : [];
+    warnAliasTargetExistence(allAliases, titles);
+  }
+} catch (e) {
+  console.warn('[validate] alias referential integrity check skipped:', e && e.message);
+}
 
