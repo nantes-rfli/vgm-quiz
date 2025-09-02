@@ -1,0 +1,79 @@
+name: docs legacy guard (non-blocking)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for legacy docs
+        id: scan
+        run: |
+          set -e
+          patterns=(
+            "PROJECT_STATUS.md"
+            "STATUS.md"
+            "docs/status.md"
+            "ROADMAP_old.md"
+            "ROADMAP_*.md"
+            "TODO.md"
+            "docs/TODO.md"
+            "NOTES.md"
+            "docs/notes/*.md"
+          )
+          echo "found=" >> $GITHUB_OUTPUT
+          for p in "${patterns[@]}"; do
+            matches=$(git ls-files -- "$p" || true)
+            if [ -n "$matches" ]; then
+              echo "$matches" >> legacy_found.txt
+            fi
+          done
+          if [ -f legacy_found.txt ]; then
+            echo "found=$(cat legacy_found.txt | wc -l | tr -d ' ')" >> $GITHUB_OUTPUT
+          else
+            echo "found=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment recommendations
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let files = [];
+            if (fs.existsSync('legacy_found.txt')) {
+              files = fs.readFileSync('legacy_found.txt', 'utf8').split('\n').filter(Boolean);
+            }
+            if (files.length === 0) {
+              core.info('No legacy docs detected');
+              return;
+            }
+            const lines = [];
+            lines.push('### 🧹 Legacy docs detected (non-blocking)');
+            lines.push('以下のファイルは **紛らわしい/重複の可能性**があります。削除または統合をご検討ください:');
+            for (const f of files) lines.push(`- \`${f}\``);
+            lines.push('---');
+            lines.push('**移行先（例）**');
+            lines.push('- `PROJECT_STATUS.md` → `docs/ci-status.md` + `docs/ROADMAP.md`');
+            lines.push('- `STATUS.md` → `docs/ci-status.md`');
+            lines.push('- `ROADMAP_old*.md` → `docs/ROADMAP.md`');
+            lines.push('- `TODO.md` → GitHub Issues/Projects');
+            lines.push('');
+            lines.push('このチェックは**非ブロッキング**です。');
+            const body = lines.join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const prev = comments.find(c => c.user.type === 'Bot' && c.body && c.body.includes('Legacy docs detected (non-blocking)'));
+            if (prev) {
+              await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: prev.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body });
+            }
