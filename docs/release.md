@@ -45,6 +45,26 @@ git push origin vX.Y.Z
 - [ ] Production sanity checks:
   - [ ] `/app/?test=1&autostart=0` loads
   - [ ] Media stubbed under `?test=1` / `?lhci=1`
-  - [ ] `window.__rng` is `"function"` and `console.table(window.__questionDebug)` works
+- [ ] `window.__rng` is `"function"` and `console.table(window.__questionDebug)` works
 - [ ] Create release notes (link to CHANGELOG)
+
+
+## Versioning model（Roadmap vs Tags）
+
+- **Roadmap v1.x** は「テーマ別のマイルストン番号」です（例: v1.1=“AUTO可視性”）。実装の進行管理のための **内部ラベル** で、SemVer ではありません。
+- **Gitタグ vMAJOR.MINOR.PATCH** は **出荷単位（リリース）** を表します。`release.yml` のトリガで配信され、`CHANGELOG.md` に記録します。
+
+運用ルール（最小）:
+- **PATCH**（例: `v1.0.2`, `v1.0.3`）… 小刻みな出荷（不具合修正・小改善・軽いFeatureの束）。
+- **MINOR**（例: `v1.1.0`）… まとまった機能群や大きめのUI変更を“ひと区切り”として出す時に使用。
+- **MAJOR**（例: `v2.0.0`）… 互換性に影響する破壊的変更（URL/paramsの非互換、データ形式刷新 等）。
+
+**対応関係（例）**（1:1 ではありません。1つのタグに複数の Roadmap 項目が含まれることがあります）:
+
+| Roadmap | リリースタグ（例） | 備考 |
+|---|---|---|---|
+| v1.1 “AUTO可視性” | `v1.0.2` | 軽量E2E/CTA/meta などを束ねて出荷 |
+| v1.2 “正規化・エイリアス拡充” | `v1.0.3` | 正規化ケース/aliasesスモーク/Budgets微調整 ほか |
+
+> 既存タグが未発行の場合は、完了後にまとめて `git tag v1.0.x && git push origin v1.0.x` で作成して構いません。
 
