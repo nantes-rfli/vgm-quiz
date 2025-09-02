@@ -1,0 +1,83 @@
+# Canonical feature inventory for vgm-quiz
+# status: implemented | planned | deprecated
+# since: version tag or date (YYYY-MM-DD)
+- id: quiz-modes
+  area: app
+  title: Quiz modes (MCQ / Free-form)
+  status: implemented
+  since: v1.0.0
+- id: deterministic-order
+  area: app
+  title: Deterministic ordering (seed + year-bucket pipeline)
+  status: implemented
+  since: v1.0.0
+- id: hud-a11y-baseline
+  area: a11y
+  title: HUD & a11y baseline (lives HUD, progressbar, polite timer, focus mgmt)
+  status: implemented
+  since: v1.0.0
+- id: results-modal-a11y
+  area: a11y
+  title: Results modal (accessible dialog, initial focus, Tab trap, Escape)
+  status: implemented
+  since: v1.0.0
+- id: media-stubs
+  area: media
+  title: Media stubs (YouTube nocookie→fallback, test/lhci/nomedia toggles)
+  status: implemented
+  since: v1.0.0
+- id: daily-mode
+  area: daily
+  title: Daily mode (?daily=1 / YYYY-MM-DD)
+  status: implemented
+  since: v1.0.0
+- id: lives-rule
+  area: gameplay
+  title: Lives rule (finish on limit)
+  status: implemented
+  since: v1.0.0
+- id: normalize-v1-2
+  area: normalize
+  title: Answer normalization v1.2 (NFKC, diacritics, punctuation, long sound mark, spaces, 1–20 Roman↔Arabic, articles, &→and, aliases)
+  status: implemented
+  since: v1.0.1
+- id: daily-feed
+  area: daily
+  title: Static RSS feed (/daily/feed.xml)
+  status: implemented
+  since: v1.0.0
+- id: sw-update-banner
+  area: sw
+  title: SW update banner (skipWaiting→controllerchange→reload)
+  status: implemented
+  since: v1.0.0
+- id: daily-share-js-redirect
+  area: share
+  title: Share page JS redirect (+ no-redirect / redirectDelayMs)
+  status: implemented
+  since: 2025-09-01
+- id: auto-mode
+  area: auto
+  title: AUTO mode (daily_auto.json choices apply)
+  status: implemented
+  since: v1.0.0
+- id: auto-any
+  area: auto
+  title: AUTO any (bypass match; test only)
+  status: implemented
+  since: v1.0.0
+- id: a11y-hardening
+  area: a11y
+  title: A11y hardening (focus ring, roles/labels, sr text) 
+  status: planned
+  since: null
+- id: difficulty-badge
+  area: ui
+  title: Difficulty badge (display-only)
+  status: planned
+  since: null
+- id: heuristic-media-guard
+  area: media
+  title: Heuristic media with safe fallback order
+  status: planned
+  since: null

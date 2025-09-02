@@ -36,15 +36,18 @@
 
 ### Share page
 - 毎日の共有用静的ページ: `public/daily/YYYY-MM-DD.html`
-- そのURLをSNSに貼ると、上記 OGP 画像のプレビューとともに **`/app/?daily=YYYY-MM-DD`** へ自動リダイレクトします。
+- そのURLをSNSに貼ると、上記 OGP 画像のプレビューとともに **JS リダイレクト**で `/app/?daily=YYYY-MM-DD` へ遷移します。
+- デバッグ用クエリ:
+  - `?no-redirect=1` → リダイレクト抑止
+  - `?redirectDelayMs=1500` → リダイレクトを 1.5s 遅延
 - 一覧: `/daily/index.html`（過去分のリンク集）
-- 常に当日: `/daily/latest.html`（メタリフレッシュで当日の share page へ）
+- 常に当日: `/daily/latest.html`（**JS リダイレクト**で当日の share page へ。上記のデバッグ用クエリも利用可）
 
   A small quiz app for video game music. Runs on GitHub Pages.
 
 - Production: https://nantes-rfli.github.io/vgm-quiz/app/
 - Daily index: https://nantes-rfli.github.io/vgm-quiz/daily/index.html
-- Daily latest redirect: https://nantes-rfli.github.io/vgm-quiz/daily/latest.html
+- Daily latest redirect: https://nantes-rfli.github.io/vgm-quiz/daily/latest.html （JS リダイレクト）
 - Daily RSS feed: https://nantes-rfli.github.io/vgm-quiz/daily/feed.xml
 - Repo: https://github.com/nantes-rfli/vgm-quiz
 
@@ -57,6 +60,18 @@ npx http-server -p 8080 -c-1 .    # or any static server
 # 2) open
 http://127.0.0.1:8080/app/?test=1&mock=1&autostart=0
 ```
+
+## Parameters (quick)
+
+- `?daily=1`（JST 今日）/ `?daily=YYYY-MM-DD`
+- `?auto=1` / `?auto_any=1`（検証用途）
+- `?seed=abc`（シード固定）, `?qp=1`（年次バケット・決定論的並び）
+- `?lives=on` または `?lives=5`（ライフゲージ。上限到達で終了/デフォルトは表示のみ）
+- `?test=1` / `?mock=1` / `?autostart=0`（ローカル検証向け）
+- `?lhci=1` / `?nomedia=1`（Lighthouse向けスタブ）
+- `/daily/*.html`: `?no-redirect=1` / `?redirectDelayMs=...`（JS リダイレクト制御）
+
+> 詳細は `docs/params.md` を参照。
 
 ## Features
 
