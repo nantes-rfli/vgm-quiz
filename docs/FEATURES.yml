@@ -81,6 +81,15 @@
   title: Heuristic media with safe fallback order
   status: planned
   since: null
+- id: i18n-core
+  title: Internationalization baseline (JP/EN)
+  area: i18n
+  status: planned
+  milestone: v1.5
+  description: |
+    Key-based UI messages, locale negotiation (?lang, localStorage, navigator.language),
+    Start view language toggle, localized html lang/title/meta, a11y labels, and a light E2E.
+  labels: [i18n, ui, a11y]
 
 
 - id: auto-on-toast
