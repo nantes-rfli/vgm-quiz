@@ -10,6 +10,15 @@
 
 ---
 
+### Status quick view（v1.x）
+| Version | Status | Highlights (Done) | Remaining (key) |
+|---|---|---|---|
+| v1.1 | **Done (2025-09-02)** | AUTOトースト/設定UI/バッジA11y、latest CTA・meta、軽量E2E | — |
+| v1.2 | **Done (2025-09-02)** | 正規化ケース拡充、Node/Browserパリティ、alias衝突スモーク、CTA監視、Budgets微調整、Docs整備 | — |
+| v1.3 | **In progress** | Budgetsの安全幅を僅かに縮小 | 未使用アセット削減、遅延読込/プリロード最適化、SW堅牢化 |
+| v1.4 | **In progress** | AUTOバッジA11y（静的テスト付）、キーボード操作維持 | フォーカスリング、主要ロール/ラベル、簡易aXeチェック |
+| v1.5 | **Planned** | — | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） |
+
 ## 現状 (v1.0.x Stabilization) — 完了/運用中
 - キーボード操作（Tab/Enter/Space の基本操作）: **実装済み（Baseline）**
 - /daily の **JS リダイレクト化**（`?no-redirect=1` / `?redirectDelayMs` 対応）
