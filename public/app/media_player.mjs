@@ -8,7 +8,7 @@ function chooseProvider(media){
   if (forced === 'apple' || forced === 'itunes') return 'apple';
   if (forced === 'youtube' || forced === 'yt') return 'youtube';
   // auto
-  if (media && media.apple && (media.apple.embedUrl || media.apple.previewUrl)) return 'apple';
+  if (media && media.apple && (media.apple.embedUrl || media.apple.previewUrl || media.apple.url)) return 'apple';
   return media && media.provider ? media.provider : 'youtube';
 }
 
