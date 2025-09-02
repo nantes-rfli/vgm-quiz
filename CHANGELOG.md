@@ -1,3 +1,7 @@
+## Unreleased
+
+- docs: ROADMAP synced with FEATURES (`a11y-hardening`, `difficulty-badge`, `heuristic-media-guard`)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
