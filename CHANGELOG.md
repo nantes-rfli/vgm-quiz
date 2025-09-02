@@ -45,3 +45,12 @@ All notable changes to this project will be documented in this file.
 ## v1.0.2 — 2025-09-02
 
 - v1.1(AUTO可視性) deliverables shipped（AUTOトースト/設定UI/バッジA11y/latest CTA & meta/E2E）
+
+## v1.0.3 — 2025-09-02
+
+- test(normalize): 境界ケースの追加（全角/波ダッシュ/ローマ数字等）
+- test(parity): Node/Browser 正規化パリティのサンプルを拡充
+- test(e2e-light): aliases 正規化キーの**衝突スモーク**を追加
+- test(e2e-light): `latest.html` **CTA presence** の監視を追加
+- ci(lhci): Budgets をごく僅かに引き締め（安全幅）
+- docs: CI・運用・正本の整理（params/flags の統合、Required チェックの明記 など）

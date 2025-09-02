@@ -48,7 +48,7 @@
 - latest.html：CTA『アプリで今日の1問へ』を表示（ジェネレータ＋postbuildガード）
 - latest.html：`meta name=description` を恒久化（postbuildガード）
 - 軽量E2Eの追加（latest meta / auto settings）、既存E2E・Lighthouseは緑継続
-## v1.2 — データ拡張 (media/難易度) の土台づくり
+## v1.2 — データ拡張 (media/難易度) の土台づくり — *(Done 2025-09-02)*
 **狙い**: クイズ体験にリッチさとバリエーションを追加。
 
 **機能/変更**
@@ -63,6 +63,13 @@
 - media が有効化された日の E2E でも落ちない（存在しない場合は安全に無視）
 
 ---
+
+- 正規化ケースの拡充（全角/波ダッシュ/ローマ数字境界/スラッシュ 等）
+- Node/Browser **normalize parity** サンプルの拡充
+- **エイリアス正規化衝突スモーク**（aliases の正規化キー衝突検知）
+- `latest.html` CTA の恒久化を**E2Eで監視**（presence）
+- Lighthouse Budgets を**安全幅で**微調整（早期退行検知）
+- Docs整備（CI/運用/ガード、正本の一本化・参照修正）
 
 ## v1.3 — パフォーマンス強化 (Hardening)
 **狙い**: 体感を落とさずに退行を抑止。
