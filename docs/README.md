@@ -9,6 +9,7 @@
 - [Architecture (high-level)](architecture.md)
 - [Pipeline overview](pipeline.md)
 - [ops / runbook](ops.md)
+- [docs architecture](docs-architecture.md)
 - [Ops Tips](ops-tips.md)
 - [Troubleshooting](troubleshooting.md)
 - [Release checklist](release-checklist.md)
