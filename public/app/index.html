@@ -54,6 +54,13 @@
   <label style="margin-left:8px">
     <input type="checkbox" id="timer20"> タイマー(20s)
   </label>
+  <fieldset style="margin-top:8px">
+    <legend>AUTO mode</legend>
+    <label>
+      <input type="checkbox" id="auto-enabled" data-testid="auto-enabled"> AUTOを有効にする
+    </label>
+    <div class="sr-only" aria-hidden="false">キーボード操作で Tab → Enter だけで回答できます。</div>
+  </fieldset>
   <label>Number of questions
     <select id="count">
       <option value="5">5</option>
@@ -61,28 +68,6 @@
       <option value="20">20</option>
     </select>
   </label>
-  
-  <fieldset id="auto-settings">
-    <legend>AUTO mode</legend>
-    <label><input id="auto-enabled" type="checkbox"> Enable AUTO (show 4 choices when available)</label>
-    <div class="sr-only" aria-live="polite">AUTO setting persisted</div>
-  </fieldset>
-  <script type="module">
-  (function(){
-    try {
-      const SETTINGS_KEY = 'quiz-options';
-      const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-      const box = document.getElementById('auto-enabled');
-      if (box) {
-        box.checked = s.auto_enabled === true;
-        box.addEventListener('change', ()=> {
-          s.auto_enabled = !!box.checked;
-          localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-        });
-      }
-    } catch(_) {}
-  })();
-  </script>
 <button id="start-btn" disabled data-testid="start-btn">Start</button>
   <div id="dataset-error" style="display:none;color:red;"></div>
   <button id="history-btn">History</button>

@@ -3,7 +3,13 @@
 
 function isEnabled() {
   const sp = new URLSearchParams(location.search);
-  return sp.get('auto') === '1' || sp.get('daily_auto') === '1';
+  const qs = sp.get('auto') === '1' || sp.get('daily_auto') === '1';
+  let persisted = false;
+  try {
+    const s = JSON.parse(localStorage.getItem('quiz-options')) || {};
+    persisted = !!s.auto_enabled;
+  } catch {}
+  return qs || persisted;
 }
 
 function injectBadge(text = 'AUTO') {
@@ -12,6 +18,7 @@ function injectBadge(text = 'AUTO') {
   badge.id = 'auto-mode-badge';
   badge.setAttribute('role', 'status');
   badge.setAttribute('aria-live', 'polite');
+  badge.setAttribute('aria-label', 'AUTOモードON');
   badge.style.position = 'fixed';
   badge.style.top = '12px';
   badge.style.right = '12px';

@@ -1173,6 +1173,15 @@ modeEl.addEventListener('change', () => {
   settings.mode = modeEl.value;
   saveSettings();
 });
+const autoEl = document.getElementById('auto-enabled');
+if (autoEl) {
+  // reflect saved state
+  autoEl.checked = !!settings.auto_enabled;
+  autoEl.addEventListener('change', () => {
+    settings.auto_enabled = !!autoEl.checked;
+    saveSettings();
+  });
+}
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {

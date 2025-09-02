@@ -26,6 +26,7 @@
 ---
 
 ## v1.1 — AUTO モード品質 & UX の底上げ（最優先）
+- Deliverables: AUTO起動トースト、Start設定UI（AUTOを有効にする・永続化）、AUTOバッジのA11y（aria-label）。
 **狙い**: “AUTOで遊ぶ”の価値を安定供給する。
 
 **機能/変更**
