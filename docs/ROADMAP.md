@@ -25,7 +25,7 @@
 
 ---
 
-## v1.1 — AUTO モード品質 & UX の底上げ（最優先）
+## v1.1 — AUTO モード品質 & UX の底上げ（最優先） — *(Done 2025-09-02)*
 - Deliverables: AUTO起動トースト、Start設定UI（AUTOを有効にする・永続化）、AUTOバッジのA11y（aria-label）。
 **狙い**: “AUTOで遊ぶ”の価値を安定供給する。
 
@@ -42,7 +42,12 @@
 - 既存 Required への影響ゼロ（独立ワークフロー or Required 非連動のまま）
 
 ---
-
+- AUTO起動トースト（?auto=1 / 永続ON時、1セッション1回表示）
+- Start画面：『AUTOを有効にする』（localStorage: `quiz-options.auto_enabled`）
+- AUTOバッジのA11y強化（`role=status` / `aria-live=polite` / `aria-label`）
+- latest.html：CTA『アプリで今日の1問へ』を表示（ジェネレータ＋postbuildガード）
+- latest.html：`meta name=description` を恒久化（postbuildガード）
+- 軽量E2Eの追加（latest meta / auto settings）、既存E2E・Lighthouseは緑継続
 ## v1.2 — データ拡張 (media/難易度) の土台づくり
 **狙い**: クイズ体験にリッチさとバリエーションを追加。
 
