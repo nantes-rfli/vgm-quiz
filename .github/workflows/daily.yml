@@ -95,8 +95,8 @@ jobs:
 
       - name: Generate Daily RSS feed
         run: node scripts/generate_daily_feed.js
-
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
@@ -111,4 +111,12 @@ jobs:
           delete-branch: true
           signoff: true
           labels: "automation,daily"
+
+      - name: Enable auto-merge (squash)
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
 
