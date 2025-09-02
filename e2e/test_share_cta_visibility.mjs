@@ -36,7 +36,9 @@ function hasLatestIndicator(html, date) {
   if (hasCtaDaily(html, date)) return true;
   const lower = html.toLowerCase();
   // allow common latest redirect patterns
-  if (lower.includes(`/daily/${date.toLowerCase()}.html`)) return true;
+  if (lower.includes(`/daily/${date.toLowerCase()}.html`)) return true;                  // absolute path
+  if (lower.includes(`href="./${date.toLowerCase()}.html"`)) return true;               // relative link in href
+  if (lower.includes(`>${date.toLowerCase()}<`)) return true;                           // anchor text contains the date
   if (lower.includes(`location.href`) && lower.includes(date.toLowerCase())) return true;
   return false;
 }
