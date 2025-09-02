@@ -2,6 +2,12 @@
 
 目的: v1.0.1 以降の開発方針を明確化し、**小さな安全な前進**を積み重ねる。各マイルストーンには**受け入れ基準 (DoD)** を設定。
 
+> **Note on source of truth**
+> - 機能の正本は **`docs/FEATURES.yml`**（implemented / planned / deprecated）。
+> - 本ドキュメントは **背景・優先度・DoD の物語**を与える位置付けです。
+> - CI の **roadmap-guard** が、FEATURES の `planned` がRoadmapに現れない場合に **非ブロッキング警告**を出します。
+> - Docs の更新漏れは **docs-enforcer** が検知（コード変更のPRでDocs差分が無ければ fail、`docs:skip` ラベルで明示除外可）。
+
 ---
 
 ## 現状 (v1.0.x Stabilization) — 完了/運用中
