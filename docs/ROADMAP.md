@@ -167,6 +167,16 @@
   - 問題文＆解答表示に **JP+EN併記**（i18n経由）を反映。
   - **1本の日次サンプル**を生成可能（生成 or スタブ）。シェアページでも表示崩れがない。
 
+
+
+---
+
+## Next actions (operational, now)
+1. **Post-merge check**（本番）: `latest.html` と `/app/?provider=auto&test=1&mock=1`（メディア枠ありの日）で **Apple優先** を軽く目視。SWの影響を避けるためシークレットウィンドウで。
+2. **clip-start-heuristics v2 の下地**: `public/app/media/clip_start.mjs` を分離（`pickClipStartV2()` を **feature flag `?clip2=1`** で試験導入）。既存ロジックはデフォルトのまま。
+3. **difficulty v2 仕様メモ**（docs/）: 指標（年代/別名密度/シリーズ知名度/露出）と合成式を docs に草案化（Node/Browser parity 前提）。
+4. **Architecture docs**: Clojure×JS の役割分担とフォルダ境界を `docs/structure.md` に固定化。将来のリファクタ窓は `docs/refactor-plan.md` にスケジュール化。
+
 ## Backlog / 調査項目
 - PWA（オフライン対応・音声/画像のキャッシュ戦略）
 - クリエイター向けツール（データ編集/可視化）
