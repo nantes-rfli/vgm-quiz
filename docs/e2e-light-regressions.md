@@ -42,4 +42,5 @@
 ## 関連
 - `docs/ci.md` – CI全体像
 - `docs/ops-runbook.md` – 運用フロー
-- `docs/urls-and-params.md` / `docs/urls-and-params.md` – URL/クエリ仕様
+- `docs/urls-and-params.md`（正本） – URL/クエリ仕様
+- **AUTO badge a11y (static)** — `public/app/auto_badge.mjs` 内に a11y 属性（`role` / `aria-live` / `aria-label`）が含まれることをチェック。
