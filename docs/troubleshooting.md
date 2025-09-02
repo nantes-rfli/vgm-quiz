@@ -16,3 +16,12 @@
 
 ## PR が作られない
 - 差分が無い場合は正常。Summary に `(no changes / not created)` が出る。
+
+
+## Required が「待機中」から進まない（自動PR）
+- 自動PRを **GITHUB_TOKEN** で作成すると、状況によって `pull_request` ワークフローが**発火しない**ケースがあります。
+- 対処：
+  1. PR作成は **Fine-grained PAT (`CPR_PAT`)** を使用（`peter-evans/create-pull-request` の `with.token`）。
+  2. PRブランチは毎回ユニーク（`bot/apple-enrich-${{ github.run_id }}`）。
+  3. 既存PRが“待機中”なら **Close→Reopen** または **空コミット**（`git commit --allow-empty && git push`）で再通知。
+- Pages/CI/E2E の **Required 名**（`pages-pr-build` / `ci-fast-pr-build` / `required-check`）と **Job名** が一致しているかも点検。

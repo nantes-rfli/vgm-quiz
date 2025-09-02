@@ -15,8 +15,17 @@ If you rename jobs or workflows, update Rulesets so PRs don’t get stuck in “
 
 ## Secrets
 
-- `DAILY_PR_PAT` – Personal Access Token (classic), **repo** scope is enough. Used by `daily.yml` to author PRs as you.
+- `DAILY_PR_PAT`
+  - Personal Access Token (classic), **repo** scope is enough. Used by `daily.yml` to author PRs as you.
   - Renew before it expires; if it expires the PR author becomes `github-actions[bot]` and the daily PR may fail.
+
+- `CPR_PAT` – Fine-grained Personal Access Token used by **tools-apple-enrich** to create PRs (so that **Required checks trigger**).
+  - **Repository access**: Only this repo
+  - **Permissions** (minimum):
+    - Contents: **Read and write**
+    - Pull requests: **Read and write**
+    - Issues: **Read and write**（ラベル付与をする場合）
+  - Classic PAT を使う場合は `repo` スコープで代替可
 
 ## Pages
 

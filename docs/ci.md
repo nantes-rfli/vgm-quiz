@@ -2,6 +2,11 @@
 
 ## Workflows
 
+### PR authoring token (tools-apple-enrich)
+- `tools-apple-enrich` で作成する自動PRは、**GITHUB_TOKEN ではなく PAT (`CPR_PAT`) を使用**します。
+- 目的：PR作成イベントが **pull_request** の Required を確実に発火させるため（待機中の回避）。
+- ブランチは毎回 `bot/apple-enrich-${{ github.run_id }}` のように**ユニーク**に作成します（古いPRとの干渉防止）。
+
 - **`ci-fast.yml`** – main branch: `clojure -T:build publish` → `clojure -M:test`
 - **`ci-fast-pr.yml`** – PR軽量チェック（Required: `ci-fast-pr-build`）
 - **`pages.yml`** – main への push / 手動で `public/` を GitHub Pages に配信（配信前に **daily index/RSS** を再生成）
