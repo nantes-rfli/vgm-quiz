@@ -81,3 +81,10 @@
   title: Heuristic media with safe fallback order
   status: planned
   since: null
+
+
+- id: auto-on-toast
+  area: ui
+  title: AUTO ON toast (+ persistent setting)
+  status: implemented
+  since: 2025-09-02

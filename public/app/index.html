@@ -13,6 +13,7 @@
 <!-- Load auto choices (no-op unless ?auto=1 or ?daily_auto=1) BEFORE mc.js so it can consult overrides -->
 <script type="module" src="./auto_choices_loader.mjs"></script>
 <script type="module" src="./auto_badge.mjs"></script>
+<script type="module" src="./auto_toast.mjs"></script>
 
   <script>
     // Conditionally load test API when ?mock=1
@@ -60,7 +61,29 @@
       <option value="20">20</option>
     </select>
   </label>
-  <button id="start-btn" disabled data-testid="start-btn">Start</button>
+  
+  <fieldset id="auto-settings">
+    <legend>AUTO mode</legend>
+    <label><input id="auto-enabled" type="checkbox"> Enable AUTO (show 4 choices when available)</label>
+    <div class="sr-only" aria-live="polite">AUTO setting persisted</div>
+  </fieldset>
+  <script type="module">
+  (function(){
+    try {
+      const SETTINGS_KEY = 'quiz-options';
+      const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      const box = document.getElementById('auto-enabled');
+      if (box) {
+        box.checked = s.auto_enabled === true;
+        box.addEventListener('change', ()=> {
+          s.auto_enabled = !!box.checked;
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+        });
+      }
+    } catch(_) {}
+  })();
+  </script>
+<button id="start-btn" disabled data-testid="start-btn">Start</button>
   <div id="dataset-error" style="display:none;color:red;"></div>
   <button id="history-btn">History</button>
   <button id="export-aliases-btn">Export alias proposals (.edn)</button>

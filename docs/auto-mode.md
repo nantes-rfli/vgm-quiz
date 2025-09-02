@@ -36,3 +36,6 @@
 - `daily_auto.json` の変更が無い場合は **PR は作られない**（差分なし）。Summary は常に出力される。
 - AUTO バッジは `daily_auto.json` を読めたサインであり、choices の有無とは独立。
 
+## 通知・設定（UX）
+- **起動トースト（AUTO ON）**: `?auto=1` または設定ON時に、起動直後に画面下部へ「AUTOモードがONです」のトーストを表示します（4秒・手動で閉じる可）。`role="status"` / `aria-live="polite"` で読み上げ配慮、Reduced Motion に準拠。
+- **設定の永続化**: スタート画面に **AUTO モード** のチェック（`localStorage.quiz-options.auto_enabled`）を追加。ONにすると次回以降 `?auto=` を付けなくてもAUTOが有効になり、トーストも表示されます（セッション中は1回のみ）。

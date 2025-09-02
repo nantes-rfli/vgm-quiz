@@ -8,6 +8,7 @@
   - `lives=on` / `lives=5` : ライフゲージ（上限到達で終了／デフォルトは表示のみ）
   - `test=1` / `mock=1` / `autostart=0` : ローカル検証向け
   - `lhci=1` / `nomedia=1` : Lighthouse / メディア抑止向けスタブ
+  - （設定）`localStorage.quiz-options.auto_enabled=true` で AUTO を永続ON（起動トーストが1セッションに1回表示）
 
 - シェアページ: `/daily/YYYY-MM-DD.html`
   - `no-redirect=1` : リダイレクト抑止（デバッグ/視認性）

@@ -29,6 +29,8 @@
 **狙い**: “AUTOで遊ぶ”の価値を安定供給する。
 
 **機能/変更**
+- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
+- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
 - E2E（AUTO choices 可視性）: 4択 DOM にテキストが **4件** 描画されていることを軽量確認
 - 正規化の境界条件を補強（英数の大小/全角半角/記号の扱いの統一テスト）
 - /daily の導線微調整: JSリダイレクト発火前のボタン表示の安定性確認（latest 含む）
@@ -44,6 +46,8 @@
 **狙い**: クイズ体験にリッチさとバリエーションを追加。
 
 **機能/変更**
+- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
+- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
 - `allow_heuristic_media: true` の **安全ガード**（不在/404/遅延時のフォールバック勝ち順）
 - 難易度スコア（仮: `difficulty`）を `daily.json` に付与（ヒューリスティック + しきい値）
 - UI: 難易度バッジ（表示のみ、フィルタは後続）
@@ -58,6 +62,8 @@
 **狙い**: 体感を落とさずに退行を抑止。
 
 **機能/変更**
+- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
+- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
 - Lighthouse Budgets の **段階的引き締め**（warn のまま閾値を少しだけ上げる）
 - 画像/JS の軽量化: 使用していないアセットの削減、遅延読込の徹底、プリロード最適化
 - SW: ポーリング間隔とハンドシェイク処理の堅牢化（ネットワーク劣化時の挙動）
@@ -75,6 +81,8 @@
 - Tab で選択肢にフォーカス遷移、Enter/Space で確定は **実装済み**
 
 **機能/変更**
+- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
+- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
 - フォーカス可視化の明確化（focus ring, :focus-visible）
 - ARIA ロール/ラベルの付与（選択肢/ボタン/ランドマーク）
 - フォーカス順序と読み上げ文言の点検（スクリーンリーダー簡易確認）
@@ -92,6 +100,8 @@
 **狙い**: バックエンドなしで楽しさを増す。
 
 **機能/変更**
+- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
+- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
 - ローカルの連続記録（streak）、前回スコアの保存（localStorage）
 - 結果の共有リンク（クエリ or フラグメントでシード化）
 - テーマ切替（ライト/ダーク）

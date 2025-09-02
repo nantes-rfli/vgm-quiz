@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## 2025-09-02
 
 ### Added
+- **AUTO ON toast**: `public/app/auto_toast.mjs`（?auto=1 または設定ONで起動時に通知、1セッション1回）
+- **AUTO settings (persist)**: Start画面にチェックを追加し `localStorage.quiz-options.auto_enabled` を保持
+- **e2e (auto toast)**: `e2e/test_auto_toast.mjs` ＋ `.github/workflows/e2e-auto-toast.yml` を追加
+
+### Added
 - **e2e (light regressions)**: 
   - `e2e/test_keyboard_flow_smoke.mjs`（Tab→Enter で回答できるかの最小回帰）
   - `e2e/test_share_cta_visibility.mjs`（`/daily/*.html?no-redirect=1` / `latest.html` のCTA/導線確認）
