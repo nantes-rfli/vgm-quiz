@@ -32,3 +32,25 @@
 
 ## Writing
 - [Docs Style Guide](STYLEGUIDE.md)
+
+## ドキュメント更新の流儀（最小）
+
+- **正本（canonical）を先に直す**  
+  パラメータ/URL/フラグは `docs/urls-and-params.md` が正本。ここを更新 → 実装/テストを追従。
+
+- **整合の三段**  
+  `FEATURES.yml（planned）` → `docs/ROADMAP.md` → `docs/urls-and-params.md` の順で整合を取る。
+
+- **廃止は ARCHIVE へ**  
+  古い/重複ドキュメントは `docs/ARCHIVE.md` に記録して削除（再追加しない）。
+
+- **自動ガードを味方に**  
+  - docs-enforcer: コード変更PRに docs差分が無いと **fail**（`docs:skip` 可）。  
+  - roadmap-guard: `FEATURES.yml` の planned が ROADMAP に無いと **警告**。  
+  - docs-legacy-guard: 旧ファイルの再導入は **警告**。
+
+- **PRチェック（最小）**  
+  1) 正本の更新有無（`urls-and-params.md` 等）  
+  2) ROADMAP/FEATURES の drift 無し  
+  3) 古い docs の再導入無し（ARCHIVE に追記済み）  
+  4) 変更に応じて E2E / Budgets の説明を必要最小限で更新
