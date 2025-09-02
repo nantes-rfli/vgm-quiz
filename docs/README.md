@@ -8,12 +8,14 @@
 ## Architecture / Pipelines / Ops
 - [Architecture (high-level)](architecture.md)
 - [Pipeline overview](pipeline.md)
-- [Ops runbook](ops-runbook.md)
+- [ops / runbook](ops.md)
 - [Ops Tips](ops-tips.md)
 - [Troubleshooting](troubleshooting.md)
 - [Release checklist](release-checklist.md)
 - [Glossary](glossary.md)
 - [URLs & Query Params](urls-and-params.md)
+- [labels](labels.md)
+- [ci overview](ci.md)
 
 ## QA / Monitoring
 - [e2e (daily share & latest smoke)](e2e-daily-pages-smoke.md)

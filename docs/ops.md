@@ -1,53 +1,68 @@
-# 運用 Runbook（vgm-quiz）
+# Ops / Runbook
 
-## 1) SW 更新確認（更新バナーを出す手順）
-仕様：**新SWが `waiting` になった時だけ**更新バナーを表示します。
-手順：
-1. `public/app/sw.js` にコメント1行追加 → push（Pages配信）
-2. 既存タブでコンソール実行：
-   ```js
-   navigator.serviceWorker.getRegistration().then(r => r && r.update())
-   ```
-3. バナー表示→「更新」をクリック（リロード）
+日々の運用で迷いやすいポイントを集約します。**まず困ったらここを見る**、を目指します。
 
-## 2) Required チェックが「待機」のまま
-- ルールセット上の Required 名：`pages-pr-build` / `ci-fast-pr-build`
-- PRブランチに該当のYAMLが未反映の場合：**Update branch** または 空コミット
-- `github-actions[bot]` が PR author → **DAILY_PR_PAT** 未設定 or 期限切れの可能性
+## 目次
+- SW更新確認フロー（waiting→更新バナー）
+- Required ジョブ名の注意・Checks が待機のままの対処
+- DAILY_PR_PAT の期限切れ兆候と対処
+- Actions からの手動実行（json-validate / Pages / e2e）
+- /daily の JS リダイレクトとデバッグ
+- よくある落とし穴（YAML / Shell 展開 / daily_auto）
 
-## 3) DAILY_PR_PAT 期限切れの兆候
-- Daily PR の author が `github-actions[bot]`
-- Checks が走らない／保留が解けない
-対処：
-1. PAT 設定を再確認（権限：`repo`、期限）
-2. Actions Secrets の値を更新
-3. 次回スケジュール or 手動トリガで再検証
+---
 
-## 4) /daily の生成物
-- `scripts/generate_daily.js`：JST・FNV1a・直近30日重複回避 → `public/app/daily.json`
-- `scripts/generate_daily_index.js` → `/daily/index.html`
-- `scripts/generate_daily_feed.js` → `/daily/feed.xml`
-- `/daily/latest.html` は当日へのリダイレクト
-- Pages 配信直前にも **保険**として index / feed を再生成（`pages.yml`）
+## Actions 手動実行のコツ
 
-## 5) JSON バリデータ（手動実行）
-Actions → **json-validate** → **Run workflow**  
-成功時：Run Summary に「✅ JSON validate passed」  
-失敗時：ログに重複・衝突の詳細（aliases正規化キー／dataset正規化一致）
+- **Pages**: `pages.yml` を Run → OGPや `/daily/index.html` の再生成も含む
+- **json-validate**: `dataset.json` / `aliases*.json` / `daily.json` を軽量チェック
+- **e2e (light regressions)**: キーボード操作／Share CTA の軽量回帰
+  - `date`: 生成済みの日付（例: `2025-09-01`）を入れると安定
+  - `app_url` / `share_base`: 空欄でOK（既定は本番URL）
+  - 失敗時はアーティファクト（`kb_flow_failure.*` / `share_cta*.html`）を参照
 
-## 6) Pages が反映されない
-- `pages.yml` の配信パス：`public/` を確認
-- Actions → Pages → **Run workflow**（手動再配信）
+## /daily の JS リダイレクトとデバッグ
 
-## 7) E2E が不安定
-- SW キャッシュの影響 or UI変更
-- `?test=1&mock=1&seed=...&nomedia=1` のフォールバックで緩和済み
+- **シェアページ**: `public/daily/YYYY-MM-DD.html` は **JS リダイレクト**で `/app/?daily=YYYY-MM-DD` へ遷移
+- **デバッグクエリ**:
+  - `?no-redirect=1` → 自動遷移を抑止し、ページ内の導線（「AUTOで遊ぶ」など）を目視確認
+  - `?redirectDelayMs=1500` → 遷移まで 1.5 秒間の余裕を作る
+- **latest**: `/daily/latest.html` でも上記クエリ使用可。実装は相対リンクやテキスト日付での誘導でもOK
 
-## 8) よく使うコマンド
-```bash
-clojure -T:build publish   # build/ を生成
-clojure -M:test            # テスト
-node scripts/generate_daily_index.js
-node scripts/generate_daily_feed.js
-```
+## よくある落とし穴（YAML / Shell / daily_auto）
+
+### GitHub Actions YAML
+- **ハイフン入りの outputs**（例: `pull-request-number`）は **ブラケット記法で参照**:  
+  `steps.cpr.outputs['pull-request-number']`  
+  ドット記法は NG（syntax error / 実行時エラーの原因）。
+- `if:` の式で空 evaluates を避けるため、`||` でフォールバックを入れると安全。
+
+### Shell / Node
+- `node -e "…${{ … }}…"` のような **シェル展開**は、引用ミスで壊れやすい。  
+  → 可能なら **Here-Doc** で渡すか、**`node - <<'JS' … JS`** 形式を推奨。
+
+### daily_auto（AUTOモード）
+- `daily_auto.json` に **差分が無いと** PRは作られない（正常挙動）。
+- `?auto=1` は **choices の有無と独立**：ファイルが読めれば**右上バッジに AUTO**が出る。
+- **適用されない時**の確認順:
+  1. URLに `?auto=1` が付いているか
+  2. 対象曲の **正規化一致**を満たしているか（検証時は `?auto_any=1` を併用）
+
+## Required / Checks が待機のまま
+
+- Rulesets 側で **Required 名**（`pages-pr-build` / `ci-fast-pr-build`）とジョブ名が一致しているかを確認。  
+  ジョブ名を変更した場合、Rulesetsも併せて更新が必要です。
+
+## Docs 整合性 / Roadmap ガード
+
+- **docs-enforcer**: コード変更があるPRで **ドキュメント差分**（`README` / `docs/**` / `FEATURES.*` / `ROADMAP` / `CHANGELOG`）が無いと **fail**。  
+  例外は **`docs:skip`** ラベルで明示。
+- **roadmap-guard（非ブロッキング）**: `docs/FEATURES.yml` の **planned** が `docs/ROADMAP.md` に見当たらない場合、**警告コメント**をPRに付与。  
+  正本は **FEATURES.yml**。Roadmapは**背景/順序の説明**として整合させる。
+
+## トラブルシューティング
+
+- **Share が真っ白→即遷移して見えない**: `?no-redirect=1` で抑止、`?redirectDelayMs=1500` で観察時間を確保。
+- **latest.html の導線がテストで落ちる**: 実装が相対リンク・テキスト誘導の場合あり。テストは緩和済（相対/テキストも許容）。
+- **Playwright が見つからない**: `e2e-light-regressions.yml` は Playwright をインストールするステップ込。個別実行時は `npm i playwright && npx playwright install chromium` を確認。
 
