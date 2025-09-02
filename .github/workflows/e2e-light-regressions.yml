@@ -65,6 +65,11 @@ jobs:
           APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
         run: node e2e/test_auto_badge_a11y_static.mjs
 
+      - name: Check media provider order (static)
+        env:
+          APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+        run: node e2e/test_media_provider_order_static.mjs
+
       - name: Upload artifacts on failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
