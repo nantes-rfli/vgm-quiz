@@ -1,0 +1,13 @@
+{
+  // key は dataset の id/slug/uid 等、実データに合わせて置換してください。
+  "sample-track-id": {
+    "media": {
+      "apple": {
+        "url": "https://music.apple.com/jp/album/xxxxx",
+        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
+        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a",
+        "previewOffset": 0
+      }
+    }
+  }
+}
