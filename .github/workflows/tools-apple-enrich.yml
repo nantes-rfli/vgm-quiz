@@ -1,7 +1,7 @@
-name: tools: apply apple overrides
+name: tools-apple-enrich
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,17 +18,27 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
+
+      - name: Determine overrides file
+        id: pick
+        run: |
+          set -e
+          if [ -f "resources/data/apple_overrides.jsonc" ]; then
+            echo "overrides=resources/data/apple_overrides.jsonc" >> "$GITHUB_OUTPUT"
+          elif [ -f "data/apple_overrides.jsonc" ]; then
+            echo "overrides=data/apple_overrides.jsonc" >> "$GITHUB_OUTPUT"
+          else
+            echo "overrides=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Apply Apple overrides (if present)
+        if: ${{ steps.pick.outputs.overrides != '' }}
         run: |
-          if [ -f "data/apple_overrides.jsonc" ] && [ -f "scripts/enrich/apple_enrich.mjs" ]; then
-            echo "[apply] merging overrides into build/dataset.json"
-            node scripts/enrich/apple_enrich.mjs build/dataset.json data/apple_overrides.jsonc --write build/dataset.json
-          else
-            echo "No overrides or enrich script found; skipping."
-            exit 0
-          fi
+          set -euxo pipefail
+          echo "Using overrides: ${{ steps.pick.outputs.overrides }}"
+          node scripts/enrich/apple_enrich.mjs build/dataset.json "${{ steps.pick.outputs.overrides }}" \
+          --write build/dataset.json
 
       - name: Commit changes (if any)
         run: |
@@ -37,8 +47,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add build/dataset.json
-            git commit -m "chore(data): apply apple overrides to build/dataset.json"
+            git commit -m "chore(data): apply apple overrides"
             git push
           else
             echo "No changes to commit."
-          fi
