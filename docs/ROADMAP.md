@@ -119,6 +119,10 @@
 
 ---
 
+- A11y hardening *(ID: `a11y-hardening`, area: a11y)*
+- Difficulty badge (display-only) *(ID: `difficulty-badge`, area: ui)*
+- Heuristic media with safe fallback order *(ID: `heuristic-media-guard`, area: media)*
+
 ## バージョニング方針 / リリース運用
 - **SemVer 準拠**: 互換を壊さない機能追加は **minor**（v1.1, v1.2…）、修正は **patch**（v1.0.2…）
 - リリース条件（共通 DoD）:
