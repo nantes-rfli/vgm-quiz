@@ -1,0 +1,55 @@
+name: e2e (light regressions)
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: 'Base app URL ending with /app/'
+        required: false
+      share_base:
+        description: 'Base share URL ending with /daily/'
+        required: false
+      date:
+        description: 'YYYY-MM-DD (JST); empty means today (JST)'
+        required: false
+  schedule:
+    - cron: '25 19 * * *'  # JST 04:25
+
+jobs:
+  light-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright Chromium (for keyboard flow)
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Keyboard flow smoke
+        env:
+          APP_URL: ${{ inputs.app_url || 'https://nantes-rfli.github.io/vgm-quiz/app/' }}
+          DATE: ${{ inputs.date }}
+        run: node e2e/test_keyboard_flow_smoke.mjs
+
+      - name: Share CTA visibility
+        env:
+          SHARE_BASE: ${{ inputs.share_base || 'https://nantes-rfli.github.io/vgm-quiz/daily/' }}
+          DATE: ${{ inputs.date }}
+        run: node e2e/test_share_cta_visibility.mjs
+
+      - name: Upload artifacts on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-light-regressions-artifacts
+          path: |
+            kb_flow_failure.html
+            kb_flow_failure.png
+            share_cta_failure.html
+            share_cta_latest_failure.html
+          if-no-files-found: ignore
