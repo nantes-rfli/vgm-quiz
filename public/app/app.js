@@ -492,22 +492,7 @@ function stopLivesTicker() {
   }
 }
 
-function levenshtein(a, b) {
-  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
-  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,
-        dp[i][j - 1] + 1,
-        dp[i - 1][j - 1] + cost
-      );
-    }
-  }
-  return dp[a.length][b.length];
-}
+// moved to ./fuzzy.mjs (lazy-imported on demand)
 
 function yearBucket(y) {
   const yr = parseInt(y, 10) || 0;
@@ -937,18 +922,21 @@ function submitAnswer() {
     feedback.textContent = 'Correct!';
   } else {
     feedback.textContent = `Incorrect. Correct: ${q.expected}`;
-    const dist = levenshtein(norm(rawInput), norm(q.expected));
-    if (dist > 0 && dist <= 2) {
-      aliasBtn.style.display = 'inline';
-      aliasBtn.disabled = false;
-      aliasBtn.textContent = '別名として提案';
-      aliasBtn.onclick = () => {
-        const cat = q.type === 'title-game' ? 'game' : 'composer';
-        saveAliasProposal(cat, expected, norm(rawInput));
-        aliasBtn.textContent = '提案を保存しました';
-        aliasBtn.disabled = true;
-      };
-    }
+    // lazy-load fuzzy distance to avoid boot-time parse/compile
+    import('./fuzzy.mjs').then(module => {
+      const dist = module.levenshtein(norm(rawInput), norm(q.expected));
+      if (dist > 0 && dist <= 2) {
+        aliasBtn.style.display = 'inline';
+        aliasBtn.disabled = false;
+        aliasBtn.textContent = '別名として提案';
+        aliasBtn.onclick = () => {
+          const cat = q.type === 'title-game' ? 'game' : 'composer';
+          saveAliasProposal(cat, expected, norm(rawInput));
+          aliasBtn.textContent = '提案を保存しました';
+          aliasBtn.disabled = true;
+        };
+      }
+    }).catch(() => { /* ignore */ });
   }
   q.userAnswer = rawInput;
   q.correct = correct;
