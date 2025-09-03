@@ -1,6 +1,6 @@
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
-import { createMediaControl } from './media_player.mjs';
+// lazy import on demand from './media_player.mjs'
 
 let tracks = [];
 let questions = [];
@@ -772,8 +772,12 @@ function showQuestion() {
     const media = q?.media || q?.track?.media;
     const slot = document.getElementById('media-slot');
     if (slot && media) {
-      const ctrl = createMediaControl(media);
-      slot.replaceChildren(ctrl);
+      import('./media_player.mjs').then(({ createMediaControl }) => {
+        try {
+          const ctrl = createMediaControl(media);
+          slot.replaceChildren(ctrl);
+        } catch (e) { console.warn('[media] render failed', e); }
+      }).catch(e => console.warn('[media] lazy load failed', e));
     }
   } catch (_) {}
   clearInterval(timerId);
