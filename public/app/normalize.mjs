@@ -2,7 +2,7 @@
 // - NFKC + lowercase
 // - &/＆ → and
 // - Leading articles (the/a/an) stripped
-// - Dash/long vowel normalization to spaces
+// - Dash normalization to spaces; long vowel mark compression
 // - Punctuation removal
 // - Roman numerals ↔ Arabic numerals (1–20)
 
@@ -16,10 +16,6 @@ function ampToAnd(s) {
   return s.replace(/(?:&|＆)/g, ' and ');
 }
 
-// ダッシュ/ハイフンの空白正規化
-function dashNormalize(s) {
-  return s.replace(/[\-‐‒–—―ｰー－]+/g, ' ');
-}
 
 // ローマ数字相互変換（単語境界で安全に）
 const ROMAN = [
@@ -50,11 +46,14 @@ export function normalize(str) {
   // v1.1: NFKC + lower
   s = s.normalize('NFKC').toLowerCase();
   // v1.2: 追加の軽微ルール
-  s = dashNormalize(s);
   s = ampToAnd(s);
   s = stripLeadingArticles(s);
   // 余分な空白を一旦畳む
   s = s.replace(/[\s\u3000]+/g, ' ').trim();
+  // ダッシュ類（ASCII hyphen, en/em/figure/minus, 波ダッシュ）を空白に
+  s = s.replace(/[\-\u2010-\u2015\u2212\u301C\uFF5E]/g, ' ');
+  // 長音記号（ー）は削除せず、連続を1つに圧縮（カタカナ音価を残す）
+  s = s.replace(/ー{2,}/g, 'ー');
   // 記号・句読点の削除（既存＋軽微拡張）
   s = s.replace(/[!"#$%\'()*+,./:;<=>?@\[\]^_`{|}~。、！？”’]/g, ' ');
   s = s.replace(/・/g, '');
