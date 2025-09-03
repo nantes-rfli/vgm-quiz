@@ -3,7 +3,7 @@
     "collect": {
       "numberOfRuns": 1,
       "url": [
-        "https://nantes-rfli.github.io/vgm-quiz/app/",
+        "https://nantes-rfli.github.io/vgm-quiz/app/?lhci=1",
         "https://nantes-rfli.github.io/vgm-quiz/daily/latest.html?no-redirect=1"
       ],
       "settings": {
