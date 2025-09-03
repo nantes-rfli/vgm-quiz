@@ -5,7 +5,10 @@
       "url": [
         "https://nantes-rfli.github.io/vgm-quiz/app/",
         "https://nantes-rfli.github.io/vgm-quiz/daily/latest.html?no-redirect=1"
-      ]
+      ],
+      "settings": {
+        "budgetsPath": "lighthouse/budgets.json"
+      }
     },
     "assert": {
       "preset": "lighthouse:recommended",
@@ -14,12 +17,6 @@
           "warn",
           {
             "minScore": 0.85
-          }
-        ],
-        "budgets": [
-          "warn",
-          {
-            "budgetsFile": "lighthouse/budgets.json"
           }
         ],
         "errors-in-console": [
@@ -47,6 +44,12 @@
           "warn",
           {
             "maxLength": 1
+          }
+        ],
+        "performance-budget": [
+          "warn",
+          {
+            "minScore": 1
           }
         ]
       }
