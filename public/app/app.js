@@ -24,6 +24,20 @@ async function parseJsonOffMainThread(text) {
 async function yieldToMain() {
   return new Promise(requestAnimationFrame);
 }
+let aliasesLoadStarted = false;
+let aliasesReadyPromise = null;
+function ensureAliases() {
+  if (!aliasesLoadStarted) {
+    aliasesLoadStarted = true;
+    try {
+      aliasesReadyPromise = loadAliases();
+    } catch (e) {
+      console.warn('[aliases] ensure load failed', e);
+      aliasesReadyPromise = Promise.resolve();
+    }
+  }
+  return aliasesReadyPromise || Promise.resolve();
+}
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
 // lazy import on demand from './media_player.mjs'
@@ -728,7 +742,8 @@ function exportMinhaya() {
   URL.revokeObjectURL(url);
 }
 
-function startQuiz() {
+async function startQuiz() {
+  await ensureAliases();
   initSeededRandom();
   currentRunId = Date.now();
   const modeSelect = document.getElementById('mode');
@@ -1256,7 +1271,7 @@ checkOnLoad();
 {
   const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1));
   ric(() => { try { datasetPromise = loadDataset(); } catch(e){} });
-  ric(() => { try { loadAliases(); } catch(e){} });
+  ric(() => { try { ensureAliases(); } catch(e){} });
 }
 
 navigator.serviceWorker?.addEventListener('message', async (e)=>{
