@@ -77,7 +77,9 @@ function jstISO() {
   }
 
   // 4) latest.html は常に当日へ meta refresh（手動でも生成される想定）
-  const respLatest = await page.request.get(latestUrl);
+  const respLatest = await page.request.get(`${latestUrl}?e2e=${Date.now()}`, {
+    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+  });
   if (respLatest.status() === 200) {
     const html = await respLatest.text();
     const refreshToday = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${date}\\.html`).test(html);
