@@ -66,16 +66,16 @@
       <option value="20">20</option>
     </select>
   </label>
-<button id="start-btn" disabled data-testid="start-btn">Start</button>
+<button id="start-btn" disabled data-testid="start-btn" aria-controls="question-view">Start</button>
   <div id="dataset-error" style="display:none;color:red;"></div>
-  <button id="history-btn">History</button>
+  <button id="history-btn" aria-controls="history-view">History</button>
   <button id="export-aliases-btn">Export alias proposals (.edn)</button>
 </div>
 
 <div id="history-view" style="display:none">
   <ul id="history-list"></ul>
   <button id="clear-history-btn">Clear history</button>
-  <button id="history-back-btn">Back</button>
+  <button id="history-back-btn" aria-controls="start-view">Back</button>
 </div>
 
 <div id="question-view" style="display:none" data-testid="quiz-view">
@@ -105,7 +105,7 @@
   <input id="answer" type="text" autocomplete="off" aria-describedby="prompt" autofocus data-testid="answer">
   <button id="submit-btn" data-testid="submit-btn">Submit</button>
   <button id="next-btn" style="display:none">Next</button>
-  <div id="feedback"></div>
+  <div id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
   <button id="propose-alias-btn" style="display:none">別名として提案</button>
 </div>
 
@@ -123,7 +123,7 @@
     <button id="share-result-btn" data-testid="share-result-btn" style="display:none">共有…</button>
     <span id="copy-toast" role="status" aria-live="polite" style="margin-left:8px;"></span>
   </div>
-  <button id="restart-btn">Restart</button>
+  <button id="restart-btn" aria-controls="start-view">Restart</button>
 </div>
 
 <footer id="version" role="contentinfo"></footer>
