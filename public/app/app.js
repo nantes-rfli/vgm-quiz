@@ -1,3 +1,26 @@
+// --- perf helpers ---
+async function parseJsonOffMainThread(text) {
+  try {
+    // Use a dedicated worker to avoid blocking main thread with JSON.parse
+    const url = new URL('./workers/json_parse_worker.js', import.meta.url);
+    const worker = new Worker(url, { type: 'module' });
+    return await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => { try { worker.terminate(); } catch (_) {} ; reject(new Error('parse timeout')); }, 15000);
+      worker.onmessage = (ev) => {
+        clearTimeout(timer);
+        try { worker.terminate(); } catch (_) {}
+        const { ok, data, error } = ev.data || {};
+        if (ok) resolve(data);
+        else reject(new Error(error || 'parse failed'));
+      };
+      worker.onerror = (e) => { clearTimeout(timer); try { worker.terminate(); } catch (_) {} ; reject(e); };
+      worker.postMessage(text);
+    });
+  } catch (e) {
+    // Fallback: parse on main thread
+    return JSON.parse(text);
+  }
+}
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
 // lazy import on demand from './media_player.mjs'
@@ -529,7 +552,8 @@ async function loadDataset() {
       try { console.info('[MOCK_DATASET] using', datasetUrl); } catch (_) {}
     }
     const res = await fetch(datasetUrl, { cache: 'no-store' });
-    const data = await res.json();
+    const txt = await res.text();
+    const data = await parseJsonOffMainThread(txt);
     tracks = data.tracks || data; // 互換
     datasetLoaded = true;
     updateStartButton();
