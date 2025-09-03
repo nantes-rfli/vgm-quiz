@@ -114,7 +114,9 @@
   - **リグレッション**：v1系既存問題の難易度分布が**極端に崩れない**（中央値±10pt以内）。
 
 ## v1.4 — アクセシビリティ & i18n（最小）
-- Next: アクセシビリティ最小セット（フォーカス可視化/ランドマーク/aria/読み上げスモーク）
+- Status: **In progress**
+- Scope: A11y minimal set (focus, landmarks, labels, live regions, keyboard)
+- Tests: a11y smoke (static) + existing E2E a11y
 **狙い**: 既存のキーボード操作 Baseline を**壊さず**、a11y をハードニング。
 
 **現状**
