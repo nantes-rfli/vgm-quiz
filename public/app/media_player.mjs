@@ -18,7 +18,7 @@ function buildAppleEmbed(media){
   root.dataset.provider = 'apple';
   root.setAttribute('role','group');
   root.setAttribute('aria-label','Media player (Apple Music)');
-  const slot = document.createElement('div'); slot.id = 'media-slot'; root.appendChild(slot);
+  const slot = document.createElement('div'); slot.id = 'media-inner'; root.appendChild(slot);
 
   const stubOnly = isFlagOn('test') || isFlagOn('lhci') || isFlagOn('nomedia');
   if (stubOnly){
@@ -79,7 +79,7 @@ function buildYouTubeEmbed(media){
   root.dataset.provider = 'youtube';
   root.setAttribute('role','group');
   root.setAttribute('aria-label','Media player (YouTube)');
-  const slot = document.createElement('div'); slot.id = 'media-slot'; root.appendChild(slot);
+  const slot = document.createElement('div'); slot.id = 'media-inner'; root.appendChild(slot);
 
   const stubOnly = isFlagOn('test') || isFlagOn('lhci') || isFlagOn('nomedia');
   if (stubOnly){
