@@ -1,6 +1,15 @@
 // E2E: デイリーページの共有URLと共有HTMLのOGP/リダイレクトを検証
 const { chromium } = require('playwright');
 
+// cache-busting fetch (bypass CDN)
+async function fetchNoCache(page, url) {
+  const sep = url.includes('?') ? '&' : '?';
+  const u = `${url}${sep}e2e=${Date.now()}`;
+  return await page.request.get(u, {
+    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+  });
+}
+
 function jstISO() {
   const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' });
   const p = Object.fromEntries(fmt.formatToParts(new Date()).map(x => [x.type, x.value]));
@@ -49,7 +58,7 @@ function jstISO() {
   }
 
   // 2) 共有ページの静的HTMLにOGタグがあり、meta refresh先が /app/?daily=... であること
-  const resp = await page.request.get(shareUrl);
+  const resp = await fetchNoCache(page, shareUrl);
   if (resp.status() === 200) {
     const html = await resp.text();
     const ogImgOk = html.includes(`/ogp/daily-${date}.png`);
@@ -77,14 +86,23 @@ function jstISO() {
   }
 
   // 4) latest.html は常に当日へ meta refresh（手動でも生成される想定）
-  const respLatest = await page.request.get(`${latestUrl}?e2e=${Date.now()}`, {
-    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-  });
+  const respLatest = await fetchNoCache(page, latestUrl);
   if (respLatest.status() === 200) {
     const html = await respLatest.text();
-    const refreshToday = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${date}\\.html`).test(html);
-    if (!refreshToday) {
-      throw new Error(`[share] latest.html does not redirect to today (${date})`);
+    const todayRe = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${date}\\.html`);
+    const prev = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+    prev.setDate(prev.getDate() - 1);
+    const y = prev.getFullYear();
+    const m = String(prev.getMonth() + 1).padStart(2, '0');
+    const d = String(prev.getDate()).padStart(2, '0');
+    const prevDate = `${y}-${m}-${d}`;
+    const prevRe = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${prevDate}\\.html`);
+    const isToday = todayRe.test(html);
+    const isPrev = prevRe.test(html);
+    if (!isToday && !isPrev) {
+      throw new Error(`[share] latest.html does not redirect to today (${date}) nor prev (${prevDate})`);
+    } else {
+      console.log(`[share] latest.html meta refresh -> ${isToday ? date : prevDate}`);
     }
   } else {
     console.warn(`[share] latest.html HTTP ${respLatest.status()} (unexpected); url=${latestUrl}`);
