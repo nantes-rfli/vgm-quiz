@@ -706,9 +706,10 @@ function toMinhayaCsv(items) {
   return `question,answer,explanation\n${rows.join('\n')}`;
 }
 
-function exportMinhaya() {
+async function exportMinhaya() {
   const countSelect = document.getElementById('count');
   let n = parseInt(countSelect.value, 10) || 5;
+  await yieldToMain();
   const deduped = distinctBy(['title', 'game', 'composer'], tracks);
   n = Math.min(n, deduped.length);
   const selected = spreadByBucket(deduped, t => yearBucket(t.year), n);
@@ -743,7 +744,8 @@ function exportMinhaya() {
 }
 
 async function startQuiz() {
-  await ensureAliases();
+  // non-blocking: load aliases in background; canonical() falls back to norm() until ready
+  ensureAliases().catch(e => console.warn('[aliases] deferred load error', e));
   initSeededRandom();
   currentRunId = Date.now();
   const modeSelect = document.getElementById('mode');
@@ -753,6 +755,7 @@ async function startQuiz() {
   saveSettings();
   const countSelect = document.getElementById('count');
   let n = parseInt(countSelect.value, 10) || 5;
+  await yieldToMain();
   const deduped = distinctBy(['title', 'game', 'composer'], tracks);
   n = Math.min(n, deduped.length);
   const candidates = spreadByBucket(deduped, t => yearBucket(t.year), deduped.length);
@@ -761,6 +764,9 @@ async function startQuiz() {
   const maxAttempts = n * 10;
   let attempts = 0;
   while (built.length < n && attempts < maxAttempts && candidates.length) {
+    // yield periodically to avoid long tasks during question build
+    if ((attempts % 5) === 0) { await yieldToMain(); }
+
     const track = candidates.pop();
     attempts++;
     const type = types[Math.floor(Math.random() * types.length)];
