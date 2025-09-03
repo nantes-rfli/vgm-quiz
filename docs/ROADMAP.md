@@ -16,8 +16,9 @@
 | v1.1 | **Done (2025-09-02)** | AUTOトースト/設定UI/バッジA11y、latest CTA・meta、軽量E2E | — |
 | v1.2 | **Done (2025-09-02)** | 正規化ケース拡充、Node/Browserパリティ、alias衝突スモーク、CTA監視、Budgets微調整、Docs整備 | — |
 | v1.3 | **Done (2025-09-03)** | Budgets引き締め、Lazy import、Worker JSON parse、LHCI配線修正 | — |
-| v1.4 | **In progress** | AUTOバッジA11y（静的テスト付）、キーボード操作維持 | フォーカスリング、主要ロール/ラベル、簡易aXeチェック |
-| v1.5 | **Planned** | — | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） |
+| v1.4 | **In progress** | A11y最小セット（live region/roles/labels/`aria-describedby`/dialog focus） | 簡易aXe/文言のi18n土台 |
+| v1.5 | **Planned** | — | UI/Responsive polish（スマホ最適化/軽量トランジション/コントラスト調整） |
+| v1.6 | **Planned** | — | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） |
 
 ## 現状 (v1.0.x Stabilization) — 完了/運用中
 - キーボード操作（Tab/Enter/Space の基本操作）: **実装済み（Baseline）**
@@ -123,13 +124,12 @@
 - Tab で選択肢にフォーカス遷移、Enter/Space で確定は **実装済み**
 
 **機能/変更**
-- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
-- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
-- フォーカス可視化の明確化（focus ring, :focus-visible）
-- ARIA ロール/ラベルの付与（選択肢/ボタン/ランドマーク）
-- フォーカス順序と読み上げ文言の点検（スクリーンリーダー簡易確認）
-- i18n の準備（文言抽出と言語切替の土台）
-
+- ライブリージョン：`#feedback` に `role="status" aria-live="polite" aria-atomic="true"`
+- ランドマーク/領域：履歴 `role="region" aria-labelledby="history-heading"`（見出しは視覚非表示）
+- 選択肢のまとまり：`#choices` に `role="group" aria-label="Choices"`、`aria-describedby="prompt"`
+- 選択状態：選択肢に `aria-pressed` を付与し、クリック/キーボードで同期
+- 結果ダイアログ：`role="dialog" aria-modal="true"`、初期フォーカス/Tabトラップ/ESCクローズ/復帰
+- テスト：`e2e (a11y static smoke)` を追加し、上記を静的に検証
 **DoD**
 - 既存のキーボード操作が落ちない **回帰 E2E（軽量）**
 - コントラストとフォーカスリングが目視で明確
@@ -138,7 +138,24 @@
 
 ---
 
-## v1.5 — i18n ベースライン
+## v1.5 — UI/Responsive polish（細部）
+- Status: **Planned**
+- Scope: CSSのみでの軽量磨き上げ（JS増やさない方針）
+
+**機能/変更**
+- デザイントークンの導入（色/余白/角丸）と一貫スタイル（ボタン/入力）
+- タッチターゲット最小 44px を満たす（モバイル）
+- `#choices` のグリッド：2→3→4 列（画面幅に応じて）
+- History テーブルのストライプ/ホバー
+- 微小トランジション（opacity/transform のみ）
+- ライトテーマのコントラスト微調整／アクセント色の再確認
+
+**DoD**
+- Lighthouse（A11y/Best Practices/Performance）で現状維持以上、Budgets は不変
+- 主要E2Eは緑のまま（JSを増やさないため a11y/perf に影響なし）
+
+
+## v1.6 — i18n ベースライン
 **狙い**: バックエンドなしで楽しさを増す。
 
 **機能/変更**
@@ -209,7 +226,7 @@
 > **Note on version labels**: このドキュメントの **v1.x** は “テーマ別マイルストン” の便宜上の番号で、SemVer ではありません。  
 > 実際の出荷は **Gitタグ（vMAJOR.MINOR.PATCH）** で管理し、`CHANGELOG.md` に記録します（1:1 対応ではありません）。
 
-## v1.5 — 国際化（i18n）ベースライン
+### v1.6 details — 国際化（i18n）ベースライン
 **狙い**: vgm-quiz 全体の国際化に向けた土台整備。まずは UI 文字列から最小で始め、将来の拡張（問題文・説明など）に備える。
 
 **機能/変更**

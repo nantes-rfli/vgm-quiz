@@ -85,7 +85,7 @@
   title: Internationalization baseline (JP/EN)
   area: i18n
   status: planned
-  milestone: v1.5
+  milestone: v1.6
   description: |
     Key-based UI messages, locale negotiation (?lang, localStorage, navigator.language),
     Start view language toggle, localized html lang/title/meta, a11y labels, and a light E2E.
@@ -132,3 +132,11 @@
   title: Daily RSS/Atom feed generation & publish
   status: implemented
   since: v1.0.3
+- id: ui-responsive-polish
+  area: ui
+  title: UI/Responsive polish (mobile-friendly, micro transitions, contrast)
+  status: planned
+  milestone: v1.5
+  labels: [ui, responsive, a11y, perf]
+  description: |
+    CSS-only refinements: design tokens (colors/spacing/radius), 44px targets, choices grid 2→3→4, history table stripes/hover, micro transitions, light theme contrast and accent check. No new JS to avoid perf/a11y regressions.
