@@ -28,7 +28,7 @@ git push origin main
 ## Health checks (5-min)
 
 - `/daily/index.html` → **200**
-- `/daily/latest.html` → **200** and redirects to `/app/?daily=YYYY-MM-DD`
+- `/daily/latest.html` → **200** and redirects to `./YYYY-MM-DD.html` (share page)
 - `/daily/feed.xml` → **200**
 - Footer (commit / updated) reflects latest deploy
 
