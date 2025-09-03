@@ -61,6 +61,9 @@ export function normalize(str) {
   s = romanToArabicSafe(s);
   s = arabicToRomanSafe(s);
 
+  // 単語末尾にローマ数字(II, III, IV, VI, etc)が続く場合は区切る（例: rockyiv -> rocky iv）
+  s = s.replace(/([a-z])([ivxlcdm]{2,})(?![a-z0-9])/g, '$1 $2');
+
   // CJK間のスペースは削除（英単語間は保持）
   // Hiragana/Katakana/Han/compat & 長音記号の間の空白を除去
   s = s.replace(/(?<=[\u3040-\u30FF\u3400-\u9FFF\uF900-\uFAFF\uFF66-\uFF9Dー])\s+(?=[\u3040-\u30FF\u3400-\u9FFF\uF900-\uFAFF\uFF66-\uFF9Dー])/g, '');
