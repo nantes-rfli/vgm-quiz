@@ -1,48 +1,10 @@
 <!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="ja"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="VGM Quiz のデイリーページ（最新）。ゲーム音楽の1日1問にすぐアクセスできます。">
   <title>VGM Quiz — Daily latest</title>
-  <script>
-  (function(){
-    try {
-      var params = new URLSearchParams(location.search || "");
-      var noRedirect = params.get("no-redirect") === "1";
-      var delay = parseInt(params.get("redirectDelayMs") || "0", 10);
-      if (isNaN(delay) || delay < 0) delay = 0;
-
-      var now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-      var y = now.getFullYear();
-      var m = String(now.getMonth() + 1).padStart(2, '0');
-      var d = String(now.getDate()).padStart(2, '0');
-      var dateStr = y + '-' + m + '-' + d;
-
-      // Update CTA link for no-redirect view
-      var cta = null;
-      document.addEventListener('DOMContentLoaded', function(){
-        cta = document.getElementById('cta-latest-app');
-        if (cta) cta.setAttribute('href', '../app/?daily=' + dateStr);
-        var target = document.getElementById('target-date-link');
-        if (target) {
-          target.textContent = dateStr;
-          target.setAttribute('href', './' + dateStr + '.html');
-        }
-      });
-
-      if (!noRedirect) {
-        setTimeout(function(){
-          location.replace('./' + dateStr + '.html');
-        }, delay);
-      }
-    } catch(e) {}
-  })();
-  </script>
-</head>
-<body>
-  <p>Redirecting to <a id="target-date-link" href="#">YYYY-MM-DD</a> …</p>
-  <p><a id="cta-latest-app" href="../app/?daily=1">アプリで今日の1問へ</a></p>
-</body>
-</html>
-
+  <script>(function(){try{var p=new URLSearchParams(location.search||"");if(p.get("no-redirect")==="1")return;var delay=parseInt(p.get("redirectDelayMs")||"0",10);if(isNaN(delay)||delay<0)delay=0;setTimeout(function(){location.replace("./2025-09-03.html");},delay);}catch(e){}})();</script>
+</head><body>
+  <p>Redirecting to <a href="./2025-09-03.html">2025-09-03</a> …</p>
+  <p><a id="cta-latest-app" href="../app/?daily=2025-09-03">アプリで今日の1問へ</a></p>
+</body></html>
