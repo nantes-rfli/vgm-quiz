@@ -1,0 +1,17 @@
+name: e2e (a11y static smoke)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  a11y-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run static a11y checks
+        env:
+          APP_URL: ${{ vars.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app/?test=1&mock=1&autostart=0&lhci=1' }}
+        run: node e2e/test_a11y_smoke_static.mjs
