@@ -61,6 +61,8 @@ function jstDateString(d = new Date()) {
   const subtitle = typeToSubtitle(chosenType);
   const ogTitle = `VGM Quiz — Daily ${date} — ${subtitle}`;
   const ogDesc  = `1日1問のVGMクイズ（${subtitle}）。今日の問題に挑戦！`;
+  const title = ogTitle;
+  const ogpImage = ogpUrlWithV;
 
   const html = `<!doctype html>
 <html lang="en">
@@ -83,7 +85,8 @@ function jstDateString(d = new Date()) {
   <meta name="twitter:title" content="${ogTitle}">
   <meta name="twitter:description" content="${ogDesc}">
   <meta name="twitter:image" content="${ogpUrlWithV}">
-  <meta name="twitter:url" content="${pageUrl}">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:image" content="${ogpImage}">
   <script>(function(){try{var p=new URLSearchParams(location.search||"");if(p.get("no-redirect")==="1")return;var d=parseInt(p.get("redirectDelayMs")||"0",10);if(isNaN(d)||d<0)d=0;setTimeout(function(){location.replace(${JSON.stringify(appUrl)});},d);}catch(e){}})();</script>
   <!-- daily-hash:${dailyHash} -->
 </head>
