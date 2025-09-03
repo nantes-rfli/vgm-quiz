@@ -85,24 +85,27 @@ function jstISO() {
     throw new Error(`[share] unexpected HTTP ${resp.status()} for ${shareUrl}`);
   }
 
-  // 4) latest.html は常に当日へ meta refresh（手動でも生成される想定）
+  // 4) latest.html: allow meta refresh OR JS location.replace/location.href to ./YYYY-MM-DD.html
   const respLatest = await fetchNoCache(page, latestUrl);
   if (respLatest.status() === 200) {
     const html = await respLatest.text();
-    const todayRe = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${date}\\.html`);
-    const prev = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-    prev.setDate(prev.getDate() - 1);
-    const y = prev.getFullYear();
-    const m = String(prev.getMonth() + 1).padStart(2, '0');
-    const d = String(prev.getDate()).padStart(2, '0');
-    const prevDate = `${y}-${m}-${d}`;
-    const prevRe = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${prevDate}\\.html`);
-    const isToday = todayRe.test(html);
-    const isPrev = prevRe.test(html);
+    // Compute prevDate in JST
+    const nowJst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+    const prev = new Date(nowJst.getTime()); prev.setDate(prev.getDate() - 1);
+    const prevDate = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`;
+    const metaTodayRe = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${date}\\.html`, 'i');
+    const metaPrevRe  = new RegExp(`http-equiv=["']refresh["'][^>]+url=\\./${prevDate}\\.html`, 'i');
+    const jsTodayRe   = new RegExp(`location\\.(?:replace|href)\\(\\s*["']\\./${date}\\.html["']\\s*\\)`, 'i');
+    const jsPrevRe    = new RegExp(`location\\.(?:replace|href)\\(\\s*["']\\./${prevDate}\\.html["']\\s*\\)`, 'i');
+    const aTodayRe    = new RegExp(`<a[^>]+href=["']\\./${date}\\.html["']`, 'i');
+    const aPrevRe     = new RegExp(`<a[^>]+href=["']\\./${prevDate}\\.html["']`, 'i');
+    const isToday = metaTodayRe.test(html) || jsTodayRe.test(html) || aTodayRe.test(html);
+    const isPrev  = (!isToday) && (metaPrevRe.test(html) || jsPrevRe.test(html) || aPrevRe.test(html));
     if (!isToday && !isPrev) {
-      throw new Error(`[share] latest.html does not redirect to today (${date}) nor prev (${prevDate})`);
+      const snippet = html.slice(0, 400).replace(/\s+/g,' ').trim();
+      throw new Error(`[share] latest.html does not redirect to today (${date}) nor prev (${prevDate}); head snippet: ${snippet}`);
     } else {
-      console.log(`[share] latest.html meta refresh -> ${isToday ? date : prevDate}`);
+      console.log(`[share] latest.html redirect detected -> ${isToday ? date : prevDate}`);
     }
   } else {
     console.warn(`[share] latest.html HTTP ${respLatest.status()} (unexpected); url=${latestUrl}`);
