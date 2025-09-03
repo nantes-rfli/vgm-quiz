@@ -21,6 +21,9 @@ async function parseJsonOffMainThread(text) {
     return JSON.parse(text);
   }
 }
+async function yieldToMain() {
+  return new Promise(requestAnimationFrame);
+}
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
 // lazy import on demand from './media_player.mjs'
@@ -571,14 +574,24 @@ async function loadAliases() {
   try {
     const res = await fetch(ALIASES_URL, { cache: 'no-store' });
     if (res.ok) {
-      const data = await res.json();
-      Object.values(data).forEach(cat => {
-        Object.entries(cat).forEach(([canon, list]) => {
+      const txt = await res.text();
+      const data = await parseJsonOffMainThread(txt);
+      let _count = 0;
+      for (const cat of Object.values(data)) {
+        for (const [canon, list] of Object.entries(cat)) {
           const canonN = norm(canon);
           aliases[canonN] = canonN;
-          list.forEach(a => { aliases[norm(a)] = canonN; });
-        });
-      });
+          for (const a of list) {
+            aliases[norm(a)] = canonN;
+            _count++;
+            if ((_count % 400) === 0) {
+              await yieldToMain();
+            }
+          }
+        }
+        // yield between categories, too
+        await yieldToMain();
+      }
     }
     try {
       const r2 = await fetch('./aliases_local.json', { cache: 'no-store' });
