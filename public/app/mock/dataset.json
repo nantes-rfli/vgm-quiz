@@ -1,17 +1,42 @@
 {
   "tracks": [
-    { "title": "Overworld", "game": "ゼルダの伝説", "composer": "近藤浩治", "year": 1986 },
+    {
+      "title": "Overworld",
+      "game": "ゼルダの伝説",
+      "composer": "近藤浩治",
+      "year": 1986,
+      "media": { "apple": { "url": "https://music.apple.com/jp/song/1440828432", "previewOffset": 0 } }
+    },
     { "title": "Main Theme", "game": "ドラゴンクエスト", "composer": "すぎやまこういち", "year": 1986 },
     { "title": "Battle", "game": "ファイナルファンタジー", "composer": "植松伸夫", "year": 1987 },
-    { "title": "時の回廊", "game": "クロノ・トリガー", "composer": "光田康典", "year": 1995 },
-    { "title": "MEGALOVANIA", "game": "UNDERTALE", "composer": "Toby Fox", "year": 2015 },
-    { "title": "Green Hill Zone", "game": "ソニック・ザ・ヘッジホッグ", "composer": "中村正人", "year": 1991 },
+    {
+      "title": "時の回廊",
+      "game": "クロノ・トリガー",
+      "composer": "光田康典",
+      "year": 1995,
+      "media": { "apple": { "url": "https://music.apple.com/jp/song/324081004", "previewOffset": 0 } }
+    },
+    {
+      "title": "MEGALOVANIA",
+      "game": "UNDERTALE",
+      "composer": "Toby Fox",
+      "year": 2015,
+      "media": { "apple": { "url": "https://music.apple.com/jp/song/1054440402", "previewOffset": 0 } }
+    },
+    {
+      "title": "Green Hill Zone",
+      "game": "ソニック・ザ・ヘッジホッグ",
+      "composer": "中村正人",
+      "year": 1991,
+      "media": { "apple": { "url": "https://music.apple.com/jp/song/0", "previewOffset": 0 } }
+    },
     {
       "title": "Stickerbrush Symphony",
       "game": "スーパードンキーコング2",
       "composer": "David Wise",
       "year": 1995,
       "media": {
+        "apple": { "url": "https://music.apple.com/jp/song/0", "previewOffset": 0 },
         "provider": "youtube",
         "id": "lndBgOrTWxo",
         "start_ms": 45000,
