@@ -771,7 +771,7 @@ function showQuestion() {
   try {
     const media = q?.media || q?.track?.media;
     const slot = document.getElementById('media-slot');
-    if (slot && media && media.provider) {
+    if (slot && media) {
       const ctrl = createMediaControl(media);
       slot.replaceChildren(ctrl);
     }
