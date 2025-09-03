@@ -1271,7 +1271,8 @@ checkOnLoad();
 {
   const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1));
   ric(() => { try { datasetPromise = loadDataset(); } catch(e){} });
-  ric(() => { try { ensureAliases(); } catch(e){} });
+  // [perf] defer aliases: load after Start button (startQuiz)
+  // ric(() => { try { ensureAliases(); } catch(e){} });
 }
 
 navigator.serviceWorker?.addEventListener('message', async (e)=>{
