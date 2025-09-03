@@ -43,6 +43,11 @@ Nightly run (desktop). Budgets & asserts enabled.
 - View the job **Summary** for the temporary-public report URL.
 - Artifact **lighthouse-report/report.html** is saved for 7 days.
 
+### アセットの未使用チェック（スキャン）
+- コマンド: `npm run scan:assets`
+- 仕組み: `public/` 配下の画像/フォント/音声を列挙し、リポ内のテキストから参照をグリッドサーチ。参照が見つからないものを候補として出力（**自動削除はしない**）。
+- 使い方: まず候補をレビュー → 問題なければ手動削除し、E2E/Pagesを確認。
+
 ### latest.html（運用メモ）
 - 生成物は **JS リダイレクト（`location.replace('./YYYY-MM-DD.html')`）** 方式でも良い（従来の `<meta http-equiv="refresh">` も可）。
 - E2E（`e2e/test_share.js`）は **meta / JS / `<a href>`** のいずれかで当日（JST）への遷移を検出するように緩和済み。
