@@ -12,5 +12,35 @@
         "previewOffset": 0
       }
     }
+  },
+  {
+    // クロノ・トリガー「時の回廊」: JP/EN両方で一致可
+    "match": { "title": ["時の回廊", "Corridors of Time"] },
+    "media": { "apple": { "url": "https://music.apple.com/jp/song/324081004", "previewOffset": 0 } }
+  },
+  {
+    // ドンキーコング・カントリー「アクアティック・アンビエンス」: 表記ゆれも吸収
+    "match": { "title": ["アクアティック・アンビエンス", "アクアティックアンビエンス", "Aquatic Ambience"] },
+    "media": { "apple": { "url": "https://music.apple.com/jp/song/1440833091", "previewOffset": 0 } }
+  },
+  {
+    // ゼルダの伝説 メインテーマ
+    "match": { "title": ["ゼルダの伝説 メインテーマ", "The Legend of Zelda Main Theme", "Overworld Theme"] },
+    "media": { "apple": { "url": "https://music.apple.com/jp/song/1440828432", "previewOffset": 0 } }
+  },
+  {
+    // スーパーマリオブラザーズ 地上BGM
+    "match": { "title": ["スーパーマリオブラザーズ 地上BGM", "Super Mario Bros. Overworld Theme", "地上BGM"] },
+    "media": { "apple": { "url": "https://music.apple.com/jp/song/1440647923", "previewOffset": 0 } }
+  },
+  {
+    // 星のカービィ「グリーングリーンズ」
+    "match": { "title": ["グリーングリーンズ", "Green Greens"] },
+    "media": { "apple": { "url": "https://music.apple.com/jp/song/1440865057", "previewOffset": 0 } }
+  },
+  {
+    // UNDERTALE「MEGALOVANIA」
+    "match": { "title": ["MEGALOVANIA"] },
+    "media": { "apple": { "url": "https://music.apple.com/jp/song/1054440402", "previewOffset": 0 } }
   }
 ]
