@@ -16,6 +16,7 @@ const base0 = process.env.APP_URL || 'https://nantes-rfli.github.io/vgm-quiz/app
 
   must(/id="feedback"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/s, '#feedback is a live region');
   must(/id="choices"[^>]*role="group"[^>]*aria-label="Choices"/s, '#choices has role=group');
+  must(/id="choices"[^>]*aria-describedby="prompt"/s, '#choices is described by #prompt');
   must(/id="history-view"[^>]*role="region"[^>]*aria-labelledby="history-heading"/s, 'history is a region with labelledby');
   must(/id="result-view"[^>]*role="dialog"[^>]*aria-modal="true"/s, 'result is a modal dialog');
 
