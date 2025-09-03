@@ -122,11 +122,13 @@
   title: Trivia auto-pipeline with source links
   status: planned
   since: null
+  milestone: v1.7
 - id: auto-authoring-v1
   area: pipeline
   title: End-to-end nightly authoring (candidates→publish)
   status: planned
   since: null
+  milestone: v1.7
 - id: daily-rss-feed
   area: ops
   title: Daily RSS/Atom feed generation & publish
