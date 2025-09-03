@@ -93,6 +93,9 @@ jobs:
       - name: Ensure CTA in latest.html
         run: node scripts/ensure_latest_cta.js
 
+      - name: Update latest.html to today (JST)
+        run: node scripts/update_latest_html.js
+
       - name: Generate Daily RSS feed
         run: node scripts/generate_daily_feed.js
       - name: Create Pull Request

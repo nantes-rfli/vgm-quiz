@@ -11,7 +11,7 @@
   }
 
   const aliasUrls = [
-    '/vgm-quiz/public/build/aliases.json', // GitHub Pages base path
+    '/vgm-quiz/build/aliases.json', // GitHub Pages base path
     '/vgm-quiz/public/app/aliases_local.json',
     // Fallbacks for local runs (served from repo root or app/)
     '/public/build/aliases.json',
