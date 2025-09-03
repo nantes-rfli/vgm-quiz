@@ -20,6 +20,7 @@ let score = 0;
 let awaitingNext = false;
 let currentRunId = null;
 let datasetLoaded = false;
+let datasetPromise = null;
 const aliases = {};
 let questionMode = 'free'; // multiple choice mode uses 'multiple-choice'
 let timerId = null;
@@ -1215,8 +1216,11 @@ updateStartButton();
 console.log('features', { mode: questionMode === 'multiple-choice' ? 'MC' : 'Free', timer: useTimer ? '20s' : 'off' });
 
 checkOnLoad();
-loadDataset();
-loadAliases();
+{
+  const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1));
+  ric(() => { try { datasetPromise = loadDataset(); } catch(e){} });
+  ric(() => { try { loadAliases(); } catch(e){} });
+}
 
 navigator.serviceWorker?.addEventListener('message', async (e)=>{
   if(e.data?.type==='version-refreshed'){
