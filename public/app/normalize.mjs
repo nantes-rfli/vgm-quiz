@@ -60,6 +60,10 @@ export function normalize(str) {
   // ローマ数字 ←→ アラビア数字（境界安全）
   s = romanToArabicSafe(s);
   s = arabicToRomanSafe(s);
+
+  // CJK 間のスペースは削除（英単語間は保持）
+  // Hiragana/Katakana/Han/compat & 長音記号の間の空白を除去
+  s = s.replace(/(?<=[\u3040-\u30FF\u3400-\u9FFF\uF900-\uFAFF\uFF66-\uFF9Dー])\s+(?=[\u3040-\u30FF\u3400-\u9FFF\uF900-\uFAFF\uFF66-\uFF9Dー])/g, '');
   // 最終空白畳み
   return s.replace(/\s+/g, ' ').trim();
 }
