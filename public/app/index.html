@@ -72,7 +72,8 @@
   <button id="export-aliases-btn">Export alias proposals (.edn)</button>
 </div>
 
-<div id="history-view" style="display:none">
+<div id="history-view" style="display:none" role="region" aria-labelledby="history-heading">
+  <h2 id="history-heading" class="visually-hidden">History</h2>
   <ul id="history-list"></ul>
   <button id="clear-history-btn">Clear history</button>
   <button id="history-back-btn" aria-controls="start-view">Back</button>
@@ -95,7 +96,7 @@
   <div id="countdown" aria-live="polite" aria-atomic="true" style="display:none; margin-top:6px;" data-testid="countdown"></div>
   <div id="media-slot" aria-label="audio preview area"></div>
   <div id="prompt" role="status" aria-live="polite" aria-atomic="true" data-testid="prompt"></div>
-  <div id="choices" style="display:none; margin-top:8px">
+  <div id="choices" style="display:none; margin-top:8px" role="group" aria-label="Choices">
     <button class="choice" aria-label="choice 1"></button>
     <button class="choice" aria-label="choice 2"></button>
     <button class="choice" aria-label="choice 3"></button>
@@ -141,6 +142,8 @@
     outline: 2px solid;
     outline-offset: 2px;
   }
+
+  .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;border:0;padding:0;white-space:nowrap;clip-path:inset(100%);clip:rect(0 0 0 0);overflow:hidden}
 </style>
 
 </main>
