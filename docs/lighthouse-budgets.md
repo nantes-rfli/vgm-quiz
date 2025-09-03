@@ -9,9 +9,9 @@
 ## しきい値（初期）
 - `categories:performance >= 0.85`（warn）
 - Budgets（warn）
-  - `total` size ≤ **2.4MB**
-  - `script` size ≤ **1.4MB**
-  - `resource count (total)` ≤ **180**
+  - `total` size ≤ **2.2MB**
+  - `script` size ≤ **1.2MB**
+  - `resource count (total)` ≤ **160**
 
 > Required には入れていません。必要に応じてしきい値は段階的に引き締めてください。
 
