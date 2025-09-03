@@ -9,6 +9,10 @@ on:
       - 'package.json'
       - 'docs/**'
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -30,18 +34,20 @@ jobs:
           name: asset-scan
           path: scan.txt
 
-      - name: Warn in job summary if unused assets exist
+      - name: Summarize in job summary
         run: |
           if grep -q "Potentially unused: 0" scan.txt; then
             echo "No unused assets detected." >> $GITHUB_STEP_SUMMARY
           else
-            echo "### Unused assets detected" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            sed -n '1,200p' scan.txt >> $GITHUB_STEP_SUMMARY
-            echo "
-(…truncated if long. Full output in artifact.)" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "### Unused assets detected"
+              echo
+              echo '```'
+              sed -n '1,200p' scan.txt
+              echo
+              echo '(…truncated if long. Full output in the artifact.)'
+              echo '```'
+            } >> $GITHUB_STEP_SUMMARY
             echo "::warning::Unused assets detected. See Job Summary or artifact 'asset-scan'."
           fi
 
@@ -51,12 +57,19 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const body = fs.readFileSync('scan.txt','utf8');
-            const head = body.split('\n').slice(0, 200).join('\n');
+            const maxLines = 200;
+            const txt = fs.readFileSync('scan.txt','utf8');
+            const head = txt.split('\n').slice(0, maxLines).join('\n');
+            const body = [
+              '### Asset usage scan',
+              '```',
+              head,
+              '```',
+              '(Full output attached as artifact in the workflow run.)'
+            ].join('\n');
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '### Asset usage scan\n```
-' + head + '\n```\n(Full output attached as artifact in the workflow run.)'
+              body
             });
