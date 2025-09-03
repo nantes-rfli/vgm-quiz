@@ -1,0 +1,62 @@
+name: asset-scan (on-demand & PR)
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'public/**'
+      - 'tools/asset-usage-scan.js'
+      - 'package.json'
+      - 'docs/**'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run asset usage scan
+        run: |
+          node tools/asset-usage-scan.js | tee scan.txt
+
+      - name: Upload scan result
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-scan
+          path: scan.txt
+
+      - name: Warn in job summary if unused assets exist
+        run: |
+          if grep -q "Potentially unused: 0" scan.txt; then
+            echo "No unused assets detected." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Unused assets detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            sed -n '1,200p' scan.txt >> $GITHUB_STEP_SUMMARY
+            echo "
+(…truncated if long. Full output in artifact.)" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "::warning::Unused assets detected. See Job Summary or artifact 'asset-scan'."
+          fi
+
+      - name: Comment on PR with scan (short)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('scan.txt','utf8');
+            const head = body.split('\n').slice(0, 200).join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '### Asset usage scan\n```
+' + head + '\n```\n(Full output attached as artifact in the workflow run.)'
+            });

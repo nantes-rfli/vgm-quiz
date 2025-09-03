@@ -43,6 +43,11 @@ Nightly run (desktop). Budgets & asserts enabled.
 - View the job **Summary** for the temporary-public report URL.
 - Artifact **lighthouse-report/report.html** is saved for 7 days.
 
+### アセットスキャン（GitHubでの実行）
+- **手動実行**: Actions → **asset-scan (on-demand & PR)** → Run workflow
+- **PRトリガ**: `public/**` 等に変更があるPRで自動実行し、結果を Job Summary とPRコメント・Artifact に出力
+- **削除フロー**: 出力の候補をレビュー → 不要なら削除PRを作成 → E2E / Pages / lighthouse を確認
+
 ### アセットの未使用チェック（スキャン）
 - コマンド: `npm run scan:assets`
 - 仕組み: `public/` 配下の画像/フォント/音声を列挙し、リポ内のテキストから参照をグリッドサーチ。参照が見つからないものを候補として出力（**自動削除はしない**）。
