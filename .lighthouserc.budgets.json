@@ -51,6 +51,12 @@
           {
             "minScore": 1
           }
+        ],
+        "uses-long-cache-ttl": [
+          "warn",
+          {
+            "maxLength": 12
+          }
         ]
       }
     },

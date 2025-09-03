@@ -62,3 +62,7 @@ Nightly run (desktop). Budgets & asserts enabled.
 ### パフォーマンス最適化（lazy import）
 - `public/app/boot_auto.mjs` を導入し、`?auto=1` / `?daily_auto=1` のときのみ `auto_*` モジュールを読み込みます（初期表示のリクエスト・パースを削減）。
 - メディア再生UI（`media_player.mjs`）は、問題にメディアがある場合にだけ **動的 import** で読み込みます（通常の初期表示時は読み込まない）。
+
+### Lighthouse: uses-long-cache-ttl の扱い
+- GitHub Pages 既定や外部起因で TTL が短いことがあるため、監査は **WARN かつ上限 12件** まで許容。
+- 実ユーザー体験に影響が小さいため、退行検知の針としてのみ使用（fail はしない）。
