@@ -66,3 +66,13 @@ Nightly run (desktop). Budgets & asserts enabled.
 ### Lighthouse: uses-long-cache-ttl の扱い
 - GitHub Pages 既定や外部起因で TTL が短いことがあるため、監査は **WARN かつ上限 12件** まで許容。
 - 実ユーザー体験に影響が小さいため、退行検知の針としてのみ使用（fail はしない）。
+
+### Pages manual deploy verification (no-cache examples)
+
+```bash
+# latest.html should redirect to today's JST page (follow redirects)
+curl -L -s -D - -o /dev/null -H 'Cache-Control: no-cache' "https://nantes-rfli.github.io/vgm-quiz/daily/latest.html?e2e=$(date +%s)"
+
+# Or just inspect headers without following (Location must be ./YYYY-MM-DD.html)
+curl -sI -H 'Cache-Control: no-cache' "https://nantes-rfli.github.io/vgm-quiz/daily/latest.html?e2e=$(date +%s)"
+```
