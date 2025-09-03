@@ -44,7 +44,13 @@
       }
     },
     { "title": "Gusty Garden Galaxy", "game": "スーパーマリオギャラクシー", "composer": "近藤浩治", "year": 2007 },
-    { "title": "Corridors of Time", "game": "クロノ・トリガー", "composer": "光田康典", "year": 1995 },
+    {
+      "title": "Corridors of Time",
+      "game": "クロノ・トリガー",
+      "composer": "光田康典",
+      "year": 1995,
+      "media": { "apple": { "url": "https://music.apple.com/jp/song/324081004", "previewOffset": 0 } }
+    },
     { "title": "Main Theme", "game": "ゼルダの伝説: 時のオカリナ", "composer": "近藤浩治", "year": 1998 }
   ]
 }
