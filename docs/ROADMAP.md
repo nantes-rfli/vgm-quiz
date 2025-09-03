@@ -15,7 +15,7 @@
 |---|---|---|---|
 | v1.1 | **Done (2025-09-02)** | AUTOトースト/設定UI/バッジA11y、latest CTA・meta、軽量E2E | — |
 | v1.2 | **Done (2025-09-02)** | 正規化ケース拡充、Node/Browserパリティ、alias衝突スモーク、CTA監視、Budgets微調整、Docs整備 | — |
-| v1.3 | **In progress** | Budgetsの安全幅を僅かに縮小 | 未使用アセット削減、遅延読込/プリロード最適化、SW堅牢化 |
+| v1.3 | **Done (2025-09-03)** | Budgets引き締め、Lazy import、Worker JSON parse、LHCI配線修正 | — |
 | v1.4 | **In progress** | AUTOバッジA11y（静的テスト付）、キーボード操作維持 | フォーカスリング、主要ロール/ラベル、簡易aXeチェック |
 | v1.5 | **Planned** | — | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） |
 
@@ -81,20 +81,17 @@
 - Docs整備（CI/運用/ガード、正本の一本化・参照修正）
 
 ## v1.3 — パフォーマンス強化 (Hardening)
-**狙い**: 体感を落とさずに退行を抑止。
+- Status: **Done** (2025-09-03)
+- Highlights:
+  - Budgets tightened: total ≤ 2.2MB / script ≤ 1.2MB / requests ≤ 160
+  - Lazy imports: `boot_auto.mjs`（auto系条件読込）, `media_player.mjs`（メディア時のみ）
+  - Off-main-thread JSON parse（Worker）: `dataset.json` / `aliases*.json`
+  - Alias構築の段階的処理（小分けyield）＋起動時のロード停止（Start後に非同期読み込み）
+  - Fuzzy距離（`levenshtein`）を `fuzzy.mjs` に分離し回答時のみ動的読込
+  - LHCI配線修正：`budgetsPath` 有効化、`/app/?lhci=1` で解析スクリプト除外
+  - uses-long-cache-ttl は WARN 監視（最大12件許容、運用ドキュメント追記）
+- Release Notes: see `docs/releases/v1.3.md`（tag: v1.3, date: 2025-09-03）
 
-**機能/変更**
-- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
-- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
-- Lighthouse Budgets の **段階的引き締め**（warn のまま閾値を少しだけ上げる）
-- 画像/JS の軽量化: 使用していないアセットの削減、遅延読込の徹底、プリロード最適化
-- SW: ポーリング間隔とハンドシェイク処理の堅牢化（ネットワーク劣化時の挙動）
-
-**DoD**
-- 新しい Budgets でも **継続的に warn 未満**
-  - 主要ページの初回描画に退行なし（体感/スナップショットで確認）
-
----
 
 ### Planned
 - **media-provider-order**: Apple Music preview を優先、YouTube 公式を補完（`media_player` のプロバイダ順）
@@ -117,6 +114,7 @@
   - **リグレッション**：v1系既存問題の難易度分布が**極端に崩れない**（中央値±10pt以内）。
 
 ## v1.4 — アクセシビリティ & i18n（最小）
+- Next: アクセシビリティ最小セット（フォーカス可視化/ランドマーク/aria/読み上げスモーク）
 **狙い**: 既存のキーボード操作 Baseline を**壊さず**、a11y をハードニング。
 
 **現状**
