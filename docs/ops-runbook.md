@@ -58,3 +58,7 @@ Nightly run (desktop). Budgets & asserts enabled.
 - E2E（`e2e/test_share.js`）は **meta / JS / `<a href>`** のいずれかで当日（JST）への遷移を検出するように緩和済み。
 - 手動実行直後などタイミング差がある場合、**前日**への遷移も暫定許容（後続の daily 実行で当日化される前提）。
 - CDN/Pages キャッシュを避けるため、検証時は `?e2e=<timestamp>` と no-cache ヘッダで取得する。
+
+### パフォーマンス最適化（lazy import）
+- `public/app/boot_auto.mjs` を導入し、`?auto=1` / `?daily_auto=1` のときのみ `auto_*` モジュールを読み込みます（初期表示のリクエスト・パースを削減）。
+- メディア再生UI（`media_player.mjs`）は、問題にメディアがある場合にだけ **動的 import** で読み込みます（通常の初期表示時は読み込まない）。
