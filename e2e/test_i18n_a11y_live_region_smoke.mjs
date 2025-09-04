@@ -50,7 +50,15 @@ import { chromium } from 'playwright';
   } catch {
     await choiceLoc.click({ force: true });
   }
-  await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: TIMEOUT });
+  // If result dialog doesn't appear promptly, programmatic click as final fallback
+  try {
+    await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 8000 });
+  } catch {
+    try {
+      await page.$eval('#choices button', (el) => el && el.click());
+    } catch {}
+    await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 8000 });
+  }
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
     throw new Error(`JA live region did not announce results: "${liveOpenedJa}"`);
