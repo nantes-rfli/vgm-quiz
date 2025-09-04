@@ -41,24 +41,32 @@ import { chromium } from 'playwright';
   await page.click('[data-testid="start-btn"]');
 
   // Choices can exist immediately but be mid-transition / off-visibility.
-  // Use Locator API and force as last resort.
+  // Prefer a programmatic click first to bypass actionability, then fall back to Locator.
   await page.waitForSelector('#choices button', { state: 'attached', timeout: TIMEOUT });
-  const choiceLoc = page.locator('#choices button').first();
+  // small delay to let any intro animation settle
+  await page.waitForTimeout(500);
+  let clicked = false;
   try {
-    await choiceLoc.waitFor({ state: 'visible', timeout: 3000 });
-    await choiceLoc.click();
-  } catch {
-    await choiceLoc.click({ force: true });
-  }
-  // If result dialog doesn't appear promptly, programmatic click as final fallback
-  try {
-    await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 8000 });
-  } catch {
+    await page.$eval('#choices button', (el) => el && el.click());
+    clicked = true;
+  } catch {}
+  if (!clicked) {
+    const choiceLoc = page.locator('#choices button').first();
     try {
-      await page.$eval('#choices button', (el) => el && el.click());
-    } catch {}
-    await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 8000 });
+      await choiceLoc.waitFor({ state: 'visible', timeout: 3000 });
+      await choiceLoc.click();
+      clicked = true;
+    } catch {
+      try {
+        await choiceLoc.click({ force: true });
+        clicked = true;
+      } catch {}
+    }
   }
+  if (!clicked) {
+    throw new Error('Failed to click a choice via all strategies');
+  }
+  await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 8000 });
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
     throw new Error(`JA live region did not announce results: "${liveOpenedJa}"`);
