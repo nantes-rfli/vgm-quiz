@@ -34,9 +34,16 @@ import { chromium } from 'playwright';
     return await page.evaluate(() => {
       const el = document.querySelector('#choices');
       const style = getComputedStyle(el).gridTemplateColumns;
-      const m = style.match(/minmax\(/g);
-      const count = m ? m.length : (style.trim().split(/\s+/).filter(Boolean).length);
-      return { style, count };
+      // Prefer repeat(N, ...) form if present (e.g., "repeat(2, minmax(0px, 1fr))")
+      const m = style.match(/repeat\((\d+)\s*,/);
+      let count;
+      if (m) {
+        count = parseInt(m[1], 10);
+      } else {
+        // Fallback: number of explicit tracks in the serialized value
+        count = style.trim().split(/\s+/).filter(Boolean).length;
+      }
+      return { count, style };
     });
   }
 
@@ -48,8 +55,13 @@ import { chromium } from 'playwright';
 
   for (const c of cases) {
     await page.setViewportSize({ width: c.w, height: 800 });
-    // Force reflow
-    await page.waitForTimeout(50);
+    // Give media queries time to settle
+    await page.waitForTimeout(120);
+    // Ensure at least one choice has rendered (avoid early single-item row)
+    await page.waitForFunction(() => {
+      const el = document.querySelector('#choices');
+      return el && el.querySelectorAll('button, .choice').length >= 1;
+    }, { timeout: TIMEOUT });
     const res = await countCols();
     if (res.count !== c.expect) {
       throw new Error(`[ui-resp] width=${c.w} cols=${res.count} (style="${res.style}") expected ${c.expect}`);
