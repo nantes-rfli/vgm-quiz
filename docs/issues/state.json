@@ -1,6 +1,23 @@
 {
-  "exported_at": "2025-09-04T01:22:46.078Z",
+  "exported_at": "2025-09-04T02:04:59.397Z",
   "items": [
+    {
+      "number": 412,
+      "title": "UI: デザイントークンをCSSで統一",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/412",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "responsive"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T02:00:59Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
     {
       "number": 405,
       "title": "Authoring: ops-docs（運用手順と監視ポイント）",
