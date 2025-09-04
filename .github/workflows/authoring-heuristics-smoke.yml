@@ -1,0 +1,58 @@
+name: authoring (heuristics smoke)
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'JST date (YYYY-MM-DD). Empty = today'
+        required: false
+        default: ''
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build site artifacts (EDN→JSON)
+        run: clojure -T:build publish
+
+      - name: Harvest
+        run: node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
+
+      - name: Score
+        run: node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
+
+      - name: Enrich (media/start if any)
+        run: node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+
+      - name: Heuristics v1 (clip start)
+        run: node scripts/clip_start_heuristics_v1.mjs --in public/app/daily_candidates_scored_enriched.jsonl --out public/app/daily_candidates_scored_enriched_start.jsonl
+
+      - name: Generate daily (draft)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then
+            DATE=$(TZ=Asia/Tokyo date +%F)
+          else
+            DATE="${{ inputs.date }}"
+          fi
+          node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched_start.jsonl --date "$DATE"
+
+      - name: Validate authoring
+        run: node scripts/validate_authoring.js
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: authoring-heuristics-${{ github.run_id }}
+          path: |
+            public/app/daily_candidates.jsonl
+            public/app/daily_candidates_scored.jsonl
+            public/app/daily_candidates_scored_enriched.jsonl
+            public/app/daily_candidates_scored_enriched_start.jsonl
+            public/app/daily_auto.json
