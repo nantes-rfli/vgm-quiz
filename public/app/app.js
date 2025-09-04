@@ -1111,6 +1111,25 @@ function openResultDialogA11y() {
     document.getElementById('restart-btn') ||
     dlg;
   first.focus();
+  // ---- a11y hardening: background inert + scroll lock ----
+  try {
+    const main = document.getElementById('main') || dlg.parentElement;
+    if (main) {
+      Array.from(main.children).forEach((el) => {
+        if (el !== dlg) {
+          el.setAttribute('aria-hidden', 'true');
+          // inert prevents focus & events on background; supported in Chromium, Safari
+          // (attribute form is fine; property may not exist in older engines)
+          el.setAttribute('inert', '');
+        }
+      });
+      // mark for cleanup
+      dlg.dataset._a11yInertApplied = '1';
+    }
+    // Prevent background scroll while modal is open
+    document.documentElement.classList.add('modal-open');
+    document.body && (document.body.style.overflow = 'hidden');
+  } catch (_) {}
   // Tabトラップ
   _resultDialogKeydown = (ev) => {
     if (ev.key === 'Tab') {
@@ -1139,6 +1158,23 @@ function closeResultDialogA11y(goStart = false) {
     dlg.removeEventListener('keydown', _resultDialogKeydown);
   }
   _resultDialogKeydown = null;
+  // ---- a11y hardening cleanup: remove inert/aria-hidden & unlock scroll ----
+  try {
+    if (dlg && dlg.dataset._a11yInertApplied) {
+      const main = document.getElementById('main') || dlg.parentElement;
+      if (main) {
+        Array.from(main.children).forEach((el) => {
+          if (el !== dlg) {
+            el.removeAttribute('aria-hidden');
+            el.removeAttribute('inert');
+          }
+        });
+      }
+      delete dlg.dataset._a11yInertApplied;
+    }
+    document.documentElement.classList.remove('modal-open');
+    document.body && (document.body.style.overflow = '');
+  } catch (_) {}
   // 戻り先：Startビュー or 直前フォーカス
   if (goStart) {
     try {
