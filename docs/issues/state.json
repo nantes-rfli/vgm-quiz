@@ -1,6 +1,123 @@
 {
-  "exported_at": "2025-09-04T02:04:59.397Z",
+  "exported_at": "2025-09-04T06:34:39.762Z",
   "items": [
+    {
+      "number": 438,
+      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/438",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.7",
+        "area:ops"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T05:49:19Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 437,
+      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/437",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:ops"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T05:49:19Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 436,
+      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/436",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:pipeline"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T05:49:18Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 435,
+      "title": "Authoring: distractors-v1（ダミー生成）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/435",
+      "labels": [
+        "roadmap:v1.7",
+        "area:pipeline"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T05:49:18Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 434,
+      "title": "Authoring: difficulty-v1（簡易スコア）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/434",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:pipeline"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T05:49:18Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 433,
+      "title": "Authoring: clip-start-heuristics-v1",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/433",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:pipeline"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T05:49:17Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 432,
+      "title": "Authoring: harvester-min（公式ソース収集器）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/432",
+      "labels": [
+        "roadmap:v1.7",
+        "area:pipeline"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T05:49:17Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
     {
       "number": 412,
       "title": "UI: デザイントークンをCSSで統一",
@@ -265,6 +382,140 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-04T00:40:52Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 431,
+      "title": "Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/431",
+      "labels": [
+        "roadmap:v1.5",
+        "type:docs"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:56Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 430,
+      "title": "Tests: UI/Responsive最小スモーク追加（JS不増を担保）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/430",
+      "labels": [
+        "roadmap:v1.5",
+        "responsive",
+        "type:test"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:56Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 429,
+      "title": "UI: ライトテーマのコントラスト微調整",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/429",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "a11y"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:55Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 428,
+      "title": "UI: 微小トランジション（opacity/transformのみ）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/428",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "perf"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:55Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 427,
+      "title": "UI: Historyテーブルのストライプ/ホバー",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/427",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:54Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 426,
+      "title": "UI: #choices グリッド2→3→4列のレスポンシブ",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/426",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "responsive"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:53Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 425,
+      "title": "UI: モバイルで44pxタッチターゲットを担保",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/425",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "a11y"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:53Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 424,
+      "title": "UI: デザイントークンをCSSで統一",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/424",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "responsive"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T06:32:52Z",
       "roadmap": [
         "roadmap:v1.5"
       ]
