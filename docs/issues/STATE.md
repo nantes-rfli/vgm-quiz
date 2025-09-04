@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-04T06:34:39.762Z
+Exported at: 2025-09-04T07:54:22.149Z
 
 ## v1.5
 
@@ -23,6 +23,20 @@ Exported at: 2025-09-04T06:34:39.762Z
 | 393 | [UI: #choices グリッド2→3→4列のレスポンシブ](https://github.com/nantes-rfli/vgm-quiz/issues/393) | open | roadmap:v1.5, area:ui, responsive |  | 2025-09-04T00:40:53Z |
 | 392 | [UI: モバイルで44pxタッチターゲットを担保](https://github.com/nantes-rfli/vgm-quiz/issues/392) | open | roadmap:v1.5, area:ui, a11y |  | 2025-09-04T00:40:53Z |
 | 391 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/391) | open | roadmap:v1.5, area:ui, responsive |  | 2025-09-04T00:40:52Z |
+
+## v1.6
+
+| # | Title | State | Labels | Assignees | Updated |
+|---:|---|---|---|---|---|
+| 450 | [Docs: STYLEGUIDE_I18N/ROADMAP の整備](https://github.com/nantes-rfli/vgm-quiz/issues/450) | open | type:docs, roadmap:v1.6, i18n |  | 2025-09-04T07:52:35Z |
+| 449 | [Scripts: 未翻訳/未使用キーの静的チェック](https://github.com/nantes-rfli/vgm-quiz/issues/449) | open | area:ops, roadmap:v1.6, i18n, type:scripts |  | 2025-09-04T07:52:35Z |
+| 448 | [E2E: ?lang=ja|en スモーク](https://github.com/nantes-rfli/vgm-quiz/issues/448) | open | type:test, roadmap:v1.6, i18n, area:test |  | 2025-09-04T07:52:34Z |
+| 447 | [i18n: a11yメッセージのキー管理へ統合](https://github.com/nantes-rfli/vgm-quiz/issues/447) | open | roadmap:v1.6, type:code, i18n, area:a11y |  | 2025-09-04T07:52:34Z |
+| 446 | [i18n: Intl.DateTimeFormat/NumberFormat での表記統一](https://github.com/nantes-rfli/vgm-quiz/issues/446) | open | roadmap:v1.6, area:app, type:code, i18n |  | 2025-09-04T07:52:34Z |
+| 445 | [i18n: Start/History/Share のテキスト外部化（第1段）](https://github.com/nantes-rfli/vgm-quiz/issues/445) | open | area:ui, roadmap:v1.6, type:code, i18n |  | 2025-09-04T07:52:33Z |
+| 444 | [i18n: initI18n() を app.js 起動時に配線](https://github.com/nantes-rfli/vgm-quiz/issues/444) | open | roadmap:v1.6, area:app, type:code, i18n |  | 2025-09-04T07:52:33Z |
+| 443 | [i18n: locales/en.json & ja.json（最小キー）](https://github.com/nantes-rfli/vgm-quiz/issues/443) | open | roadmap:v1.6, area:app, i18n, type:data |  | 2025-09-04T07:52:32Z |
+| 442 | [i18n: コアモジュール導入（i18n.mjs）](https://github.com/nantes-rfli/vgm-quiz/issues/442) | open | roadmap:v1.6, area:app, type:code, i18n |  | 2025-09-04T07:52:32Z |
 
 ## v1.7
 

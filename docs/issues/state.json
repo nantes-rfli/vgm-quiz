@@ -1,6 +1,167 @@
 {
-  "exported_at": "2025-09-04T06:34:39.762Z",
+  "exported_at": "2025-09-04T07:54:22.148Z",
   "items": [
+    {
+      "number": 450,
+      "title": "Docs: STYLEGUIDE_I18N/ROADMAP の整備",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/450",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.6",
+        "i18n"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:35Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 449,
+      "title": "Scripts: 未翻訳/未使用キーの静的チェック",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/449",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.6",
+        "i18n",
+        "type:scripts"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:35Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 448,
+      "title": "E2E: ?lang=ja|en スモーク",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/448",
+      "labels": [
+        "type:test",
+        "roadmap:v1.6",
+        "i18n",
+        "area:test"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:34Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 447,
+      "title": "i18n: a11yメッセージのキー管理へ統合",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/447",
+      "labels": [
+        "roadmap:v1.6",
+        "type:code",
+        "i18n",
+        "area:a11y"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:34Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 446,
+      "title": "i18n: Intl.DateTimeFormat/NumberFormat での表記統一",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/446",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:34Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 445,
+      "title": "i18n: Start/History/Share のテキスト外部化（第1段）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/445",
+      "labels": [
+        "area:ui",
+        "roadmap:v1.6",
+        "type:code",
+        "i18n"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:33Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 444,
+      "title": "i18n: initI18n() を app.js 起動時に配線",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/444",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:33Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 443,
+      "title": "i18n: locales/en.json & ja.json（最小キー）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/443",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "i18n",
+        "type:data"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:32Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 442,
+      "title": "i18n: コアモジュール導入（i18n.mjs）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/442",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-04T07:52:32Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
     {
       "number": 438,
       "title": "Authoring: ops-docs（運用手順と監視ポイント）",
