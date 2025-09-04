@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nantes-rfli.github.io/vgm-quiz/schema/auto.bundle.v1.json",
+  "title": "daily_auto bundle (v1)",
+  "type": "object",
+  "required": [
+    "by_date"
+  ],
+  "properties": {
+    "by_date": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "title",
+          "game",
+          "composer",
+          "norm",
+          "source"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "game": {
+            "type": "string"
+          },
+          "composer": {
+            "type": "string"
+          },
+          "platform": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "media": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "id"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "youtube",
+                      "apple",
+                      "auto"
+                    ]
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "start": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "duration": {
+                    "type": "number",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": true
+              }
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "norm": {
+            "type": "object",
+            "required": [
+              "title",
+              "game",
+              "composer"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "game": {
+                "type": "string"
+              },
+              "composer": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          },
+          "difficulty": {
+            "type": [
+              "number",
+              "integer"
+            ]
+          },
+          "choices": {
+            "type": "object",
+            "properties": {
+              "composer": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "game": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}
