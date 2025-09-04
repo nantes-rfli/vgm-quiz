@@ -74,16 +74,19 @@ function checkChoicesGroup(html) {
 }
 
 function checkHistoryRegion(html) {
-  // <section id="history" role="region" aria-labelledby="history-heading">
-  const re = /<[^>]*id=["']history["'][^>]*>/i;
-  const m = html.match(re);
-  assertMatch(!!m, '#history element exists');
+  // In app markup the History view is <div id="history-view" role="region" aria-labelledby="history-heading">
+  // (Older docs may refer to "#history"; we support both to be tolerant.)
+  const m =
+    html.match(/<[^>]*id=["']history-view["'][^>]*>/i) ||
+    html.match(/<[^>]*id=["']history["'][^>]*>/i);
+  assertMatch(!!m, '#history-view (or #history) element exists');
   const tag = m[0];
-  assertMatch(/role=["']region["']/i.test(tag), '#history has role="region"', tag);
+  const label = /id=["']history-view["']/i.test(tag) ? '#history-view' : '#history';
+  assertMatch(/role=["']region["']/i.test(tag), `${label} has role="region"`, tag);
   const mLbl = tag.match(/aria-labelledby=["']([^"']+)["']/i);
-  assertMatch(!!mLbl, '#history has aria-labelledby', tag);
+  assertMatch(!!mLbl, `${label} has aria-labelledby`, tag);
   const lblId = mLbl && mLbl[1];
-  assertMatch(lblId === 'history-heading', '#history aria-labelledby="history-heading"', tag);
+  assertMatch(lblId === 'history-heading', `${label} aria-labelledby="history-heading"`, tag);
   assertMatch(new RegExp(`id=["']${lblId}["']`, 'i').test(html), `#${lblId} element exists`);
 }
 
