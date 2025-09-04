@@ -26,6 +26,7 @@ const EMBEDDED_EN = {
 
 let currentLang = DEFAULT_LANG;
 let dict = EMBEDDED_EN;
+let _initPromise = null;
 
 function normalizeLang(raw) {
   if (!raw) return DEFAULT_LANG;
@@ -114,10 +115,40 @@ export async function setLang(lang) {
   try {
     document.title = t('app.title');
   } catch {}
+  try {
+    window.dispatchEvent(new CustomEvent('i18n:changed', { detail: { lang: next } }));
+  } catch {}
 }
 
 export async function initI18n() {
   const lang = detectLang();
-  await setLang(lang);
+  _initPromise = setLang(lang);
+  await _initPromise;
+}
+
+export function whenI18nReady() {
+  return _initPromise || Promise.resolve();
+}
+
+// --- Optional helpers for v1.6 step1: apply common static labels ---
+export function applyStaticLabels() {
+  // Buttons that exist before quiz starts or in header/footer.
+  const trySet = (selectorList, text) => {
+    for (const sel of selectorList) {
+      const el = document.querySelector(sel);
+      if (el) {
+        if ('value' in el && (el.tagName === 'INPUT' || el.tagName === 'BUTTON')) {
+          // For safety, set both value and textContent if applicable
+          try { el.value = text; } catch {}
+        }
+        if ('textContent' in el) el.textContent = text;
+        return true;
+      }
+    }
+    return false;
+  };
+  trySet(['[data-testid="start-btn"]', '#start-btn', 'button#start', 'button[data-action="start"]'], t('ui.start'));
+  trySet(['#history-btn', '[data-testid="history-btn"]'], t('ui.history'));
+  trySet(['#share-btn', '[data-testid="share-btn"]'], t('ui.share'));
 }
 
