@@ -23,14 +23,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: node script/export_issues.mjs
-      - name: Create PR with snapshot (branch chore/issues-export)
+      - name: Create PR with snapshot
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.CPR_PAT }}
           commit-message: "docs(issues): export snapshot"
           title: "docs(issues): export snapshot"
           body: "Automated export by issues-export workflow"
-          branch: chore/issues-export
+          branch: bot/issues-export-${{ github.run_id }}
           delete-branch: true
+          labels: |
+            bot
+            chore
           add-paths: |
             docs/issues/STATE.md
             docs/issues/state.json
+      - name: Enable auto-merge (squash)
+        if: steps.cpr.outputs.pull-request-url != ''
+        env:
+          GH_TOKEN: ${{ secrets.CPR_PAT }}
+        run: |
+          gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-url }}"
