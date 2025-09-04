@@ -15,7 +15,17 @@ import { chromium } from 'playwright';
     return u.toString();
   }
 
-  const base = process.env.E2E_BASE_URL || process.env.APP_URL || 'http://127.0.0.1:8080/app/';
+  function defaultBase() {
+    // In CI, prefer GitHub Pages URL derived from repo; locally fall back to localhost.
+    const repo = process.env.GITHUB_REPOSITORY; // e.g., "nantes-rfli/vgm-quiz"
+    if (repo) {
+      const [owner, name] = repo.split('/');
+      return `https://${owner}.github.io/${name}/app/`;
+    }
+    return 'http://127.0.0.1:8080/app/';
+  }
+
+  const base = process.env.E2E_BASE_URL || process.env.APP_URL || defaultBase();
 
   // en
   await page.goto(withLang(base, 'en'));
