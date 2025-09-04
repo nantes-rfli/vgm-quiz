@@ -10,6 +10,19 @@
 ### `id` の利用（推奨）
 - JSONに `id`（例: `ui-choices-grid`）を付けると、Issue本文に `<!-- issue-id: ui-choices-grid -->` が埋め込まれ、**タイトル変更後も同一Issueを更新**できます。
 
+### `state` の指定（任意）
+- 各要素に `state` を付けると、Issueの**状態（open/closed）**も同期できます。
+```jsonc
+{
+  "id": "ui-choices-2-3-4",
+  "title": "UI: #choices グリッド2→3→4列のレスポンシブ",
+  "labels": ["roadmap:v1.5","area:ui","responsive"],
+  "state": "closed",
+  "body": "…"
+}
+```
+> `state` を省略した場合は従来通り、タイトル/本文/ラベルのみ更新します。
+
 ## 2) 状態の共有（export）
 - Actions → **issues (export)** を実行（または日次自動）
 - `docs/issues/STATE.md` と `state.json` を出力する **PRを自動作成 → 自動マージ**

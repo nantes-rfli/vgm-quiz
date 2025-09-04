@@ -7,7 +7,8 @@
       "area:ui",
       "responsive"
     ],
-    "body": "### Scope\n- :rootにデザイントークン（色/余白/角丸）定義\n- ボタン/入力/カード等を変数参照へ置換（JS変更なし）\n\n### DoD\n- 主要画面がトークン参照へ移行\n- 既存E2Eすべて緑、Lighthouseスコア維持以上\n\n### Notes\n- パフォーマンス・a11yへ影響しないこと"
+    "body": "### Scope\n- :rootにデザイントークン（色/余白/角丸）定義\n- ボタン/入力/カード等を変数参照へ置換（JS変更なし）\n\n### DoD\n- 主要画面がトークン参照へ移行\n- 既存E2Eすべて緑、Lighthouseスコア維持以上\n\n### Notes\n- パフォーマンス・a11yへ影響しないこと",
+    "state": "closed"
   },
   {
     "id": "ui-44px",
@@ -17,7 +18,8 @@
       "area:ui",
       "a11y"
     ],
-    "body": "### Scope\n- 主要クリック要素（ボタン/選択肢）のmin-height/line-height調整\n\n### DoD\n- 代表要素で44px以上をCSSで確認\n- a11y静的スモーク緑維持、既存操作に副作用なし"
+    "body": "### Scope\n- 主要クリック要素（ボタン/選択肢）のmin-height/line-height調整\n\n### DoD\n- 代表要素で44px以上をCSSで確認\n- a11y静的スモーク緑維持、既存操作に副作用なし",
+    "state": "closed"
   },
   {
     "id": "ui-choices-2-3-4",
@@ -27,7 +29,8 @@
       "area:ui",
       "responsive"
     ],
-    "body": "### Scope\n- CSSメディアクエリで段階的カラム数切り替え\n- DOM/JS変更なし\n\n### DoD\n- 幅狭/中/広の3条件で列数が期待通り（軽量DOM検証 or スクショDiff）\n- 既存E2E緑"
+    "body": "### Scope\n- CSSメディアクエリで段階的カラム数切り替え\n- DOM/JS変更なし\n\n### DoD\n- 幅狭/中/広の3条件で列数が期待通り（軽量DOM検証 or スクショDiff）\n- 既存E2E緑",
+    "state": "closed"
   },
   {
     "id": "ui-history",
@@ -36,7 +39,8 @@
       "roadmap:v1.5",
       "area:ui"
     ],
-    "body": "### Scope\n- CSSのみで視認性向上（背景交互/hoverわずか）\n\n### DoD\n- コントラストが概ねWCAG AAを満たす\n- Lighthouse a11yで回帰なし"
+    "body": "### Scope\n- CSSのみで視認性向上（背景交互/hoverわずか）\n\n### DoD\n- コントラストが概ねWCAG AAを満たす\n- Lighthouse a11yで回帰なし",
+    "state": "closed"
   },
   {
     "id": "ui-opacity-transform",
@@ -46,7 +50,8 @@
       "area:ui",
       "perf"
     ],
-    "body": "### Scope\n- 主要ボタン/ダイアログ開閉へCSSトランジションを限定的に追加\n- レイアウト影響プロパティは禁止\n\n### DoD\n- Main-thread/TBT悪化なし（Lighthouse変動が許容内）"
+    "body": "### Scope\n- 主要ボタン/ダイアログ開閉へCSSトランジションを限定的に追加\n- レイアウト影響プロパティは禁止\n\n### DoD\n- Main-thread/TBT悪化なし（Lighthouse変動が許容内）",
+    "state": "closed"
   },
   {
     "id": "ui",
@@ -56,7 +61,8 @@
       "area:ui",
       "a11y"
     ],
-    "body": "### Scope\n- 背景/本文/アクセント色のコントラスト見直し\n\n### DoD\n- Lighthouse a11yで新規コントラスト警告なし"
+    "body": "### Scope\n- 背景/本文/アクセント色のコントラスト見直し\n\n### DoD\n- Lighthouse a11yで新規コントラスト警告なし",
+    "state": "closed"
   },
   {
     "id": "tests-ui-responsive-js",
@@ -66,7 +72,8 @@
       "type:test",
       "responsive"
     ],
-    "body": "### Scope\n- 静的スモークに列数/44px相当の簡易チェックを追加、または軽量の新スモークを作成\n\n### DoD\n- v1.5項目の回帰検知が可能\n- 既存E2Eは緑のまま"
+    "body": "### Scope\n- 静的スモークに列数/44px相当の簡易チェックを追加、または軽量の新スモークを作成\n\n### DoD\n- v1.5項目の回帰検知が可能\n- 既存E2Eは緑のまま",
+    "state": "closed"
   },
   {
     "id": "docs-styleguide-roadmap-v1-5-dod",
@@ -75,6 +82,7 @@
       "roadmap:v1.5",
       "type:docs"
     ],
-    "body": "### Scope\n- JSを増やさない方針・perf/a11y回帰防止のガードレールを明文化\n\n### DoD\n- Docs lint/リンクチェック緑\n- PRテンプレから参照可能"
+    "body": "### Scope\n- JSを増やさない方針・perf/a11y回帰防止のガードレールを明文化\n\n### DoD\n- Docs lint/リンクチェック緑\n- PRテンプレから参照可能",
+    "state": "closed"
   }
 ]
