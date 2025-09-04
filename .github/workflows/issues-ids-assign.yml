@@ -1,0 +1,41 @@
+name: issues (ids assign)
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  assign-ids:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Assign missing issue ids in docs/issues/*.json
+        run: node script/assign_issue_ids.mjs
+      - name: Create PR for id assignment
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.CPR_PAT }}
+          commit-message: "chore(issues): assign ids to docs/issues/*.json"
+          title: "chore(issues): assign ids to docs/issues/*.json"
+          body: "Automated id assignment for issue specs"
+          branch: bot/issues-ids-${{ github.run_id }}
+          delete-branch: true
+          labels: |
+            bot
+            chore
+          add-paths: |
+            docs/issues/*.json
+      - name: Enable auto-merge (squash)
+        if: steps.cpr.outputs.pull-request-url != ''
+        env:
+          GH_TOKEN: ${{ secrets.CPR_PAT }}
+        run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-url }}"
