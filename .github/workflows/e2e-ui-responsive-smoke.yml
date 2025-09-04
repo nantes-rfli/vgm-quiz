@@ -1,0 +1,31 @@
+name: e2e (ui responsive smoke)
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL of /app/ (default: GitHub Pages)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  ui-responsive-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright (ephemeral)
+        run: |
+          npm i -D playwright@^1
+          npx playwright install --with-deps chromium
+      - name: Run UI responsive smoke
+        env:
+          APP_URL: ${{ github.event.inputs.base_url }}
+        run: |
+          node e2e/test_ui_responsive_smoke.mjs
