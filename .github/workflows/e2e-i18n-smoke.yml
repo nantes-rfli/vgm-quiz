@@ -16,6 +16,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install Playwright (module + browsers)
+        run: |
+          npm init -y >/dev/null 2>&1 || true
+          npm i --no-save playwright
+          npx playwright install --with-deps
+
       - name: Run i18n lang param smoke
         env:
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
