@@ -5,7 +5,18 @@
   "ui": {
     "start": "スタート",
     "history": "履歴",
-    "share": "シェア"
+    "share": "シェア",
+    "restart": "リスタート",
+    "copyResult": "結果をコピー",
+    "shareResult": "結果をシェア",
+    "next": "次へ",
+    "back": "戻る",
+    "ok": "OK",
+    "cancel": "キャンセル"
+  },
+  "heading": {
+    "history": "履歴",
+    "result": "結果"
   },
   "a11y": {
     "ready": "準備OK。スタートを押すと開始します。"

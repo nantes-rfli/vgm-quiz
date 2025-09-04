@@ -1,0 +1,30 @@
+name: e2e (i18n labels step2)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "35 18 * * *" # UTC 18:35 ≒ JST 03:35
+
+jobs:
+  e2e_i18n_labels_step2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright (module + browsers)
+        run: |
+          npm init -y >/dev/null 2>&1 || true
+          npm i --no-save playwright
+          npx playwright install --with-deps
+
+      - name: Run i18n labels step2 smoke
+        env:
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          APP_URL: ${{ vars.APP_URL }}
+        run: node e2e/test_i18n_labels_step2_smoke.mjs
+

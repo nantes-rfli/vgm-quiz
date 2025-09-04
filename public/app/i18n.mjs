@@ -150,5 +150,18 @@ export function applyStaticLabels() {
   trySet(['[data-testid="start-btn"]', '#start-btn', 'button#start', 'button[data-action="start"]'], t('ui.start'));
   trySet(['#history-btn', '[data-testid="history-btn"]'], t('ui.history'));
   trySet(['#share-btn', '[data-testid="share-btn"]'], t('ui.share'));
+
+  // --- Step2: common labels that may exist conditionally ---
+  trySet(['#restart-btn', '[data-testid="restart-btn"]', 'button[data-action="restart"]'], t('ui.restart'));
+  trySet(['#copy-result-btn', '[data-testid="copy-result-btn"]'], t('ui.copyResult'));
+  trySet(['#share-result-btn', '[data-testid="share-result-btn"]'], t('ui.shareResult'));
+  trySet(['#next-btn', '[data-testid="next-btn"]'], t('ui.next'));
+  trySet(['#back-btn', '[data-testid="back-btn"]'], t('ui.back'));
+  trySet(['#ok-btn', '[data-testid="ok-btn"]'], t('ui.ok'));
+  trySet(['#cancel-btn', '[data-testid="cancel-btn"]'], t('ui.cancel'));
+
+  // Headings
+  trySet(['#history-heading'], t('heading.history'));
+  trySet(['#result-heading', '#results-heading'], t('heading.result'));
 }
 
