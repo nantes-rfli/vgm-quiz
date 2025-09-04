@@ -18,7 +18,7 @@
 | v1.3 | **Done (2025-09-03)** | Budgets引き締め、Lazy import、Worker JSON parse、LHCI配線修正 | — |
 | v1.4 | **Done (2025-09-04)** | A11y最小セット（live region/roles/labels/`aria-describedby`）＋ダイアログのフォーカストラップ/復帰＋背景 inert + scroll lock＋a11y static checker（static smoke） | — |
 | v1.5 | **Done (2025-09-04)** | UI/Responsive polish（トークン/44px/2→3→4列/微トランジション/ライト調整/E2E緑） | — |
-| v1.6 | **In progress** | — | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） |
+| v1.6 | **Done (2025-09-05)** | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） | — |
 
 ## 現状 (v1.0.x Stabilization) — 完了/運用中
 - キーボード操作（Tab/Enter/Space の基本操作）: **実装済み（Baseline）**
@@ -161,7 +161,7 @@
 
 > **実装反映済み**: `e2e (ui responsive smoke)`, `e2e (ui motion reduce)` は緑、README にバッジ追加済み。詳細は **`docs/STYLEGUIDE_UI.md`** を参照。
 ## v1.6 — i18n ベースライン
-**Status:** In progress
+**Status:** **Done (2025-09-05)**
 **狙い**: UIテキスト/ラベルを辞書化し、言語切替（ja/en）を可能にする。初期バンドルの悪化は避け、`en` 同梱・`ja` 遅延ロードの方針。
 
 **機能/変更**
@@ -177,10 +177,10 @@
 - ✅ `document.title` と `<html lang>` の切替（`?lang=` / `localStorage`）
 - ✅ E2E: `e2e (i18n lang param smoke)` 緑
 - ✅ 外部化ステップ1（Start/History/Share の静的ラベル）＋ E2E（labels smoke）
-- ⏳ 外部化ステップ2（再スタート/コピー/シェア結果/見出し 等の静的ラベル） ← 本パッチ
+- ✅ 外部化ステップ2（再スタート/コピー/シェア結果/見出し 等の静的ラベル）
 - ✅ `Intl.DateTimeFormat` ヘルパー（`formatDate/Time/DateTime`）を導入（未適用・後続で置換）
 - ✅ Missing Keys チェッカ（CI）導入：`.github/workflows/i18n-missing-keys.yml`
-- ⏳ a11yメッセージのキー化（`#feedback` などを `a11y.*` キーへ）
+- ✅ a11yメッセージのキー化（`#feedback` の ready/results を `a11y.*` に集約）＋ **E2E: i18n a11y live region** 緑
 
 **DoD**
 - `?lang=en/ja` で `<html lang>` と表示テキストが切り替わる
