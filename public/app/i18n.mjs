@@ -165,3 +165,23 @@ export function applyStaticLabels() {
   trySet(['#result-heading', '#results-heading'], t('heading.result'));
 }
 
+// --- Intl helpers (for step3) ---
+export function getLang() {
+  return currentLang || DEFAULT_LANG;
+}
+
+export function formatDate(date, opts) {
+  const d = date instanceof Date ? date : new Date(date);
+  return new Intl.DateTimeFormat(getLang(), opts || { year: 'numeric', month: 'short', day: 'numeric' }).format(d);
+}
+
+export function formatTime(date, opts) {
+  const d = date instanceof Date ? date : new Date(date);
+  return new Intl.DateTimeFormat(getLang(), opts || { hour: '2-digit', minute: '2-digit' }).format(d);
+}
+
+export function formatDateTime(date, optsDate, optsTime) {
+  const d = date instanceof Date ? date : new Date(date);
+  return `${formatDate(d, optsDate)} ${formatTime(d, optsTime)}`.trim();
+}
+

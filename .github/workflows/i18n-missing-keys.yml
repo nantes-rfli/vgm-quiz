@@ -1,0 +1,23 @@
+name: i18n (missing keys)
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'public/app/**'
+      - 'e2e/**'
+      - 'docs/**'
+      - '.github/workflows/i18n-missing-keys.yml'
+
+jobs:
+  check_missing_keys:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run missing keys checker
+        run: node script/check_i18n_missing_keys.mjs
+
