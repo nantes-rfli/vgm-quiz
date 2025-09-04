@@ -16,7 +16,7 @@
 | v1.1 | **Done (2025-09-02)** | AUTOトースト/設定UI/バッジA11y、latest CTA・meta、軽量E2E | — |
 | v1.2 | **Done (2025-09-02)** | 正規化ケース拡充、Node/Browserパリティ、alias衝突スモーク、CTA監視、Budgets微調整、Docs整備 | — |
 | v1.3 | **Done (2025-09-03)** | Budgets引き締め、Lazy import、Worker JSON parse、LHCI配線修正 | — |
-| v1.4 | **In progress** | A11y最小セット（live region/roles/labels/`aria-describedby`） | ダイアログのフォーカストラップ/復帰、a11y static checker（aXe-lite） |
+| v1.4 | **Done (2025-09-04)** | A11y最小セット（live region/roles/labels/`aria-describedby`）＋ダイアログのフォーカストラップ/復帰＋背景 inert + scroll lock＋a11y static checker（static smoke） | — |
 | v1.5 | **Done (2025-09-04)** | UI/Responsive polish（トークン/44px/2→3→4列/微トランジション/ライト調整/E2E緑） | — |
 | v1.6 | **Planned** | — | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） |
 
@@ -115,7 +115,7 @@
   - **リグレッション**：v1系既存問題の難易度分布が**極端に崩れない**（中央値±10pt以内）。
 
 ## v1.4 — アクセシビリティ（最小）
-- Status: **In progress**
+- Status: **Done (2025-09-04)**
 - Scope: A11y minimal set (focus, landmarks, labels, live regions, keyboard)
 - Tests: a11y smoke (static) + existing E2E a11y
 **狙い**: 既存のキーボード操作 Baseline を**壊さず**、a11y をハードニング。
@@ -128,13 +128,18 @@
 - ランドマーク/領域：履歴 `role="region" aria-labelledby="history-heading"`（見出しは視覚非表示）
 - 選択肢のまとまり：`#choices` に `role="group" aria-label="Choices"`、`aria-describedby="prompt"`
 - 選択状態：選択肢に `aria-pressed` を付与し、クリック/キーボードで同期
-- 結果ダイアログ：`role="dialog" aria-modal="true"`、初期フォーカス/Tabトラップ/ESCクローズ/復帰
-- テスト：`e2e (a11y static smoke)` を追加し、上記を静的に検証
+- 結果ダイアログ：`role="dialog" aria-modal="true"`、初期フォーカス/Tabトラップ/ESCクローズ/復帰 **＋ 背景 inert / aria-hidden / スクロールロック**
+- テスト：`e2e (a11y static smoke)` を追加し、上記を静的に検証（静的チェッカ: `script/a11y_static_check.mjs` / ワークフロー: `.github/workflows/a11y-static.yml`）
 **DoD**
 - 既存のキーボード操作が落ちない **回帰 E2E（軽量）**
 - コントラストとフォーカスリングが目視で明確
 - 主要要素に適切なロール/ラベルが付与
+- a11y 静的スモーク（`a11y (static smoke)`）が緑
 - （任意）axe-core の quick pass で重大項目が発生しない
+
+**Notes**
+- 背景抑止は `public/app/app.js` の `openResultDialogA11y` / `closeResultDialogA11y` で `inert` / `aria-hidden` / scroll lock を付与・解除
+- 動作確認 E2E：`e2e/test_results_modal_inert.mjs`
 
 ---
 
