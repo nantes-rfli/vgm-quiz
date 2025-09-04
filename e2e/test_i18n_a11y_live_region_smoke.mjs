@@ -4,6 +4,8 @@ import { chromium } from 'playwright';
   const TIMEOUT = 30000;
   const browser = await chromium.launch();
   const page = await browser.newPage();
+  // Reduce motion in CI to avoid transient visibility/actionability issues
+  try { await page.emulateMedia({ reducedMotion: 'reduce' }); } catch {}
 
   function urlWith(base, lang) {
     const u = new URL(base);
@@ -38,16 +40,15 @@ import { chromium } from 'playwright';
   await page.waitForSelector('[data-testid="start-btn"]', { state: 'visible', timeout: TIMEOUT });
   await page.click('[data-testid="start-btn"]');
 
-  // Choices can exist immediately but be mid-transition and not "visible" per Playwright.
-  // Be robust: wait for attachment, prefer visible click, then fall back to force click.
+  // Choices can exist immediately but be mid-transition / off-visibility.
+  // Use Locator API and force as last resort.
   await page.waitForSelector('#choices button', { state: 'attached', timeout: TIMEOUT });
-  const choice = (await page.$$('#choices button'))[0];
-  if (!choice) throw new Error('No choice button found');
+  const choiceLoc = page.locator('#choices button').first();
   try {
-    await page.waitForSelector('#choices button', { state: 'visible', timeout: 3000 });
-    await choice.click();
+    await choiceLoc.waitFor({ state: 'visible', timeout: 3000 });
+    await choiceLoc.click();
   } catch {
-    await choice.click({ force: true });
+    await choiceLoc.click({ force: true });
   }
   await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: TIMEOUT });
   const liveOpenedJa = await page.textContent('#feedback');
