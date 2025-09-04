@@ -1,0 +1,24 @@
+name: a11y (static smoke)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "20 18 * * *" # UTC 18:20 ≒ JST 03:20
+
+jobs:
+  a11y_static_smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run static a11y checks
+        env:
+          # Prefer the same base URL convention as other E2E jobs if present
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          APP_URL: ${{ vars.APP_URL }}
+        run: node script/a11y_static_check.mjs
