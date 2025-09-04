@@ -21,9 +21,11 @@ jobs:
           java-version: '21'
 
       - name: Setup Clojure CLI
-        uses: DeLaGuardo/setup-clojure@12
+        uses: DeLaGuardo/setup-clojure@13.4
         with:
-          cli: 1.11.1.1439
+          # Use the latest stable Clojure CLI per action docs
+          # https://github.com/DeLaGuardo/setup-clojure
+          cli: latest
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
