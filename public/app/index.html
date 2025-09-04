@@ -229,9 +229,10 @@
     background:var(--panel);
     color:var(--text);
     border-radius:12px;
-    min-height:44px;
+    min-height:var(--touch-target);
     padding:10px 14px;
     cursor:pointer;
+    transition: transform var(--duration-fast) var(--easing-out), opacity var(--duration-fast) var(--easing-out);
   }
   button:hover{filter:brightness(1.05)}
   button:active{transform:translateY(1px)}
@@ -248,7 +249,7 @@
 
   #choices{
     display:grid;
-    gap:10px;
+    gap: var(--grid-gap);
     grid-template-columns:repeat(2, minmax(0,1fr));
   }
   #choices button{font-size:16px;}
@@ -283,7 +284,28 @@
   }
   /* === end v1.4 UI polish === */
 
-.visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;border:0;padding:0;white-space:nowrap;clip-path:inset(100%);clip:rect(0 0 0 0);overflow:hidden}
+  .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;border:0;padding:0;white-space:nowrap;clip-path:inset(100%);clip:rect(0 0 0 0);overflow:hidden}
+
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+
+  /* History view polish */
+  #history-list { list-style: none; padding: 0; margin: var(--space-2) 0; display: grid; gap: var(--space-2); }
+  #history-list li {
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-1);
+    padding: var(--space-2) var(--space-3);
+  }
+  #history-list li:hover { box-shadow: var(--shadow-1); }
+  /* Subtle stripes */
+  #history-list li:nth-child(odd) { background: rgba(255,255,255,0.03); }
+  @media (prefers-color-scheme: light) {
+    #history-list li:nth-child(odd) { background: rgba(0,0,0,0.02); }
+  }
 
   /* Opt-in theme override via attribute; no behavior change unless data-theme is set */
   :root[data-theme="dark"] {
