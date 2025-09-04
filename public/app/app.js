@@ -1,6 +1,16 @@
 // i18n baseline (v1.6)
-import { initI18n } from './i18n.mjs';
+import { initI18n, whenI18nReady, applyStaticLabels } from './i18n.mjs';
 void initI18n(); // non-blocking; updates <html lang> & document.title
+whenI18nReady().then(() => {
+  // Try immediately, then after first paint, then once again after 500ms for safety
+  try { applyStaticLabels(); } catch {}
+  try { requestAnimationFrame(() => applyStaticLabels()); } catch {}
+  setTimeout(() => { try { applyStaticLabels(); } catch {} }, 500);
+});
+// Re-apply on language change (future-proofing)
+window.addEventListener('i18n:changed', () => {
+  try { applyStaticLabels(); } catch {}
+});
 
 // --- perf helpers ---
 async function parseJsonOffMainThread(text) {
