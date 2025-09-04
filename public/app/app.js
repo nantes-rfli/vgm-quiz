@@ -1,15 +1,26 @@
 // i18n baseline (v1.6)
-import { initI18n, whenI18nReady, applyStaticLabels } from './i18n.mjs';
+import { initI18n, whenI18nReady, applyStaticLabels, t } from './i18n.mjs';
 void initI18n(); // non-blocking; updates <html lang> & document.title
 whenI18nReady().then(() => {
   // Try immediately, then after first paint, then once again after 500ms for safety
   try { applyStaticLabels(); } catch {}
   try { requestAnimationFrame(() => applyStaticLabels()); } catch {}
   setTimeout(() => { try { applyStaticLabels(); } catch {} }, 500);
+  // Initialize live region text
+  try {
+    const live = document.getElementById('feedback');
+    if (live && !live.textContent?.trim()) {
+      live.textContent = t('a11y.ready');
+    }
+  } catch {}
 });
 // Re-apply on language change (future-proofing)
 window.addEventListener('i18n:changed', () => {
   try { applyStaticLabels(); } catch {}
+  try {
+    const live = document.getElementById('feedback');
+    if (live) live.textContent = t('a11y.ready');
+  } catch {}
 });
 
 // --- perf helpers ---
@@ -1125,6 +1136,11 @@ function openResultDialogA11y() {
     document.getElementById('restart-btn') ||
     dlg;
   first.focus();
+  // Announce dialog opened
+  try {
+    const live = document.getElementById('feedback');
+    if (live) live.textContent = t('a11y.resultsShown');
+  } catch {}
   // ---- a11y hardening: background inert + scroll lock ----
   try {
     const main = document.getElementById('main') || dlg.parentElement;
@@ -1189,6 +1205,11 @@ function closeResultDialogA11y(goStart = false) {
     document.documentElement.classList.remove('modal-open');
     document.body && (document.body.style.overflow = '');
   } catch (_) {}
+  // Announce dialog closed / ready
+  try {
+    const live = document.getElementById('feedback');
+    if (live) live.textContent = t('a11y.ready');
+  } catch {}
   // 戻り先：Startビュー or 直前フォーカス
   if (goStart) {
     try {

@@ -21,6 +21,7 @@ const EMBEDDED_EN = {
   },
   a11y: {
     ready: 'Ready. Press Start to begin.',
+    resultsShown: 'Results shown. Use Tab to navigate the dialog.',
   },
 };
 
