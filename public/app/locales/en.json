@@ -1,0 +1,13 @@
+{
+  "app": {
+    "title": "VGM Quiz"
+  },
+  "ui": {
+    "start": "Start",
+    "history": "History",
+    "share": "Share"
+  },
+  "a11y": {
+    "ready": "Ready. Press Start to begin."
+  }
+}

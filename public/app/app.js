@@ -1,3 +1,7 @@
+// i18n baseline (v1.6)
+import { initI18n } from './i18n.mjs';
+void initI18n(); // non-blocking; updates <html lang> & document.title
+
 // --- perf helpers ---
 async function parseJsonOffMainThread(text) {
   try {

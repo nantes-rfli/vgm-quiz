@@ -1,0 +1,23 @@
+name: e2e (i18n lang param smoke)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "25 18 * * *" # UTC 18:25 ≒ JST 03:25
+
+jobs:
+  e2e_i18n_smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run i18n lang param smoke
+        env:
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          APP_URL: ${{ vars.APP_URL }}
+        run: node e2e/test_i18n_lang_param_smoke.mjs
