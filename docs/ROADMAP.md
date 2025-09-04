@@ -16,8 +16,8 @@
 | v1.1 | **Done (2025-09-02)** | AUTOトースト/設定UI/バッジA11y、latest CTA・meta、軽量E2E | — |
 | v1.2 | **Done (2025-09-02)** | 正規化ケース拡充、Node/Browserパリティ、alias衝突スモーク、CTA監視、Budgets微調整、Docs整備 | — |
 | v1.3 | **Done (2025-09-03)** | Budgets引き締め、Lazy import、Worker JSON parse、LHCI配線修正 | — |
-| v1.4 | **In progress** | A11y最小セット（live region/roles/labels/`aria-describedby`/dialog focus） | 簡易aXe/文言のi18n土台 |
-| v1.5 | **Planned** | — | UI/Responsive polish（スマホ最適化/軽量トランジション/コントラスト調整） |
+| v1.4 | **In progress** | A11y最小セット（live region/roles/labels/`aria-describedby`） | ダイアログのフォーカストラップ/復帰、a11y static checker（aXe-lite） |
+| v1.5 | **Done (2025-09-04)** | UI/Responsive polish（トークン/44px/2→3→4列/微トランジション/ライト調整/E2E緑） | — |
 | v1.6 | **Planned** | — | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） |
 
 ## 現状 (v1.0.x Stabilization) — 完了/運用中
@@ -114,7 +114,7 @@
   - Node/Browser **parity 緑**（既存パリティにケースを追加）。
   - **リグレッション**：v1系既存問題の難易度分布が**極端に崩れない**（中央値±10pt以内）。
 
-## v1.4 — アクセシビリティ & i18n（最小）
+## v1.4 — アクセシビリティ（最小）
 - Status: **In progress**
 - Scope: A11y minimal set (focus, landmarks, labels, live regions, keyboard)
 - Tests: a11y smoke (static) + existing E2E a11y
@@ -139,7 +139,7 @@
 ---
 
 ## v1.5 — UI/Responsive polish（細部）
-- Status: **Planned**
+- Status: **Done (2025-09-04)**
 - Scope: CSSのみでの軽量磨き上げ（JS増やさない方針）
 
 **機能/変更**
@@ -154,135 +154,34 @@
 - Lighthouse（A11y/Best Practices/Performance）で現状維持以上、Budgets は不変
 - 主要E2Eは緑のまま（JSを増やさないため a11y/perf に影響なし）
 
-
+> **実装反映済み**: `e2e (ui responsive smoke)`, `e2e (ui motion reduce)` は緑、README にバッジ追加済み。詳細は **`docs/STYLEGUIDE_UI.md`** を参照。
 ## v1.6 — i18n ベースライン
-**狙い**: バックエンドなしで楽しさを増す。
+**狙い**: UIテキスト/ラベルを辞書化し、言語切替（ja/en）を可能にする。初期バンドルの悪化は避け、`en` 同梱・`ja` 遅延ロードの方針。
 
 **機能/変更**
-- AUTO ON トースト（?auto=1 / 設定ON で起動時に通知）
-- AUTO 設定の永続化（スタート画面にチェック、localStorage.quiz-options.auto_enabled）
-- ローカルの連続記録（streak）、前回スコアの保存（localStorage）
-- 結果の共有リンク（クエリ or フラグメントでシード化）
-- テーマ切替（ライト/ダーク）
+- `public/app/i18n.mjs` を導入（`detectLang` / `loadLocale` / `t` / `setLang` / `initI18n`、`<html lang>` 更新）
+- `public/app/locales/{en,ja}.json`（最小キーはタイトル・主要ボタン・a11yメッセージ）
+- `?lang=en|ja` での明示切替（なければ `navigator.language` を優先）
+- 主要画面の文言を段階的に外部化（Start/History/Share → クイズ本文へ）
+- 日付/数値表示を `Intl.DateTimeFormat/NumberFormat` に統一
+- a11y メッセージ（live region など）をキー管理に統合
 
 **DoD**
-- 端末ローカルのみで完結。プライバシー影響なし
-- 共有リンクから同じ問題セットを再現可能（範囲限定で）
+- `?lang=en/ja` で `<html lang>` と表示テキストが切り替わる
+- 未翻訳キーは英語フォールバック
+- 初期バンドルサイズの悪化無し（`en` のみ同梱、`ja` は遅延）
+- E2E スモーク（lang param）と未翻訳キー静的チェッカが緑
 
----
-### Planned
-- **i18n-core**: 文言辞書・言語切替（`?lang`/localStorage）・`<html lang>`・タイトル/メタの多言語（JP+EN併記の土台）
-- **composer-mode**: 作曲者を絡めた設問/正解表示を追加（i18n経由文言）
-
-### DoD (minimum)
-- **i18n-core**
-  - `public/app/i18n/*.json` に文言辞書（`ja`,`en`）。`?lang` と `localStorage.lang` をサポート。
-  - `<html lang>`、`<title>`、`meta[name=description]` が **言語に追従**。
-  - **軽量E2E**：`?lang=en` で UI ヘッダと meta が英語に切替わる（スモーク）。
-- **composer-mode**
-  - 出題タイプ「作曲者」が選べる（実装/検証用に `?mode=composer` を許可）。
-  - 問題文＆解答表示に **JP+EN併記**（i18n経由）を反映。
-  - **1本の日次サンプル**を生成可能（生成 or スタブ）。シェアページでも表示崩れがない。
-
-
-
----
-
-## Next actions (operational, now)
-1. **Post-merge check**（本番）: `latest.html` と `/app/?provider=auto&test=1&mock=1`（メディア枠ありの日）で **Apple優先** を軽く目視。SWの影響を避けるためシークレットウィンドウで。
-2. **clip-start-heuristics v2 の下地**: `public/app/media/clip_start.mjs` を分離（`pickClipStartV2()` を **feature flag `?clip2=1`** で試験導入）。既存ロジックはデフォルトのまま。
-3. **difficulty v2 仕様メモ**（docs/）: 指標（年代/別名密度/シリーズ知名度/露出）と合成式を docs に草案化（Node/Browser parity 前提）。
-4. **Architecture docs**: Clojure×JS の役割分担とフォルダ境界を `docs/structure.md` に固定化。将来のリファクタ窓は `docs/refactor-plan.md` にスケジュール化。
-
-## Backlog / 調査項目
-- PWA（オフライン対応・音声/画像のキャッシュ戦略）
-- クリエイター向けツール（データ編集/可視化）
-- サーバレス連携（スコア共有、ランキング）※現状スコープ外
-
----
-
-- A11y hardening *(ID: `a11y-hardening`, area: a11y)*
-- Difficulty badge (display-only) *(ID: `difficulty-badge`, area: ui)*
-- Heuristic media with safe fallback order *(ID: `heuristic-media-guard`, area: media)*
-
-## バージョニング方針 / リリース運用
-- **SemVer 準拠**: 互換を壊さない機能追加は **minor**（v1.1, v1.2…）、修正は **patch**（v1.0.2…）
-- リリース条件（共通 DoD）:
-  - 主要 E2E が緑（/daily share & latest, AUTO badge, AUTO choices 可視性）
-  - Pages 配信を手元で確認（`/daily/YYYY-MM-DD.html?no-redirect=1`）
-  - Lighthouse Budgets が warn 未満
-  - 反映確認: フッター右の Dataset/commit/updated
-
----
-
-## 次にやること（Kick-off）
-- v1.1 の Issue を分解して作成（`roadmap:v1.1` ラベル）
-  - AUTO choices 可視性の E2E 追加（ヘッドレス、軽量 DOM チェック）
-  - 正規化の境界テストを Node/Browser 両系で補強
-  - /daily 導線（先にボタン表示）の最小検証
-- Project ボード（ミニ）を作成し、v1.1 の DoD をカードで可視化
-- v1.1 が固まったら、v1.2 の設計メモ（media フォールバック順、difficulty 算出のルール）を下書き
-
-> **Note on version labels**: このドキュメントの **v1.x** は “テーマ別マイルストン” の便宜上の番号で、SemVer ではありません。  
-> 実際の出荷は **Gitタグ（vMAJOR.MINOR.PATCH）** で管理し、`CHANGELOG.md` に記録します（1:1 対応ではありません）。
-
-### v1.6 details — 国際化（i18n）ベースライン
-**狙い**: vgm-quiz 全体の国際化に向けた土台整備。まずは UI 文字列から最小で始め、将来の拡張（問題文・説明など）に備える。
-
-**機能/変更**
-- **i18n コア（`i18n-core`）** — Internationalization baseline (JP/EN)
-  - キー駆動の UI 文言辞書（`public/app/i18n/{ja,en}.json` など）
-  - ロケール決定: `?lang=ja|en` > `localStorage.lang` > `navigator.language`（`ja`/`en`に正規化）
-  - Start 画面に **言語トグル**（JP/EN）を追加（アクセシブルな `<fieldset>` / `<legend>` / `<label>`）
-  - `<html lang="…">` / `<title>` / `<meta name="description">` のローカライズ
-  - A11y: `aria-label` / `aria-live` 文言のローカライズ
-  - E2E（light）: 言語切替でヘッダ/ボタン文言が切り替わることのスモーク
-
-**非対象（別フェーズで検討）**
-- データセット（曲名/ゲーム名/解説）の翻訳・翻字
-- OGP 画像の言語別レンダリング
-
-**DoD**
-- `?lang=ja` / `?lang=en` で UI 文言が切り替わる
-- Start の言語トグルで選択→リロード後も保持（`localStorage.lang`）
-- `<html lang>` と `<title>`/`<meta name="description">` がロケールに一致
-- E2E（light）で `/app/?test=1&lang=en` 時に英語 UI が確認できる
- 
-
-## Backlog (proposed)
-- **デイリーストリーク & カレンダー**（S）
-- **実績バッジ**（S）
-- **タイムアタック（スコア加点）**（S）
-- **ライフライン（ヒント）**（S–M）
-- **チャレンジリンク（友達対戦）**（S）
-- **結果カード生成（画像）**（M）
-- **“作曲者モード”の一問（週1）**（M）
-- **フォーカスリング最適化**（S）
-- **コントラスト & カラーブラインド配慮**（S）
-- **軽いフィードバック**（S）
-- **How to Play ミニオーバーレイ**（S）
-- **ダミー選択肢の賢さUP**（M）
-- **“シリーズ/年代”練習モード**（S）
-- **結果からの“発見”導線**（S–M）
-- **季節/テーマ週**（S）
-
-## v1.5 UI/Responsive polish — Progress (2025-09-04 JST)
-
-**Done**
-- Design tokens “boot”（未使用導入）
-- 44px タッチターゲット（トークン化）
-- `#choices` 2→3→4 列固定（CSSオーバーライド）
-- マイクロトランジション（opacity/transform + reduced-motion対応）
-- History ビューの軽微な整形（ストライプ/hover）
-- Light コントラスト微調整（panel/border/accent/focus）
-- E2E: `e2e/test_ui_responsive_smoke.mjs` 追加（44px / 列数）
-
-**Next (optional)**
-- READMEにUIテストのバッジ追加（可視化）
-- さらなる配色微調整（必要なら）
-
-> Tracking label: `roadmap:v1.5`（Issues → docs/issues/STATE.md も参照）
-
+**初期Issue（種）**
+1. i18n-core-module：`i18n.mjs` の追加と初期化配線
+2. locales-en-ja：`en.json`/`ja.json` の作成（最小）
+3. wiring-init-in-app：`initI18n()` を `app.js` 起動時に呼び出し
+4. replace-strings-step1：Start/History/Share のテキスト外部化
+5. intl-dates-numbers：日付/数値の Intl.* 置換
+6. a11y-messages-to-keys：a11yメッセージのキー化
+7. e2e-i18n-lang-param-smoke：`?lang=ja|en` の表示スモーク
+8. static-checker-missing-keys：未翻訳/未使用キー検出スクリプト
+9. docs-styleguide-i18n-roadmap：STYLEGUIDE/ROADMAP の更新
 ## v1.7 — Authoring Automation（MVP）
 - Status: **Planned**
 - Scope: “**毎日1問**”を**完全自動**で作成・公開。**埋め込み再生のみ**（Apple Music / 公式YouTube）前提で、既存アプリは変更せず供給ラインを自動化。
