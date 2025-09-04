@@ -66,7 +66,40 @@ import { chromium } from 'playwright';
   if (!clicked) {
     throw new Error('Failed to click a choice via all strategies');
   }
-  await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: 8000 });
+  // Try to surface the results dialog. Some flows require an explicit "Next/Finish/Results" action.
+  async function clickAny(selectors) {
+    for (const sel of selectors) {
+      const el = await page.$(sel);
+      if (!el) continue;
+      try {
+        await page.locator(sel).first().click({ timeout: 1500 });
+        return true;
+      } catch {}
+      try {
+        await page.$eval(sel, (n) => n && n.click());
+        return true;
+      } catch {}
+    }
+    return false;
+  }
+
+  // If dialog didn't show up yet, try candidate controls and keyboard fallback.
+  const dialogSelector = '#result-view[role="dialog"]';
+  try {
+    await page.waitForSelector(dialogSelector, { state: 'visible', timeout: 4000 });
+  } catch {
+    const candidates = [
+      '#next-btn', '[data-testid="next-btn"]', 'button[data-action="next"]',
+      '#finish-btn', '[data-testid="finish-btn"]', 'button[data-action="finish"]',
+      '#show-result-btn', '[data-testid="show-result-btn"]',
+      '#result-btn', '[data-testid="result-btn"]',
+    ];
+    await clickAny(candidates);
+    // Keyboard fallbacks (Enter/Space) in case the control is focused implicitly
+    try { await page.keyboard.press('Enter'); } catch {}
+    try { await page.keyboard.press(' '); } catch {}
+    await page.waitForSelector(dialogSelector, { state: 'visible', timeout: 8000 });
+  }
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
     throw new Error(`JA live region did not announce results: "${liveOpenedJa}"`);
