@@ -5,7 +5,18 @@
   "ui": {
     "start": "Start",
     "history": "History",
-    "share": "Share"
+    "share": "Share",
+    "restart": "Restart",
+    "copyResult": "Copy result",
+    "shareResult": "Share result",
+    "next": "Next",
+    "back": "Back",
+    "ok": "OK",
+    "cancel": "Cancel"
+  },
+  "heading": {
+    "history": "History",
+    "result": "Results"
   },
   "a11y": {
     "ready": "Ready. Press Start to begin."
