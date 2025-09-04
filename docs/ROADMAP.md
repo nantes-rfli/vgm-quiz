@@ -266,6 +266,23 @@
 - **結果からの“発見”導線**（S–M）
 - **季節/テーマ週**（S）
 
+## v1.5 UI/Responsive polish — Progress (2025-09-04 JST)
+
+**Done**
+- Design tokens “boot”（未使用導入）
+- 44px タッチターゲット（トークン化）
+- `#choices` 2→3→4 列固定（CSSオーバーライド）
+- マイクロトランジション（opacity/transform + reduced-motion対応）
+- History ビューの軽微な整形（ストライプ/hover）
+- Light コントラスト微調整（panel/border/accent/focus）
+- E2E: `e2e/test_ui_responsive_smoke.mjs` 追加（44px / 列数）
+
+**Next (optional)**
+- READMEにUIテストのバッジ追加（可視化）
+- さらなる配色微調整（必要なら）
+
+> Tracking label: `roadmap:v1.5`（Issues → docs/issues/STATE.md も参照）
+
 ## v1.7 — Authoring Automation（MVP）
 - Status: **Planned**
 - Scope: “**毎日1問**”を**完全自動**で作成・公開。**埋め込み再生のみ**（Apple Music / 公式YouTube）前提で、既存アプリは変更せず供給ラインを自動化。

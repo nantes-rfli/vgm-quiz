@@ -21,6 +21,21 @@
     <img alt="Pages" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/pages.yml/badge.svg?branch=main">
   </a>
 </p>
+<!-- Status badges (UI & Issues) -->
+<p>
+  <a href="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e-ui-responsive-smoke.yml">
+    <img alt="E2E UI Responsive Smoke" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/e2e-ui-responsive-smoke.yml/badge.svg">
+  </a>
+  <a href="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/sync-issues.yml">
+    <img alt="Issues Sync" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/sync-issues.yml/badge.svg?branch=main">
+  </a>
+  <a href="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/issues-export.yml">
+    <img alt="Issues Export" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/issues-export.yml/badge.svg">
+  </a>
+  <a href="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/issues-validate.yml">
+    <img alt="Issues Validate" src="https://github.com/nantes-rfli/vgm-quiz/actions/workflows/issues-validate.yml/badge.svg">
+  </a>
+</p>
 
 ## Operations / Runbook
 日々の運用で迷いやすいポイントは **[docs/ops.md](docs/ops.md)** に集約しています。
