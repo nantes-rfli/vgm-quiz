@@ -153,6 +153,40 @@
     --accent:#2563eb;
     --accent-fg:#ffffff;
     --focus:#60a5fa;
+
+    /* === v1.5 design tokens (boot only; not wired yet) === */
+    /* Spacing scale */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+
+    /* Radius scale */
+    --radius-1: 8px;
+    --radius-2: 12px;
+    --radius-3: 16px;
+
+    /* Shadows (dark theme tuned) */
+    --shadow-1: 0 1px 2px rgba(0,0,0,.18);
+    --shadow-2: 0 4px 12px rgba(0,0,0,.22);
+
+    /* Typography */
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+
+    /* Motion */
+    --duration-fast: 120ms;
+    --duration-base: 160ms;
+    --easing-out: cubic-bezier(.2,.8,.2,1);
+
+    /* Layout */
+    --container-max: 880px;
+    --grid-gap: 12px;
+    --touch-target: 44px;
+    /* === end v1.5 tokens === */
   }
   @media (prefers-color-scheme: light){
     :root{
@@ -249,7 +283,30 @@
   }
   /* === end v1.4 UI polish === */
 
-  .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;border:0;padding:0;white-space:nowrap;clip-path:inset(100%);clip:rect(0 0 0 0);overflow:hidden}
+.visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;border:0;padding:0;white-space:nowrap;clip-path:inset(100%);clip:rect(0 0 0 0);overflow:hidden}
+
+  /* Opt-in theme override via attribute; no behavior change unless data-theme is set */
+  :root[data-theme="dark"] {
+    --bg: #0b0c10;
+    --panel: #111318;
+    --text: #e5e7eb;
+    --muted: #a1a1aa;
+    --border: #2b2f36;
+    --accent: #2563eb;
+    --accent-fg: #ffffff;
+    --focus: #60a5fa;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --panel: #f6f7f8;
+    --text: #111827;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #2563eb;
+    --accent-fg: #ffffff;
+    --focus: #1d4ed8;
+  }
+
 </style>
 
 </main>
