@@ -199,7 +199,7 @@
 8. static-checker-missing-keys：未翻訳/未使用キー検出スクリプト
 9. docs-styleguide-i18n-roadmap：STYLEGUIDE/ROADMAP の更新
 ## v1.7 — Authoring Automation（MVP）
-- Status: **In Progress (started 2025-09-05)**
+- Status: **In Progress (2025-09-05)**
 - Scope: “**毎日1問**”を**完全自動**で作成・公開。**埋め込み再生のみ**（Apple Music / 公式YouTube）前提で、既存アプリは変更せず供給ラインを自動化。
 
 **機能/変更**
@@ -224,6 +224,12 @@
 **依存関係**
 - v1.6 i18n ベースライン（UIテキスト/ラベルの多言語化）。
 - 既存 normalize / aliases / E2E 基盤。
+
+**運用メモ（v1.7）**
+- `authoring (validate)`: 生成物を **検証して artifact 化のみ**。リポのファイルは更新しない。
+- `daily (auto, candidates→score→generate)`: 入力 `apply_to_main=true` のとき **`public/app/daily_auto.json` へのPRを作成**。false のときは artifact のみ。
+- 推奨フロー: **validate → 目視 → daily(auto) with apply_to_main**。必要に応じて `with_choices` / `allow_heuristic_media` をON。
+- 既存 `daily.json` 系パイプラインとは分離運用（既存ユーザー体験を壊さない）。
 
 **初期Issue分解（案）**
 1. harvester-min：公式ソースの収集器（レート制御・失敗時リトライ）
