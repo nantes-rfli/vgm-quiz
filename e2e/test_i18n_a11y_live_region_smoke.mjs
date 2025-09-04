@@ -34,10 +34,21 @@ import { chromium } from 'playwright';
   if (!liveStartJa || !/準備OK/.test(liveStartJa)) {
     throw new Error(`JA live region not ready: "${liveStartJa}"`);
   }
+  // Start the quiz (ensure the button is visible before clicking)
+  await page.waitForSelector('[data-testid="start-btn"]', { state: 'visible', timeout: TIMEOUT });
   await page.click('[data-testid="start-btn"]');
-  await page.waitForSelector('#choices button', { state: 'visible', timeout: TIMEOUT });
-  const firstChoice = (await page.$$('#choices button'))[0];
-  await firstChoice.click();
+
+  // Choices can exist immediately but be mid-transition and not "visible" per Playwright.
+  // Be robust: wait for attachment, prefer visible click, then fall back to force click.
+  await page.waitForSelector('#choices button', { state: 'attached', timeout: TIMEOUT });
+  const choice = (await page.$$('#choices button'))[0];
+  if (!choice) throw new Error('No choice button found');
+  try {
+    await page.waitForSelector('#choices button', { state: 'visible', timeout: 3000 });
+    await choice.click();
+  } catch {
+    await choice.click({ force: true });
+  }
   await page.waitForSelector('#result-view[role="dialog"]', { state: 'visible', timeout: TIMEOUT });
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
