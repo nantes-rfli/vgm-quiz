@@ -199,7 +199,7 @@
 8. static-checker-missing-keys：未翻訳/未使用キー検出スクリプト
 9. docs-styleguide-i18n-roadmap：STYLEGUIDE/ROADMAP の更新
 ## v1.7 — Authoring Automation（MVP）
-- Status: **Planned**
+- Status: **In Progress (started 2025-09-05)**
 - Scope: “**毎日1問**”を**完全自動**で作成・公開。**埋め込み再生のみ**（Apple Music / 公式YouTube）前提で、既存アプリは変更せず供給ラインを自動化。
 
 **機能/変更**

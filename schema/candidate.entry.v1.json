@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nantes-rfli.github.io/vgm-quiz/schema/candidate.entry.v1.json",
+  "title": "Authoring Candidate Entry (v1)",
+  "description": "One candidate per line (JSONL). Minimal contract for v1.7 pipeline.",
+  "type": "object",
+  "required": [
+    "title",
+    "game",
+    "composer",
+    "norm",
+    "source"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "game": {
+      "type": "string",
+      "minLength": 1
+    },
+    "composer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "platform": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "year": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1970,
+      "maximum": 2100
+    },
+    "media": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "provider",
+            "id"
+          ],
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": [
+                "youtube",
+                "apple",
+                "auto"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "start": {
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "type": "number",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "norm": {
+      "type": "object",
+      "required": [
+        "title",
+        "game",
+        "composer"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "game": {
+          "type": "string",
+          "minLength": 1
+        },
+        "composer": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "difficulty": {
+      "type": [
+        "number",
+        "integer"
+      ]
+    },
+    "choices": {
+      "type": "object",
+      "properties": {
+        "composer": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "game": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

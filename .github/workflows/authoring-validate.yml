@@ -1,0 +1,62 @@
+name: authoring (validate)
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Target date (YYYY-MM-DD). Default = today (JST).'
+        required: false
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java (Temurin 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build dataset (clojure -T:build publish)
+        run: clojure -T:build publish
+
+      - name: Harvest → Score → Enrich → Generate (draft)
+        id: gen
+        run: |
+          DATE="${{ github.event.inputs.date }}"
+          if [ -z "$DATE" ]; then DATE="$(TZ=Asia/Tokyo date +%F)"; fi
+          echo "date=$DATE"
+          node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
+          node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
+          node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+          node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched.jsonl --date "$DATE"
+
+      - name: Validate authoring bundle
+        run: node scripts/validate_authoring.js
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: authoring-validate
+          path: |
+            public/app/daily_candidates.jsonl
+            public/app/daily_candidates_scored.jsonl
+            public/app/daily_candidates_scored_enriched.jsonl
+            public/app/daily_auto.json
+
+      - name: Summary
+        run: |
+          node -e "const j=require('./public/app/daily_auto.json'); const by=j.by_date||{}; const d=Object.keys(by).sort().pop(); if(d){ const v=by[d]; console.log('### authoring (validate)\n- date: **'+d+'**\n- pick:', v.title, '/', v.game, '/', v.composer, '\n- difficulty:', v.difficulty??'n/a', '\n- choices composer:', (v.choices?.composer||[]).length, '\n- choices game:', (v.choices?.game||[]).length); } else { console.log('### authoring (validate)\n- no dates found'); }"
