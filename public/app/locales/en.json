@@ -19,6 +19,7 @@
     "result": "Results"
   },
   "a11y": {
-    "ready": "Ready. Press Start to begin."
+    "ready": "Ready. Press Start to begin.",
+    "resultsShown": "Results shown. Use Tab to navigate the dialog."
   }
 }
