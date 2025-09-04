@@ -137,7 +137,7 @@
 - id: ui-responsive-polish
   area: ui
   title: UI/Responsive polish (mobile-friendly, micro transitions, contrast)
-  status: planned
+  status: implemented
   milestone: v1.5
   labels: [ui, responsive, a11y, perf]
   description: |
