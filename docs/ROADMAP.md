@@ -178,7 +178,9 @@
 - ✅ E2E: `e2e (i18n lang param smoke)` 緑
 - ✅ 外部化ステップ1（Start/History/Share の静的ラベル）＋ E2E（labels smoke）
 - ⏳ 外部化ステップ2（再スタート/コピー/シェア結果/見出し 等の静的ラベル） ← 本パッチ
-- ⏳ a11yメッセージのキー化、`Intl.DateTimeFormat` の導入（必要箇所のみ）
+- ✅ `Intl.DateTimeFormat` ヘルパー（`formatDate/Time/DateTime`）を導入（未適用・後続で置換）
+- ✅ Missing Keys チェッカ（CI）導入：`.github/workflows/i18n-missing-keys.yml`
+- ⏳ a11yメッセージのキー化（`#feedback` などを `a11y.*` キーへ）
 
 **DoD**
 - `?lang=en/ja` で `<html lang>` と表示テキストが切り替わる

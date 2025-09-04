@@ -14,6 +14,7 @@
 - `setLang(lang)` — switch language at runtime; dispatches `i18n:changed`
 - `whenI18nReady()` — Promise resolved when the initial language is applied
 - `applyStaticLabels()` — helper to translate Start/History/Share buttons
+- `getLang()` / `formatDate()` / `formatTime()` / `formatDateTime()` — `Intl.*` を使った軽量フォーマッタ
 
 ## Keys (minimum set in v1.6)
 ```json
@@ -29,6 +30,7 @@
 2. Use `t('…')` instead of hard-coded strings
 3. If it’s a static control, consider adding it to `applyStaticLabels()`
 4. Verify with `e2e (i18n lang param smoke)` and `e2e (i18n static labels smoke)`
+5. 追加・変更で `t('…')` を増やした場合は **i18n Missing Keys**（`node script/check_i18n_missing_keys.mjs`）が PR で自動検出します
 
 ## Non-goals (v1.6)
 - No dataset translations (proper nouns preserved)
