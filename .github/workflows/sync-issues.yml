@@ -1,0 +1,28 @@
+name: issues (sync)
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'docs/issues/*.json'
+      - 'script/sync_issues.mjs'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sync issues from docs/issues/*.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node script/sync_issues.mjs
