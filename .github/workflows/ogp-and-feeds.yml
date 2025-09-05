@@ -21,6 +21,13 @@ jobs:
         with:
           node-version: 20
 
+      - name: Guard: DAILY_PR_PAT must exist
+        run: |
+          if [ -z "${{ secrets.DAILY_PR_PAT }}" ]; then
+            echo "::error::DAILY_PR_PAT is missing. Add a PAT with 'repo' scope in Settings > Secrets > Actions."
+            exit 1
+          fi
+
       # Ensure today's slim artifact exists (v1.7 export). If missing, this generates it.
       - name: Ensure build/daily_today.json (export slim)
         run: |
