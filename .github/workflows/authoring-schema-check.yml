@@ -1,4 +1,4 @@
-name: authoring (schema soft-check)
+name: authoring (schema check)
 
 on:
   workflow_dispatch: {}
@@ -16,14 +16,14 @@ jobs:
         with:
           node-version: 20
 
-      - name: Soft schema validation
+      - name: Schema validation (strict)
         run: |
           node --version
-          node scripts/validate_authoring_schema.mjs || true
-        # NOTE: soft-check for v1.8 phase 1. Flip to strict by removing '|| true'
+          SCHEMA_CHECK_STRICT=true node scripts/validate_authoring_schema.mjs
+        # v1.8: strict mode (fail-fast)
 
       - name: Summary
         run: |
-          echo "### Authoring schema soft-check completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Uses scripts/validate_authoring_schema.mjs" >> $GITHUB_STEP_SUMMARY
-          echo "- Set SCHEMA_CHECK_STRICT=true to enforce exit 1 on violations" >> $GITHUB_STEP_SUMMARY
+          echo "### Authoring schema check (strict)" >> $GITHUB_STEP_SUMMARY
+          echo "- scripts/validate_authoring_schema.mjs ran with SCHEMA_CHECK_STRICT=true" >> $GITHUB_STEP_SUMMARY
+          echo "- Violations will fail the job" >> $GITHUB_STEP_SUMMARY

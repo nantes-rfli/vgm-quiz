@@ -21,6 +21,15 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install PNG renderer (@resvg/resvg-js)
+        run: |
+          # Install per-run without touching repo commits
+          if [ ! -f package.json ]; then
+            npm init -y >/dev/null 2>&1 || true
+          fi
+          npm i @resvg/resvg-js --no-audit --no-fund
+          echo "Installed @resvg/resvg-js for PNG rendering"
+
       - name: Guard: DAILY_PR_PAT must exist
         run: |
           if [ -z "${{ secrets.DAILY_PR_PAT }}" ]; then
