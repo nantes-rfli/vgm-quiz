@@ -67,6 +67,26 @@ function readJsonl(path) {
   return out;
 }
 
+function normText(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[‐‑‒–—―]/g, '-')    // dash variants → hyphen
+    .replace(/[〜～]/g, '~')
+    .trim();
+}
+
+function ensureNorm(entry) {
+  entry.norm = entry.norm || {};
+  const composer = entry?.track?.composer;
+  const series = entry?.game?.series || entry?.game?.name;
+  entry.norm.composer = entry.norm.composer || normText(composer);
+  entry.norm.series = entry.norm.series || normText(series);
+  entry.norm.game = entry.norm.game || normText(entry?.game?.name);
+  entry.norm.title = entry.norm.title || normText(entry?.title || entry?.track?.name || entry?.game?.name);
+  entry.norm.answer = entry.norm.answer || normText(entry?.answers?.canonical);
+}
+
 function scoreOf(c) {
   const s = Number(c.score ?? c.s ?? c.rank ?? 0);
   return Number.isFinite(s) ? s : 0;
@@ -77,7 +97,7 @@ function hasMinimalMedia(c) {
 }
 
 function buildItem(c) {
-  return {
+  const item = {
     title: c.title || c.track?.name || c.game?.name,
     game: c.game || null,
     track: c.track || null,
@@ -86,13 +106,16 @@ function buildItem(c) {
     sources: Array.isArray(c.sources) ? c.sources : undefined,
     // choices と difficulty は後段で補完
   };
+  ensureNorm(item);
+  return item;
 }
 
 async function run() {
   const args = parseArgs(process.argv);
   const raw = await fs.readFile(args.daily, 'utf8');
   const json = JSON.parse(raw);
-  const by = normalizeByDate(json.by_date);
+  const originalByDate = json.by_date;
+  const by = normalizeByDate(originalByDate);
   if (!by.length) {
     console.warn('[ensure_min_items] by_date is empty; nothing to do.');
     return;
@@ -121,7 +144,20 @@ async function run() {
     }
   }
   // 書き戻し（by_date の形状は元に合わせる: 配列で保存している前提）
-  json.by_date = by;
+  // validator 互換のため、原則 `{ "YYYY-MM-DD": { items:[...] } }` 形に整えて保存する
+  function toObjectItems(arr) {
+    const obj = {};
+    for (const d of arr) {
+      obj[d.date] = { items: d.items || [] };
+    }
+    return obj;
+  }
+  // 既存がオブジェクトだった場合はそれに合わせる。配列だった場合もオブジェクトに昇格させる（検証安定性のため）
+  if (originalByDate && typeof originalByDate === 'object' && !Array.isArray(originalByDate)) {
+    json.by_date = toObjectItems(by);
+  } else {
+    json.by_date = toObjectItems(by);
+  }
   await fs.writeFile(args.daily, JSON.stringify(json, null, 2), 'utf8');
 }
 
