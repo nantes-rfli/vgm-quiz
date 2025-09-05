@@ -55,3 +55,15 @@ PR作成に **GITHUB_TOKEN** を使っていることが原因です。**必ず 
 - **answers.canonical** が正規化済み
 - Actions ログに `[difficulty] date=… values=[…]` の数値出力がある
 
+
+
+## v1.8 追補 — スキーマ検証の仕様更新
+- **入力の自動アンラップ**：`build/daily_today.json` の `{ date, item }` 形を自動で `{ date, ...item }` に展開して検証します。
+- **フォールバック**：`build/daily_today.json` が無い/壊れている場合は `public/app/daily_auto.json` の `by_date` から最新日付を選びます（JST想定）。
+- **composer の互換**：`item.composer` と `item.track.composer` の **どちらでも可**（過去データの互換保持）。
+- **difficulty は警告**：`0..1` の範囲外や欠落は `::warning::` として注記し、**ジョブは失敗させません**。
+
+### 手動確認メモ
+- Actions の `authoring (schema check)` を実行し、`schema: OK file=... date=YYYY-MM-DD` を確認。
+- 必須欠落（title/game/composer/media.provider/id/answers.canonical）がある場合は `::error::` が出て **失敗**します。
+

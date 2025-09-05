@@ -20,50 +20,53 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Guard: DAILY_PR_PAT must exist
+        run: |
+          if [ -z "${{ secrets.DAILY_PR_PAT }}" ]; then
+            echo "::error::DAILY_PR_PAT is missing. Add a PAT with 'repo' scope in Settings > Secrets > Actions."
+            exit 1
+          fi
+
       - name: Prepare workspace
         run: |
-          mkdir -p build public/og public/daily
-
-      - name: Export today's slim (fallback)
-        run: |
-          if [ ! -f build/daily_today.json ]; then
-            node scripts/export_today_slim.mjs --out-json build/daily_today.json --out-md build/daily_today.md || true
-          fi
+          mkdir -p public/og public/daily build
 
       - name: Optional PNG renderer
         run: |
-          npm --version
-          npm i --no-save @resvg/resvg-js || true
+          npm i --no-save @resvg/resvg-js || echo "resvg not installed; PNG will be skipped"
 
-      - name: Generate OGP (SVG/PNG)
+      - name: Ensure slim artifact (best-effort)
+        run: |
+          node scripts/export_today_slim.mjs || echo "export_today_slim.mjs failed; will fallback to public/app/daily_auto.json"
+
+      - name: Generate OGP (SVG + optional PNG)
         run: node scripts/generate_ogp.mjs
 
-      - name: Generate Feeds (RSS/JSON)
+      - name: Generate Feeds (single-item)
         run: node scripts/generate_feeds_min.mjs
 
-      - name: Create PR
+      - name: Read date for PR title (JST)
+        id: meta
+        shell: bash
+        run: |
+          echo "date=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Create PR (OGP & Feeds)
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
-          branch: "bot/ogp-and-feeds/${{ github.run_id }}"
+          branch: bot/ogp-and-feeds/${{ steps.meta.outputs.date }}
+          title: "Daily OGP & Feeds for ${{ steps.meta.outputs.date }}"
           commit-message: |
-            chore(ogp+feeds): update OGP and feeds for daily
-          title: "chore(ogp+feeds): update OGP and feeds for daily"
-          body: |
-            This PR adds/updates:
-            - OGP assets: `public/og/YYYY-MM-DD.(svg|png)` and `public/og/latest.(svg|png)`
+            chore(ogp,feeds): generate static OGP and feeds for ${{ steps.meta.outputs.date }}
+            
+            - OGP: `public/og/${{ steps.meta.outputs.date }}.(svg|png)` and `latest.*`
             - Feeds: `public/daily/feed.xml` and `public/daily/feed.json`
-
+            
             Auto-created by `daily (ogp+feeds)`.
           add-paths: |
             public/og/**
             public/daily/feed.xml
             public/daily/feed.json
-          delete-branch: true
-          labels: automation, ogp, feeds
 
-      - name: Summary
-        run: |
-          echo "### daily (ogp+feeds)" >> $GITHUB_STEP_SUMMARY
-          echo "- OGP SVG required; PNG if @resvg/resvg-js is present" >> $GITHUB_STEP_SUMMARY
-          echo "- Feeds: public/daily/feed.(xml|json)" >> $GITHUB_STEP_SUMMARY
