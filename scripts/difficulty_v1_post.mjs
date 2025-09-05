@@ -136,7 +136,15 @@ async function run() {
       item.difficulty = scoreDifficulty(item, freqs);
       touched++;
     }
-    console.log(`[difficulty] date=${args.date} items=${target.items?.length ?? 0} updated=${touched}`);
+    // Log numeric values (array or flat shape)
+    try {
+      const vals = Array.isArray(target.items)
+        ? target.items.map(it => (typeof it.difficulty === 'number' ? it.difficulty : NaN)).filter(Number.isFinite).map(v => v.toFixed(2))
+        : (typeof target.entry?.difficulty === 'number' ? [target.entry.difficulty.toFixed(2)] : []);
+      console.log(`[difficulty] date=${args.date} values=[${vals.join(', ')}] updated=${touched}`);
+    } catch {
+      console.log(`[difficulty] date=${args.date} updated=${touched}`);
+    }
   }
 
   const outPath = args.out || args.in;
