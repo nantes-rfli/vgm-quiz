@@ -1,0 +1,138 @@
+name: daily (auto extended)
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'JST date (YYYY-MM-DD). Empty = today'
+        required: false
+        default: ''
+      with_choices:
+        description: 'Generate multiple-choice options (distractors)'
+        required: false
+        default: 'true'
+      with_heuristics:
+        description: 'Apply clip-start heuristics v1 before generate'
+        required: false
+        default: 'true'
+      with_difficulty:
+        description: 'Apply difficulty v1 after generate'
+        required: false
+        default: 'true'
+      pr_branch_prefix:
+        description: 'PR branch prefix'
+        required: false
+        default: 'daily/auto-ext'
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java (Temurin 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build site artifacts (EDN→JSON)
+        run: clojure -T:build publish
+
+      - name: Harvest
+        run: node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
+
+      - name: Score
+        run: node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
+
+      - name: Enrich (media/start if any)
+        run: node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+
+      - name: Heuristics v1 (clip start)
+        if: ${{ inputs.with_heuristics == 'true' }}
+        run: node scripts/clip_start_heuristics_v1.mjs --in public/app/daily_candidates_scored_enriched.jsonl --out public/app/daily_candidates_scored_enriched_start.jsonl
+
+      - name: Generate daily (with/without heuristics)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then
+            DATE=$(TZ=Asia/Tokyo date +%F)
+          else
+            DATE="${{ inputs.date }}"
+          fi
+          IN="public/app/daily_candidates_scored_enriched.jsonl"
+          if [ "${{ inputs.with_heuristics }}" = "true" ]; then
+            if [ -f public/app/daily_candidates_scored_enriched_start.jsonl ]; then
+              IN="public/app/daily_candidates_scored_enriched_start.jsonl"
+            fi
+          fi
+          node scripts/generate_daily_from_candidates.js --in "$IN" --date "$DATE" $([ "${{ inputs.with_choices }}" = "true" ] && echo "--with-choices")
+
+      - name: Distractors v1 (post-process)
+        if: ${{ inputs.with_choices == 'true' }}
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then
+            DATE=$(TZ=Asia/Tokyo date +%F)
+          else
+            DATE="${{ inputs.date }}"
+          fi
+          node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json --date "$DATE"
+
+      - name: Difficulty v1 (post-process)
+        if: ${{ inputs.with_difficulty == 'true' }}
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then
+            DATE=$(TZ=Asia/Tokyo date +%F)
+          else
+            DATE="${{ inputs.date }}"
+          fi
+          node scripts/difficulty_v1_post.mjs --in public/app/daily_auto.json --date "$DATE"
+
+      - name: Validate authoring
+        run: node scripts/validate_authoring.js
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          add-paths: |
+            public/app/daily_auto.json
+          branch: ${{ inputs.pr_branch_prefix }}-${{ github.run_id }}
+          commit-message: |
+            chore(daily): auto-extended ${{ inputs.date || 'JST today' }} (heuristics=${{ inputs.with_heuristics }}, choices=${{ inputs.with_choices }}, difficulty=${{ inputs.with_difficulty }})
+          title: |
+            Daily (auto extended) ${{ inputs.date || 'JST today' }} — heuristics=${{ inputs.with_heuristics }}, choices=${{ inputs.with_choices }}, difficulty=${{ inputs.with_difficulty }}
+          body: |
+            This PR was created by the **daily (auto extended)** workflow.
+
+            - date: `${{ inputs.date || 'JST today' }}`
+            - heuristics: `${{ inputs.with_heuristics }}`
+            - choices: `${{ inputs.with_choices }}`
+            - difficulty: `${{ inputs.with_difficulty }}`
+
+            Artifacts include intermediate JSONL files for inspection.
+          labels: |
+            automated
+            daily-auto
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-auto-extended-${{ github.run_id }}
+          path: |
+            public/app/daily_candidates.jsonl
+            public/app/daily_candidates_scored.jsonl
+            public/app/daily_candidates_scored_enriched.jsonl
+            public/app/daily_candidates_scored_enriched_start.jsonl
+            public/app/daily_auto.json
