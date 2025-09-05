@@ -33,6 +33,20 @@ function parseArgs(argv) {
   return a;
 }
 
+function hasRequiredFields(it) {
+  if (!it || typeof it !== 'object') return false;
+  const titleOk = !!(it.title || it.track?.name || it.game?.name);
+  const gameOk = !!(it.game && (it.game.name || it.game.series));
+  const composerOk = !!(it.track && it.track.composer);
+  const clipOk = !!(it.clip && it.clip.provider && it.clip.id);
+  const answerOk = !!(it.answers && it.answers.canonical);
+  return titleOk && gameOk && composerOk && clipOk && answerOk;
+}
+
+function pruneInvalidDates(list, keepDate) {
+  return list.filter(d => String(d.date) === String(keepDate) || (Array.isArray(d.items) && d.items.length > 0 && hasRequiredFields(d.items[0])));
+}
+
 function normalizeByDate(by_date) {
   if (Array.isArray(by_date)) {
     return by_date
@@ -143,21 +157,20 @@ async function run() {
       console.log(`[ensure_min_items] date=${targetDate} injected 1 item from ${candPath}`);
     }
   }
+
+  // 不正エントリを prune（今回対象日以外で items が空 or 必須欠落のものは落とす）
+  const pruned = pruneInvalidDates(by, targetDate);
   // 書き戻し（by_date の形状は元に合わせる: 配列で保存している前提）
   // validator 互換のため、原則 `{ "YYYY-MM-DD": { items:[...] } }` 形に整えて保存する
   function toObjectItems(arr) {
     const obj = {};
-    for (const d of arr) {
+    for (const d of pruned) {
       obj[d.date] = { items: d.items || [] };
     }
     return obj;
   }
   // 既存がオブジェクトだった場合はそれに合わせる。配列だった場合もオブジェクトに昇格させる（検証安定性のため）
-  if (originalByDate && typeof originalByDate === 'object' && !Array.isArray(originalByDate)) {
-    json.by_date = toObjectItems(by);
-  } else {
-    json.by_date = toObjectItems(by);
-  }
+  json.by_date = toObjectItems(pruned);
   await fs.writeFile(args.daily, JSON.stringify(json, null, 2), 'utf8');
 }
 
