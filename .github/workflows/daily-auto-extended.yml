@@ -106,6 +106,8 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
+          # Use PAT to ensure downstream PR workflows (required checks) are triggered
+          token: ${{ secrets.DAILY_PR_PAT }}
           add-paths: |
             public/app/daily_auto.json
           branch: ${{ inputs.pr_branch_prefix }}-${{ github.run_id }}
