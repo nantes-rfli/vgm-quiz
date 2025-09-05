@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * difficulty_v1_post.mjs
- * daily_auto.json 生成後に、当日分 items[*].difficulty を 0.0..1.0 で補完する軽量ポストプロセッサ。
+ * daily_auto.json 生成後に、当日分 items[*].difficulty を 0.0..1.0 で補完する軽量ポストプロセッサ（v1.7.1: 緩やかな再スケーリング）。
  *
  * 入力:  --in  public/app/daily_auto.json
  *        --date YYYY-MM-DD (JST基準。未指定なら今日)
@@ -90,21 +90,31 @@ function hasOpeningKeyword(entry) {
 }
 
 function scoreDifficulty(item, freqs) {
-  let d = 0.6; // base
+  let d = 0.5; // base を中庸に
   const c = norm(item.track?.composer);
   const s = norm(item.game?.series || item.game?.name);
   const y = Number(item.game?.year) || null;
   const aliases = Array.isArray(item.answers?.aliases) ? item.answers.aliases : [];
 
-  if (c && (freqs.composer.get(c) || 0) >= 4) d -= 0.12;
-  if (s && (freqs.series.get(s) || 0) >= 4) d -= 0.10;
-  if (hasOpeningKeyword(item)) d -= 0.08;
+  // 出現頻度で段階的に調整（頻出は易化、希少はわずかに難化）
+  const cf = c ? (freqs.composer.get(c) || 0) : 0;
+  const sf = s ? (freqs.series.get(s) || 0) : 0;
+  if (cf >= 6) d -= 0.15;
+  else if (cf >= 4) d -= 0.08;
+  else if (cf <= 1 && c) d += 0.05;
+  if (sf >= 6) d -= 0.12;
+  else if (sf >= 4) d -= 0.06;
+  else if (sf <= 1 && s) d += 0.03;
+
+  if (hasOpeningKeyword(item)) d -= 0.10;
   if (aliases.length >= 3) d -= 0.07;
 
   if (y != null && y < 1995) d += 0.08;
   if (y != null && y > 2015) d += 0.04;
 
-  return clamp(d, 0, 1);
+  d = clamp(d, 0, 1);
+  // 端に張り付かないように軽くマージン
+  return clamp(0.05 + d * 0.90, 0, 1);
 }
 
 async function run() {
