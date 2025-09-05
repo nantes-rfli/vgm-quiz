@@ -6,6 +6,7 @@
  *   1) build/daily_today.json (accepts {date,item}, {date,...item}, or plain item)
  *   2) public/app/daily_auto.json (by_date -> latest)  [also unwraps {item: {...}} if present]
  * - Exit 0 by default; set SCHEMA_CHECK_STRICT=true to fail on violations.
+ * - Set SCHEMA_CHECK_DEBUG=true to print chosen date & keys.
  */
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -14,6 +15,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const strict = (process.env.SCHEMA_CHECK_STRICT || '').toLowerCase() === 'true';
+const debug  = (process.env.SCHEMA_CHECK_DEBUG  || '').toLowerCase() === 'true';
 
 function annotate(msg, level='error'){
   const tag = level === 'warning' ? '::warning::' : '::error::';
@@ -40,14 +42,27 @@ function unwrapDaily(obj){
   return { date: null, item: null };
 }
 
+function isIsoDateKey(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }
+
 function latestFromDailyAuto(obj){
   if (!obj || typeof obj !== 'object' || !obj.by_date) return { date: null, item: null };
-  const dates = Object.keys(obj.by_date).sort();
-  const date = dates[dates.length - 1] || null;
-  let item = date ? obj.by_date[date] : null;
+  const allKeys = Object.keys(obj.by_date);
+  const dateKeys = allKeys.filter(isIsoDateKey);
+  // If there is an explicit latest date field, prefer it
+  const hinted = obj.latest_date || obj.latest || obj.today || obj.date;
+  let date = null;
+  if (typeof hinted === 'string' && isIsoDateKey(hinted) && obj.by_date[hinted]) {
+    date = hinted;
+  } else if (dateKeys.length) {
+    date = dateKeys.sort().at(-1);
+  } else {
+    // No ISO-like keys; treat as no item to avoid picking 'meta' etc.
+    return { date: null, item: null, _debug: { allKeys } };
+  }
+  let item = obj.by_date[date];
   // ALSO UNWRAP if daily_auto stores { item: {...} }
   if (item && typeof item === 'object' && 'item' in item) item = item.item;
-  return { date, item };
+  return { date, item, _debug: { allKeys, dateKeys } };
 }
 
 function isNonEmptyString(v){ return typeof v === 'string' && v.trim().length > 0; }
@@ -88,7 +103,7 @@ async function main(){
   const pToday = path.resolve(__dirname, '../build/daily_today.json');
   const pAuto  = path.resolve(__dirname, '../public/app/daily_auto.json');
 
-  let src = null, date = null, item = null;
+  let src = null, date = null, item = null, dbg = undefined;
 
   if (existsSync(pToday)) {
     const u = unwrapDaily(await readJson(pToday));
@@ -100,6 +115,12 @@ async function main(){
     src = pAuto;
     const u = latestFromDailyAuto(await readJson(pAuto));
     ({date,item} = u);
+    dbg = u._debug;
+  }
+
+  if (debug) {
+    const keys = item && typeof item === 'object' ? Object.keys(item) : [];
+    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])}`);
   }
 
   const { errors, warnings } = validate(date, item);
