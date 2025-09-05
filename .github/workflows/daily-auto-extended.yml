@@ -107,6 +107,11 @@ jobs:
           fi
           node scripts/difficulty_v1_post.mjs --in public/app/daily_auto.json --date "$DATE"
 
+      - name: Validate non-empty (latest or date)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then DATE=""; else DATE="${{ inputs.date }}"; fi
+          node scripts/validate_nonempty_today.mjs --in public/app/daily_auto.json $([ -n "$DATE" ] && echo "--date $DATE")
+
       - name: Validate authoring
         run: node scripts/validate_authoring.js
 
@@ -152,6 +157,7 @@ jobs:
           name: daily-auto-extended-${{ github.run_id }}
           path: |
             public/app/daily_candidates.jsonl
+            public/app/daily_candidates_merged.jsonl
             public/app/daily_candidates_scored.jsonl
             public/app/daily_candidates_scored_enriched.jsonl
             public/app/daily_candidates_scored_enriched_start.jsonl
