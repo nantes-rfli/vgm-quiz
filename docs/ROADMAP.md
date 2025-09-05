@@ -19,6 +19,7 @@
 | v1.4 | **Done (2025-09-04)** | A11y最小セット（live region/roles/labels/`aria-describedby`）＋ダイアログのフォーカストラップ/復帰＋背景 inert + scroll lock＋a11y static checker（static smoke） | — |
 | v1.5 | **Done (2025-09-04)** | UI/Responsive polish（トークン/44px/2→3→4列/微トランジション/ライト調整/E2E緑） | — |
 | v1.6 | **Done (2025-09-05)** | i18nベースライン（UI文言辞書/言語選択/`<html lang>` 等） | — |
+| v1.7 | **Done (2025-09-05)** | Authoring Automation（MVP：Finalize→Validate→Export(slim)、Auto-merge 到達） | — |
 
 ## 現状 (v1.0.x Stabilization) — 完了/運用中
 - キーボード操作（Tab/Enter/Space の基本操作）: **実装済み（Baseline）**

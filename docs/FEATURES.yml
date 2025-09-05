@@ -84,13 +84,13 @@
 - id: i18n-core
   title: Internationalization baseline (JP/EN)
   area: i18n
-  status: planned
+  status: implemented
+  since: v1.6
   milestone: v1.6
   description: |
     Key-based UI messages, locale negotiation (?lang, localStorage, navigator.language),
     Start view language toggle, localized html lang/title/meta, a11y labels, and a light E2E.
   labels: [i18n, ui, a11y]
-
 
 - id: auto-on-toast
   area: ui
@@ -126,8 +126,8 @@
 - id: auto-authoring-v1
   area: pipeline
   title: End-to-end nightly authoring (candidates→publish)
-  status: planned
-  since: null
+  status: implemented
+  since: 2025-09-05
   milestone: v1.7
 - id: daily-rss-feed
   area: ops
