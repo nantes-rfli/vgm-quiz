@@ -55,8 +55,15 @@ jobs:
       - name: Harvest
         run: node scripts/harvest_candidates.js --out public/app/daily_candidates.jsonl
 
+      - name: Merge seeds (allowlist-aware)
+        run: |
+          node scripts/merge_seed_candidates.mjs \
+            --in public/app/daily_candidates.jsonl \
+            --seed sources/seed_candidates.jsonl --allow sources/allowlist.json \
+            --out public/app/daily_candidates_merged.jsonl
+
       - name: Score
-        run: node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
+        run: node scripts/score_candidates.js --in public/app/daily_candidates_merged.jsonl --out public/app/daily_candidates_scored.jsonl
 
       - name: Enrich (media/start if any)
         run: node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
