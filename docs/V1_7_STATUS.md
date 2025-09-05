@@ -11,8 +11,9 @@
   - `export_today_slim.mjs`（検収用アーティファクト）
 - **Artifacts**: `build/daily_today.json`, `build/daily_today.md`
 
-## Known follow-ups (v1.7.1)
-- 選択肢の多様性（シリーズ/作曲者の過密回避）
-- 出現頻度に基づく緩やかな難易度スケーリング
-- seed/allowlist の少量拡充
+## v1.7.1 — Applied (2025-09-05)
+- 選択肢の多様性：同シリーズ/同作曲者への過密を**軽く抑制**（不足時は緩和して充足）
+- 難易度の緩スケーリング：**出現頻度**に基づく微調整＋**端貼り防止マージン**
+- ログ可観測性：`[difficulty] date=… values=[0.xx,...]` の**数値出力**
+- allowlist/seed の少量拡充：`sources/allowlist.json` / `sources/seed_candidates.jsonl` を微増
 

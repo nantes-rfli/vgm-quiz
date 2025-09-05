@@ -37,3 +37,10 @@
 - `sources/allowlist.json`：チャンネル/パブリッシャの拡充（任意）
 - `sources/seed_candidates.jsonl`：安全な候補（`provider:auto` も可）を数件ずつ追加
 
+## 7. 日次チェックリスト（軽監視）
+- `build/daily_today.json/.md` の当日 1 件を確認（**choices** が 1 or 4、欠損がない）
+- **difficulty** が `0.00–1.00` の範囲に収まっている
+- **media.provider / media.id** が存在（`?provider=auto&test=1&mock=1&autostart=1` で埋め込み可）
+- **answers.canonical** が正規化済み
+- Actions ログに `[difficulty] date=… values=[…]` の数値出力がある
+
