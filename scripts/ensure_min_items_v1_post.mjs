@@ -111,6 +111,10 @@ function hasMinimalMedia(c) {
 }
 
 function buildItem(c) {
+  // media/clip を相互補完（どちらでも下流が読めるようにする）
+  const srcMedia = c.media || c.clip || null;
+  const mediaObj = srcMedia ? { provider: srcMedia.provider, id: srcMedia.id, start: srcMedia.start, duration: srcMedia.duration } : null;
+
   // フィールドの穴埋め（validator必須フィールド）
   const fallbackTitle = c.title || c.track?.name || c.game?.name || c.norm?.title || c.norm?.answer;
   const fallbackGameName = (c.game && (c.game.name || c.game.series))
@@ -134,12 +138,17 @@ function buildItem(c) {
   const item = {
     title: fallbackTitle || fallbackGameName,
     game,
-    track,
-    clip: c.clip || null,
+    track: { name: (c.track && c.track.name) ? c.track.name : (fallbackTitle || fallbackGameName), composer: track.composer },
+    clip: c.clip || mediaObj,
+    media: c.media || mediaObj,
     answers,
     sources: Array.isArray(c.sources) ? c.sources : undefined
   };
   ensureNorm(item);
+  // debug: 出力アイテムの主要キーをログに出す
+  try {
+    console.log('[ensure_min_items] item keys:', Object.keys(item));
+  } catch {}
   return item;
 }
 
