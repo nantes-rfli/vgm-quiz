@@ -25,7 +25,11 @@ function todayStr() {
 async function readDaily() {
   const buildPath = path.resolve(__dirname, '../build/daily_today.json');
   if (existsSync(buildPath)) {
-    return JSON.parse(await readFile(buildPath, 'utf-8'));
+    const o = JSON.parse(await readFile(buildPath, 'utf-8'));
+    if (o && o.item && typeof o.item === 'object') {
+      return { date: o.date, ...o.item };
+    }
+    return o;
   }
   const autoPath = path.resolve(__dirname, '../public/app/daily_auto.json');
   if (existsSync(autoPath)) {
