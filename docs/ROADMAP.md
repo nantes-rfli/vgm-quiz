@@ -240,3 +240,31 @@
 5. authoring-schema：生成JSONスキーマ定義 + schema検証
 6. daily-publish：日次JSONとOGP生成・配置 + latest連携 + E2Eスモーク
 7. ops-docs：Secrets/PAT/失敗時の運用手順、監視ポイントを docs へ整備
+
+---
+
+## Upcoming (v1.8 – v1.10) — 決定事項サマリ
+
+- **v1.8（軸）Authoringスキーマ確立 & バックフィル /（サブ）Publish Surface最小**
+  - `schema/daily_v1.schema.json` を新設し、`public/app/daily_auto.json` を CI で検証（必須化）
+  - 正規化ルールの単一ソース化・別名辞書 `data/aliases/*` 分割・安全なバックフィル
+  - OGP 静的生成（SVG→PNG, 1200×630）：`public/og/YYYY-MM-DD.png` / `public/og/latest.png`
+  - `daily/*.html` の `og:*` / `twitter:*` を維持・確認、`feed.xml` / `feed.json` を追加（最小）
+  - 出題の 4択化は **フラグ切替 `choices_mode`（既定: auto）** を導入（品質ゲート未達は1択へ自動降格）
+
+- **v1.9（軸）Collector v0（安全な候補収集）**
+  - 収集ソース優先度：**Apple公式 > YouTube公式 > その他**
+  - `scripts/collector_v0.mjs` により allowlist のみを対象にメタ抽出→ `build/candidates_queue.jsonl`
+  - 取り込み審査 `scripts/ingest_candidates_v0.mjs`（人工/ルールベースGate）
+  - 近似重複は**軽量ゲート**のみ導入（強い最適化は v1.10 へ）
+
+- **v1.10（軸）Difficulty 2.0 & De-dup v1（近似重複回避を含む）**
+  - 難易度の分布制御（週次レンジ・ヒステリシス）とテレメトリ出力
+  - 近似重複判定：作曲者/シリーズ/年/テンポ等の軽量指標でスコア化→しきい値警告/抑制
+  - Collector v0 の成果を前提に、出題品質の均しを本格適用
+
+### 参考ドキュメント（本パッチで新設）
+- `docs/V1_8_PLAN.md` — v1.8 の目的/スコープ/DoD/タスク/リスク/成果物
+- `docs/DESIGN_OGP.md` — OGP 静的生成（SVG→PNG）設計
+- `docs/SPEC_CHOICES_MODE.md` — 出題の選択肢制御仕様（auto/always4/one + 品質ゲート）
+
