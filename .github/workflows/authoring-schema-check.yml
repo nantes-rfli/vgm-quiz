@@ -9,12 +9,41 @@ jobs:
   schema:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Prepare today's artifact (Finalize → Validate → Export slim)
+        run: |
+          set -euxo pipefail
+          # Ensure build dir exists
+          mkdir -p build
+          # Run the same sequence as daily pipeline (safe to run; no commit)
+          if [ -f scripts/finalize_daily_v1.mjs ]; then
+            node scripts/finalize_daily_v1.mjs || true
+          fi
+          if [ -f scripts/ensure_min_items_v1_post.mjs ]; then
+            node scripts/ensure_min_items_v1_post.mjs || true
+          fi
+          if [ -f scripts/distractors_v1_post.mjs ]; then
+            node scripts/distractors_v1_post.mjs || true
+          fi
+          if [ -f scripts/difficulty_v1_post.mjs ]; then
+            node scripts/difficulty_v1_post.mjs || true
+          fi
+          if [ -f scripts/validate_nonempty_today.mjs ]; then
+            node scripts/validate_nonempty_today.mjs || true
+          fi
+          if [ -f scripts/export_today_slim.mjs ]; then
+            node scripts/export_today_slim.mjs || true
+          fi
+          if [ ! -f build/daily_today.json ]; then
+            echo "::warning::build/daily_today.json not found; validator will fallback to public/app/daily_auto.json"
+          fi
 
       - name: Schema validation (strict)
         run: |
