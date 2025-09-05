@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
   <channel>
-    <title>vgm-quiz daily</title>
-    <link>https://nantes-rfli.github.io/vgm-quiz/daily/latest.html</link>
-    <description>One VGM question per day</description>
+    <title>[vgm-quiz] Main Theme (Super Mario Bros.) — Super Mario Bros.</title>
+    <link>https://nantes-rfli.github.io/vgm-quiz</link>
+    <description>Daily VGM quiz for 2025-09-05. Composer: Koji Kondo</description>
     <item>
-      <title>[vgm-quiz]  —</title>
+      <title>[vgm-quiz] Main Theme (Super Mario Bros.) — Super Mario Bros.</title>
       <link>https://nantes-rfli.github.io/vgm-quiz/daily/2025-09-05.html</link>
       <guid>https://nantes-rfli.github.io/vgm-quiz/daily/2025-09-05.html</guid>
-      <description>Daily VGM quiz for 2025-09-05. Composer: N/A</description>
-      <enclosure url="https://nantes-rfli.github.io/vgm-quiz/og/2025-09-05.png" type="image/png"/>
-      <pubDate>Fri, 05 Sep 2025 10:37:04 GMT</pubDate>
+      <pubDate>Fri, 05 Sep 2025 13:37:53 GMT</pubDate>
+      <description>Daily VGM quiz for 2025-09-05. Composer: Koji Kondo</description>
+      <enclosure url="https://nantes-rfli.github.io/vgm-quiz/og/2025-09-05.png" type="image/png" />
     </item>
   </channel>
 </rss>
