@@ -43,8 +43,15 @@
 - クリップ時間の可視化（将来の Collector v1 で開始秒が決まったら描画）
 
 ## 運用メモ（PRの必須チェックが走らない場合）
-`daily (ogp+feeds)` が作る PR では、**GITHUB_TOKEN ではなく PAT（例: 
+`daily (ogp+feeds)` が作る PR では、**GITHUB_TOKEN ではなく PAT（例:
 `${{ secrets.DAILY_PR_PAT }}`）**を使ってください。
 GitHub の仕様で、GITHUB_TOKEN による PR/commit では `pull_request` トリガの Workflow が起動しない場合があり、
 ブランチ保護の Required（`ci-fast-pr-build` / `pages-pr-build` / `required-check`）が永続 Pending になることがあります。
 本プロジェクトでは PAT の使用を前提にしています。
+
+
+## v1.8 追補 — データ参照とワークフロー
+- **データ参照**：`build/daily_today.json` があれば優先。無ければ `public/app/daily_auto.json` の `by_date` 最新を使用。
+- **YAML 再構成**：`.github/workflows/ogp-and-feeds.yml` は `env:` 埋め込みを避け、`Read date` は `TZ=Asia/Tokyo date +%F` を用いて安全化。
+- **PNG 任意化**：`@resvg/resvg-js` は `npm i --no-save` を試行し、失敗時は **SVGのみ**生成（ジョブは成功）。
+- **PR 作成**：`peter-evans/create-pull-request@v6` を使用し、**`token: ${{ secrets.DAILY_PR_PAT }}`** を必須とする。
