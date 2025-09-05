@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * difficulty_v1_post.mjs
- * daily_auto.json 生成後に、当日分 items[*].difficulty を 0.0..1.0 で補完する軽量ポストプロセッサ。
+ * daily_auto.json 生成後に、当日分 difficulty を 0.0..1.0 で補完する軽量ポストプロセッサ。
  *
  * 入力:  --in  public/app/daily_auto.json
  *        --date YYYY-MM-DD (JST基準。未指定なら今日)
@@ -48,38 +48,37 @@ function parseArgs(argv) {
 function clamp(x, lo=0, hi=1) { return Math.max(lo, Math.min(hi, x)); }
 function norm(s) { return String(s || '').trim().toLowerCase(); }
 
-function normalizeByDate(by_date) {
-  if (Array.isArray(by_date)) {
-    return by_date
-      .map((d) => {
-        if (d && typeof d === 'object' && 'date' in d) return d;
-        if (typeof d === 'string') return { date: d, items: [] };
-        return d;
-      })
-      .filter(Boolean);
+function getEntries(by_date){
+  if (Array.isArray(by_date)){
+    return by_date.map(d => {
+      if (d && typeof d === 'object' && 'date' in d){
+        const entry = Array.isArray(d.items) ? d.items[0] : d;
+        return { date: d.date, entry };
+      }
+      return null;
+    }).filter(Boolean);
   }
-  if (by_date && typeof by_date === 'object') {
+  if (by_date && typeof by_date === 'object'){
     return Object.entries(by_date).map(([date, v]) => {
-      const items = Array.isArray(v?.items) ? v.items : Array.isArray(v) ? v : [];
-      return { date, items };
+      const entry = Array.isArray(v?.items) ? v.items[0] : v;
+      return { date, entry };
     });
   }
   return [];
 }
 
-function buildFrequencies(by) {
+function buildFrequencies(entries) {
   const composer = new Map();
   const series = new Map();
   const game = new Map();
-  for (const d of by) {
-    for (const it of d.items || []) {
-      const c = norm(it.track?.composer);
-      const s = norm(it.game?.series || it.game?.name);
-      const g = norm(it.game?.name);
-      if (c) composer.set(c, (composer.get(c) || 0) + 1);
-      if (s) series.set(s, (series.get(s) || 0) + 1);
-      if (g) game.set(g, (game.get(g) || 0) + 1);
-    }
+  for (const d of entries) {
+    const it = d.entry;
+    const c = norm(it?.track?.composer || it?.composer);
+    const s = norm(it?.game?.series || it?.game?.name || it?.game);
+    const g = norm(it?.game?.name || it?.game);
+    if (c) composer.set(c, (composer.get(c) || 0) + 1);
+    if (s) series.set(s, (series.get(s) || 0) + 1);
+    if (g) game.set(g, (game.get(g) || 0) + 1);
   }
   return { composer, series, game };
 }
@@ -111,22 +110,26 @@ async function run() {
   const args = parseArgs(process.argv);
   const raw = await fs.readFile(args.in, 'utf8');
   const json = JSON.parse(raw);
-  const by = normalizeByDate(json.by_date);
+  const entries = getEntries(json.by_date);
 
-  const freqs = buildFrequencies(by);
+  const freqs = buildFrequencies(entries);
 
-  const target = by.find(d => String(d.date) === String(args.date));
+  const target = entries.find(d => String(d.date) === String(args.date));
   if (!target) {
     console.warn(`[warn] by_date has no ${args.date}; nothing to do.`);
   } else {
-    let touched = 0;
-    for (const item of target.items || []) {
-      const hasNumeric = typeof item.difficulty === 'number' && isFinite(item.difficulty);
-      if (hasNumeric && !args.force) continue;
+    const item = target.entry || {};
+    const hasNumeric = typeof item.difficulty === 'number' && isFinite(item.difficulty);
+    if (!hasNumeric || args.force){
       item.difficulty = scoreDifficulty(item, freqs);
-      touched++;
+      console.log(`[difficulty] date=${args.date} difficulty=${item.difficulty.toFixed(2)}`);
     }
-    console.log(`[difficulty] date=${args.date} items=${target.items?.length ?? 0} updated=${touched}`);
+    // write back flat
+    if (json.by_date && typeof json.by_date === 'object' && !Array.isArray(json.by_date)){
+      json.by_date[String(args.date)] = item;
+    } else {
+      json.by_date = { [String(args.date)]: item };
+    }
   }
 
   const outPath = args.out || args.in;
