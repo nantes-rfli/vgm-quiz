@@ -1,110 +1,27 @@
 {
   "by_date": {
-    "2025-08-31": {
-      "title": "クロノ・トリガー",
-      "game": "クロノ・トリガー",
-      "composer": "光田康典",
-      "platform": null,
-      "year": 1995,
-      "media": null,
-      "source": "dataset",
-      "norm": {
-        "title": "クロノトリガ",
-        "game": "クロノトリガ",
-        "composer": "光田康典"
-      },
-      "difficulty": 4
-    },
-    "2025-09-01": {
-      "title": "メインテーマ",
-      "game": "ゼルダの伝説",
-      "composer": "近藤浩治",
-      "platform": null,
-      "year": 1986,
-      "media": null,
-      "source": "dataset",
-      "norm": {
-        "title": "メインテマ",
-        "game": "ゼルダの伝説",
-        "composer": "近藤浩治"
-      },
-      "difficulty": 4
-    },
-    "2025-08-29": {
-      "title": "クロノ・トリガー",
-      "game": "クロノ・トリガー",
-      "composer": "光田康典",
-      "platform": null,
-      "year": 1995,
-      "media": null,
-      "source": "dataset",
-      "norm": {
-        "title": "クロノトリガ",
-        "game": "クロノトリガ",
-        "composer": "光田康典"
-      },
-      "difficulty": 4,
-      "choices": {
-        "composer": [
-          "Toby Fox",
-          "すぎやまこういち",
-          "近藤浩治",
-          "光田康典"
-        ],
-        "game": [
-          "UNDERTALE",
-          "ドラゴンクエスト",
-          "クロノ・トリガー",
-          "ゼルダの伝説"
-        ]
-      }
-    },
-    "2025-08-28": {
-      "title": "クロノ・トリガー",
-      "game": "クロノ・トリガー",
-      "composer": "光田康典",
-      "platform": null,
-      "year": 1995,
-      "media": null,
-      "source": "dataset",
-      "norm": {
-        "title": "クロノトリガ",
-        "game": "クロノトリガ",
-        "composer": "光田康典"
-      },
-      "difficulty": 4
-    },
     "2025-09-05": {
-      "title": "序曲",
-      "game": "ドラゴンクエスト",
-      "composer": "すぎやまこういち",
-      "platform": null,
-      "year": 1986,
-      "media": null,
-      "source": "dataset",
+      "title": "Main Theme (Super Mario Bros.)",
+      "game": "Super Mario Bros.",
+      "composer": "Koji Kondo",
+      "media": {
+        "provider": "youtube",
+        "id": "NTa6Xbzfq1U",
+        "start": 0,
+        "duration": 30
+      },
+      "answers": {
+        "canonical": "Super Mario Bros."
+      },
+      "choices": [
+        "Super Mario Bros."
+      ],
       "norm": {
-        "title": "序曲",
-        "game": "ドラゴンクエスト",
-        "composer": "すぎやまこういち"
-      },
-      "difficulty": 4,
-      "clip": {
-        "duration": 15,
-        "start": 0
-      },
-      "choices": {
-        "composer": [
-          "Toby Fox",
-          "光田康典",
-          "すぎやまこういち",
-          "近藤浩治"
-        ],
-        "game": [
-          "ゼルダの伝説",
-          "ドラゴンクエスト",
-          "クロノ・トリガー",
-          "UNDERTALE"
-        ]
+        "title": "main theme (super mario bros.)",
+        "game": "super mario bros.",
+        "series": "super mario",
+        "composer": "koji kondo",
+        "answer": "super mario bros."
       }
     }
   }
