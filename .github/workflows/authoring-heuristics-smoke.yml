@@ -96,6 +96,11 @@ jobs:
           if [ -z "${{ inputs.date }}" ]; then DATE=""; else DATE="${{ inputs.date }}"; fi
           node scripts/validate_nonempty_today.mjs --in public/app/daily_auto.json $([ -n "$DATE" ] && echo "--date $DATE")
 
+      - name: Export today's slim artifact
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then DATE=""; else DATE="${{ inputs.date }}"; fi
+          node scripts/export_today_slim.mjs --in public/app/daily_auto.json $([ -n "$DATE" ] && echo "--date $DATE") --out-json build/daily_today.json --out-md build/daily_today.md
+
       - name: Validate authoring
         run: node scripts/validate_authoring.js
 
@@ -110,3 +115,5 @@ jobs:
             public/app/daily_candidates_scored_enriched.jsonl
             public/app/daily_candidates_scored_enriched_start.jsonl
             public/app/daily_auto.json
+            build/daily_today.json
+            build/daily_today.md
