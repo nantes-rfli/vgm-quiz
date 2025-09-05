@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * distractors_v1_post.mjs
- * daily_auto.json 生成後に、当日分の items[*].choices を補完/強化する軽量ポストプロセッサ。
+ * daily_auto.json 生成後に、当日分の items[*].choices を補完/強化する軽量ポストプロセッサ（v1.7.1: 多様性を強化）。
  *
  * 入力:  --in  public/app/daily_auto.json
  *        --date YYYY-MM-DD (JST基準。未指定なら今日)
@@ -66,10 +66,12 @@ function sample(arr, k, rng=Math.random) {
 }
 
 function pickDistractors(target, pool, k = 3) {
-  const correct = norm(target.answers?.canonical);
-  const series = norm(target.game?.series || target.game?.name);
-  const composer = norm(target.track?.composer);
-  const year = Number(target.game?.year) || null;
+  const t = target;
+  const correct = norm(t?.answers?.canonical);
+  if (!correct) return [];
+  const series = norm(t?.game?.series || t?.game?.name);
+  const composer = norm(t?.track?.composer);
+  const year = Number(t?.game?.year) || null;
 
   const scored = [];
   for (const cand of pool) {
@@ -85,26 +87,51 @@ function pickDistractors(target, pool, k = 3) {
     if (series && c_series && (series === c_series || c_series.includes(series) || series.includes(c_series))) score += 1;
     if (year != null && c_year != null && Math.abs(year - c_year) <= 2) score += 0.5;
 
-    scored.push({ cand, score, ans });
+    // 後段の多様性制御で使うメタも保持
+    scored.push({ cand, score, ans, c_series, c_composer });
   }
 
   // スコア降順 → 同点はランダム
   scored.sort((a, b) => b.score - a.score || (Math.random() - 0.5));
 
+  // v1.7.1: 多様性制約
   const picked = [];
   const seen = new Set([correct]);
-  for (const s of scored) {
-    if (picked.length >= k) break;
-    if (seen.has(s.ans)) continue;
-    seen.add(s.ans);
-    picked.push(s.cand.answers.canonical);
+  const counts = { series: new Map(), composer: new Map() };
+  const maxSameSeries = 1;   // 正解と同シリーズのダミーは最大1
+  const maxSameComposer = 1; // 同一作曲者は最大1（ダミー内）
+
+  function canTake(s) {
+    if (seen.has(s.ans)) return false;
+    const sameSeries = series && s.c_series && (s.c_series === series);
+    if (sameSeries) {
+      const n = counts.series.get(series) || 0;
+      if (n >= maxSameSeries) return false;
+    }
+    if (s.c_composer) {
+      const n = counts.composer.get(s.c_composer) || 0;
+      if (n >= maxSameComposer) return false;
+    }
+    return true;
   }
 
-  // 不足分はランダムに補完
+  for (const s of scored) {
+    if (picked.length >= k) break;
+    if (!canTake(s)) continue;
+    picked.push(s.cand.answers.canonical);
+    seen.add(s.ans);
+    if (series && s.c_series === series) counts.series.set(series, (counts.series.get(series) || 0) + 1);
+    if (s.c_composer) counts.composer.set(s.c_composer, (counts.composer.get(s.c_composer) || 0) + 1);
+  }
+
+  // 足りない場合は制約を緩めて充足
   if (picked.length < k) {
-    const remain = uniq(pool.map(c => c.answers?.canonical).filter(Boolean))
-      .filter(a => !seen.has(norm(a)));
-    picked.push(...sample(remain, k - picked.length));
+    for (const s of scored) {
+      if (picked.length >= k) break;
+      if (seen.has(s.ans)) continue;
+      picked.push(s.cand.answers.canonical);
+      seen.add(s.ans);
+    }
   }
 
   return uniq(picked).slice(0, k);
