@@ -67,3 +67,10 @@ PR作成に **GITHUB_TOKEN** を使っていることが原因です。**必ず 
 - Actions の `authoring (schema check)` を実行し、`schema: OK file=... date=YYYY-MM-DD` を確認。
 - 必須欠落（title/game/composer/media.provider/id/answers.canonical）がある場合は `::error::` が出て **失敗**します。
 
+## v1.8 schema check (updated)
+
+- Source priority: `build/daily_today.json` → `public/app/daily_auto.json(by_date latest)`
+- `build/daily_today.json` accepts **{date,item}**, **{date,...item}**, or **plain item**
+- `composer` is validated from **`track.composer`** or **`composer`** (string or array)
+- `difficulty` out of range is **warning** (job does not fail)
+- Set `SCHEMA_CHECK_STRICT=true` to fail on violations

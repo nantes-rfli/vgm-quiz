@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 /**
  * OGP static generator (SVG required, PNG optional)
- * - Prefers build/daily_today.json; falls back to public/app/daily_auto.json (by_date)
- * - Accepts wrapper {date,item} and flattens.
- * - Fills assets/og/template.svg and writes public/og/YYYY-MM-DD.svg and latest.svg
- * - If @resvg/resvg-js is available, also renders PNGs.
+ * - Source: build/daily_today.json (preferred) OR public/app/daily_auto.json (by_date latest)
+ * - Writes: public/og/YYYY-MM-DD.svg and latest.svg (and optional PNGs if resvg is available)
  */
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -13,116 +11,96 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-function pad(n){ return String(n).padStart(2, '0'); }
-function todayStrJST() {
-  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit' });
-  const p = fmt.formatToParts(new Date()).reduce((o,v)=> (o[v.type]=v.value, o), {});
-  return `${p.year}-${p.month}-${p.day}`;
+async function readJson(p){ return JSON.parse(await readFile(p,'utf-8')); }
+
+function unwrapDaily(obj){
+  if (obj && typeof obj === 'object') {
+    if ('item' in obj) return { date: obj.date, item: obj.item };
+    const keys = Object.keys(obj);
+    if (['title','game','composer','media','answers','track'].some(k => keys.includes(k))) {
+      const { date=null, ...rest } = obj;
+      return { date, item: rest };
+    }
+  }
+  return { date: null, item: null };
 }
 
-async function ensureDir(p) {
-  if (!existsSync(p)) await mkdir(p, { recursive: true });
+function latestFromDailyAuto(obj){
+  const dates = Object.keys(obj.by_date || {}).sort();
+  const date = dates[dates.length-1];
+  const item = date ? obj.by_date[date] : null;
+  return { date, item };
+}
+
+function getComposer(item){
+  const t = item.track && item.track.composer;
+  const c = item.composer;
+  if (Array.isArray(t) && t.length) return t.join(', ');
+  if (typeof t === 'string' && t) return t;
+  if (Array.isArray(c) && c.length) return c.join(', ');
+  if (typeof c === 'string' && c) return c;
+  return '';
+}
+
+async function getData(){
+  const pToday = path.resolve(__dirname, '../build/daily_today.json');
+  const pAuto  = path.resolve(__dirname, '../public/app/daily_auto.json');
+  if (existsSync(pToday)) {
+    const u = unwrapDaily(await readJson(pToday));
+    if (u.item) return { src: pToday, ...u };
+  }
+  const u = latestFromDailyAuto(await readJson(pAuto));
+  return { src: pAuto, ...u };
+}
+
+function fillTemplate(svg, {date,item}){
+  const title = item.title || '';
+  const game = item.game || '';
+  const composer = getComposer(item) || '';
+  return svg
+    .replace(/id="date">[^<]*/,'id="date">'+(date||''))
+    .replace(/id="title">[^<]*/,'id="title">'+escapeXml(title))
+    .replace(/id="game">[^<]*/,'id="game">'+escapeXml(game))
+    .replace(/id="composer">[^<]*/,'id="composer">'+escapeXml(composer));
 }
 
 function escapeXml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function inject(svg, fields) {
-  let out = svg;
-  out = out.replace('id="title">Track Title', `id="title">${escapeXml(fields.title)}`);
-  out = out.replace('id="game">Game Title', `id="game">${escapeXml(fields.game)}`);
-  out = out.replace('id="composer">Composer', `id="composer">${escapeXml(fields.composer)}`);
-  // naive difficulty bar 0..1 -> 0..800 width
-  const w = Math.max(0, Math.min(1, Number(fields.difficulty || 0))) * 800;
-  out = out.replace('width="0" height="24" rx="12" fill="#60a5fa" id="difficultyBar"', `width="${Math.round(w)}" height="24" rx="12" fill="#60a5fa" id="difficultyBar"`);
-  out = out.replace('id="difficulty">difficulty 0.00', `id="difficulty">difficulty ${(Number(fields.difficulty)||0).toFixed(2)}`);
-  return out;
-}
-
-async function maybePng(svgBuf, outPng) {
-  try {
+async function maybePng(svgContent, outPng){
+  try{
     const { Resvg } = await import('@resvg/resvg-js');
-    const r = new Resvg(svgBuf);
-    const png = r.render().asPng();
-    await writeFile(outPng, png);
-    return true;
-  } catch (e) {
-    console.warn('[ogp] PNG skipped:', e?.message || e);
-    return false;
+    const resvg = new Resvg(svgContent, { fitTo: { mode: 'width', value: 1200 } });
+    const pngData = resvg.render().asPng();
+    await writeFile(outPng, pngData);
+    console.log('[ogp] PNG rendered:', outPng);
+  } catch(e){
+    console.warn('[ogp] PNG render skipped (resvg not available)');
   }
 }
 
-function isStr(x){ return typeof x === 'string' && x.trim().length>0; }
-
-function pickLatest(by_date){
-  const entries = Object.entries(by_date || {}).filter(([d,v])=>v && typeof v==='object');
-  if (!entries.length) return null;
-  entries.sort((a,b)=>a[0].localeCompare(b[0]));
-  const [date, item] = entries[entries.length-1];
-  return { date, item };
-}
-
-async function readDaily() {
-  // prefer build/daily_today.json, else public/app/daily_auto.json
-  const buildPath = path.resolve(__dirname, '../build/daily_today.json');
-  if (existsSync(buildPath)) {
-    const o = JSON.parse(await readFile(buildPath, 'utf-8'));
-    // unwrap slim shape
-    if (o && o.item && typeof o.item === 'object') {
-      return { date: o.date, item: o.item };
-    }
-    if (o && o.by_date && typeof o.by_date==='object'){
-      const p = pickLatest(o.by_date);
-      if (p) return p;
-    }
-    if (o && (o.title || o.game || o.media)){
-      return { date: todayStrJST(), item: o };
-    }
+async function main(){
+  const { date, item } = await getData();
+  if (!item) {
+    console.error('[ogp] no item; abort');
+    process.exit(0);
   }
-  const autoPath = path.resolve(__dirname, '../public/app/daily_auto.json');
-  if (existsSync(autoPath)) {
-    const obj = JSON.parse(await readFile(autoPath, 'utf-8'));
-    const p = pickLatest(obj.by_date);
-    if (p) return p;
-  }
-  return null;
-}
+  const svgTmpl = await readFile(path.resolve(__dirname, '../assets/og/template.svg'),'utf-8');
+  const filled = fillTemplate(svgTmpl, {date,item});
 
-async function main() {
-  const tpl = path.resolve(__dirname, '../assets/og/template.svg');
   const outDir = path.resolve(__dirname, '../public/og');
-  await ensureDir(outDir);
+  await mkdir(outDir, { recursive: true });
 
-  const daily = await readDaily();
-  if (!daily){
-    console.warn('[ogp] no daily data found; skip');
-    return;
-  }
-  const { date, item } = daily;
+  const svgPath = path.join(outDir, `${date}.svg`);
+  const latestSvg = path.join(outDir, `latest.svg`);
+  await writeFile(svgPath, filled,'utf-8');
+  await writeFile(latestSvg, filled,'utf-8');
+  console.log('[ogp] wrote', svgPath, 'and latest.svg');
 
-  const composer = item.composer || (item.track && item.track.composer) || '';
-  const svg = await readFile(tpl, 'utf-8');
-  const filled = inject(svg, {
-    date,
-    title: item.title || '',
-    game: item.game || '',
-    composer,
-    difficulty: Number(item.difficulty||0)
-  });
-
-  const outSvg = path.join(outDir, `${date}.svg`);
-  const outSvgLatest = path.join(outDir, `latest.svg`);
-  await writeFile(outSvg, filled, 'utf-8');
-  await writeFile(outSvgLatest, filled, 'utf-8');
-
-  const outPng = path.join(outDir, `${date}.png`);
-  const outPngLatest = path.join(outDir, `latest.png`);
-  if (await maybePng(Buffer.from(filled), outPng)) {
-    await writeFile(outPngLatest, await readFile(outPng));
-  }
-
-  console.log(`[ogp] wrote ${path.relative(process.cwd(), outSvg)} (+latest)`);
+  // optional PNG
+  await maybePng(filled, path.join(outDir, `${date}.png`));
+  await maybePng(filled, path.join(outDir, `latest.png`));
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

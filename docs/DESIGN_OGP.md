@@ -55,3 +55,10 @@ GitHub の仕様で、GITHUB_TOKEN による PR/commit では `pull_request` ト
 - **YAML 再構成**：`.github/workflows/ogp-and-feeds.yml` は `env:` 埋め込みを避け、`Read date` は `TZ=Asia/Tokyo date +%F` を用いて安全化。
 - **PNG 任意化**：`@resvg/resvg-js` は `npm i --no-save` を試行し、失敗時は **SVGのみ**生成（ジョブは成功）。
 - **PR 作成**：`peter-evans/create-pull-request@v6` を使用し、**`token: ${{ secrets.DAILY_PR_PAT }}`** を必須とする。
+
+## Workflow & data sourcing (updated)
+
+- `ogp-and-feeds.yml` rebuilt to a YAML-safe form (no inline JS templates)
+- Date comes from `TZ=Asia/Tokyo date +%F` for stable JST titles/branches
+- Data source: `build/daily_today.json` preferred; fallback to `public/app/daily_auto.json (by_date)`
+- PNGs are optional via `@resvg/resvg-js` (installed best-effort in the workflow)

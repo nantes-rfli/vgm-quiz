@@ -3,7 +3,7 @@ name: daily (ogp+feeds)
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: "25 18 * * *" # UTC 18:25 ≒ JST 03:25
+    - cron: '25 18 * * *' # UTC 18:25 ≒ JST 03:25
 
 permissions:
   contents: write
@@ -21,24 +21,27 @@ jobs:
         with:
           node-version: 20
 
-      - name: Guard: DAILY_PR_PAT must exist
+      - name: Ensure output directories
         run: |
-          if [ -z "${{ secrets.DAILY_PR_PAT }}" ]; then
-            echo "::error::DAILY_PR_PAT is missing. Add a PAT with 'repo' scope in Settings > Secrets > Actions."
-            exit 1
+          mkdir -p public/og
+          mkdir -p public/daily
+
+      - name: Ensure slim (build/daily_today.json)
+        run: |
+          if [ ! -f build/daily_today.json ]; then
+            echo "[ogp+feeds] build/daily_today.json not found; trying export_today_slim.mjs ..."
+            if [ -f scripts/export_today_slim.mjs ]; then
+              node scripts/export_today_slim.mjs || true
+            fi
           fi
 
-      - name: Prepare workspace
+      - name: Install PNG renderer (@resvg/resvg-js)
         run: |
-          mkdir -p public/og public/daily build
-
-      - name: Optional PNG renderer
-        run: |
-          npm i --no-save @resvg/resvg-js || echo "resvg not installed; PNG will be skipped"
-
-      - name: Ensure slim artifact (best-effort)
-        run: |
-          node scripts/export_today_slim.mjs || echo "export_today_slim.mjs failed; will fallback to public/app/daily_auto.json"
+          if [ ! -f package.json ]; then
+            npm init -y >/dev/null 2>&1 || true
+          fi
+          npm i --no-save --no-audit --no-fund @resvg/resvg-js || true
+          echo "Installed @resvg/resvg-js (optional)"
 
       - name: Generate OGP (SVG + optional PNG)
         run: node scripts/generate_ogp.mjs
@@ -46,25 +49,24 @@ jobs:
       - name: Generate Feeds (single-item)
         run: node scripts/generate_feeds_min.mjs
 
-      - name: Read date for PR title (JST)
+      - name: Date (JST)
         id: meta
         shell: bash
         run: |
-          echo "date=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_OUTPUT"
+          DATE="$(TZ=Asia/Tokyo date +%F)"
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
 
-      - name: Create PR (OGP & Feeds)
+      - name: Create PR with changes
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
-          branch: bot/ogp-and-feeds/${{ steps.meta.outputs.date }}
-          title: "Daily OGP & Feeds for ${{ steps.meta.outputs.date }}"
+          branch: bot/ogp-feeds-${{ steps.meta.outputs.date }}
+          title: "chore(ogp+feeds): assets for ${{ steps.meta.outputs.date }}"
           commit-message: |
-            chore(ogp,feeds): generate static OGP and feeds for ${{ steps.meta.outputs.date }}
-            
-            - OGP: `public/og/${{ steps.meta.outputs.date }}.(svg|png)` and `latest.*`
-            - Feeds: `public/daily/feed.xml` and `public/daily/feed.json`
-            
-            Auto-created by `daily (ogp+feeds)`.
+            chore(ogp+feeds): OGP/Feeds for ${{ steps.meta.outputs.date }}
+
+            - OGP: public/og/${{ steps.meta.outputs.date }}.(svg|png) and latest.(svg|png)
+            - Feeds: public/daily/feed.xml and public/daily/feed.json
           add-paths: |
             public/og/**
             public/daily/feed.xml
