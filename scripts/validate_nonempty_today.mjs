@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * validate_nonempty_today.mjs
- * daily_auto.json の最新日（または --date 指定日）に items が 1 件以上あることを検証する。
- * 0 件の場合は exit 1。
+ * daily_auto.json の最新日（または --date 指定日）に「フラット1件」または items[0] が存在することを検証する。
+ * 条件を満たさない場合は exit 1。
  */
 
 import fs from 'node:fs/promises';
@@ -17,40 +17,53 @@ function parseArgs(argv) {
   return a;
 }
 
-function normalizeByDate(by_date) {
-  if (Array.isArray(by_date)) {
-    return by_date
-      .map((d) => (d && typeof d === 'object' && 'date' in d) ? d
-        : (typeof d === 'string' ? { date: d, items: [] } : null))
-      .filter(Boolean);
+function getEntries(by_date){
+  // return [{date, v}] where v is a flat entry if available; otherwise first item in items[]
+  if (Array.isArray(by_date)){
+    return by_date.map(d=>{
+      if (d && typeof d==='object' && 'date' in d){
+        const flat = (d && typeof d==='object' && !Array.isArray(d.items)) ? d : null;
+        const v = flat && !Array.isArray(flat.items) ? flat : (Array.isArray(d.items) ? d.items[0] : d);
+        return { date: d.date, v };
+      }
+      return null;
+    }).filter(Boolean);
   }
-  if (by_date && typeof by_date === 'object') {
-    return Object.entries(by_date).map(([date, v]) => {
-      const items = Array.isArray(v?.items) ? v.items : Array.isArray(v) ? v : [];
-      return { date, items };
+  if (by_date && typeof by_date==='object'){
+    return Object.entries(by_date).map(([date, v])=>{
+      const flat = v && typeof v==='object' && !Array.isArray(v.items) ? v : null;
+      const val = flat || (Array.isArray(v?.items) ? v.items[0] : v);
+      return { date, v: val };
     });
   }
   return [];
+}
+
+function hasRequiredFlat(val){
+  if (!val || typeof val!=='object') return false;
+  const titleOk = !!val.title;
+  const gameOk = !!(typeof val.game==='string' ? val.game : val.game?.name);
+  const compOk = !!(val.composer || val.track?.composer);
+  return titleOk && gameOk && compOk;
 }
 
 async function run() {
   const args = parseArgs(process.argv);
   const raw = await fs.readFile(args.in, 'utf8');
   const json = JSON.parse(raw);
-  const by = normalizeByDate(json.by_date);
-  if (!by.length) {
+  const entries = getEntries(json.by_date);
+  if (!entries.length) {
     console.error('[validate_nonempty_today] by_date is empty');
     process.exit(1);
   }
-  const dates = by.map(d => d.date).sort();
+  const dates = entries.map(d => d.date).sort();
   const targetDate = args.date || dates[dates.length - 1];
-  const target = by.find(d => String(d.date) === String(targetDate));
-  const n = target?.items?.length || 0;
-  if (n < 1) {
-    console.error(`[validate_nonempty_today] date=${targetDate} has no items`);
+  const target = entries.find(d => String(d.date) === String(targetDate));
+  if (!hasRequiredFlat(target?.v)) {
+    console.error(`[validate_nonempty_today] date=${targetDate} missing flat/item[0] required fields`);
     process.exit(1);
   }
-  console.log(`[validate_nonempty_today] date=${targetDate} items=${n} OK`);
+  console.log(`[validate_nonempty_today] date=${targetDate} entry OK`);
 }
 
 run().catch((e) => {
