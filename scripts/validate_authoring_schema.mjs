@@ -4,7 +4,7 @@
  * - Validates shape of ONE daily item.
  * - Sources (priority):
  *   1) build/daily_today.json (accepts {date,item}, {date,...item}, or plain item)
- *   2) public/app/daily_auto.json (by_date -> latest)
+ *   2) public/app/daily_auto.json (by_date -> latest)  [also unwraps {item: {...}} if present]
  * - Exit 0 by default; set SCHEMA_CHECK_STRICT=true to fail on violations.
  */
 import { readFile } from 'fs/promises';
@@ -44,7 +44,9 @@ function latestFromDailyAuto(obj){
   if (!obj || typeof obj !== 'object' || !obj.by_date) return { date: null, item: null };
   const dates = Object.keys(obj.by_date).sort();
   const date = dates[dates.length - 1] || null;
-  const item = date ? obj.by_date[date] : null;
+  let item = date ? obj.by_date[date] : null;
+  // ALSO UNWRAP if daily_auto stores { item: {...} }
+  if (item && typeof item === 'object' && 'item' in item) item = item.item;
   return { date, item };
 }
 
