@@ -1,0 +1,40 @@
+name: authoring (daily quality report)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "public/app/daily_auto.json"
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate quality report
+        run: node scripts/daily_quality_report.mjs --in public/app/daily_auto.json --out build/daily_quality_report.md
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-quality-report-${{ github.run_id }}
+          path: build/daily_quality_report.md
+
+      - name: Comment report on PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: build/daily_quality_report.md
+          edit-mode: replace
+          comment-identifier: daily-quality-report
+
