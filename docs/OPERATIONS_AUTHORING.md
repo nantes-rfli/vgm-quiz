@@ -37,6 +37,17 @@
 - `sources/allowlist.json`：チャンネル/パブリッシャの拡充（任意）
 - `sources/seed_candidates.jsonl`：安全な候補（`provider:auto` も可）を数件ずつ追加
 
+### PR 自動作成でのトラブル回避（重要・再掲）
+自動生成された PR で必須チェック（`ci-fast-pr-build` / `pages-pr-build` / `required-check`）が**起動しない/待機のまま**になる場合、
+PR作成に **GITHUB_TOKEN** を使っていることが原因です。**必ず PAT を使用**してください。
+
+- ワークフロー: `daily (ogp+feeds)`（`ogp-and-feeds.yml`）
+- 対応: `peter-evans/create-pull-request` の `token` に **`${{ secrets.DAILY_PR_PAT }}`** を指定
+- 必要権限: PAT は `repo` スコープ
+- 参考: GitHub の仕様として、GITHUB_TOKEN で作成した PR/commit では他の Workflow の `pull_request` イベントが起動しない場合があります
+
+この要件は `daily (auto extended)` と同様です。両方で **PAT** を使ってください。
+
 ## 7. 日次チェックリスト（軽監視）
 - `build/daily_today.json/.md` の当日 1 件を確認（**choices** が 1 or 4、欠損がない）
 - **difficulty** が `0.00–1.00` の範囲に収まっている

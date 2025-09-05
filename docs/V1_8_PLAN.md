@@ -38,6 +38,9 @@
    - エントリ: 当日1件、`og:image` を enclosure/attachment として露出
 3. **キャッシュ戦略**
    - `YYYY-MM-DD.png` は immutable、`latest.png` は短期キャッシュ + ETag
+4. **PR 作成**
+   - `daily (ogp+feeds)` は **PAT（`${{ secrets.DAILY_PR_PAT }}`）** を使用して PR を作成（必須チェックを確実発火）
+   - Required: `ci-fast-pr-build` / `pages-pr-build` / `required-check`（ジョブ名）
 
 ## 受け入れ基準（DoD）
 - PR 時に **Schema 検証が必須** で、違反があると赤になる。

@@ -41,3 +41,10 @@
 ## 将来拡張
 - 多言語 OGP（パス分割）／シリーズ別の配色テーマ
 - クリップ時間の可視化（将来の Collector v1 で開始秒が決まったら描画）
+
+## 運用メモ（PRの必須チェックが走らない場合）
+`daily (ogp+feeds)` が作る PR では、**GITHUB_TOKEN ではなく PAT（例: 
+`${{ secrets.DAILY_PR_PAT }}`）**を使ってください。
+GitHub の仕様で、GITHUB_TOKEN による PR/commit では `pull_request` トリガの Workflow が起動しない場合があり、
+ブランチ保護の Required（`ci-fast-pr-build` / `pages-pr-build` / `required-check`）が永続 Pending になることがあります。
+本プロジェクトでは PAT の使用を前提にしています。
