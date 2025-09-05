@@ -20,57 +20,38 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Guard: DAILY_PR_PAT must exist
-        env:
-          DAILY_PR_PAT: ${{ secrets.DAILY_PR_PAT }}
+      - name: Prepare workspace
         run: |
-          if [ -z "$DAILY_PR_PAT" ]; then
-            echo "::error::DAILY_PR_PAT is missing. Add a PAT with 'repo' scope in Settings > Secrets > Actions."
-            exit 1
-          fi
+          mkdir -p build public/og public/daily
 
-      - name: Ensure build/daily_today.json (export slim)
+      - name: Export today's slim (fallback)
         run: |
           if [ ! -f build/daily_today.json ]; then
-            echo "[ogp+feeds] build/daily_today.json not found; trying export_today_slim.mjs ..."
-            node scripts/export_today_slim.mjs || true
+            node scripts/export_today_slim.mjs --out-json build/daily_today.json --out-md build/daily_today.md || true
           fi
 
-      - name: Install PNG renderer (@resvg/resvg-js)
+      - name: Optional PNG renderer
         run: |
-          if [ ! -f package.json ]; then
-            npm init -y >/dev/null 2>&1 || true
-          fi
-          npm i @resvg/resvg-js --no-audit --no-fund
-          echo "Installed @resvg/resvg-js for PNG rendering"
+          npm --version
+          npm i --no-save @resvg/resvg-js || true
 
-      - name: Generate OGP (SVG + optional PNG)
+      - name: Generate OGP (SVG/PNG)
         run: node scripts/generate_ogp.mjs
 
-      - name: Generate Feeds (single-item)
+      - name: Generate Feeds (RSS/JSON)
         run: node scripts/generate_feeds_min.mjs
 
-      - name: Read date for PR title
-        id: meta
-        shell: bash
-        run: |
-          DATE="$(node -e "try{const fs=require('fs');const p1='build/daily_today.json', p2='public/app/daily_auto.json';let o=null;if(fs.existsSync(p1))o=JSON.parse(fs.readFileSync(p1,'utf8'));else if(fs.existsSync(p2))o=JSON.parse(fs.readFileSync(p2,'utf8'));let d=o?.date; if(!d && o?.item) d=o.date; if(!d && o?.by_date) d=Object.keys(o.by_date)[0]; process.stdout.write(d||new Date().toISOString().slice(0,10));}catch(e){process.stdout.write(new Date().toISOString().slice(0,10));}")"
-          echo "date=$DATE" >> "$GITHUB_OUTPUT"
-
-      - name: Create PR with changes
+      - name: Create PR
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DAILY_PR_PAT }}
-          branch: bot/ogp-feeds-${{ steps.meta.outputs.date }}
-          title: "chore(ogp+feeds): assets for ${{ steps.meta.outputs.date }}"
-          commit-message: "chore(ogp+feeds): add OGP/feeds for ${{ steps.meta.outputs.date }}"
-          draft: false
-          base: main
+          branch: "bot/ogp-and-feeds/${{ github.run_id }}"
+          commit-message: |
+            chore(ogp+feeds): update OGP and feeds for daily
+          title: "chore(ogp+feeds): update OGP and feeds for daily"
           body: |
-            This PR adds OGP/feeds generated for ${{ steps.meta.outputs.date }}.
-
-            - OGP: `public/og/${{ steps.meta.outputs.date }}.svg` (+PNG if available) and `public/og/latest.*`
+            This PR adds/updates:
+            - OGP assets: `public/og/YYYY-MM-DD.(svg|png)` and `public/og/latest.(svg|png)`
             - Feeds: `public/daily/feed.xml` and `public/daily/feed.json`
 
             Auto-created by `daily (ogp+feeds)`.
