@@ -1,0 +1,43 @@
+# DESIGN — OGP 静的生成（SVG→PNG）
+
+最終更新: 2025-09-05
+
+## 方針
+- 外部APIに依存せず、**GitHub Actions** 内で SVG→PNG を生成して **静的配置**（Pages配信）。
+- 1日1枚：`public/og/YYYY-MM-DD.png`、ショートカット：`public/og/latest.png`。
+- 言語は当面 UI 既定言語（ja）を採用。将来的に `og/ja/…`, `og/en/…` パス分割も可能。
+
+## テンプレ設計
+- SVG テンプレ：`assets/og/template.svg`
+- 変数差し込み：タイトル、ゲーム、作曲者、難易度（0..1）、日付
+- 禁則処理：句読点ぶら下げ、長音/ダッシュの折返し抑制、max 2 行まで
+- 画像要素：背景グラデ、ロゴ、難易度ゲージ（0..1を0–100%で描画）
+
+## 生成フロー
+1. `build/daily_today.json` を読み取り必要情報を抽出
+2. テキスト整形（禁則・折返し）→ SVG テンプレへ差し込み
+3. `resvg-js`（推奨）または `sharp` で PNG 化（1200×630）
+4. 出力：`public/og/YYYY-MM-DD.png`, `public/og/latest.png`（latest は毎日差し替え）
+
+## メタ連携
+- `daily/YYYY-MM-DD.html` / `daily/latest.html`
+  - `og:type=website`
+  - `og:title`（日付＋トラック名）/ `og:description`（クイズ要約）
+  - `og:image` → 上記PNG
+  - `twitter:card=summary_large_image`
+
+## キャッシュ戦略
+- `YYYY-MM-DD.png`：immutable（長期キャッシュ/ファイル名に日付）
+- `latest.png`：短期（例：3600s）＋ ETag/If-None-Match
+
+## テスト
+- ローカルで Node スクリプト単体テスト（禁則に関する短文/長文ケース）
+- Actions上での生成結果をアーティファクト化して確認
+
+## 失敗時の扱い
+- 生成失敗時はビルドを fail させず、`latest.png` のみ前日のものを残す（警告ログ）
+- 過去日の再生成は `workflow_dispatch` で任意実行
+
+## 将来拡張
+- 多言語 OGP（パス分割）／シリーズ別の配色テーマ
+- クリップ時間の可視化（将来の Collector v1 で開始秒が決まったら描画）
