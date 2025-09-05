@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: "25 18 * * *" # UTC 18:25 ≒ JST 03:25
 
+# Explicit permissions (PAT is used for PR creation; these don't gate PAT, but are good hygiene)
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,12 +44,17 @@ jobs:
       - name: Create PR with changes
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # IMPORTANT: Use a PAT so that required checks (pull_request workflows)
+          # are triggered on the created PR/commit. See docs/OPERATIONS_AUTHORING.md.
+          # The PAT must have "repo" scope and be stored as DAILY_PR_PAT.
+          token: ${{ secrets.DAILY_PR_PAT }}
           branch: bot/ogp-feeds-${{ steps.meta.outputs.date }}
           title: "chore(ogp+feeds): ${
             format('assets for {0}', steps.meta.outputs.date)
           }}"
           commit-message: "chore(ogp+feeds): add OGP/feeds for ${{ steps.meta.outputs.date }}"
+          draft: false
+          base: main
           body: |
             This PR adds OGP/feeds generated for ${{ steps.meta.outputs.date }}.
             - OGP: `public/og/${{ steps.meta.outputs.date }}.svg` (+PNG if available) and `public/og/latest.*`
