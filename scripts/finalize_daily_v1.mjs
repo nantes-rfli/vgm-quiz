@@ -65,6 +65,7 @@ function ensureFlatFields(v){
     media: media ? { provider: media.provider, id: media.id, start: media.start, duration: media.duration } : null,
     answers: answersCanon ? { canonical: answersCanon } : undefined,
     choices: v.choices && Array.isArray(v.choices) ? v.choices : v.choices, // keep as-is if already set (array or object)
+    difficulty: (typeof v.difficulty === 'number' && isFinite(v.difficulty)) ? v.difficulty : v.difficulty
   };
   // Norm pack
   out.norm = {
