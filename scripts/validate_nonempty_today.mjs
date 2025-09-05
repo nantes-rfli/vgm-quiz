@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * validate_nonempty_today.mjs
- * daily_auto.json の最新日（または --date 指定日）に items が 1 件以上あることを検証する。
+ * daily_auto.json の最新日（または --date 指定日）に **フラットな1件**が存在することを検証する。
  * 0 件の場合は exit 1。
  */
 
@@ -17,40 +17,29 @@ function parseArgs(argv) {
   return a;
 }
 
-function normalizeByDate(by_date) {
-  if (Array.isArray(by_date)) {
-    return by_date
-      .map((d) => (d && typeof d === 'object' && 'date' in d) ? d
-        : (typeof d === 'string' ? { date: d, items: [] } : null))
-      .filter(Boolean);
-  }
-  if (by_date && typeof by_date === 'object') {
-    return Object.entries(by_date).map(([date, v]) => {
-      const items = Array.isArray(v?.items) ? v.items : Array.isArray(v) ? v : [];
-      return { date, items };
-    });
-  }
-  return [];
+function hasRequiredFlat(v){
+  return v && typeof v==='object' && v.title && (v.game?.name || typeof v.game==='string') && (v.track?.composer || v.composer);
 }
 
 async function run() {
   const args = parseArgs(process.argv);
   const raw = await fs.readFile(args.in, 'utf8');
   const json = JSON.parse(raw);
-  const by = normalizeByDate(json.by_date);
-  if (!by.length) {
+  const entries = (json.by_date && typeof json.by_date==='object' && !Array.isArray(json.by_date))
+    ? Object.entries(json.by_date).map(([date,v])=>({date, v}))
+    : [];
+  if (!entries.length) {
     console.error('[validate_nonempty_today] by_date is empty');
     process.exit(1);
   }
-  const dates = by.map(d => d.date).sort();
+  const dates = entries.map(d => d.date).sort();
   const targetDate = args.date || dates[dates.length - 1];
-  const target = by.find(d => String(d.date) === String(targetDate));
-  const n = target?.items?.length || 0;
-  if (n < 1) {
-    console.error(`[validate_nonempty_today] date=${targetDate} has no items`);
+  const target = entries.find(d => String(d.date) === String(targetDate));
+  if (!hasRequiredFlat(target?.v)) {
+    console.error(`[validate_nonempty_today] date=${targetDate} missing required flat entry`);
     process.exit(1);
   }
-  console.log(`[validate_nonempty_today] date=${targetDate} items=${n} OK`);
+  console.log(`[validate_nonempty_today] date=${targetDate} flat entry OK`);
 }
 
 run().catch((e) => {
