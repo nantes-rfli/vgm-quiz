@@ -87,6 +87,15 @@ jobs:
           fi
           node scripts/generate_daily_from_candidates.js --in "$IN" --date "$DATE" $([ "${{ inputs.with_choices }}" = "true" ] && echo "--with-choices")
 
+      - name: Ensure minimum items (fallback 1)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then
+            DATE=""
+          else
+            DATE="${{ inputs.date }}"
+          fi
+          node scripts/ensure_min_items_v1_post.mjs $([ -n "$DATE" ] && echo "--date $DATE")
+
       - name: Distractors v1 (post-process)
         if: ${{ inputs.with_choices == 'true' }}
         run: |

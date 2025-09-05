@@ -63,6 +63,11 @@ jobs:
           fi
           node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched_start.jsonl --date "$DATE"
 
+      - name: Ensure minimum items (fallback 1)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then DATE=""; else DATE="${{ inputs.date }}"; fi
+          node scripts/ensure_min_items_v1_post.mjs $([ -n "$DATE" ] && echo "--date $DATE")
+
       - name: Distractors v1 (post-process)
         run: |
           if [ -z "${{ inputs.date }}" ]; then
