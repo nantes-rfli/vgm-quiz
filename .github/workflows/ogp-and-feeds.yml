@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Guard: DAILY_PR_PAT must exist
+      - name: "Guard: DAILY_PR_PAT must exist"
         run: |
           if [ -z "${{ secrets.DAILY_PR_PAT }}" ]; then
             echo "::error::DAILY_PR_PAT is missing. Add a PAT with 'repo' scope in Settings > Secrets > Actions."
