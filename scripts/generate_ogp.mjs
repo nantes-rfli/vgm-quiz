@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
  * OGP static generator (SVG required, PNG optional)
- * - Reads build/daily_today.json
+ * - Prefers build/daily_today.json; falls back to public/app/daily_auto.json (by_date)
  * - Fills assets/og/template.svg and writes public/og/YYYY-MM-DD.svg and latest.svg
  * - If @resvg/resvg-js is available, also renders PNGs.
  */
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import url from 'url';
+import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function pad(n){ return String(n).padStart(2, '0'); }
 function todayStr() {
@@ -50,18 +50,30 @@ async function maybePng(svgBuf, outPng) {
   }
 }
 
+async function readDaily() {
+  // prefer build/daily_today.json, else public/app/daily_auto.json
+  const buildPath = path.resolve(__dirname, '../build/daily_today.json');
+  if (existsSync(buildPath)) {
+    return JSON.parse(await readFile(buildPath, 'utf-8'));
+  }
+  const autoPath = path.resolve(__dirname, '../public/app/daily_auto.json');
+  if (existsSync(autoPath)) {
+    return JSON.parse(await readFile(autoPath, 'utf-8'));
+  }
+  return null;
+}
+
 async function main() {
-  const src = path.resolve(__dirname, '../build/daily_today.json');
   const tpl = path.resolve(__dirname, '../assets/og/template.svg');
   const outDir = path.resolve(__dirname, '../public/og');
   await ensureDir(outDir);
 
-  const raw = await readFile(src, 'utf-8').catch(()=>null);
-  if (!raw) {
-    console.warn(`[ogp] missing ${src} — skip`);
+  const rawObj = await readDaily();
+  if (!rawObj) {
+    console.warn('[ogp] no source JSON found (build/daily_today.json nor public/app/daily_auto.json) — skip');
     return;
   }
-  let item = JSON.parse(raw);
+  let item = rawObj;
   if (item && item.by_date && typeof item.by_date === 'object') {
     const keys = Object.keys(item.by_date);
     if (keys.length === 1) {

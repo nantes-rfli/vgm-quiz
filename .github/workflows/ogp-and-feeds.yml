@@ -16,14 +16,50 @@ jobs:
         with:
           node-version: 20
 
+      # Ensure today's slim artifact exists (v1.7 export). If missing, this generates it.
+      - name: Ensure build/daily_today.json (export slim)
+        run: |
+          if [ ! -f build/daily_today.json ]; then
+            echo "[ogp+feeds] build/daily_today.json not found; trying export_today_slim.mjs ..."
+            node scripts/export_today_slim.mjs || true
+          fi
+
       - name: Generate OGP (SVG + optional PNG)
         run: node scripts/generate_ogp.mjs
 
       - name: Generate Feeds (single-item)
         run: node scripts/generate_feeds_min.mjs
 
+      - name: Read date for PR title
+        id: meta
+        run: |
+          DATE="$(node -e "try{const fs=require('fs');const p1='build/daily_today.json', p2='public/app/daily_auto.json';let o=null;if(fs.existsSync(p1))o=JSON.parse(fs.readFileSync(p1,'utf8'));else if(fs.existsSync(p2))o=JSON.parse(fs.readFileSync(p2,'utf8'));let d=o?.date; if(!d && o?.by_date) d=Object.keys(o.by_date)[0]; process.stdout.write(d||'$(date -u +%Y-%m-%d)');}catch(e){process.stdout.write('$(date -u +%Y-%m-%d)');}")"
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+
+      - name: Create PR with changes
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bot/ogp-feeds-${{ steps.meta.outputs.date }}
+          title: "chore(ogp+feeds): ${
+            format('assets for {0}', steps.meta.outputs.date)
+          }}"
+          commit-message: "chore(ogp+feeds): add OGP/feeds for ${{ steps.meta.outputs.date }}"
+          body: |
+            This PR adds OGP/feeds generated for ${{ steps.meta.outputs.date }}.
+            - OGP: `public/og/${{ steps.meta.outputs.date }}.svg` (+PNG if available) and `public/og/latest.*`
+            - Feeds: `public/daily/feed.xml` and `public/daily/feed.json`
+            Auto-created by `daily (ogp+feeds)`.
+          add-paths: |
+            public/og/**
+            public/daily/feed.xml
+            public/daily/feed.json
+          delete-branch: true
+          labels: automation, ogp, feeds
+
       - name: Summary
         run: |
           echo "### daily (ogp+feeds)" >> $GITHUB_STEP_SUMMARY
           echo "- OGP SVG required; PNG if @resvg/resvg-js is present" >> $GITHUB_STEP_SUMMARY
           echo "- Feeds: public/daily/feed.(xml|json)" >> $GITHUB_STEP_SUMMARY
+          echo "- PR branch: bot/ogp-feeds-${{ steps.meta.outputs.date }}" >> $GITHUB_STEP_SUMMARY
