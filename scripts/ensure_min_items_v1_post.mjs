@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ensure_min_items_v1_post.mjs
- * daily_auto.json の当日（または --date 指定日）が空なら、
+ * daily_auto.json の当日（または --date 指定日）の items が 0 件なら、
  * 候補 JSONL から最良の1件を構築して最低1件に補うポストプロセス。
  *
  * 目的: 収集が薄い日でも UI/PR が空にならないようにするための最後の砦（MVP）。
@@ -44,25 +44,20 @@ function hasRequiredFields(it) {
 }
 
 function pruneInvalidDates(list, keepDate) {
-  return list.filter(d => String(d.date) === String(keepDate) || hasRequiredFields(d.entry));
+  return list.filter(d => String(d.date) === String(keepDate) || (Array.isArray(d.items) && d.items.length > 0 && hasRequiredFields(d.items[0])));
 }
 
-function getEntries(by_date) {
+function normalizeByDate(by_date) {
   if (Array.isArray(by_date)) {
     return by_date
-      .map((d) => {
-        if (d && typeof d === 'object' && 'date' in d) {
-          const entry = Array.isArray(d.items) ? d.items[0] : d;
-          return { date: d.date, entry };
-        }
-        return null;
-      })
+      .map((d) => (d && typeof d === 'object' && 'date' in d) ? d
+        : (typeof d === 'string' ? { date: d, items: [] } : null))
       .filter(Boolean);
   }
   if (by_date && typeof by_date === 'object') {
     return Object.entries(by_date).map(([date, v]) => {
-      const entry = Array.isArray(v?.items) ? v.items[0] : v;
-      return { date, entry };
+      const items = Array.isArray(v?.items) ? v.items : Array.isArray(v) ? v : [];
+      return { date, items };
     });
   }
   return [];
@@ -162,7 +157,7 @@ async function run() {
   const raw = await fs.readFile(args.daily, 'utf8');
   const json = JSON.parse(raw);
   const originalByDate = json.by_date;
-  const by = getEntries(originalByDate);
+  const by = normalizeByDate(originalByDate);
   if (!by.length) {
     console.warn('[ensure_min_items] by_date is empty; nothing to do.');
     return;
@@ -171,11 +166,11 @@ async function run() {
   const targetDate = args.date || dates[dates.length - 1];
   let target = by.find(d => String(d.date) === String(targetDate));
   if (!target) {
-    target = { date: targetDate, entry: null };
+    target = { date: targetDate, items: [] };
     by.push(target);
   }
-  if (target.entry) {
-    console.log(`[ensure_min_items] date=${targetDate} already has entry, skip.`);
+  if ((target.items?.length || 0) >= 1) {
+    console.log(`[ensure_min_items] date=${targetDate} already has items=${target.items.length}, skip.`);
   } else {
     const candPath = pickCandidatesFile(args.candidates);
     const cands = readJsonl(candPath)
@@ -186,18 +181,24 @@ async function run() {
       console.warn(`[ensure_min_items] no suitable candidates found (checked: ${args.candidates.join(', ')})`);
     } else {
       const item = buildItem(best);
-      target.entry = item;
+      target.items = [item];
       console.log(`[ensure_min_items] date=${targetDate} injected 1 item from ${candPath}`);
     }
   }
 
-  // 不正エントリを prune（今回対象日以外で空/必須欠落のものは落とす）
-  const pruned = pruneInvalidDates(by, targetDate).reduce((acc, d) => {
-    if (d.entry) acc[d.date] = d.entry;
-    return acc;
-  }, {});
-  // validator 互換のため、**フラット形**で保存: { "YYYY-MM-DD": { title, game, composer, norm, ... } }
-  json.by_date = pruned;
+  // 不正エントリを prune（今回対象日以外で items が空 or 必須欠落のものは落とす）
+  const pruned = pruneInvalidDates(by, targetDate);
+  // 書き戻し（by_date の形状は元に合わせる: 配列で保存している前提）
+  // validator 互換のため、原則 `{ "YYYY-MM-DD": { items:[...] } }` 形に整えて保存する
+  function toObjectItems(arr) {
+    const obj = {};
+    for (const d of pruned) {
+      obj[d.date] = { items: d.items || [] };
+    }
+    return obj;
+  }
+  // 既存がオブジェクトだった場合はそれに合わせる。配列だった場合もオブジェクトに昇格させる（検証安定性のため）
+  json.by_date = toObjectItems(pruned);
   await fs.writeFile(args.daily, JSON.stringify(json, null, 2), 'utf8');
 }
 

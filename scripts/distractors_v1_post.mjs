@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * distractors_v1_post.mjs
- * daily_auto.json 生成後に、当日分の choices を補完/強化する軽量ポストプロセッサ。
+ * daily_auto.json 生成後に、当日分の items[*].choices を補完/強化する軽量ポストプロセッサ。
  *
  * 入力:  --in  public/app/daily_auto.json
  *        --date YYYY-MM-DD (JST基準。未指定なら今日)
@@ -9,11 +9,12 @@
  *
  * 方針（MVP）:
  *  - 正解: item.answers.canonical を採用
- *  - 候補プール: daily_auto.by_date の answers.canonical を横断収集
+ *  - 候補プール: daily_auto.by_date[*].items の answers.canonical を横断収集
  *  - スコアリング（高い順に採用）:
  *      +2: 同作曲者（track.composer が一致）
  *      +1: 同シリーズ/同ゲーム（game.series または game.name が部分一致）
  *     +0.5: 年が近い（|year - year'| <= 2）
+ *  - 3件に満たない場合はランダム補完（重複・同値・正解は除外）
  *  - 既に choices が十分揃っている場合は変更しない（--force で再生成）
  *
  * 制約・守ること:
@@ -51,46 +52,81 @@ function norm(s) {
   return String(s || '').trim().toLowerCase();
 }
 
-function uniq(arr){ return Array.from(new Set(arr)); }
+function uniq(arr) {
+  return [...new Set(arr)];
+}
+
+function sample(arr, k, rng=Math.random) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.slice(0, k);
+}
 
 function pickDistractors(target, pool, k = 3) {
-  const canonical = target?.answers?.canonical || target?.answers;
-  if (!canonical) return [];
-  const base = [];
-  const c = norm(target?.track?.composer || target?.composer);
-  const s = norm(target?.game?.series || target?.game?.name || target?.game);
-  const y = Number(target?.game?.year);
-  for (const it of pool) {
-    const ci = norm(it?.track?.composer || it?.composer);
-    const si = norm(it?.game?.series || it?.game?.name || it?.game);
-    const yi = Number(it?.game?.year);
+  const correct = norm(target.answers?.canonical);
+  const series = norm(target.game?.series || target.game?.name);
+  const composer = norm(target.track?.composer);
+  const year = Number(target.game?.year) || null;
+
+  const scored = [];
+  for (const cand of pool) {
+    const ans = norm(cand.answers?.canonical);
+    if (!ans || ans === correct) continue;
+
     let score = 0;
-    if (ci && c && ci === c) score += 2;
-    if (si && s && si === s) score += 1;
-    if (Number.isFinite(yi) && Number.isFinite(y) && Math.abs(yi - y) <= 2) score += 0.5;
-    base.push([score, it?.answers?.canonical, it]);
+    const c_series = norm(cand.game?.series || cand.game?.name);
+    const c_composer = norm(cand.track?.composer);
+    const c_year = Number(cand.game?.year) || null;
+
+    if (composer && c_composer && composer === c_composer) score += 2;
+    if (series && c_series && (series === c_series || c_series.includes(series) || series.includes(c_series))) score += 1;
+    if (year != null && c_year != null && Math.abs(year - c_year) <= 2) score += 0.5;
+
+    scored.push({ cand, score, ans });
   }
-  base.sort((a,b)=>b[0]-a[0]);
-  const picked = base.map(e=>e[1]).filter(x=>x && x!==canonical);
+
+  // スコア降順 → 同点はランダム
+  scored.sort((a, b) => b.score - a.score || (Math.random() - 0.5));
+
+  const picked = [];
+  const seen = new Set([correct]);
+  for (const s of scored) {
+    if (picked.length >= k) break;
+    if (seen.has(s.ans)) continue;
+    seen.add(s.ans);
+    picked.push(s.cand.answers.canonical);
+  }
+
+  // 不足分はランダムに補完
+  if (picked.length < k) {
+    const remain = uniq(pool.map(c => c.answers?.canonical).filter(Boolean))
+      .filter(a => !seen.has(norm(a)));
+    picked.push(...sample(remain, k - picked.length));
+  }
+
   return uniq(picked).slice(0, k);
 }
 
-function getEntries(by_date){
-  // Normalize by_date into array of {date, entry}
-  if (Array.isArray(by_date)){
-    // Accept [{date, items:[...] }] or [{date, ...flat...}]
-    return by_date.map(d => {
-      if (d && typeof d === 'object' && 'date' in d){
-        const entry = Array.isArray(d.items) ? d.items[0] : d;
-        return { date: d.date, entry };
-      }
-      return null;
-    }).filter(Boolean);
+function normalizeByDate(by_date) {
+  // 受け取り形に幅があるため、配列[{date, items}] に正規化する
+  if (Array.isArray(by_date)) {
+    // 既に [{date, items}] 形式想定
+    return by_date
+      .map((d) => {
+        if (d && typeof d === 'object' && 'date' in d) return d;
+        if (typeof d === 'string') return { date: d, items: [] };
+        return d;
+      })
+      .filter(Boolean);
   }
-  if (by_date && typeof by_date === 'object'){
+  if (by_date && typeof by_date === 'object') {
+    // { "YYYY-MM-DD": {items:[...]}, ... } あるいは { "YYYY-MM-DD": [...] }
     return Object.entries(by_date).map(([date, v]) => {
-      const entry = Array.isArray(v?.items) ? v.items[0] : v;
-      return { date, entry };
+      const items = Array.isArray(v?.items) ? v.items : Array.isArray(v) ? v : [];
+      return { date, items };
     });
   }
   return [];
@@ -99,37 +135,43 @@ async function run() {
   const args = parseArgs(process.argv);
   const raw = await fs.readFile(args.in, 'utf8');
   const json = JSON.parse(raw);
-  const entries = getEntries(json.by_date);
+  const by = normalizeByDate(json.by_date);
 
   // プール作成（全期間から抽出）
   const pool = [];
-  for (const d of entries) {
-    const it = d.entry;
-    if (it?.answers?.canonical || it?.answers) pool.push(it);
+  for (const d of by) {
+    for (const it of d.items || []) {
+      if (it?.answers?.canonical) pool.push(it);
+    }
   }
 
-  const target = entries.find(d => String(d.date) === String(args.date));
+  const target = by.find(d => String(d.date) === String(args.date));
   if (!target) {
     console.warn(`[warn] by_date has no ${args.date}; nothing to do.`);
   } else {
-    const item = target.entry || {};
-    const correct = item?.answers?.canonical || item?.answers;
-    const ch = Array.isArray(item?.choices) ? item.choices : [];
-    const haveCorrect = correct && ch.includes(correct);
-    if (!haveCorrect || ch.length < 4) {
-      const need = Math.max(0, 4 - ch.length - (haveCorrect ? 0 : 1));
-      const picks = pickDistractors(item, pool, need + (haveCorrect ? 0 : 1));
-      const merged = haveCorrect ? ch.concat(picks).slice(0,4) : [correct, ...picks].slice(0,4);
-      item.choices = uniq(merged);
-      console.log(`[distractors] date=${args.date} updated choices -> ${JSON.stringify(item.choices)}`);
+    let touched = 0;
+    for (const item of target.items || []) {
+      const correct = item?.answers?.canonical;
+      if (!correct) continue;
+
+      const hasChoices = Array.isArray(item.choices) && item.choices.includes(correct) && item.choices.length >= 4;
+      if (hasChoices && !args.force) continue;
+
+      const ds = pickDistractors(item, pool, 3);
+      const choices = [correct, ...ds];
+      // シャッフル（安易に決め打ち順にならないよう）
+      for (let i = choices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [choices[i], choices[j]] = [choices[j], choices[i]];
+      }
+      item.choices = uniq(choices).slice(0, 4);
+      // 念のため正解が含まれているか再確認
+      if (!item.choices.includes(correct)) {
+        item.choices[0] = correct;
+      }
+      touched++;
     }
-    // write back in flat shape under by_date
-    if (json.by_date && typeof json.by_date === 'object' && !Array.isArray(json.by_date)){
-      json.by_date[String(args.date)] = item;
-    } else {
-      // convert to object
-      json.by_date = { [String(args.date)]: item };
-    }
+    console.log(`[distractors] date=${args.date} items=${target.items?.length ?? 0} updated=${touched}`);
   }
 
   const outPath = args.out || args.in;
