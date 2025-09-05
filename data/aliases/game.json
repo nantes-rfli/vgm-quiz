@@ -1,0 +1,6 @@
+{
+  "//": "Game alias map (normalized -> array of aliases). Examples only.",
+  "Chrono Trigger": ["クロノ・トリガー", "クロノトリガー"],
+  "Undertale": ["UNDERTALE"],
+  "The Legend of Zelda: Ocarina of Time": ["ゼルダの伝説 時のオカリナ"]
+}

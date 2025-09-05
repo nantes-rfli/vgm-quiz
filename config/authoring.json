@@ -1,0 +1,7 @@
+{
+  "//": "v1.8 introduces a configurable choices mode. Keep default 'auto' to try 4-choice when quality gate passes, otherwise fallback to 1-choice. Switch to 'always4' when data quality is high.",
+  "choices_mode": "auto",
+  "choices_quality_gate": {
+    "max_same_composer_distractors": 1
+  }
+}
