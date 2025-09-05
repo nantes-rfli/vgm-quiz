@@ -111,14 +111,33 @@ function hasMinimalMedia(c) {
 }
 
 function buildItem(c) {
+  // フィールドの穴埋め（validator必須フィールド）
+  const fallbackTitle = c.title || c.track?.name || c.game?.name || c.norm?.title || c.norm?.answer;
+  const fallbackGameName = (c.game && (c.game.name || c.game.series))
+    ? (c.game.name || c.game.series)
+    : (c.norm?.game || c.norm?.series || c.answers?.canonical || fallbackTitle || 'Unknown');
+  const fallbackComposer = (c.track && c.track.composer)
+    ? c.track.composer
+    : (c.norm?.composer || 'Unknown');
+  const answers = c.answers && c.answers.canonical
+    ? c.answers
+    : { canonical: fallbackGameName };
+
+  const game = c.game && (c.game.name || c.game.series)
+    ? c.game
+    : { name: fallbackGameName };
+
+  const track = c.track && c.track.composer
+    ? c.track
+    : { ...(c.track || {}), composer: fallbackComposer };
+
   const item = {
-    title: c.title || c.track?.name || c.game?.name,
-    game: c.game || null,
-    track: c.track || null,
+    title: fallbackTitle || fallbackGameName,
+    game,
+    track,
     clip: c.clip || null,
-    answers: c.answers || null,
-    sources: Array.isArray(c.sources) ? c.sources : undefined,
-    // choices と difficulty は後段で補完
+    answers,
+    sources: Array.isArray(c.sources) ? c.sources : undefined
   };
   ensureNorm(item);
   return item;
