@@ -39,6 +39,9 @@ node scripts/merge_seed_candidates.mjs \
 node scripts/score_candidates.js --in public/app/daily_candidates_merged.jsonl --out public/app/daily_candidates_scored.jsonl
 ```
 
+> 補足: `merge_seed_candidates.mjs` は seed 行に **最小限の `norm` フィールド**（composer/series/game/title/answer）を自動付与します。  
+> 既存の `harvest` 生成物と同等のインターフェースになるため、下流の `score_candidates.js` / `pipeline/difficulty.js` が安全に処理できます。
+
 ## 重複判定
 - 正規化した `provider|id|answers.canonical` をキーに一意化
 - 正規化は **小文字化・空白圧縮・ダッシュ統一・波チルダ統一** の軽量版（詳細はコード参照）

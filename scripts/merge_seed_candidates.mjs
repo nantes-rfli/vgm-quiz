@@ -51,7 +51,7 @@ function readJsonl(path) {
   return arr;
 }
 
-function norm(s) {
+function normText(s) {
   return String(s || '')
     .toLowerCase()
     .replace(/\s+/g, ' ')
@@ -64,7 +64,28 @@ function keyOf(entry) {
   const p = entry?.clip?.provider || entry?.provider;
   const id = entry?.clip?.id || entry?.id;
   const ans = entry?.answers?.canonical || entry?.title || entry?.track?.name;
-  return `${norm(p)}|${norm(id)}|${norm(ans)}`;
+  return `${normText(p)}|${normText(id)}|${normText(ans)}`;
+}
+
+function ensureNorm(entry) {
+  // 下流(score/difficulty)が参照する最小限の正規化フィールドを補う
+  entry.norm = entry.norm || {};
+  const composer = entry?.track?.composer;
+  const series = entry?.game?.series;
+  const game = entry?.game?.name;
+  const title = entry?.title || entry?.track?.name || entry?.game?.name;
+  const answer = entry?.answers?.canonical;
+
+  if (!entry.norm.composer) entry.norm.composer = normText(composer);
+  if (!entry.norm.series) entry.norm.series = normText(series || game);
+  if (!entry.norm.game) entry.norm.game = normText(game);
+  if (!entry.norm.title) entry.norm.title = normText(title);
+  if (!entry.norm.answer) entry.norm.answer = normText(answer);
+
+  // 念のため clip.provider も正規化の別名を置いておく（使われることがあるため）
+  if (!entry.norm.provider) entry.norm.provider = normText(entry?.clip?.provider || entry?.provider);
+
+  return entry;
 }
 
 function allowFilter(entry, allow) {
@@ -111,6 +132,7 @@ function run() {
   let added = 0, skipped = 0;
   for (const s of seeds) {
     if (!allowFilter(s, allow)) { skipped++; continue; }
+    ensureNorm(s);
     const k = keyOf(s);
     if (seen.has(k)) { skipped++; continue; }
     base.push(s);
