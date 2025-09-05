@@ -1,7 +1,7 @@
 name: daily (ogp+feeds)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   schedule:
     - cron: "25 18 * * *" # UTC 18:25 ≒ JST 03:25
 
@@ -22,10 +22,19 @@ jobs:
           node-version: 20
 
       - name: Guard: DAILY_PR_PAT must exist
+        env:
+          DAILY_PR_PAT: ${{ secrets.DAILY_PR_PAT }}
         run: |
-          if [ -z "${{ secrets.DAILY_PR_PAT }}" ]; then
+          if [ -z "$DAILY_PR_PAT" ]; then
             echo "::error::DAILY_PR_PAT is missing. Add a PAT with 'repo' scope in Settings > Secrets > Actions."
             exit 1
+          fi
+
+      - name: Ensure build/daily_today.json (export slim)
+        run: |
+          if [ ! -f build/daily_today.json ]; then
+            echo "[ogp+feeds] build/daily_today.json not found; trying export_today_slim.mjs ..."
+            node scripts/export_today_slim.mjs || true
           fi
 
       - name: Install PNG renderer (@resvg/resvg-js)
@@ -46,7 +55,7 @@ jobs:
         id: meta
         shell: bash
         run: |
-          DATE="$(node -e "try{const fs=require('fs');const p1='build/daily_today.json', p2='public/app/daily_auto.json';let o=null;if(fs.existsSync(p1))o=JSON.parse(fs.readFileSync(p1,'utf8'));else if(fs.existsSync(p2))o=JSON.parse(fs.readFileSync(p2,'utf8'));let d=o?.date; if(!d && o?.by_date) d=Object.keys(o.by_date)[0]; process.stdout.write(d||new Date().toISOString().slice(0,10));}catch(e){process.stdout.write(new Date().toISOString().slice(0,10));}")"
+          DATE="$(node -e "try{const fs=require('fs');const p1='build/daily_today.json', p2='public/app/daily_auto.json';let o=null;if(fs.existsSync(p1))o=JSON.parse(fs.readFileSync(p1,'utf8'));else if(fs.existsSync(p2))o=JSON.parse(fs.readFileSync(p2,'utf8'));let d=o?.date; if(!d && o?.item) d=o.date; if(!d && o?.by_date) d=Object.keys(o.by_date)[0]; process.stdout.write(d||new Date().toISOString().slice(0,10));}catch(e){process.stdout.write(new Date().toISOString().slice(0,10));}")"
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
 
       - name: Create PR with changes

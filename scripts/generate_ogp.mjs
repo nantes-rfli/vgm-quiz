@@ -54,7 +54,12 @@ async function readDaily() {
   // prefer build/daily_today.json, else public/app/daily_auto.json
   const buildPath = path.resolve(__dirname, '../build/daily_today.json');
   if (existsSync(buildPath)) {
-    return JSON.parse(await readFile(buildPath, 'utf-8'));
+    const o = JSON.parse(await readFile(buildPath, 'utf-8'));
+    // unwrap slim shape
+    if (o && o.item && typeof o.item === 'object') {
+      return { date: o.date, ...o.item };
+    }
+    return o;
   }
   const autoPath = path.resolve(__dirname, '../public/app/daily_auto.json');
   if (existsSync(autoPath)) {

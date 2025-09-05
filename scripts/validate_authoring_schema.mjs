@@ -60,6 +60,11 @@ async function main() {
       data = { date: keys[0], ...data.by_date[keys[0]] };
     }
   }
+  // Slim export shape: { date: "YYYY-MM-DD", item: {...} }
+  if (data && data.item && typeof data.item === 'object') {
+    const date = data.date;
+    data = { date, ...data.item };
+  }
 
   const errors = [];
   // Required top-level
