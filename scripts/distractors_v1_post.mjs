@@ -110,11 +110,32 @@ function pickDistractors(target, pool, k = 3) {
   return uniq(picked).slice(0, k);
 }
 
+function normalizeByDate(by_date) {
+  // 受け取り形に幅があるため、配列[{date, items}] に正規化する
+  if (Array.isArray(by_date)) {
+    // 既に [{date, items}] 形式想定
+    return by_date
+      .map((d) => {
+        if (d && typeof d === 'object' && 'date' in d) return d;
+        if (typeof d === 'string') return { date: d, items: [] };
+        return d;
+      })
+      .filter(Boolean);
+  }
+  if (by_date && typeof by_date === 'object') {
+    // { "YYYY-MM-DD": {items:[...]}, ... } あるいは { "YYYY-MM-DD": [...] }
+    return Object.entries(by_date).map(([date, v]) => {
+      const items = Array.isArray(v?.items) ? v.items : Array.isArray(v) ? v : [];
+      return { date, items };
+    });
+  }
+  return [];
+}
 async function run() {
   const args = parseArgs(process.argv);
   const raw = await fs.readFile(args.in, 'utf8');
   const json = JSON.parse(raw);
-  const by = json.by_date || [];
+  const by = normalizeByDate(json.by_date);
 
   // プール作成（全期間から抽出）
   const pool = [];
@@ -124,7 +145,7 @@ async function run() {
     }
   }
 
-  const target = by.find(d => d.date === args.date);
+  const target = by.find(d => String(d.date) === String(args.date));
   if (!target) {
     console.warn(`[warn] by_date has no ${args.date}; nothing to do.`);
   } else {
