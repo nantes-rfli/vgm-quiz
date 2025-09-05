@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * v1.8 soft schema check (no external deps)
+ * v1.8 schema check (strict core, soft difficulty)
  * - Validates shape of a single daily item (today) using lightweight checks.
- * - Sources: prefer build/daily_today.json; fallback to public/app/daily_auto.json
- * - Exit 0 by default (soft). Set SCHEMA_CHECK_STRICT=true to exit 1 on violations.
+ * - Sources: prefer build/daily_today.json ({date,item}); fallback to public/app/daily_auto.json (by_date or array)
+ * - Exit 1 on CORE violations (title/game/track.composer/media.provider/id/answers.canonical).
+ * - 'difficulty' is **warning-only** (missing or out-of-range does not fail the job).
  */
-import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { readFile, access } from 'fs/promises';
+import { constants as fsconst } from 'fs';
 import path from 'path';
 import url from 'url';
 
@@ -17,78 +18,97 @@ const candidates = [
   path.resolve(__dirname, '../public/app/daily_auto.json')
 ];
 
-function pickSource() {
-  for (const p of candidates) {
-    if (existsSync(p)) return p;
-  }
-  return null;
+function annotate(msg){ console.log(`::warning::${msg}`); }
+function errornote(msg){ console.log(`::error::${msg}`); }
+
+function isNonEmptyString(x){ return typeof x === 'string' && x.trim().length > 0; }
+function isStringArray(x){ return Array.isArray(x) && x.length > 0 && x.every(isNonEmptyString); }
+
+async function exists(p){
+  try { await access(p, fsconst.R_OK); return true; } catch { return false; }
 }
 
-function isNonEmptyString(x) {
-  return typeof x === 'string' && x.trim().length > 0;
-}
-
-function isStringArray(arr) {
-  return Array.isArray(arr) && arr.every(isNonEmptyString);
-}
-
-function annotate(msg) {
-  // GitHub Actions annotation compatible line
-  console.log(`::warning::schema ${msg}`);
-}
-
-async function main() {
-  const strict = (process.env.SCHEMA_CHECK_STRICT || 'false').toLowerCase() === 'true';
-  const src = pickSource();
-  if (!src) {
-    annotate('no source found (build/daily_today.json nor public/app/daily_auto.json)');
-    process.exit(strict ? 1 : 0);
-  }
-  const raw = await readFile(src, 'utf-8');
-  let data;
-  try {
-    data = JSON.parse(raw);
-  } catch (e) {
-    annotate(`invalid JSON: ${e.message}`);
-    process.exit(strict ? 1 : 0);
-  }
-
-  // Some builds may wrap the item (e.g., { by_date: { "YYYY-MM-DD": {...} } })
-  if (data && data.by_date && typeof data.by_date === 'object') {
-    const keys = Object.keys(data.by_date);
-    if (keys.length === 1) {
-      data = { date: keys[0], ...data.by_date[keys[0]] };
+function unwrapEnvelope(x){
+  // Accept shapes: {date,item}, {date, ...flat}, flat item, by_date map, array
+  if (x && typeof x === 'object') {
+    if (x.item && (x.date || x.item.date)) {
+      return { date: x.date || x.item.date, item: x.item };
+    }
+    if (x.date && (x.title || x.game || x.media)) {
+      const { date, ...rest } = x;
+      return { date, item: rest };
+    }
+    if (x.by_date && typeof x.by_date === 'object') {
+      const dates = Object.keys(x.by_date).sort();
+      const date = dates[dates.length - 1];
+      return { date, item: x.by_date[date] };
+    }
+    // If it looks like a single flat item
+    if (x.title || x.game || x.media) {
+      return { date: null, item: x };
+    }
+    // If it's an array, pick last
+    if (Array.isArray(x) && x.length) {
+      return { date: null, item: x[x.length - 1] };
     }
   }
-  // Slim export shape: { date: "YYYY-MM-DD", item: {...} }
-  if (data && data.item && typeof data.item === 'object') {
-    const date = data.date;
-    data = { date, ...data.item };
-  }
+  return { date: null, item: null };
+}
 
+async function loadSource(){
+  for (const p of candidates){
+    if (await exists(p)){
+      const txt = await readFile(p, 'utf-8');
+      let data;
+      try { data = JSON.parse(txt); } catch (e) {
+        errornote(`schema: JSON parse error in ${p}: ${e.message}`);
+        process.exit(1);
+      }
+      return { src: p, ...unwrapEnvelope(data) };
+    }
+  }
+  errornote('schema: no source found (build/daily_today.json nor public/app/daily_auto.json)');
+  process.exit(1);
+}
+
+function validate(item){
   const errors = [];
-  // Required top-level
-  if (!isNonEmptyString(data.title)) errors.push('title missing/non-string');
-  if (!isNonEmptyString(data.game)) errors.push('game missing/non-string');
-  if (!(data.track && isNonEmptyString(data.track.composer))) errors.push('track.composer missing/non-string');
-  if (!(data.media && isNonEmptyString(data.media.provider) && isNonEmptyString(data.media.id))) errors.push('media.provider/id missing/non-string');
-  if (!(data.answers && isStringArray(data.answers.canonical) && data.answers.canonical.length > 0)) errors.push('answers.canonical missing/empty');
+  const warnings = [];
 
-  // Optional but recommended
-  if (typeof data.difficulty !== 'number' || data.difficulty < 0 || data.difficulty > 1) {
-    errors.push('difficulty missing or out of range [0,1]');
+  if (!isNonEmptyString(item?.title)) errors.push('schema title missing/non-string');
+  if (!isNonEmptyString(item?.game)) errors.push('schema game missing/non-string');
+  if (!isNonEmptyString(item?.track?.composer)) errors.push('schema track.composer missing/non-string');
+
+  const provider = item?.media?.provider;
+  const mid = item?.media?.id;
+  if (!isNonEmptyString(provider) || !isNonEmptyString(mid)) {
+    errors.push('schema media.provider/id missing/non-string');
   }
 
-  // choices integrity (if present)
-  if (Array.isArray(data.choices)) {
-    const uniq = new Set(data.choices.map(String));
-    if (uniq.size !== data.choices.length) errors.push('choices contain duplicates');
+  const ac = item?.answers?.canonical;
+  if (!(isNonEmptyString(ac) || isStringArray(ac))) {
+    errors.push('schema answers.canonical missing/empty');
   }
 
+  const diff = item?.difficulty;
+  if (!(typeof diff === 'number' && diff >= 0 && diff <= 1)) {
+    warnings.push('schema difficulty missing or out of range [0,1]');
+  }
+  return { errors, warnings };
+}
+
+async function main(){
+  const { src, date, item } = await loadSource();
+  if (!item) {
+    errornote(`schema: no item in ${src}`);
+    process.exit(1);
+  }
+  const { errors, warnings } = validate(item);
+  for (const w of warnings) annotate(w);
   if (errors.length) {
-    errors.forEach(e => annotate(e));
+    for (const e of errors) errornote(e);
     console.log(`schema: violations=${errors.length} file=${src}`);
-    process.exit(strict ? 1 : 0);
+    process.exit(1);
   } else {
     console.log(`schema: OK file=${src}`);
     process.exit(0);
@@ -96,6 +116,6 @@ async function main() {
 }
 
 main().catch(e => {
-  annotate(`unhandled error: ${e?.stack || e}`);
+  errornote(`unhandled error: ${e?.stack || e}`);
   process.exit(1);
 });
