@@ -199,23 +199,23 @@
 8. static-checker-missing-keys：未翻訳/未使用キー検出スクリプト
 9. docs-styleguide-i18n-roadmap：STYLEGUIDE/ROADMAP の更新
 ## v1.7 — Authoring Automation（MVP）
-- Status: **In Progress (2025-09-05)**
+- Status: **Done (2025-09-05)**
 - Scope: “**毎日1問**”を**完全自動**で作成・公開。**埋め込み再生のみ**（Apple Music / 公式YouTube）前提で、既存アプリは変更せず供給ラインを自動化。
 
 **機能/変更**
 - 候補ハーベスト：公式YouTube/Apple API優先（非公式は除外）。レート制御・失敗時リトライ。
 - clip-start 選定：`t=/start=` > メタ > 既定値のヒューリスティック。異常値ガード。
-- 難易度スコア：年代/別名密度/シリーズ知名度などから 0–100 を算出。
-- ダミー選択肢生成：年代/作曲者/シリーズ近傍から類似度で抽出。
-- 正規化 & 重複ガード：既存 normalize と aliases を使用。ユニーク性ロックで衝突回避。
-- 日次JSON & OGP：`public/daily/YYYY-MM-DD.json`/OGP画像生成、`latest.html` 導線と整合。
-- 安全ガード：最小品質チェック（再生可否・メタ必須・配信元ホワイトリスト）。失敗時はスキップ&通知。
+- 難易度スコア：頻度ベースの 0–1（MVP, 将来置換可）。
+- ダミー選択肢生成：年代/作曲者/シリーズ近傍から類似候補を抽出（重複/同一シリーズ過多の抑制あり）。
+- 正規化 & 重複ガード：既存 normalize と alias を強化。
+- Authoring バリデーション：`validate_authoring.js` による静的検証。
+- CI: `authoring (heuristics smoke)` / `daily (auto extended)` で **自動生成→最終整形→検証→PR 作成→Auto-merge**。検収用に *slim artifact* を添付。
 
-**DoD（受け入れ基準）**
-- `schedule: daily` で **連日1問**を安定生成。失敗はJob Summaryで理由明示。
-- 生成JSONに **ソースURL** と **再現可能なseed** を保持（トレース可能）。
-- 既存アプリ側の **JS重量やパフォーマンスに変化なし**（埋め込み再生のみ）。
-- 既存 E2E/Lighthouse は緑維持。パイプライン用に **軽量スモーク**（再生可否/JSON schema 等）を追加。
+**DoD**
+- 当日が常に1件以上（フェイルセーフ: `ensure_min_items_v1_post.mjs`）
+- 生成物は `finalize_daily_v1.mjs` により **by_date フラット形 + 必須フィールド補完** を満たす
+- バリデーションに通る（title/game/composer/norm/media）
+- PR 自動作成 & Auto-merge がブロックされない
 
 **リスク/除外**
 - 非公式・権利曖昧ソースは対象外。

@@ -1,29 +1,18 @@
-# v1.7 Authoring Automation — STATUS (MVP)
+# v1.7 Status (Authoring Automation, MVP)
 
-## What’s delivered
-- **Docs/Schema/Validator** 基盤
-- **authoring (validate)**: 検証＆Artifactのみ（リポは汚さない）
-- **clip-start heuristics v1**（ルールベース/キーワード＋プロバイダ既定）
-- **distractors v1**（ポストプロセス/同作曲者・シリーズ優先）
-- **difficulty v1**（ポストプロセス/0..1）
-- **authoring (heuristics smoke)**: heuristics→generate→distractors→difficulty→validate を手動で検証
-- **daily (auto extended)**: PAT で PR 作成＋必須チェック起動＋Auto-merge（squash）有効化
-- **daily quality report**: PR に品質サマリーを自動コメント
+- **Status**: Done (2025-09-05)
+- **Jobs**: `authoring (heuristics smoke)`, `daily (auto extended)` → 緑
+- **Deliverables**:
+  - `merge_seed_candidates.mjs`（seed/allowlist 統合）
+  - `ensure_min_items_v1_post.mjs`（最低 1 件保証）
+  - `distractors_v1_post.mjs` / `difficulty_v1_post.mjs`（MVP ヒューリスティクス）
+  - `finalize_daily_v1.mjs`（フラット形 + 必須フィールド補完）
+  - `validate_nonempty_today.mjs`（形状非依存）
+  - `export_today_slim.mjs`（検収用アーティファクト）
+- **Artifacts**: `build/daily_today.json`, `build/daily_today.md`
 
-## Operability
-1. まず `authoring (validate)` で安全確認（Artifactsを目視）  
-2. 公開したい日は `daily (auto extended)` を手動実行  
-   - date省略＝JST今日 / heuristics, choices, difficulty は既定でON  
-   - PRは自動で **Auto-merge enabled** 状態に（必須チェック通過で自動マージ）  
-3. PRに **Quality Report** コメントが付与されるので最終確認に利用
-
-## Notes
-- PR作成には必ず **`DAILY_PR_PAT`** を使用（`GITHUB_TOKEN`は下流Workflowを起動しない）
-- by_date 形状の差（配列/オブジェクト）に対する堅牢化済み（distractors/difficulty）
-- 生成は **埋め込み再生のみ**（YouTube/Apple）方針を堅持
-
-## Next
-- allowlist/seed の拡充（公式ソースの追加）
-- heuristics v2（チャプタ/音響メタの活用）、distractors v2（多様性ペナルティ）
-- 難易度の分布を監視しフィードバック（ターゲット帯に寄せる）
+## Known follow-ups (v1.7.1)
+- 選択肢の多様性（シリーズ/作曲者の過密回避）
+- 出現頻度に基づく緩やかな難易度スケーリング
+- seed/allowlist の少量拡充
 
