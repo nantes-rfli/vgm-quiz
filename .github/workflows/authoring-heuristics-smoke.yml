@@ -86,6 +86,11 @@ jobs:
           fi
           node scripts/difficulty_v1_post.mjs --in public/app/daily_auto.json --date "$DATE"
 
+      - name: Finalize daily (flat shape + required fields)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then DATE=""; else DATE="${{ inputs.date }}"; fi
+          node scripts/finalize_daily_v1.mjs --in public/app/daily_auto.json $([ -n "$DATE" ] && echo "--date $DATE")
+
       - name: Validate non-empty (latest or date)
         run: |
           if [ -z "${{ inputs.date }}" ]; then DATE=""; else DATE="${{ inputs.date }}"; fi
