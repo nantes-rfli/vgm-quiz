@@ -73,6 +73,39 @@
         "composer": "光田康典"
       },
       "difficulty": 4
+    },
+    "2025-09-05": {
+      "title": "序曲",
+      "game": "ドラゴンクエスト",
+      "composer": "すぎやまこういち",
+      "platform": null,
+      "year": 1986,
+      "media": null,
+      "source": "dataset",
+      "norm": {
+        "title": "序曲",
+        "game": "ドラゴンクエスト",
+        "composer": "すぎやまこういち"
+      },
+      "difficulty": 4,
+      "clip": {
+        "duration": 15,
+        "start": 0
+      },
+      "choices": {
+        "composer": [
+          "Toby Fox",
+          "光田康典",
+          "すぎやまこういち",
+          "近藤浩治"
+        ],
+        "game": [
+          "ゼルダの伝説",
+          "ドラゴンクエスト",
+          "クロノ・トリガー",
+          "UNDERTALE"
+        ]
+      }
     }
   }
 }
