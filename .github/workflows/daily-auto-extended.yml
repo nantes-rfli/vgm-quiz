@@ -104,6 +104,7 @@ jobs:
         run: node scripts/validate_authoring.js
 
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           # Use PAT to ensure downstream PR workflows (required checks) are triggered
@@ -127,6 +128,16 @@ jobs:
           labels: |
             automated
             daily-auto
+
+      # Enable GitHub's native auto-merge on the created PR so it merges
+      # automatically once all required checks/reviews are satisfied.
+      - name: Enable auto-merge (squash)
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.DAILY_PR_PAT }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
