@@ -1,0 +1,29 @@
+name: daily (ogp+feeds)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "25 18 * * *" # UTC 18:25 ≒ JST 03:25
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate OGP (SVG + optional PNG)
+        run: node scripts/generate_ogp.mjs
+
+      - name: Generate Feeds (single-item)
+        run: node scripts/generate_feeds_min.mjs
+
+      - name: Summary
+        run: |
+          echo "### daily (ogp+feeds)" >> $GITHUB_STEP_SUMMARY
+          echo "- OGP SVG required; PNG if @resvg/resvg-js is present" >> $GITHUB_STEP_SUMMARY
+          echo "- Feeds: public/daily/feed.(xml|json)" >> $GITHUB_STEP_SUMMARY
