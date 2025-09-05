@@ -56,6 +56,15 @@ jobs:
           fi
           node scripts/generate_daily_from_candidates.js --in public/app/daily_candidates_scored_enriched_start.jsonl --date "$DATE"
 
+      - name: Distractors v1 (post-process)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then
+            DATE=$(TZ=Asia/Tokyo date +%F)
+          else
+            DATE="${{ inputs.date }}"
+          fi
+          node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json --date "$DATE"
+
       - name: Validate authoring
         run: node scripts/validate_authoring.js
 
