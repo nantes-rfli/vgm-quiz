@@ -7,9 +7,9 @@
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import url from 'url';
+import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function siteBase() {
   // Best effort. Adjust if repository slug changes.
@@ -22,16 +22,28 @@ function todayStr() {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 
+async function readDaily() {
+  const buildPath = path.resolve(__dirname, '../build/daily_today.json');
+  if (existsSync(buildPath)) {
+    return JSON.parse(await readFile(buildPath, 'utf-8'));
+  }
+  const autoPath = path.resolve(__dirname, '../public/app/daily_auto.json');
+  if (existsSync(autoPath)) {
+    return JSON.parse(await readFile(autoPath, 'utf-8'));
+  }
+  return null;
+}
+
 async function main() {
-  const src = path.resolve(__dirname, '../build/daily_today.json');
   const outDir = path.resolve(__dirname, '../public/daily');
-  if (!existsSync(src)) {
-    console.warn(`[feeds] missing ${src} — skip`);
+  const rawObj = await readDaily();
+  if (!rawObj) {
+    console.warn('[feeds] no source JSON found (build/daily_today.json nor public/app/daily_auto.json) — skip');
     return;
   }
   await mkdir(outDir, { recursive: true });
 
-  let item = JSON.parse(await readFile(src, 'utf-8'));
+  let item = rawObj;
   if (item && item.by_date && typeof item.by_date === 'object') {
     const keys = Object.keys(item.by_date);
     if (keys.length === 1) {
