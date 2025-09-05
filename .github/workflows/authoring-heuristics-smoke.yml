@@ -65,6 +65,15 @@ jobs:
           fi
           node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json --date "$DATE"
 
+      - name: Difficulty v1 (post-process)
+        run: |
+          if [ -z "${{ inputs.date }}" ]; then
+            DATE=$(TZ=Asia/Tokyo date +%F)
+          else
+            DATE="${{ inputs.date }}"
+          fi
+          node scripts/difficulty_v1_post.mjs --in public/app/daily_auto.json --date "$DATE"
+
       - name: Validate authoring
         run: node scripts/validate_authoring.js
 
