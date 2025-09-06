@@ -13,6 +13,7 @@
 
 import fs from 'node:fs/promises';
 import fss from 'node:fs';
+import { normalizeAll } from './normalize_core.mjs';
 
 function parseArgs(argv){
   const a = { in: 'public/app/daily_auto.json', date: null };
@@ -25,10 +26,10 @@ function parseArgs(argv){
 }
 
 function normText(s){
-  return String(s||'').toLowerCase().trim()
-    .replace(/\s+/g,' ')
-    .replace(/[‐‑‒–—―]/g,'-')
-    .replace(/[〜～]/g,'~');
+  // Unify via normalize_core.mjs (dashes/CJK spaces/Roman numerals/長音 around N)
+  // Preserve existing lowercasing + whitespace collapse for stable keys
+  const base = String(s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  return normalizeAll(base);
 }
 
 function toEntries(by_date){
