@@ -10,6 +10,7 @@
 
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
+import { normalizeAll } from './normalize_core.mjs';
 
 function parseArgs(argv) {
   const a = {
@@ -81,13 +82,11 @@ function readJsonl(path) {
   return out;
 }
 
-function normText(s) {
-  return String(s || '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .replace(/[‐‑‒–—―]/g, '-')    // dash variants → hyphen
-    .replace(/[〜～]/g, '~')
-    .trim();
+function normText(s){
+  // Unify via normalize_core.mjs (dashes/CJK spaces/Roman numerals/長音 around N)
+  // Preserve existing lowercasing + whitespace collapse for stable keys
+  const base = String(s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  return normalizeAll(base);
 }
 
 function ensureNorm(entry) {
@@ -183,6 +182,22 @@ async function run() {
       const item = buildItem(best);
       target.items = [item];
       console.log(`[ensure_min_items] date=${targetDate} injected 1 item from ${candPath}`);
+      try {
+        const logDir = 'build/logs';
+        await fs.mkdir(logDir, { recursive: true });
+        const logPath = `${logDir}/backfill_${targetDate.replace(/-/g,'')}.txt`;
+        const line = [
+          new Date().toISOString(),
+          `date=${targetDate}`,
+          `source=${candPath}`,
+          `title=${item?.title || item?.track?.name || item?.game?.name || 'Unknown'}`,
+          `game=${item?.game?.name || item?.game || 'Unknown'}`,
+          `composer=${item?.track?.composer || 'Unknown'}`
+        ].join(' | ') + '\n';
+        await fs.appendFile(logPath, line, 'utf8');
+      } catch (e) {
+        console.warn('[ensure_min_items] failed to write backfill log:', e?.message || e);
+      }
     }
   }
 

@@ -99,3 +99,9 @@ node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json
 node scripts/export_today_slim.mjs --in public/app/daily_auto.json
 ```
 
+## Stub 運用の卒業（v1.8）
+- 原則として **stub に依存しません**。出題がゼロの日は `ensure_min_items_v1_post.mjs` により最低 1 件を補います。
+- `scripts/export_today_slim.mjs` は **厳格モード**（有効データがない場合は非ゼロ終了）を維持します。
+- 日次の入力（候補）は `sources/seed_candidates.jsonl` と `sources/allowlist.json` を継続拡充してください。
+- トラブル時は `build/logs/backfill_YYYYMMDD.txt` を確認（本チャットで追加されたバックフィルログ）。
+
