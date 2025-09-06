@@ -1,19 +1,11 @@
 # Issues snapshot
 
-Exported at: 2025-09-05T15:10:01.123Z
+Exported at: 2025-09-06T15:07:36.122Z
 
 ## v1.5
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 431 | [Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）](https://github.com/nantes-rfli/vgm-quiz/issues/431) | closed | roadmap:v1.5, type:docs |  | 2025-09-04T06:32:56Z |
-| 430 | [Tests: UI/Responsive最小スモーク追加（JS不増を担保）](https://github.com/nantes-rfli/vgm-quiz/issues/430) | closed | roadmap:v1.5, responsive, type:test |  | 2025-09-04T06:32:56Z |
-| 429 | [UI: ライトテーマのコントラスト微調整](https://github.com/nantes-rfli/vgm-quiz/issues/429) | closed | roadmap:v1.5, area:ui, a11y |  | 2025-09-04T06:32:55Z |
-| 428 | [UI: 微小トランジション（opacity/transformのみ）](https://github.com/nantes-rfli/vgm-quiz/issues/428) | closed | roadmap:v1.5, area:ui, perf |  | 2025-09-04T06:32:55Z |
-| 427 | [UI: Historyテーブルのストライプ/ホバー](https://github.com/nantes-rfli/vgm-quiz/issues/427) | closed | roadmap:v1.5, area:ui |  | 2025-09-04T06:32:54Z |
-| 426 | [UI: #choices グリッド2→3→4列のレスポンシブ](https://github.com/nantes-rfli/vgm-quiz/issues/426) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-04T06:32:53Z |
-| 425 | [UI: モバイルで44pxタッチターゲットを担保](https://github.com/nantes-rfli/vgm-quiz/issues/425) | closed | roadmap:v1.5, area:ui, a11y |  | 2025-09-04T06:32:53Z |
-| 424 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/424) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-04T06:32:52Z |
 | 412 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/412) | open | roadmap:v1.5, area:ui, responsive |  | 2025-09-04T02:00:59Z |
 | 398 | [Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）](https://github.com/nantes-rfli/vgm-quiz/issues/398) | open | roadmap:v1.5, type:docs |  | 2025-09-04T00:40:55Z |
 | 397 | [Tests: UI/Responsive最小スモーク追加（JS不増を担保）](https://github.com/nantes-rfli/vgm-quiz/issues/397) | open | roadmap:v1.5, responsive, type:test |  | 2025-09-04T00:40:54Z |
