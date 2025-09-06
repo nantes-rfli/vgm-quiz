@@ -23,27 +23,17 @@ jobs:
           # Ensure build dir exists
           mkdir -p build
           # Run the same sequence as daily pipeline (safe to run; no commit)
-          if [ -f scripts/finalize_daily_v1.mjs ]; then
-            node scripts/finalize_daily_v1.mjs || true
+          echo "[authoring] using input: public/app/daily_auto.json"
+          node scripts/finalize_daily_v1.mjs --in public/app/daily_auto.json || true
+          node scripts/ensure_min_items_v1_post.mjs --in public/app/daily_auto.json || true
+          node scripts/validate_nonempty_today.mjs --in public/app/daily_auto.json || true
+          node scripts/difficulty_v1_post.mjs --in public/app/daily_auto.json || true
+          node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json || true
+          node scripts/export_today_slim.mjs --in public/app/daily_auto.json || true
+          if [ ! -s build/daily_today.json ]; then
+            echo "::error:: build/daily_today.json was not created or is empty"; exit 1;
           fi
-          if [ -f scripts/ensure_min_items_v1_post.mjs ]; then
-            node scripts/ensure_min_items_v1_post.mjs || true
-          fi
-          if [ -f scripts/distractors_v1_post.mjs ]; then
-            node scripts/distractors_v1_post.mjs || true
-          fi
-          if [ -f scripts/difficulty_v1_post.mjs ]; then
-            node scripts/difficulty_v1_post.mjs || true
-          fi
-          if [ -f scripts/validate_nonempty_today.mjs ]; then
-            node scripts/validate_nonempty_today.mjs || true
-          fi
-          if [ -f scripts/export_today_slim.mjs ]; then
-            node scripts/export_today_slim.mjs || true
-          fi
-          if [ ! -f build/daily_today.json ]; then
-            echo "::warning::build/daily_today.json not found; validator will fallback to public/app/daily_auto.json"
-          fi
+          echo "[authoring] OK: build/daily_today.json and .md are ready"
 
       - name: Schema validation (strict)
         env:
