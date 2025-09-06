@@ -67,3 +67,35 @@ PR作成に **GITHUB_TOKEN** を使っていることが原因です。**必ず 
 - Actions の `authoring (schema check)` を実行し、`schema: OK file=... date=YYYY-MM-DD` を確認。
 - 必須欠落（title/game/composer/media.provider/id/answers.canonical）がある場合は `::error::` が出て **失敗**します。
 
+### Empty-day handling
+If `by_date[<today>]` is empty (e.g. `{ items: [] }`) and no earlier non-empty date exists, you can temporarily allow CI to pass:
+
+- Set `SCHEMA_CHECK_ALLOW_EMPTY=true` (emits a warning, but the job succeeds)
+- After wiring the authoring pipeline to produce `build/daily_today.json`, remove this env to restore strictness.
+
+### Stub-on-empty (exporter)
+When you need the exporter to succeed even if no valid item is found, enable a minimal stub:
+
+- Set `EXPORT_SLIM_STUB_ON_EMPTY=true` (emits a warning and writes a stub item)
+- The stub contains minimal schema-compliant fields: 
+  - `title:"(stub) pending fill"`
+  - `game:"(stub)"`
+  - `composer:"(stub)"`
+  - `media:{provider:"mock", id:"stub"}`
+  - `answers:{canonical:"(stub)"}`
+  - `difficulty:0`
+
+> Remove this env once real data is available to keep the pipeline strict.
+
+### Authoring pipeline input
+Authoring post scripts **must** receive `--in public/app/daily_auto.json` so they can form today's artifact:
+
+```bash
+node scripts/finalize_daily_v1.mjs --in public/app/daily_auto.json
+node scripts/ensure_min_items_v1_post.mjs --in public/app/daily_auto.json
+node scripts/validate_nonempty_today.mjs --in public/app/daily_auto.json
+node scripts/difficulty_v1_post.mjs --in public/app/daily_auto.json
+node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json
+node scripts/export_today_slim.mjs --in public/app/daily_auto.json
+```
+
