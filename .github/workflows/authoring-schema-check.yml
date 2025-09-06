@@ -46,6 +46,8 @@ jobs:
           fi
 
       - name: Schema validation (strict)
+        env:
+          SCHEMA_CHECK_DEBUG: "true"
         run: |
           node --version
           SCHEMA_CHECK_STRICT=true node scripts/validate_authoring_schema.mjs
