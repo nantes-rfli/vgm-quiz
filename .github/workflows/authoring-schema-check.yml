@@ -29,11 +29,15 @@ jobs:
           node scripts/validate_nonempty_today.mjs --in public/app/daily_auto.json || true
           node scripts/difficulty_v1_post.mjs --in public/app/daily_auto.json || true
           node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json || true
-          node scripts/export_today_slim.mjs --in public/app/daily_auto.json || true
-          if [ ! -s build/daily_today.json ]; then
-            echo "::error:: build/daily_today.json was not created or is empty"; exit 1;
-          fi
+          # Export (strict): will exit non-zero if it cannot produce a valid item
+          node scripts/export_today_slim.mjs --in public/app/daily_auto.json
+          # Assert artifact exists AND has a non-empty item with minimal fields
+          node -e "const fs=require('fs'); const p='build/daily_today.json'; const j=JSON.parse(fs.readFileSync(p,'utf-8')); if(!j.item||!j.item.title||!j.item.game||!(j.item.media&&j.item.media.provider&&j.item.media.id)&&!(j.item.answers&&j.item.answers.canonical)){ console.error('::error:: build/daily_today.json.item is invalid'); process.exit(1); }"
           echo "[authoring] OK: build/daily_today.json and .md are ready"
+
+        env:
+          # Optional: allow exporter to scan back up to 7 days for a valid item
+          EXPORT_SLIM_SCAN_DAYS: "7"
 
       - name: Upload authoring artifacts
         uses: actions/upload-artifact@v4
