@@ -46,14 +46,24 @@ function unwrapDaily(obj){
 
 function isIsoDateKey(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }
 
+function hasAny(obj, keys){
+  if (!obj || typeof obj !== 'object') return false;
+  return keys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
+}
+function pick(obj, keys){
+  for (const k of keys) {
+    if (obj && typeof obj === 'object' && typeof obj[k] === 'string' && obj[k].trim()) return obj[k];
+  }
+  return null;
+}
 function looksLikeItem(it){
   if (!it || typeof it !== 'object') return false;
-  const keys = Object.keys(it);
-  // Require at least one of the primary identity keys
-  const idLike = keys.includes('title') || keys.includes('game');
-  // And at least one of answer/media indicators
-  const hasMediaOrAns = keys.includes('media') || keys.includes('answers') || keys.includes('track') || keys.includes('composer');
-  return idLike && hasMediaOrAns;
+  const titleLike = hasAny(it, ['title','trackTitle','song','name']);
+  const gameLike  = hasAny(it, ['game','series','franchise','work','gameTitle']);
+  const hasMedia  = hasAny(it, ['media','youtubeId','videoId','yt','yid','url']);
+  const hasAns    = hasAny(it, ['answers','answer','canonical','canonical_answer']);
+  const hasTrack  = hasAny(it, ['track','composer','composerName']);
+  return (titleLike || gameLike) && (hasMedia || hasAns || hasTrack);
 }
 
 function deepFindItem(node, depth=0){
@@ -70,7 +80,7 @@ function deepFindItem(node, depth=0){
       }
     }
     // Try common nesting keys e.g., norm/normalized/data/record/value/payload/entry
-    for (const k of ['norm','normalized','data','record','value','payload','entry','content']) {
+    for (const k of ['norm','normalized','data','record','value','payload','entry','content','node','attrs']) {
       if (k in node) {
         const found = deepFindItem(node[k], depth+1);
         if (found) return found;
@@ -90,8 +100,57 @@ function deepFindItem(node, depth=0){
   return null;
 }
 
+function coerceToItemShape(raw){
+  if (!raw || typeof raw !== 'object') return null;
+  const title = pick(raw, ['title','trackTitle','song','name']);
+  const game  = pick(raw, ['game','gameTitle','series','franchise','work']);
+  const composer =
+    (Array.isArray(raw?.track?.composer) && raw.track.composer.join(', ')) ||
+    pick(raw, ['composer','composerName']);
+  // media
+  let media = null;
+  if (raw.media && typeof raw.media === 'object') {
+    if (typeof raw.media.provider === 'string' && typeof raw.media.id === 'string') {
+      media = { provider: raw.media.provider, id: raw.media.id };
+    }
+  }
+  if (!media) {
+    const yid = pick(raw, ['youtubeId','videoId','yt','yid']);
+    if (yid) media = { provider: 'youtube', id: yid };
+  }
+  if (!media) {
+    const url = pick(raw, ['url']);
+    if (url && /youtu\.be\//.test(url)) {
+      const m = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/);
+      if (m) media = { provider: 'youtube', id: m[1] };
+    } else if (url && /youtube\.com\/.+v=/.test(url)) {
+      const m = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+      if (m) media = { provider: 'youtube', id: m[1] };
+    }
+  }
+  // answers
+  let answers = null;
+  if (raw.answers && typeof raw.answers === 'object' && typeof raw.answers.canonical === 'string') {
+    answers = { canonical: raw.answers.canonical };
+  } else {
+    const can = pick(raw, ['canonical','canonical_answer','answer']);
+    if (can) answers = { canonical: can };
+  }
+  const difficulty = typeof raw.difficulty === 'number' ? raw.difficulty : undefined;
+  const out = { title, game, composer, media, answers };
+  if (typeof difficulty !== 'undefined') out.difficulty = difficulty;
+  // decide validity threshold: require title & game, and either media(provider+id) or answers.canonical
+  const valid =
+    typeof out.title === 'string' && out.title &&
+    typeof out.game === 'string' && out.game &&
+    ((out.media && typeof out.media.provider === 'string' && typeof out.media.id === 'string') ||
+     (out.answers && typeof out.answers.canonical === 'string' && out.answers.canonical));
+  return valid ? out : null;
+}
+
 function coerceSingleItem(candidate){
-  return deepFindItem(candidate, 0);
+  const raw = deepFindItem(candidate, 0) || candidate;
+  return coerceToItemShape(raw);
 }
 
 function latestFromDailyAuto(obj){
@@ -110,7 +169,9 @@ function latestFromDailyAuto(obj){
   }
   let candidate = obj.by_date[date];
   const item = coerceSingleItem(candidate);
-  return { date, item, _debug: { allKeys, dateKeys, chosenHas: candidate ? Object.keys(candidate) : [] } };
+  const chosenHas = candidate && typeof candidate === 'object' ? Object.keys(candidate) : [];
+  const candidateItems = candidate && typeof candidate === 'object' && Array.isArray(candidate.items) ? candidate.items : undefined;
+  return { date, item, _debug: { allKeys, dateKeys, chosenHas, candidateItems } };
 }
 
 function isNonEmptyString(v){ return typeof v === 'string' && v.trim().length > 0; }
@@ -176,8 +237,9 @@ async function main(){
 
   if (debug) {
     const keys = item && typeof item === 'object' ? Object.keys(item) : [];
-    const chosenType = typeof (dbg?.chosenType);
-    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(dbg?.chosenHas||[])} chosen_type=${typeof dbg?.chosenHas === 'undefined' ? 'n/a' : (Array.isArray(dbg?.chosenHas) ? 'object' : 'object')}`);
+    const chosenHas = Array.isArray(dbg?.chosenHas) ? dbg.chosenHas : [];
+    const itemsLen = (chosenHas.includes('items') && Array.isArray((dbg?.candidateItems))) ? (dbg.candidateItems.length) : undefined;
+    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(chosenHas)} items_len=${itemsLen}`);
   }
 
   const { errors, warnings } = validate(date, item);
