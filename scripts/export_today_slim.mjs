@@ -122,6 +122,8 @@ async function main(){
     pickedItem = {
       title: "(stub) pending fill",
       game: "(stub)",
+      composer: "(stub)",
+      media: { provider: "mock", id: "stub" },
       answers: { canonical: "(stub)" },
       difficulty: 0
     };
