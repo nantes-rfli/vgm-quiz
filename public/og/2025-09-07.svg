@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#bg)"/>
+  <text x="60" y="140" fill="#94a3b8" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="28">vgm-quiz • <tspan id="date">YYYY-MM-DD</tspan></text>
+  <text x="60" y="230" fill="#e2e8f0" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="64" id="title">Main Theme (Super Mario Bros.)</text>
+  <text x="60" y="300" fill="#cbd5e1" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="36" id="game">Super Mario Bros.</text>
+  <text x="60" y="360" fill="#a3bffa" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="28" id="composer">Koji Kondo</text>
+  <rect x="60" y="410" width="800" height="24" rx="12" fill="#334155"/>
+  <rect x="60" y="410" width="443" height="24" rx="12" fill="#60a5fa" id="difficultyBar"/>
+  <text x="875" y="430" fill="#93c5fd" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="22" id="difficulty">difficulty 0.55</text>
+  <text x="60" y="580" fill="#64748b" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="20">auto-generated • v1.8</text>
+</svg>
