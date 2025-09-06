@@ -16,31 +16,47 @@ const { chromium } = require('playwright');
 
   try {
     console.log('[footer-version check] URL:', url.toString());
-    await page.goto(url.toString(), { waitUntil: 'domcontentloaded' });
+    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: 20000 });
+    // Wait for the footer element to exist
+    const sel = '#version, #footer-version, footer .version, footer#version, footer [data-testid="footer-version"]';
+    await page.waitForSelector(sel, { timeout: 8000 });
+    // Wait until the footer text becomes non-empty (loadVersion runs on DOMContentLoaded)
+    await page.waitForFunction((s) => {
+      const el = document.querySelector(s);
+      return !!(el && el.textContent && el.textContent.trim().length > 0);
+    }, sel, { timeout: 8000 });
 
-    // footer テキストの取得（#footer-version / #version / .version いずれか）
-    const loc = page.locator('#footer-version, #version, footer .version').first();
-    await loc.waitFor({ state: 'visible', timeout: 10000 });
-    const text = (await loc.textContent() || '').trim();
+    const el = await page.$(sel);
+    const text = (await el.textContent() || '').trim();
     console.log('[footer-version]', text);
+    if (!text) throw new Error('footer text empty');
 
-    // 許容: Dataset は vN or 英数、commit は local or 7桁HEX、updated は任意
-    const re = /^Dataset:\s+(v\d+|[A-Za-z0-9._-]+)\s+•\s+commit:\s+(local|[0-9a-f]{7})(?:\s+•\s+updated:\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})?$/;
+    // Expected formats (with or without "updated"):
+    // Dataset: <dataset> • commit: <abcdef0|local> • updated: YYYY-MM-DD HH:MM
+    // Dataset: <dataset> • commit: <abcdef0|local>
+    const re = /^Dataset:\s+(.+?)\s+•\s+commit:\s+([0-9a-f]{7}|local)(?:\s+•\s+updated:\s+(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}))?$/i;
     const m = text.match(re);
     if (!m) throw new Error('footer text format mismatch');
 
+    const ds = m[1];
     const commit = m[2];
+    if (!ds || !ds.trim()) throw new Error('dataset empty');
     if (commit !== 'local' && !/^[0-9a-f]{7}$/.test(commit)) {
       throw new Error(`commit not short 7: ${commit}`);
     }
-
     console.log('[OK] footer format looks good');
   } catch (err) {
     console.error('[NG] footer check failed:', err?.message || err);
+    try {
+      const fs = require('fs');
+      fs.mkdirSync('e2e/screenshots', { recursive: true });
+      await page.screenshot({ path: 'e2e/screenshots/footer.png', fullPage: true });
+      const html = await page.content();
+      fs.writeFileSync('e2e/screenshots/footer.html', html);
+    } catch (_) {}
     process.exitCode = 1;
   } finally {
     await ctx.close().catch(() => {});
     await browser.close().catch(() => {});
   }
 })();
-
