@@ -112,8 +112,19 @@ async function main(){
     }
   }
   if (!pickedItem){
-    console.error(`[export_today_slim] no valid item found from ${start} backward; abort`);
-    process.exit(1);
+    const allowStub = (process.env.EXPORT_SLIM_STUB_ON_EMPTY || '').toLowerCase() === 'true';
+    if (!allowStub){
+      console.error(`[export_today_slim] no valid item found from ${start} backward; abort`);
+      process.exit(1);
+    }
+    console.log(`::warning::[export_today_slim] no valid item found from ${start}; writing stub item (stub-on-empty enabled)`);
+    pickedDate = start;
+    pickedItem = {
+      title: "(stub) pending fill",
+      game: "(stub)",
+      answers: { canonical: "(stub)" },
+      difficulty: 0
+    };
   }
   await mkdir('build', { recursive: true });
   await writeFile('build/daily_today.json', JSON.stringify({ date: pickedDate, item: pickedItem }, null, 2));
