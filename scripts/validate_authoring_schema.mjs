@@ -18,6 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const strict = (process.env.SCHEMA_CHECK_STRICT || '').toLowerCase() === 'true';
 const debug  = (process.env.SCHEMA_CHECK_DEBUG  || '').toLowerCase() === 'true';
 const forceDate = (process.env.SCHEMA_CHECK_FORCE_DATE || '').trim();
+const fallbackScanDays = parseInt(process.env.SCHEMA_CHECK_FALLBACK_SCAN_DAYS || '0', 10); // 0=scan all
 
 function annotate(msg, level='error'){
   const tag = level === 'warning' ? '::warning::' : '::error::';
@@ -156,22 +157,38 @@ function coerceSingleItem(candidate){
 function latestFromDailyAuto(obj){
   if (!obj || typeof obj !== 'object' || !obj.by_date) return { date: null, item: null, _debug: { allKeys: [] } };
   const allKeys = Object.keys(obj.by_date);
-  const dateKeys = allKeys.filter(isIsoDateKey);
-  // Prefer an explicit latest date hint if present and valid
+  const dateKeys = allKeys.filter(isIsoDateKey).sort();
   const hinted = obj.latest_date || obj.latest || obj.today || obj.date;
-  let date = null;
+  let startDate = null;
   if (typeof hinted === 'string' && isIsoDateKey(hinted) && obj.by_date[hinted]) {
-    date = hinted;
+    startDate = hinted;
   } else if (dateKeys.length) {
-    date = dateKeys.sort().at(-1);
+    startDate = dateKeys.at(-1);
   } else {
     return { date: null, item: null, _debug: { allKeys, dateKeys } };
   }
-  let candidate = obj.by_date[date];
-  const item = coerceSingleItem(candidate);
+  // scan backward from startDate to find the first non-empty item
+  const startIdx = dateKeys.lastIndexOf(startDate);
+  const minIdx = (fallbackScanDays > 0 && startIdx >= 0) ? Math.max(0, startIdx - fallbackScanDays) : 0;
+  for (let i = startIdx; i >= minIdx; i--) {
+    const date = dateKeys[i];
+    const candidate = obj.by_date[date];
+    const item = coerceSingleItem(candidate);
+    const chosenHas = candidate && typeof candidate === 'object' ? Object.keys(candidate) : [];
+    const candidateItems = candidate && typeof candidate === 'object' && Array.isArray(candidate.items) ? candidate.items : undefined;
+    if (item) {
+      const _debug = { allKeys, dateKeys, chosenHas, candidateItems, picked: date, startDate };
+      if (date !== startDate) {
+        console.log(`::warning::schema: latest date ${startDate} had no valid item; fell back to ${date}`);
+      }
+      return { date, item, _debug };
+    }
+  }
+  // no item found in the scan range
+  const candidate = obj.by_date[startDate];
   const chosenHas = candidate && typeof candidate === 'object' ? Object.keys(candidate) : [];
   const candidateItems = candidate && typeof candidate === 'object' && Array.isArray(candidate.items) ? candidate.items : undefined;
-  return { date, item, _debug: { allKeys, dateKeys, chosenHas, candidateItems } };
+  return { date: startDate, item: null, _debug: { allKeys, dateKeys, chosenHas, candidateItems, picked: null, startDate } };
 }
 
 function isNonEmptyString(v){ return typeof v === 'string' && v.trim().length > 0; }
@@ -227,7 +244,7 @@ async function main(){
     if (forceDate && auto.by_date && auto.by_date[forceDate]) {
       let candidate = auto.by_date[forceDate];
       const it = coerceSingleItem(candidate);
-      u = { date: forceDate, item: it };
+      u = { date: forceDate, item: it, _debug: { allKeys: Object.keys(auto.by_date), dateKeys: Object.keys(auto.by_date).filter(isIsoDateKey), chosenHas: candidate && typeof candidate === 'object' ? Object.keys(candidate) : [], candidateItems: Array.isArray(candidate?.items) ? candidate.items : undefined, picked: forceDate, startDate: forceDate } };
     } else {
       u = latestFromDailyAuto(auto);
     }
@@ -239,7 +256,9 @@ async function main(){
     const keys = item && typeof item === 'object' ? Object.keys(item) : [];
     const chosenHas = Array.isArray(dbg?.chosenHas) ? dbg.chosenHas : [];
     const itemsLen = (chosenHas.includes('items') && Array.isArray((dbg?.candidateItems))) ? (dbg.candidateItems.length) : undefined;
-    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(chosenHas)} items_len=${itemsLen}`);
+    const picked = dbg?.picked || null;
+    const startDate = dbg?.startDate || null;
+    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(chosenHas)} items_len=${itemsLen} picked=${picked} start=${startDate}`);
   }
 
   const { errors, warnings } = validate(date, item);
