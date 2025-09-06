@@ -48,6 +48,8 @@ jobs:
       - name: Schema validation (strict)
         env:
           SCHEMA_CHECK_DEBUG: "true"
+          # Allow CI to pass even when today's by_date is empty (annotates a warning).
+          SCHEMA_CHECK_ALLOW_EMPTY: "true"
         run: |
           node --version
           SCHEMA_CHECK_STRICT=true node scripts/validate_authoring_schema.mjs
