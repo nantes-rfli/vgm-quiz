@@ -1,102 +1,128 @@
 #!/usr/bin/env node
 /**
- * export_today_slim.mjs
- * `public/app/daily_auto.json` から対象日（最新 or --date 指定）の1件を抽出し、
- * 検収しやすい **スリムなアーティファクト** を出力します。
- *
- * 出力:
- *   --out-json  build/daily_today.json  （{ date, item }）
- *   --out-md    build/daily_today.md    （人間読みサマリ）
+ * Robust exporter for today's slim artifact.
+ * - Input: daily_auto.json (--in path)
+ * - Picks latest ISO date (or EXPORT_SLIM_FORCE_DATE), with fallback scan backward
+ * - Coerces item shape to { title, game, composer?, media{provider,id}?, answers{canonical}? }
+ * - Writes: build/daily_today.json ({ date, item }) and build/daily_today.md
+ * - Exits non-zero if no valid item is found (strict).
  */
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 
-import fs from 'node:fs/promises';
-import fss from 'node:fs';
-import path from 'node:path';
+const FORCE = (process.env.EXPORT_SLIM_FORCE_DATE || '').trim();
+const SCAN_DAYS = parseInt(process.env.EXPORT_SLIM_SCAN_DAYS || '0', 10); // 0=scan all
 
-function parseArgs(argv){
-  const a = { inp: 'public/app/daily_auto.json', date: null, outJson: 'build/daily_today.json', outMd: 'build/daily_today.md' };
-  for (let i=2;i<argv.length;i++){
-    const t = argv[i];
-    if (t==='--in') a.inp = argv[++i];
-    else if (t==='--date') a.date = argv[++i];
-    else if (t==='--out-json') a.outJson = argv[++i];
-    else if (t==='--out-md') a.outMd = argv[++i];
+function isIsoDate(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }
+function hasAny(o, ks){ return !!(o && typeof o === 'object' && ks.some(k => Object.prototype.hasOwnProperty.call(o,k))); }
+function pick(o, ks){ for (const k of ks){ const v=o?.[k]; if (typeof v==='string' && v.trim()) return v; } return null; }
+
+function looksLikeItem(it){
+  if (!it || typeof it !== 'object') return false;
+  const idLike = hasAny(it, ['title','trackTitle','song','name']) || hasAny(it?.track||{}, ['title','name']);
+  const gameLike = hasAny(it, ['game','gameTitle','series','franchise','work']);
+  const hasMedia = hasAny(it, ['media','youtubeId','videoId','yid','yt','url']);
+  const hasAns = hasAny(it, ['answers','answer','canonical','canonical_answer']);
+  const hasTrack = hasAny(it, ['track','composer','composerName']);
+  return (idLike || gameLike) && (hasMedia || hasAns || hasTrack);
+}
+
+function deepFind(node, depth=0){
+  if (node == null || depth > 4) return null;
+  if (looksLikeItem(node)) return node;
+  if (typeof node === 'object'){
+    if ('item' in node) return deepFind(node.item, depth+1);
+    if (Array.isArray(node.items)) {
+      for (const el of node.items){ const f=deepFind(el, depth+1); if (f) return f; }
+    }
+    for (const k of ['norm','normalized','data','record','value','payload','entry','content','node','attrs','flat']) {
+      if (k in node) { const f=deepFind(node[k], depth+1); if (f) return f; }
+    }
+    for (const v of Object.values(node)){ const f=deepFind(v, depth+1); if (f) return f; }
+  } else if (Array.isArray(node)){
+    for (const el of node){ const f=deepFind(el, depth+1); if (f) return f; }
   }
-  return a;
+  return null;
 }
 
-function todayJST(){
-  const now = new Date();
-  const tz = 'Asia/Tokyo';
-  const z = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' })
-    .formatToParts(now).reduce((o,p)=>(o[p.type]=p.value,o),{});
-  return `${z.year}-${z.month}-${z.day}`;
-}
-
-function toEntries(by_date){
-  if (Array.isArray(by_date)){
-    return by_date.map(d=>{
-      if (d && typeof d==='object' && 'date' in d){
-        const flat = (d && typeof d==='object' && !Array.isArray(d.items)) ? d : null;
-        const v = flat && !Array.isArray(flat.items) ? flat : (Array.isArray(d.items) ? d.items[0] : d);
-        return { date: d.date, v };
-      }
-      return null;
-    }).filter(Boolean);
+function coerce(raw){
+  if (!raw || typeof raw !== 'object') return null;
+  const title = pick(raw, ['title','trackTitle','song','name']) || pick(raw?.track||{}, ['title','name']);
+  const game  = pick(raw, ['game','gameTitle','series','franchise','work']);
+  const composer =
+    (Array.isArray(raw?.track?.composer) && raw.track.composer.join(', ')) ||
+    pick(raw, ['composer','composerName']);
+  let media = null;
+  if (raw.media && typeof raw.media === 'object' && typeof raw.media.provider === 'string' && typeof raw.media.id === 'string'){
+    media = { provider: raw.media.provider, id: raw.media.id };
   }
-  if (by_date && typeof by_date==='object'){
-    return Object.entries(by_date).map(([date, v])=>{
-      const flat = v && typeof v==='object' && !Array.isArray(v.items) ? v : null;
-      const val = flat || (Array.isArray(v?.items) ? v.items[0] : v);
-      return { date, v: val };
-    });
+  if (!media){
+    const yid = pick(raw, ['youtubeId','videoId','yt','yid']);
+    if (yid) media = { provider: 'youtube', id: yid };
   }
-  return [];
-}
-
-function ensureDir(p){
-  const dir = path.dirname(p);
-  if (!fss.existsSync(dir)) fss.mkdirSync(dir, { recursive: true });
-}
-
-function mdSummary(date, it){
-  const lines = [];
-  lines.push(`# Daily (Slim) — ${date}`);
-  lines.push('');
-  lines.push(`- **Title**: ${it?.title ?? '—'}`);
-  lines.push(`- **Game**: ${typeof it?.game==='string' ? it?.game : (it?.game?.name ?? '—')}`);
-  lines.push(`- **Composer**: ${it?.composer ?? it?.track?.composer ?? '—'}`);
-  const m = it?.media;
-  lines.push(`- **Media**: ${m ? `${m.provider}:${m.id}` : '—'}`);
-  const ans = it?.answers?.canonical;
-  const ch = Array.isArray(it?.choices) ? it.choices.length : 0;
-  lines.push(`- **Answer**: ${ans ?? '—'}  /  **Choices**: ${ch}`);
-  if (typeof it?.difficulty === 'number') lines.push(`- **Difficulty**: ${it.difficulty.toFixed(2)}`);
-  return lines.join('\n');
-}
-
-async function run(){
-  const args = parseArgs(process.argv);
-  const raw = await fs.readFile(args.inp, 'utf-8');
-  const json = JSON.parse(raw);
-  const entries = toEntries(json.by_date);
-  if (!entries.length){
-    console.warn('[export_today_slim] by_date empty; nothing to export.');
-    return;
+  if (!media){
+    const url = pick(raw, ['url']);
+    if (url && /youtu\.be\//.test(url)){
+      const m = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/); if (m) media = { provider: 'youtube', id: m[1] };
+    } else if (url && /youtube\.com\/.+v=/.test(url)){
+      const m = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/); if (m) media = { provider: 'youtube', id: m[1] };
+    }
   }
-  const dates = entries.map(e=>e.date).sort();
-  const date = args.date || dates[dates.length-1] || todayJST();
-  const target = entries.find(e => String(e.date) === String(date)) || entries[entries.length-1];
-  const item = target?.v || null;
-
-  ensureDir(args.outJson);
-  ensureDir(args.outMd);
-  await fs.writeFile(args.outJson, JSON.stringify({ date, item }, null, 2), 'utf-8');
-  await fs.writeFile(args.outMd, mdSummary(date, item), 'utf-8');
-  console.log(`[export_today_slim] wrote ${args.outJson} and ${args.outMd} for date=${date}`);
+  let answers = null;
+  if (raw.answers && typeof raw.answers === 'object' && typeof raw.answers.canonical === 'string') {
+    answers = { canonical: raw.answers.canonical };
+  } else {
+    const can = pick(raw, ['canonical','canonical_answer','answer']);
+    if (can) answers = { canonical: can };
+  }
+  const difficulty = typeof raw.difficulty === 'number' ? raw.difficulty : undefined;
+  const item = { title, game, composer, media, answers };
+  if (typeof difficulty !== 'undefined') item.difficulty = difficulty;
+  const valid = item.title && item.game && ((item.media && item.media.provider && item.media.id) || (item.answers && item.answers.canonical));
+  return valid ? item : null;
 }
 
-run().catch(e=>{
-  console.error(e);
-  process.exit(1);
-});
+async function main(){
+  const args = process.argv.slice(2);
+  const inIdx = args.indexOf('--in');
+  if (inIdx === -1 || !args[inIdx+1]) {
+    console.log('[export_today_slim] missing --in <path-to-daily_auto.json>');
+    process.exit(1);
+  }
+  const inPath = args[inIdx+1];
+  const json = JSON.parse(await readFile(inPath, 'utf-8'));
+  const by = json.by_date || {};
+  const all = Object.keys(by).filter(isIsoDate).sort();
+  if (all.length === 0) {
+    console.error('[export_today_slim] no ISO dates in by_date; abort');
+    process.exit(1);
+  }
+  const start = FORCE && isIsoDate(FORCE) && by[FORCE] ? FORCE : all.at(-1);
+  const startIdx = all.lastIndexOf(start);
+  const minIdx = (SCAN_DAYS > 0 && startIdx >= 0) ? Math.max(0, startIdx - SCAN_DAYS) : 0;
+
+  let pickedDate = null, pickedItem = null, pickedRaw = null;
+  for (let i = startIdx; i >= minIdx; i--){
+    const d = all[i];
+    const cand = by[d];
+    const raw = deepFind(cand, 0) || cand;
+    const it = coerce(raw);
+    if (it){
+      pickedDate = d; pickedItem = it; pickedRaw = raw; break;
+    }
+  }
+  if (!pickedItem){
+    console.error(`[export_today_slim] no valid item found from ${start} backward; abort`);
+    process.exit(1);
+  }
+  await mkdir('build', { recursive: true });
+  await writeFile('build/daily_today.json', JSON.stringify({ date: pickedDate, item: pickedItem }, null, 2));
+  const title = pickedItem.title || '(no title)';
+  const game  = pickedItem.game  || '(no game)';
+  const media = pickedItem.media?.id ? `https://youtu.be/${pickedItem.media.id}` : '';
+  const md = `# ${pickedDate}\n\n- **Title**: ${title}\n- **Game**: ${game}\n${media?'- **Media**: '+media+'\n':''}`;
+  await writeFile('build/daily_today.md', md);
+  console.log(`[export_today_slim] wrote build/daily_today.json and build/daily_today.md for date=${pickedDate}`);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });
