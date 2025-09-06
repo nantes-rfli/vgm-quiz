@@ -4,9 +4,10 @@
  * - Validates shape of ONE daily item.
  * - Sources (priority):
  *   1) build/daily_today.json (accepts {date,item}, {date,...item}, or plain item)
- *   2) public/app/daily_auto.json (by_date -> latest)  [also unwraps {item: {...}} if present]
+ *   2) public/app/daily_auto.json (by_date -> latest)  [also unwraps {item: {...}} or {items: [...] }]
  * - Exit 0 by default; set SCHEMA_CHECK_STRICT=true to fail on violations.
  * - Set SCHEMA_CHECK_DEBUG=true to print chosen date & keys.
+ * - Set SCHEMA_CHECK_FORCE_DATE=YYYY-MM-DD to force a date from daily_auto.by_date.
  */
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -45,11 +46,36 @@ function unwrapDaily(obj){
 
 function isIsoDateKey(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }
 
+function looksLikeItem(it){
+  if (!it || typeof it !== 'object') return false;
+  const keys = Object.keys(it);
+  return ['title','game','media','answers'].some(k => keys.includes(k));
+}
+
+function coerceSingleItem(candidate){
+  // Accept plain item
+  if (looksLikeItem(candidate)) return candidate;
+  // Accept { item: {...} }
+  if (candidate && typeof candidate === 'object' && 'item' in candidate) {
+    const inner = candidate.item;
+    if (looksLikeItem(inner)) return inner;
+  }
+  // Accept { items: [...] } – pick the first item that looks valid
+  if (candidate && typeof candidate === 'object' && Array.isArray(candidate.items)) {
+    for (let i = 0; i < candidate.items.length; i++) {
+      const inner = candidate.items[i];
+      if (looksLikeItem(inner)) return inner;
+      if (inner && typeof inner === 'object' && 'item' in inner && looksLikeItem(inner.item)) return inner.item;
+    }
+  }
+  return null;
+}
+
 function latestFromDailyAuto(obj){
-  if (!obj || typeof obj !== 'object' || !obj.by_date) return { date: null, item: null };
+  if (!obj || typeof obj !== 'object' || !obj.by_date) return { date: null, item: null, _debug: { allKeys: [] } };
   const allKeys = Object.keys(obj.by_date);
   const dateKeys = allKeys.filter(isIsoDateKey);
-  // If there is an explicit latest date field, prefer it
+  // Prefer an explicit latest date hint if present and valid
   const hinted = obj.latest_date || obj.latest || obj.today || obj.date;
   let date = null;
   if (typeof hinted === 'string' && isIsoDateKey(hinted) && obj.by_date[hinted]) {
@@ -57,13 +83,11 @@ function latestFromDailyAuto(obj){
   } else if (dateKeys.length) {
     date = dateKeys.sort().at(-1);
   } else {
-    // No ISO-like keys; treat as no item to avoid picking 'meta' etc.
-    return { date: null, item: null, _debug: { allKeys } };
+    return { date: null, item: null, _debug: { allKeys, dateKeys } };
   }
-  let item = obj.by_date[date];
-  // ALSO UNWRAP if daily_auto stores { item: {...} }
-  if (item && typeof item === 'object' && 'item' in item) item = item.item;
-  return { date, item, _debug: { allKeys, dateKeys } };
+  let candidate = obj.by_date[date];
+  const item = coerceSingleItem(candidate);
+  return { date, item, _debug: { allKeys, dateKeys, chosenHas: candidate ? Object.keys(candidate) : [] } };
 }
 
 function isNonEmptyString(v){ return typeof v === 'string' && v.trim().length > 0; }
@@ -117,9 +141,9 @@ async function main(){
     const auto = await readJson(pAuto);
     let u;
     if (forceDate && auto.by_date && auto.by_date[forceDate]) {
-      let item = auto.by_date[forceDate];
-      if (item && typeof item === 'object' && 'item' in item) item = item.item;
-      u = { date: forceDate, item };
+      let candidate = auto.by_date[forceDate];
+      const it = coerceSingleItem(candidate);
+      u = { date: forceDate, item: it };
     } else {
       u = latestFromDailyAuto(auto);
     }
@@ -129,7 +153,7 @@ async function main(){
 
   if (debug) {
     const keys = item && typeof item === 'object' ? Object.keys(item) : [];
-    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])}`);
+    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(dbg?.chosenHas||[])}`);
   }
 
   const { errors, warnings } = validate(date, item);
