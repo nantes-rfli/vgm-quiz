@@ -16,6 +16,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const strict = (process.env.SCHEMA_CHECK_STRICT || '').toLowerCase() === 'true';
 const debug  = (process.env.SCHEMA_CHECK_DEBUG  || '').toLowerCase() === 'true';
+const forceDate = (process.env.SCHEMA_CHECK_FORCE_DATE || '').trim();
 
 function annotate(msg, level='error'){
   const tag = level === 'warning' ? '::warning::' : '::error::';
@@ -113,7 +114,15 @@ async function main(){
 
   if (!src) {
     src = pAuto;
-    const u = latestFromDailyAuto(await readJson(pAuto));
+    const auto = await readJson(pAuto);
+    let u;
+    if (forceDate && auto.by_date && auto.by_date[forceDate]) {
+      let item = auto.by_date[forceDate];
+      if (item && typeof item === 'object' && 'item' in item) item = item.item;
+      u = { date: forceDate, item };
+    } else {
+      u = latestFromDailyAuto(auto);
+    }
     ({date,item} = u);
     dbg = u._debug;
   }
