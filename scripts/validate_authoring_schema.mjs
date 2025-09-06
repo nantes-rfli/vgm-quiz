@@ -49,26 +49,49 @@ function isIsoDateKey(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }
 function looksLikeItem(it){
   if (!it || typeof it !== 'object') return false;
   const keys = Object.keys(it);
-  return ['title','game','media','answers'].some(k => keys.includes(k));
+  // Require at least one of the primary identity keys
+  const idLike = keys.includes('title') || keys.includes('game');
+  // And at least one of answer/media indicators
+  const hasMediaOrAns = keys.includes('media') || keys.includes('answers') || keys.includes('track') || keys.includes('composer');
+  return idLike && hasMediaOrAns;
 }
 
-function coerceSingleItem(candidate){
-  // Accept plain item
-  if (looksLikeItem(candidate)) return candidate;
-  // Accept { item: {...} }
-  if (candidate && typeof candidate === 'object' && 'item' in candidate) {
-    const inner = candidate.item;
-    if (looksLikeItem(inner)) return inner;
-  }
-  // Accept { items: [...] } – pick the first item that looks valid
-  if (candidate && typeof candidate === 'object' && Array.isArray(candidate.items)) {
-    for (let i = 0; i < candidate.items.length; i++) {
-      const inner = candidate.items[i];
-      if (looksLikeItem(inner)) return inner;
-      if (inner && typeof inner === 'object' && 'item' in inner && looksLikeItem(inner.item)) return inner.item;
+function deepFindItem(node, depth=0){
+  if (node == null || depth > 4) return null;
+  if (looksLikeItem(node)) return node;
+  // Unwrap common single-item wrappers
+  if (typeof node === 'object') {
+    if ('item' in node) return deepFindItem(node.item, depth+1);
+    // items: pick the first that yields a valid item
+    if (Array.isArray(node.items)) {
+      for (const el of node.items) {
+        const found = deepFindItem(el, depth+1);
+        if (found) return found;
+      }
+    }
+    // Try common nesting keys e.g., norm/normalized/data/record/value/payload/entry
+    for (const k of ['norm','normalized','data','record','value','payload','entry','content']) {
+      if (k in node) {
+        const found = deepFindItem(node[k], depth+1);
+        if (found) return found;
+      }
+    }
+    // Generic scan over object values (last resort, shallow breadth)
+    for (const v of Object.values(node)) {
+      const found = deepFindItem(v, depth+1);
+      if (found) return found;
+    }
+  } else if (Array.isArray(node)) {
+    for (const el of node) {
+      const found = deepFindItem(el, depth+1);
+      if (found) return found;
     }
   }
   return null;
+}
+
+function coerceSingleItem(candidate){
+  return deepFindItem(candidate, 0);
 }
 
 function latestFromDailyAuto(obj){
@@ -153,7 +176,8 @@ async function main(){
 
   if (debug) {
     const keys = item && typeof item === 'object' ? Object.keys(item) : [];
-    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(dbg?.chosenHas||[])}`);
+    const chosenType = typeof (dbg?.chosenType);
+    console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(dbg?.chosenHas||[])} chosen_type=${typeof dbg?.chosenHas === 'undefined' ? 'n/a' : (Array.isArray(dbg?.chosenHas) ? 'object' : 'object')}`);
   }
 
   const { errors, warnings } = validate(date, item);
