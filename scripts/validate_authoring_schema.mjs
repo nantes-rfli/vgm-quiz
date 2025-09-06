@@ -19,6 +19,7 @@ const strict = (process.env.SCHEMA_CHECK_STRICT || '').toLowerCase() === 'true';
 const debug  = (process.env.SCHEMA_CHECK_DEBUG  || '').toLowerCase() === 'true';
 const forceDate = (process.env.SCHEMA_CHECK_FORCE_DATE || '').trim();
 const fallbackScanDays = parseInt(process.env.SCHEMA_CHECK_FALLBACK_SCAN_DAYS || '0', 10); // 0=scan all
+const allowEmpty = (process.env.SCHEMA_CHECK_ALLOW_EMPTY || '').toLowerCase() === 'true';
 
 function annotate(msg, level='error'){
   const tag = level === 'warning' ? '::warning::' : '::error::';
@@ -259,6 +260,20 @@ async function main(){
     const picked = dbg?.picked || null;
     const startDate = dbg?.startDate || null;
     console.log(`[schema-debug] src=${src} date=${date} keys=${JSON.stringify(keys)} by_date_keys=${JSON.stringify(dbg?.allKeys||[])} iso_keys=${JSON.stringify(dbg?.dateKeys||[])} chosen_has=${JSON.stringify(chosenHas)} items_len=${itemsLen} picked=${picked} start=${startDate}`);
+  }
+
+  // Special-case: no item at all
+  if (!item) {
+    const msg = `schema: no item for date=${date||'unknown'}`;
+    if (allowEmpty) {
+      annotate(msg + ' (allow-empty)', 'warning');
+      console.log(`schema: OK file=${src} date=${date||'unknown'} (empty allowed)`);
+      process.exit(0);
+    } else {
+      annotate('schema: no item in source', 'error');
+      console.log(`schema: violations=1 file=${src}`);
+      process.exit(strict ? 1 : 0);
+    }
   }
 
   const { errors, warnings } = validate(date, item);
