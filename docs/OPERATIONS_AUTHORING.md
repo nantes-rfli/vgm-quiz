@@ -105,3 +105,28 @@ node scripts/export_today_slim.mjs --in public/app/daily_auto.json
 - 日次の入力（候補）は `sources/seed_candidates.jsonl` と `sources/allowlist.json` を継続拡充してください。
 - トラブル時は `build/logs/backfill_YYYYMMDD.txt` を確認（本チャットで追加されたバックフィルログ）。
 
+
+## Apple優先のメディア添付（v1.8）
+- `scripts/export_today_slim.mjs` は **Appleのオーバーライド**（`data/apple_overrides.jsonc` または `resources/data/apple_overrides.jsonc`）を自動適用します。
+- オーバーライドのキーは以下の **正規化キー** を推奨します（いずれか一致で適用）。
+  - `norm.game__norm.title` 例: `super mario bros.__main theme`
+  - `norm.answer__norm.title`
+  - `norm.answer`
+  - `norm.title`
+- 値の形式例：
+  ```jsonc
+  {
+    "super mario bros.__main theme": {
+      "media": { "apple": {
+        "url": "https://music.apple.com/jp/album/xxxxx",
+        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
+        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+      }}
+    },
+    "any-key-with-match": {
+      "match": { "title": "main theme", "game": "super mario bros." },
+      "media": { "apple": { "url": "...", "embedUrl": "...", "previewUrl": "..." } }
+    }
+  }
+  ```
+- クライアント側の再生は `public/app/media_player.mjs` により **Apple優先** でレンダリングされます（`media.apple.embedUrl | previewUrl | url` が存在すれば Apple を選択）。

@@ -10,6 +10,66 @@
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
+function stripJsonc(raw){
+  return String(raw)
+    .replace(/\/\*(?:.|\n|\r)*?\*\//g, '')
+    .replace(/(^|\s+)\/\/.*$/gm, '');
+}
+async function readOverridesMaybe(...paths){
+  for (const p of paths){
+    try {
+      const raw = await readFile(p, 'utf-8');
+      return JSON.parse(stripJsonc(raw));
+    } catch {}
+  }
+  return null;
+}
+function normLower(s){ return String(s||'').toLowerCase().trim().replace(/\s+/g,' '); }
+function keyCandidates(item){
+  const title = normLower(item?.title || item?.track?.name);
+  const game  = normLower(item?.game?.name || item?.game);
+  const answer= normLower(item?.answers?.canonical || item?.norm?.answer || game);
+  const keys = [];
+  if (game && title) keys.push(`${game}__${title}`);
+  if (answer && title) keys.push(`${answer}__${title}`);
+  if (answer) keys.push(answer);
+  if (title) keys.push(title);
+  return Array.from(new Set(keys));
+}
+function attachAppleFromOverrides(item, overrides){
+  if (!overrides || typeof overrides !== 'object') return item;
+  const keys = keyCandidates(item);
+  for (const k of keys){
+    const v = overrides[k];
+    if (v && v.media && v.media.apple){
+      item.media = item.media || {};
+      item.media.apple = v.media.apple;
+      return item;
+    }
+  }
+  for (const v of Object.values(overrides)){
+    if (v && v.match){
+      const vm = v.match;
+      const wantTitle = normLower(vm.title);
+      const wantGame  = normLower(vm.game);
+      const wantAns   = normLower(vm.answer);
+      const title = normLower(item?.title || item?.track?.name);
+      const game  = normLower(item?.game?.name || item?.game);
+      const ans   = normLower(item?.answers?.canonical || item?.norm?.answer || game);
+      if ((wantTitle?wantTitle===title:true) &&
+          (wantGame?wantGame===game:true) &&
+          (wantAns?wantAns===ans:true) &&
+          v.media && v.media.apple){
+        item.media = item.media || {};
+        item.media.apple = v.media.apple;
+        return item;
+      }
+    }
+  }
+  return item;
+}
+
+
 const FORCE = (process.env.EXPORT_SLIM_FORCE_DATE || '').trim();
 const SCAN_DAYS = parseInt(process.env.EXPORT_SLIM_SCAN_DAYS || '0', 10); // 0=scan all
 
@@ -45,7 +105,7 @@ function deepFind(node, depth=0){
   return null;
 }
 
-function coerce(raw){
+async function coerce(raw){
   if (!raw || typeof raw !== 'object') return null;
   const title = pick(raw, ['title','trackTitle','song','name']) || pick(raw?.track||{}, ['title','name']);
   const game  = pick(raw, ['game','gameTitle','series','franchise','work']);
@@ -78,6 +138,13 @@ function coerce(raw){
   const difficulty = typeof raw.difficulty === 'number' ? raw.difficulty : undefined;
   const item = { title, game, composer, media, answers };
   if (typeof difficulty !== 'undefined') item.difficulty = difficulty;
+  // Attach Apple overrides if available
+  try {
+    const overrides = await readOverridesMaybe('data/apple_overrides.jsonc','resources/data/apple_overrides.jsonc');
+    attachAppleFromOverrides(item, overrides);
+  } catch (e) {
+    console.warn('[export_today_slim] overrides read failed:', e?.message || e);
+  }
   const valid = item.title && item.game && ((item.media && item.media.provider && item.media.id) || (item.answers && item.answers.canonical));
   return valid ? item : null;
 }
@@ -106,7 +173,7 @@ async function main(){
     const d = all[i];
     const cand = by[d];
     const raw = deepFind(cand, 0) || cand;
-    const it = coerce(raw);
+    const it = await coerce(raw);
     if (it){
       pickedDate = d; pickedItem = it; pickedRaw = raw; break;
     }

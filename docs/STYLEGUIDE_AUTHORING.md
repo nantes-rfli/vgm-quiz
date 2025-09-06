@@ -80,3 +80,7 @@ node scripts/validate_authoring.js
 
 —  
 *Started: 2025-09-05*
+
+
+### 回答フィールド（canonical）
+- `answers.canonical` は **string / string[]** のどちらも許容します。内部の判定は正規化後に同値比較します。
