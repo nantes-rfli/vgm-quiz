@@ -3,7 +3,7 @@
  * v1.8 schema check (soft by default)
  * - Validates shape of ONE daily item.
  * - Sources (priority):
- *   1) build/daily_today.json (accepts {date,item}, {date,...item}, or plain item)
+ *   1) build/daily_today.json (accepts {date,item}, {date,...item}, {date,flat:{...}}, {date,items:[...]}, or plain item)
  *   2) public/app/daily_auto.json (by_date -> latest)  [also unwraps {item: {...}} or {items: [...] }]
  * - Exit 0 by default; set SCHEMA_CHECK_STRICT=true to fail on violations.
  * - Set SCHEMA_CHECK_DEBUG=true to print chosen date & keys.
@@ -31,19 +31,43 @@ async function readJson(p){
 }
 
 function unwrapDaily(obj){
-  // {date,item} or {date,...item} or plain item
+  // Accept multiple build shapes:
+  // - { date, item }
+  // - { date, ...item }
+  // - { date, flat: {...} }
+  // - { date, items: [...] }  (pick the first valid)
+  // - plain item
+  // - fallback: deep search inside the object
   if (!obj || typeof obj !== 'object') return { date: null, item: null };
+  const date = obj.date ?? null;
+  // 1) direct item
   if ('item' in obj) {
-    const { date = null, item } = obj;
-    return { date, item };
+    const it = coerceSingleItem(obj.item) || obj.item;
+    return { date, item: it };
   }
+  // 2) flat
+  if (obj.flat && typeof obj.flat === 'object') {
+    const it = coerceSingleItem(obj.flat) || obj.flat;
+    return { date, item: it };
+  }
+  // 3) items array
+  if (Array.isArray(obj.items)) {
+    for (const el of obj.items) {
+      const it = coerceSingleItem(el);
+      if (it) return { date, item: it };
+    }
+  }
+  // 4) {date,...item} style (top-level looks like item)
   const keys = Object.keys(obj);
   const looksLikeItem = ['title','game','composer','media','answers','track'].some(k => keys.includes(k));
   if (looksLikeItem) {
-    const { date = null, ...rest } = obj;
-    return { date, item: rest };
+    const { date: _d = null, ...rest } = obj;
+    return { date: date ?? _d, item: rest };
   }
-  return { date: null, item: null };
+  // 5) last resort: deep search for an item-like object
+  const deep = coerceSingleItem(obj);
+  if (deep) return { date, item: deep };
+  return { date, item: null };
 }
 
 function isIsoDateKey(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }
@@ -233,9 +257,14 @@ async function main(){
   let src = null, date = null, item = null, dbg = undefined;
 
   if (existsSync(pToday)) {
-    const u = unwrapDaily(await readJson(pToday));
+    const raw = await readJson(pToday);
+    const u = unwrapDaily(raw);
     if (u.item) { src = pToday; ({date,item} = u); }
-    else console.log('Warning: build/daily_today.json present but could not find an item; falling back to public/app/daily_auto.json');
+    else {
+      const top = raw && typeof raw === 'object' ? Object.keys(raw) : [];
+      console.log('Warning: build/daily_today.json present but could not find an item; falling back to public/app/daily_auto.json');
+      if (debug) console.log(`[schema-debug] build_today_top_keys=${JSON.stringify(top)}`);
+    }
   }
 
   if (!src) {
