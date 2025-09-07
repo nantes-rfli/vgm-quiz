@@ -3,37 +3,40 @@
     "id": "i18n-core-module",
     "title": "i18n: コアモジュール導入（i18n.mjs）",
     "labels": [
-      "roadmap:v1.6",
       "area:app",
-      "type:code",
-      "i18n"
+      "i18n",
+      "roadmap:v1.6",
+      "status:done",
+      "type:code"
     ],
     "body": "### Scope\n- public/app/i18n.mjs を追加（detectLang/loadLocale/t/setLang/initI18n）\n- <html lang> を切り替え\n\n### DoD\n- import/初期化が app.js から行われる\n- ?lang=en/ja で t() が機能する\n- 既存パフォーマンスに影響なし（遅延 import 可）",
-    "state": "open"
+    "state": "closed"
   },
   {
     "id": "locales-en-ja",
     "title": "i18n: locales/en.json & ja.json（最小キー）",
     "labels": [
-      "roadmap:v1.6",
       "area:app",
-      "type:data",
-      "i18n"
+      "i18n",
+      "roadmap:v1.6",
+      "status:done",
+      "type:data"
     ],
     "body": "### Scope\n- タイトル/主要ボタン/ライブリージョンなど最小キーの辞書を作成\n\n### DoD\n- 未翻訳キーは英語フォールバック\n- 初期バンドルは en のみ同梱（ja は遅延ロード）",
-    "state": "open"
+    "state": "closed"
   },
   {
     "id": "wiring-init-in-app",
     "title": "i18n: initI18n() を app.js 起動時に配線",
     "labels": [
-      "roadmap:v1.6",
       "area:app",
-      "type:code",
-      "i18n"
+      "i18n",
+      "roadmap:v1.6",
+      "status:done",
+      "type:code"
     ],
     "body": "### Scope\n- app.js のエントリで initI18n() を呼び出し\n- html[lang] と document.title を t() で設定\n\n### DoD\n- ?lang=en/ja で動作、デフォルトは navigator.language\n- エラー時は英語にフォールバック",
-    "state": "open"
+    "state": "closed"
   },
   {
     "id": "replace-strings-step1",
@@ -63,47 +66,47 @@
     "id": "a11y-messages-to-keys",
     "title": "i18n: a11yメッセージのキー管理へ統合",
     "labels": [
-      "roadmap:v1.6",
       "area:a11y",
-      "type:code",
-      "i18n"
+      "i18n",
+      "roadmap:v1.6",
+      "status:done",
+      "type:code"
     ],
     "body": "### Scope\n- live region などの文言を辞書キーへ移管\n\n### DoD\n- a11y 静的スモークと手動検証を通過",
-    "state": "open"
+    "state": "closed"
   },
   {
     "id": "e2e-i18n-lang-param-smoke",
     "title": "E2E: ?lang=ja|en スモーク",
     "labels": [
-      "roadmap:v1.6",
       "area:test",
-      "type:test",
-      "i18n"
+      "i18n",
+      "roadmap:post-v1.6",
+      "type:test"
     ],
-    "body": "### Scope\n- <html lang> と document.title の確認\n\n### DoD\n- Actions ワークフローで緑\n- Pages/ローカルで目視確認もOK",
-    "state": "open"
+    "body": "### Scope\n- <html lang> と document.title の確認\n\n### DoD\n- Actions ワークフローで緑\n- Pages/ローカルで目視確認もOK"
   },
   {
     "id": "static-checker-missing-keys",
     "title": "Scripts: 未翻訳/未使用キーの静的チェック",
     "labels": [
-      "roadmap:v1.6",
       "area:ops",
-      "type:scripts",
-      "i18n"
+      "i18n",
+      "roadmap:post-v1.6",
+      "type:scripts"
     ],
-    "body": "### Scope\n- スクリプトで locales と使用キーを突き合わせ\n\n### DoD\n- CI で実行して緑\n- false positive を最小限に",
-    "state": "open"
+    "body": "### Scope\n- スクリプトで locales と使用キーを突き合わせ\n\n### DoD\n- CI で実行して緑\n- false positive を最小限に"
   },
   {
     "id": "docs-styleguide-i18n-roadmap",
     "title": "Docs: STYLEGUIDE_I18N/ROADMAP の整備",
     "labels": [
+      "i18n",
       "roadmap:v1.6",
-      "type:docs",
-      "i18n"
+      "status:done",
+      "type:docs"
     ],
     "body": "### Scope\n- docs/STYLEGUIDE_I18N.md の初版\n- ROADMAP v1.6 のDoD明記\n\n### DoD\n- Docs lint/リンクチェック緑\n- 既存スタイルガイドと矛盾しない",
-    "state": "open"
+    "state": "closed"
   }
 ]
