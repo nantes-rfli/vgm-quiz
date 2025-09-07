@@ -301,5 +301,11 @@
 ### 進捗（2025-09-07 JST）
 - ✅ ingest（候補JSONL生成）導入済み
 - ✅ score+pick PR ワークフロー追加（Actionsのみで daily_auto.json を更新）
+- ✅ cron 化：毎日 00:05 JST に pick & PR（差分なければスキップ）
+
+**ToDo（v1.9 の残件）**
+- allowlist/seed の拡充（運用で育てる）
+- 埋め込み不可の推定強化（guard v1: pattern 追加）
+- choices 付与の自動化パラメータの調整（`choices_mode=auto` 前提）
 
 ## v1.10 — Difficulty 2.0 & De-dup v1（近似重複抑制）

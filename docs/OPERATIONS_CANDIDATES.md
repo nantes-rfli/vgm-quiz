@@ -33,6 +33,20 @@
 2. **candidates (score+pick PR)** を実行（`date` 未指定なら当日、`with_choices` 任意）
 3. PR が自動作成される（差分が無ければスキップ）。保護ルールを満たせば自動マージ。
 
+## 自動運用（cron）
+- Workflow: **candidates (score+pick PR - cron)** を追加（毎日 00:05 JST 実行）
+- 処理内容: ingest → guard → score → pick → PR作成（差分なしならスキップ）
+- 備考:
+  - `daily (ogp+feeds)` は既存スケジュールのまま運用。PR が自動マージされた後に実行されるよう JST 時刻を調整する。
+  - もし重複してしまう場合は、`daily (auto extended)` のスケジュールを後ろにずらすか、手動運用に統一する。
+
+### スケジュール（UTCベース）
+- 00:05 JST = **15:05 UTC**（Actions の `cron: "5 15 * * *"`）
+
+### よくある質問
+- Q. 同日に PR が無い日がある？  
+  A. 候補から既に近傍日で採用済みで選出できない場合などは、**差分無しスキップ**になります（正常動作）。
+
 ## 注意
 - allowlist は最小から開始し、必要に応じて `sources/allowlist.json` を育てる運用。
 - 非公式／埋め込み不可の検知は今後 **heuristic-media-guard** を導入予定（v1.9タスク）。
