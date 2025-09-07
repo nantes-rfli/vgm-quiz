@@ -18,6 +18,7 @@
  */
 import fs from 'node:fs/promises';
 import fss from 'node:fs';
+import path from 'node:path';
 
 function normLower(s){ return String(s||'').toLowerCase().trim().replace(/\s+/g,' '); }
 function keyFrom(item){
@@ -90,7 +91,7 @@ async function main(){
       }}
     };
   }
-  await fs.mkdir(require('node:path').dirname(opts.out), { recursive: true });
+  await fs.mkdir(path.dirname(opts.out), { recursive: true });
   const jsonc = JSON.stringify(out, null, 2);
   const header = '// Auto-generated template; fill Apple URLs as needed.\n';
   await fs.writeFile(opts.out, header + jsonc + '\n', 'utf-8');
