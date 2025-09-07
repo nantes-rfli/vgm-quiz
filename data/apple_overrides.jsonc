@@ -1,61 +1,34 @@
-// Apple Music overrides (format: normalized key or match)
-// キー推奨: norm.game__norm.title / norm.answer__norm.title / norm.answer / norm.title
 {
-  // 例: Chrono Trigger - Corridors of Time（公式）
   "chrono trigger__corridors of time": {
     "media": {
       "apple": {
         "url": "https://music.apple.com/us/song/corridors-of-time/324081937",
         "embedUrl": "https://embed.music.apple.com/jp/album/chrono-trigger-original-soundtrack-ds-version/324080907?i=324081937"
-        // "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
-      }
-    }
-  },
-  "super mario bros.__main theme (super mario bros.)": {
-    "media": {
-      "apple": {
-        "url": "https://music.apple.com/jp/album/xxxxx",
-        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
-        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
       }
     }
   },
   "final fantasy__final fantasy main theme": {
     "media": {
       "apple": {
-        "url": "https://music.apple.com/jp/album/xxxxx",
-        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
-        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+        "url": "https://music.apple.com/in/song/main-theme/61049717",
+        "embedUrl": "https://embed.music.apple.com/jp/album/final-fantasy-original-soundtrack/61049814?i=61049717"
       }
     }
   },
   "sonic the hedgehog__green hill zone": {
     "media": {
       "apple": {
-        "url": "https://music.apple.com/jp/album/xxxxx",
-        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
-        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
-      }
-    }
-  },
-  "the legend of zelda__the legend of zelda main theme": {
-    "media": {
-      "apple": {
-        "url": "https://music.apple.com/jp/album/xxxxx",
-        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
-        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+        "url": "https://music.apple.com/us/song/sth1-green-hill-zone-mega-drive-version/1571062434",
+        "embedUrl": "https://embed.music.apple.com/jp/album/sonic-the-hedgehog-1-2-soundtrack/1571062431?i=1571062434"
       }
     }
   },
   "chrono trigger__chrono trigger (main theme)": {
     "media": {
       "apple": {
-        "url": "https://music.apple.com/jp/album/xxxxx",
-        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
-        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+        "url": "https://music.apple.com/us/song/chrono-trigger/324080961",
+        "embedUrl": "https://embed.music.apple.com/jp/album/chrono-trigger-original-soundtrack-ds-version/324080907?i=324080961"
       }
     }
   }
-
-  // ほかのトラックは generator で作った雛形を追記してください
 }
