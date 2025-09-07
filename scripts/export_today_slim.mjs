@@ -36,14 +36,27 @@ function keyCandidates(item){
   if (title) keys.push(title);
   return Array.from(new Set(keys));
 }
+
+function looksValidApple(a){
+  if (!a || typeof a !== 'object') return false;
+  const hasXxxxx = v => typeof v === 'string' && v.includes('xxxxx');
+  const isApple = v => typeof v === 'string' && /\b(https?:)?\/\/(embed\.)?music\.apple\.com\//.test(v);
+  const isPreview = v => typeof v === 'string' && /\bhttps?:\/\/.*mzstatic\.com\//.test(v) && /\.(m4a|mp3)(\?|$)/.test(v);
+  // reject placeholders
+  if (hasXxxxx(a.url) || hasXxxxx(a.embedUrl) || hasXxxxx(a.previewUrl)) return false;
+  // require at least one valid field
+  return isApple(a.embedUrl) || isApple(a.url) || isPreview(a.previewUrl);
+}
+
 function attachAppleFromOverrides(item, overrides){
   if (!overrides || typeof overrides !== 'object') return item;
   const keys = keyCandidates(item);
   for (const k of keys){
     const v = overrides[k];
-    if (v && v.media && v.media.apple){
+    if (v && v.media && v.media.apple && looksValidApple(v.media.apple)){
       item.media = item.media || {};
       item.media.apple = v.media.apple;
+      console.log('[export_today_slim] applied Apple override via key:', k);
       return item;
     }
   }
@@ -59,9 +72,10 @@ function attachAppleFromOverrides(item, overrides){
       if ((wantTitle?wantTitle===title:true) &&
           (wantGame?wantGame===game:true) &&
           (wantAns?wantAns===ans:true) &&
-          v.media && v.media.apple){
+          v.media && v.media.apple && looksValidApple(v.media.apple)){
         item.media = item.media || {};
         item.media.apple = v.media.apple;
+        console.log('[export_today_slim] applied Apple override via match');
         return item;
       }
     }
