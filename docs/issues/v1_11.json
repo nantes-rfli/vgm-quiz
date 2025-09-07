@@ -1,0 +1,21 @@
+[
+  {
+    "id": "v111-discovery-dryrun",
+    "title": "v1.11: Discovery 設計 & dry-run（iTunes Search 起点）",
+    "labels": [
+      "roadmap:v1.11",
+      "area:collector"
+    ],
+    "body": "### Scope\n- game/album 語 → 正規化 → 提案 seed（dry-run）\n- 公式性判定の最小ルール\n\n### DoD\n- 提案seedをアーティファクト出力\n- 簡易レビューが可能"
+  },
+  {
+    "id": "v111-gate-threshold",
+    "title": "v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）",
+    "labels": [
+      "roadmap:v1.11",
+      "area:collector",
+      "area:ops"
+    ],
+    "body": "### Scope\n- 信頼度スコア θ（Notability/Guard/Provider信頼度の合成）\n- 切替（Repo Variables or workflow input）\n\n### DoD\n- θ を docs に明記\n- 切替動作を確認"
+  }
+]
