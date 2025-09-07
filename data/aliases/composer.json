@@ -1,5 +1,10 @@
 {
   "//": "Composer alias map (normalized -> array of aliases). Fill incrementally.",
-  "Yasunori Mitsuda": ["光田 康典"],
-  "Nobuo Uematsu": ["植松 伸夫"]
+  "Yasunori Mitsuda": [
+    "光田 康典"
+  ],
+  "Nobuo Uematsu": [
+    "植松 伸夫"
+  ],
+  "koji kondo": "Koji Kondo"
 }
