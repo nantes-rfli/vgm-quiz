@@ -44,8 +44,15 @@
 - 00:05 JST = **15:05 UTC**（Actions の `cron: "5 15 * * *"`）
 
 ### よくある質問
-- Q. 同日に PR が無い日がある？  
+- Q. 同日に PR が無い日がある？
   A. 候補から既に近傍日で採用済みで選出できない場合などは、**差分無しスキップ**になります（正常動作）。
+
+### リポジトリ変数による挙動変更（cron）
+- `Settings → Variables → Repository variables` で以下を設定可能です（未設定時の既定値は括弧内）。
+  - `WITH_CHOICES` … `true|false`（`false`）: `--with-choices` を付与して選択肢を生成
+  - `STRICT_GUARD` … `on|off`（`off`）: ガードを厳格化（疑似NG語一致も drop）
+
+> 注: 厳格化は誤検知の可能性があるため、当面は `off` を推奨。疑似NG語は `scripts/heuristic_media_guard_v0.mjs` の `SUSPICIOUS` を参照。
 
 ## 注意
 - allowlist は最小から開始し、必要に応じて `sources/allowlist.json` を育てる運用。

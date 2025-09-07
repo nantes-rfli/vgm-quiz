@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Asia/Tokyo
+      WITH_CHOICES: ${{ vars.WITH_CHOICES || 'false' }}
+      STRICT_GUARD: ${{ vars.STRICT_GUARD || 'off' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +36,7 @@ jobs:
         run: |
           node scripts/heuristic_media_guard_v0.mjs \
             --in public/app/daily_candidates.jsonl \
-            --out public/app/daily_candidates_guarded.jsonl
+            --out public/app/daily_candidates_guarded.jsonl --strict "${STRICT_GUARD}"
 
       - name: Score candidates
         run: |
@@ -44,8 +46,11 @@ jobs:
 
       - name: Pick for today (JST)
         run: |
+          WITH_FLAG=""
+          if [ "$WITH_CHOICES" = "true" ] || [ "$WITH_CHOICES" = "1" ]; then WITH_FLAG="--with-choices"; fi
           node scripts/generate_daily_from_candidates.js \
             --in public/app/daily_candidates_scored.jsonl \
+            $WITH_FLAG \
             --out public/app/daily_auto.json
 
       - name: Upload artifact
