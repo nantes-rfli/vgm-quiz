@@ -3,9 +3,13 @@
   "description": "Providerごとの公式IDリスト（最小から始めて運用で拡張）",
   "youtube": {
     "__prefixes": ["UC", "PL"],
-    "UCL_f53ZEJxp8TtlOkHwMV9Q": true
+    "UCL_f53ZEJxp8TtlOkHwMV9Q": true,
+    "wupYlZRL8Y4": true,
+    "3pGqg-8iN3Q": true
   },
   "apple": {
-    "id:909253": true
+    "id:909253": true,
+    "1550828100": true,
+    "1562640119": true
   }
 }
