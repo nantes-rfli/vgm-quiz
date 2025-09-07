@@ -154,6 +154,16 @@ cp build/apple_override_candidates.jsonc data/apple_overrides.jsonc
   ```
   - クライアント側の再生は `public/app/media_player.mjs` により **Apple優先** でレンダリングされます（`media.apple.embedUrl | previewUrl | url` が存在すれば Apple を選択）。
 
+#### Tips: smoke apple override を無入力で実行する
+`smoke apple override` の inputs（key/title/game）が **空のまま**でも、`data/apple_overrides.jsonc` の **先頭キー** を自動選択して実行するようにしました。  
+（任意で個別に検証したい場合は、これまで通り `key="game__title"` もしくは `title+game` を指定してください。）
+
+例:
+- そのまま Run → 先頭キーが自動選択され、`build/daily_today.json/.md` が生成されます
+- 明示的に試す場合: `key="chrono trigger__corridors of time"` などを指定
+
+> 注意: 先頭キーはオーバーライド定義の順序に依存します。別の楽曲で検証したい場合は inputs を明示してください。
+
 ### スタブ運用の終了（stub-on-empty → OFF）
 - `scripts/export_today_slim.mjs` の **stub-on-empty は運用終了**しました。通常は **厳格モード（見つからなければ fail）** で動作します。
 - どうしても暫定的にスタブを出したい場合のみ、手動実行で
