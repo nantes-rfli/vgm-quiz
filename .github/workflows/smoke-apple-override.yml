@@ -1,0 +1,50 @@
+name: smoke apple override
+on:
+  workflow_dispatch:
+    inputs:
+      key:
+        description: '正規化キー (例: "chrono trigger__corridors of time")'
+        required: false
+        default: ""
+      title:
+        description: 'タイトル（key未指定時に使用）'
+        required: false
+        default: ""
+      game:
+        description: 'ゲーム名（key未指定時に使用）'
+        required: false
+        default: ""
+      composer:
+        description: '作曲者（任意）'
+        required: false
+        default: ""
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run smoke script
+        run: |
+          KEY="${{ github.event.inputs.key }}"
+          TITLE="${{ github.event.inputs.title }}"
+          GAME="${{ github.event.inputs.game }}"
+          COMP="${{ github.event.inputs.composer }}"
+          if [ -n "$KEY" ]; then
+            node scripts/smoke_apple_override.mjs --key "$KEY" ${COMP:+--composer "$COMP"}
+          else
+            node scripts/smoke_apple_override.mjs --title "$TITLE" --game "$GAME" ${COMP:+--composer "$COMP"}
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke_daily_today
+          path: build/daily_today.*
+          if-no-files-found: error
