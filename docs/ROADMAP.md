@@ -1,5 +1,6 @@
 # VGM Quiz Roadmap (v1.x)
 
+> ※ドキュメント言語は日本語に統一（用語/API名は英語可）
 目的: v1.0.1 以降の開発方針を明確化し、**小さな安全な前進**を積み重ねる。各マイルストーンには**受け入れ基準 (DoD)** を設定。
 
 > **Note on source of truth**
@@ -272,4 +273,29 @@
 - **Stub卒業**: `EXPORT_SLIM_STUB_ON_EMPTY` を CI で常時OFF。日次のスリム出力は「実データのみ」を許容。
 - Apple優先のメディア添付: `data/apple_overrides.jsonc` を運用に組み込み（Chrono Trigger / Final Fantasy / Sonic）
 - Smokeワークフロー追加: 任意キーで Apple 埋め込みの成果物をアーティファクト検証（リポ差分なし）
+ 
+### v1.8 — 最終化（Done 2025-09-07）
+**Status**: ✅ Done  
+**Deliverables**
+- Apple Overrides v2 運用（任天堂系は原則 YouTube 公式維持）
+- `smoke apple override`（inputs 無指定時は overrides 先頭キーを自動選択）
+- `aliases backfill` 自動PR（PAT／ユニークブランチ／差分なし時はPRスキップ）
+- 本番 Stub 無効化（`authoring (schema check)` のみ例外的に stub 許容）
+- OGP/Feed は `daily (ogp+feeds)` に分離（当日HTMLは生成しない仕様を明示）
 
+**DoD**
+- Actions 全体が緑（authoring schema check は stub 許容で緑を保つ）
+- Apple優先の成果物を smoke アーティファクトで確認できる（`build/daily_today.json/.md`）
+- ドキュメント更新（`OPERATIONS_AUTHORING.md` / `ALLOWLIST_SEED.md` / `BACKFILL_ALIASES.md` / 言語ポリシー）
+
+**関連ドキュメント**
+- `docs/APPLE_OVERRIDES_GENERATE_V2.md`
+- `docs/OPERATIONS_AUTHORING.md`
+- `docs/BACKFILL_ALIASES.md`
+
+## v1.9 — Collector v0（安全な候補収集）
+- 収集ソース優先度：**Apple公式 > YouTube公式 > その他**
+- `scripts/ingest_candidates_v0.mjs` により allowlist/seed を取り込み、`public/app/daily_candidates.jsonl` を生成（重複排除・非公式除外）
+- `candidates (ingest)` ワークフローで手動実行・成果物をアーティファクト確認（当面はコミットせず）
+
+## v1.10 — Difficulty 2.0 & De-dup v1（近似重複抑制）

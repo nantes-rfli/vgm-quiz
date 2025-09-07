@@ -1,6 +1,7 @@
 # Canonical feature inventory for vgm-quiz
 # status: implemented | planned | deprecated
 # since: version tag or date (YYYY-MM-DD)
+# note: ドキュメント言語は日本語（固有名詞/API名は英語可）
 - id: quiz-modes
   area: app
   title: Quiz modes (MCQ / Free-form)
@@ -105,13 +106,39 @@
 - id: media-provider-order
   area: media
   title: Apple Music preview first; fallback to official YouTube
-  status: planned
-  since: null
+  status: implemented
+  since: 2025-09-07
+  labels: [media, apple, youtube, ops]
+  description: |
+    data/apple_overrides.jsonc の運用と smoke ワークフローにより Apple 優先方針を安定化。
+    任天堂系は原則 YouTube 公式を維持。
 - id: clip-start-heuristics-v2
   area: media
   title: Improved clip start heuristics (query/meta/timecode; future: audio)
   status: planned
   since: null
+
+# v1.8 ops/tooling
+- id: ops-smoke-apple-override
+  area: ops
+  title: Smoke: apple override（inputs無指定は先頭キー自動選択）
+  status: implemented
+  since: 2025-09-07
+  labels: [ops, smoke, apple]
+
+- id: ops-aliases-backfill-pr
+  area: ops
+  title: Aliases backfill 自動PR（PAT/ユニークブランチ/差分なしスキップ）
+  status: implemented
+  since: 2025-09-07
+  labels: [ops, aliases, automation]
+
+- id: ops-stub-graduation
+  area: ops
+  title: Stub卒業（本番は常時OFF、authoring schema checkのみ例外許容）
+  status: implemented
+  since: 2025-09-07
+  labels: [ops, export, policy]
 - id: difficulty-v2
   area: pipeline
   title: Difficulty v2 with extra signals (era/alias density/franchise popularity)

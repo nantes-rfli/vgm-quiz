@@ -1,16 +1,11 @@
 {
-  "youtubeChannels": [
-    "UCpB959t8iPrxQWj7G6n0ctQ",
-    "UCeYhXWo3A3mQI3v1PjzG67g",
-    "UCCKErOa5hQ4KJ4zVJ0G1K6w"
-  ],
-  "applePublishers": [
-    "square enix",
-    "nintendo",
-    "capcom",
-    "sega",
-    "bandai namco",
-    "konami",
-    "atlus"
-  ]
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Providerごとの公式IDリスト（最小から始めて運用で拡張）",
+  "youtube": {
+    "__prefixes": ["UC", "PL"],
+    "UCL_f53ZEJxp8TtlOkHwMV9Q": true
+  },
+  "apple": {
+    "id:909253": true
+  }
 }
