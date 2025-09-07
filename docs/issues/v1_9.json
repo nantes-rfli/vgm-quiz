@@ -1,0 +1,35 @@
+[
+  {
+    "id": "v19-daily-auto-stable",
+    "title": "v1.9: 日次自動作問の安定化（cron & pick PR）",
+    "labels": [
+      "roadmap:v1.9",
+      "area:ops",
+      "status:done"
+    ],
+    "state": "closed",
+    "body": "### Scope\n- candidates (ingest→score→pick PR) の日次運用\n- 差分なければPRなしの挙動確認\n\n### Done\n- cron運用で緑が継続\n- daily_auto.json が日次で更新（候補枯渇時はスキップ）\n"
+  },
+  {
+    "id": "v19-smoke-apple-override",
+    "title": "v1.9: smoke apple override（即時検証フロー）",
+    "labels": [
+      "roadmap:v1.9",
+      "area:pipeline",
+      "status:done"
+    ],
+    "state": "closed",
+    "body": "### Scope\n- smoke ワークフローで Apple Overrides の適用可否を即時検証\n\n### Done\n- 成果物 daily_today.md に music.apple.com / embed.music.apple.com を確認\n"
+  },
+  {
+    "id": "v19-aliases-backfill-base",
+    "title": "v1.9: aliases backfill ベース運用",
+    "labels": [
+      "roadmap:v1.9",
+      "area:data",
+      "status:done"
+    ],
+    "state": "closed",
+    "body": "### Scope\n- scripts/backfill_aliases_v1.mjs の実行とアーティファクト確認\n\n### Done\n- data/aliases/*.json を拡充（artifact で差分検知）\n"
+  }
+]

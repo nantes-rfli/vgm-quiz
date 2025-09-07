@@ -1,0 +1,58 @@
+[
+  {
+    "id": "v110-dedup-v15",
+    "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
+    "labels": [
+      "roadmap:v1.10",
+      "area:quality"
+    ],
+    "body": "### Scope\n- 3-gram 類似の導入（θ_main=0.80 / strict=0.82）\n- suspicious-title 減点 0.02\n- Step Summary: examined/dup-exact/dup-similar\n\n### DoD\n- ゴールデン10件の回帰緑\n- Summary に dup 率\n- SPEC_DEDUP_v1.md を最終反映"
+  },
+  {
+    "id": "v110-notability-v1",
+    "title": "v1.10: Notability v1（High/Med/Low=75/20/5）",
+    "labels": [
+      "roadmap:v1.10",
+      "area:quality"
+    ],
+    "body": "### Scope\n- 特徴量: Apple Popularity / aliases頻度 / 公式フラグ\n- 帯域閾値: 0.67 / 0.33（初期）\n- pick ミックスに適用\n\n### DoD\n- Summary に帯域比\n- SPEC_NOTABILITY.md 反映\n- 直近7日の正答率が 60–85% 帯に入る（観測）"
+  },
+  {
+    "id": "v110-provenance-wire",
+    "title": "v1.10: provenance 配線（ingest→pick）",
+    "labels": [
+      "roadmap:v1.10",
+      "area:quality",
+      "area:pipeline"
+    ],
+    "body": "### Scope\n- source/provider/id/collected_at/hash/license_hint の継承\n- JSONL/JSON のスキーマ差分棚卸し\n\n### DoD\n- 欠落なしで通過\n- POLICY_PROVENANCE.md に実装例追記"
+  },
+  {
+    "id": "v110-kpi-summary",
+    "title": "v1.10: Step Summary にKPI最小セットを出す",
+    "labels": [
+      "roadmap:v1.10",
+      "area:ops"
+    ],
+    "body": "### Scope\n- guard/dedup/notability/pick の最小必須セット\n\n### DoD\n- 全主要WFで表示\n- QUALITY_KPIS.md と突合可能"
+  },
+  {
+    "id": "v110-backfill-by-year-if",
+    "title": "v1.10: backfill の by_year I/F 設計",
+    "labels": [
+      "roadmap:v1.10",
+      "area:ops"
+    ],
+    "body": "### Scope\n- public/app/by_year/YYYY.json のI/F確定\n- 未来地平線90日・PR粒度30–90日\n\n### DoD\n- OPERATIONS_BACKFILL.md にI/F例を追記\n- 小規模試験が可能"
+  },
+  {
+    "id": "v110-rate-cost-doc",
+    "title": "v1.10: Rate/Cost 制御の方針を明文化（任意）",
+    "labels": [
+      "roadmap:v1.10",
+      "area:ops",
+      "type:docs"
+    ],
+    "body": "### Scope\n- レートリミット/バックオフ/キャッシュの指針\n\n### DoD\n- ROADMAP.md および関連 docs に反映"
+  }
+]
