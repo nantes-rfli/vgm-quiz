@@ -1,13 +1,4 @@
-function hasByDateMap(obj){
-  if (!obj || typeof obj !== 'object') return false;
-  const m = obj.by_date;
-  if (!m || typeof m !== 'object') return false;
-  const keys = Object.keys(m);
-  if (!keys.length) return true; // empty map, still a map
-  // ISO8601 date YYYY-MM-DD
-  return keys.every(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
-}
-
+#!/usr/bin/env node
 /**
  * normalize_core.mjs — v1.8 unified normalization helpers
  * NOTE: Not yet wired; safe to import incrementally.
@@ -164,7 +155,7 @@ async function main() {
   const raw = await readFile(opts.in, 'utf-8').catch(() => null);
   if (!raw) throw new Error('input not found: ' + opts.in);
   const json = JSON.parse(raw);
-  const outObj = hasByDateMap(json) ? json : normalizeContainer(json);
+  const outObj = normalizeContainer(json);
   const outPath = opts.out || opts.in;
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, JSON.stringify(outObj, null, 2) + '\n', 'utf-8');
