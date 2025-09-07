@@ -152,4 +152,12 @@ cp build/apple_override_candidates.jsonc data/apple_overrides.jsonc
     }
   }
   ```
-- クライアント側の再生は `public/app/media_player.mjs` により **Apple優先** でレンダリングされます（`media.apple.embedUrl | previewUrl | url` が存在すれば Apple を選択）。
+  - クライアント側の再生は `public/app/media_player.mjs` により **Apple優先** でレンダリングされます（`media.apple.embedUrl | previewUrl | url` が存在すれば Apple を選択）。
+
+### スタブ運用の終了（stub-on-empty → OFF）
+- `scripts/export_today_slim.mjs` の **stub-on-empty は運用終了**しました。通常は **厳格モード（見つからなければ fail）** で動作します。
+- どうしても暫定的にスタブを出したい場合のみ、手動実行で
+  ```bash
+  EXPORT_SLIM_STUB_ON_EMPTY=true node scripts/export_today_slim.mjs --in public/app/daily_auto.json
+  ```
+  を使用してください（CIでは常にOFF）。

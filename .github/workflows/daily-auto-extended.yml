@@ -127,6 +127,8 @@ jobs:
           node scripts/validate_nonempty_today.mjs --in public/app/daily_auto.json $([ -n "$DATE" ] && echo "--date $DATE")
 
       - name: Export today's slim artifact
+        env:
+          EXPORT_SLIM_STUB_ON_EMPTY: 'false'
         run: |
           if [ -z "${{ inputs.date }}" ]; then DATE=""; else DATE="${{ inputs.date }}"; fi
           node scripts/export_today_slim.mjs --in public/app/daily_auto.json $([ -n "$DATE" ] && echo "--date $DATE") --out-json build/daily_today.json --out-md build/daily_today.md
