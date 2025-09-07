@@ -1,0 +1,35 @@
+name: apple overrides (generate)
+on:
+  workflow_dispatch:
+    inputs:
+      jsonl_path:
+        description: "入力JSONLのパス（省略時は自動選択）"
+        required: false
+        default: ""
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate candidates JSONC
+        run: |
+          mkdir -p build
+          if [ -n "${{ github.event.inputs.jsonl_path }}" ]; then
+            node scripts/generate_apple_override_candidates.mjs --in "${{ github.event.inputs.jsonl_path }}" --out build/apple_override_candidates.jsonc
+          else
+            node scripts/generate_apple_override_candidates.mjs --out build/apple_override_candidates.jsonc
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple_override_candidates
+          path: build/apple_override_candidates.jsonc
+          if-no-files-found: error

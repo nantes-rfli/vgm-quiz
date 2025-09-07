@@ -99,6 +99,15 @@ node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json
 node scripts/export_today_slim.mjs --in public/app/daily_auto.json
 ```
 
+### GitHub Actionsでの候補生成
+ローカル実行しない場合は、専用ワークフローを手動実行してください。
+
+1. **Actions → "apple overrides (generate)" → Run workflow**
+   - 必要なら `jsonl_path` に `public/app/daily_candidates_scored_enriched.jsonl` 等を指定
+2. アーティファクト `apple_override_candidates` をダウンロード
+3. 中身を確認し、必要なエントリに Apple の URL / embedUrl を記入
+4. `data/apple_overrides.jsonc` に反映してコミット → 通常の `daily` ワークフローで反映を確認
+
 ## オーバーライド候補の自動抽出
 - 既存の候補JSONLから、Appleオーバーライドの **正規化キー** を自動生成できます。
 - 出力は JSONC。各エントリに `media.apple` の空テンプレが入るため、URLを埋めて保存すればそのまま適用可能です。

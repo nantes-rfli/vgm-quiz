@@ -1,13 +1,16 @@
+// Apple Music overrides (format: normalized key or match)
+// キー推奨: norm.game__norm.title / norm.answer__norm.title / norm.answer / norm.title
 {
-  // key は dataset の id/slug/uid 等、実データに合わせて置換してください。
-  "sample-track-id": {
+  // 例: Chrono Trigger - Corridors of Time（公式）
+  "chrono trigger__corridors of time": {
     "media": {
       "apple": {
-        "url": "https://music.apple.com/jp/album/xxxxx",
-        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
-        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a",
-        "previewOffset": 0
+        "url": "https://music.apple.com/us/song/corridors-of-time/324081937",
+        "embedUrl": "https://embed.music.apple.com/jp/album/chrono-trigger-original-soundtrack-ds-version/324080907?i=324081937"
+        // "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
       }
     }
   }
+
+  // ほかのトラックは generator で作った雛形を追記してください
 }
