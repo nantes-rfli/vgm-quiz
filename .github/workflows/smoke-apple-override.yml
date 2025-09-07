@@ -38,16 +38,29 @@ jobs:
           GAME_IN="${{ github.event.inputs.game }}"
           if [ -z "$KEY_IN" ] && [ -z "$TITLE_IN" ] && [ -z "$GAME_IN" ]; then
             # Pick the first key in data/apple_overrides.jsonc as a sensible default smoke target
-            KEY=$(node -e 'const fs=require("fs");let r="";try{const raw=fs.readFileSync("data/apple_overrides.jsonc","utf8").replace(/\/\\*(?:.|\n|\r)*?\\*\\//g,"").replace(/(^|\s+)//.*$/gm,"");const o=JSON.parse(raw);r=Object.keys(o)[0]||"";}catch{};console.log(r)')
-            echo "key=$KEY" >> "$GITHUB_OUTPUT"
-            echo "[smoke] default key -> $KEY"
+            node - <<'NODE'
+            const fs = require('fs');
+            const out = process.env.GITHUB_OUTPUT;
+            let key = '';
+            try {
+              let raw = fs.readFileSync('data/apple_overrides.jsonc','utf8');
+              raw = raw
+                .replace(/\/\*(?:.|\n|\r)*?\*\//g, '')
+                .replace(/(^|\s+)\/\/.*$/gm, '');
+              const obj = JSON.parse(raw);
+              key = Object.keys(obj)[0] || '';
+            } catch (e) {}
+            if (out) fs.appendFileSync(out, `key=${key}\n`);
+            console.log(key ? `[smoke] default key -> ${key}` : '[smoke] default key not found');
+            NODE
           else
             echo "key=" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run smoke script
         run: |
-          KEY="${{ steps.resolve.outputs.key != '' && steps.resolve.outputs.key || github.event.inputs.key }}"
+          KEY="${{ steps.resolve.outputs.key }}"
+          if [ -z "$KEY" ]; then KEY="${{ github.event.inputs.key }}"; fi
           TITLE="${{ github.event.inputs.title }}"
           GAME="${{ github.event.inputs.game }}"
           COMP="${{ github.event.inputs.composer }}"
