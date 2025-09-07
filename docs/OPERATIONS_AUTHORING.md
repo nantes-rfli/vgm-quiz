@@ -171,3 +171,9 @@ cp build/apple_override_candidates.jsonc data/apple_overrides.jsonc
 node scripts/normalize_core.mjs --in public/app/daily_auto.json
 ```
 
+### 補遺：normalize_core の安全弁（任意）
+`by_date` を含むコンテナに対して誤って単体正規化を適用しないために、**`scripts/normalize_core_guard_cli.mjs`** を用意しました。    
+- 使い方:  
+  `node scripts/normalize_core_guard_cli.mjs --in build/daily_today.json --out build/daily_today.json`  
+- `by_date` を検出した場合は **NO-OP** として終了します。
+
