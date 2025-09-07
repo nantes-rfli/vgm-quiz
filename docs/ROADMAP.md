@@ -298,4 +298,8 @@
 - `scripts/ingest_candidates_v0.mjs` により allowlist/seed を取り込み、`public/app/daily_candidates.jsonl` を生成（重複排除・非公式除外）
 - `candidates (ingest)` ワークフローで手動実行・成果物をアーティファクト確認（当面はコミットせず）
 
+### 進捗（2025-09-07 JST）
+- ✅ ingest（候補JSONL生成）導入済み
+- ✅ score+pick PR ワークフロー追加（Actionsのみで daily_auto.json を更新）
+
 ## v1.10 — Difficulty 2.0 & De-dup v1（近似重複抑制）

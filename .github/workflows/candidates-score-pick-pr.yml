@@ -1,0 +1,105 @@
+name: candidates (score+pick PR)
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Pick for date (YYYY-MM-DD, JST default: today)"
+        required: false
+        default: ""
+      with_choices:
+        description: "Attach choices (composer/game)? true/false"
+        required: false
+        default: "false"
+      allow:
+        description: "Use allowlist when ingesting? on/off"
+        required: false
+        default: "on"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ingest candidates v0
+        run: |
+          node scripts/ingest_candidates_v0.mjs --allow "${{ github.event.inputs.allow || 'on' }}"
+
+      - name: Score candidates
+        run: |
+          node scripts/score_candidates.js \
+            --in public/app/daily_candidates.jsonl \
+            --out public/app/daily_candidates_scored.jsonl
+
+      - name: Pick for date (merge into daily_auto.json)
+        run: |
+          DATE_IN="${{ github.event.inputs.date }}"
+          WITH="${{ github.event.inputs.with_choices || 'false' }}"
+          WITH_FLAG=""
+          if [ "$WITH" = "true" ] || [ "$WITH" = "1" ]; then WITH_FLAG="--with-choices"; fi
+          node scripts/generate_daily_from_candidates.js \
+            --in public/app/daily_candidates_scored.jsonl \
+            ${DATE_IN:+--date "$DATE_IN"} \
+            $WITH_FLAG \
+            --out public/app/daily_auto.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidates-pick
+          path: |
+            public/app/daily_candidates.jsonl
+            public/app/daily_candidates_scored.jsonl
+            public/app/daily_auto.json
+
+      - name: Detect changes
+        id: diff
+        run: |
+          git add -N public/app/daily_auto.json || true
+          if git diff --quiet -- public/app/daily_auto.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "[candidates] no changes detected; skipping PR"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: "${{ secrets.CPR_PAT }}"
+          title: "feat(daily): pick from candidates"
+          branch: "feat/daily-from-candidates-${{ github.run_id }}"
+          commit-message: "feat(daily): pick from candidates"
+          add-paths: |
+            public/app/daily_auto.json
+          labels: "automerge, daily, candidates"
+          draft: false
+
+      - name: Summary
+        run: |
+          echo "### candidates (score+pick) done" >> "$GITHUB_STEP_SUMMARY"
+          echo "- allow: \`${{ github.event.inputs.allow || 'on' }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- date: \`${{ github.event.inputs.date || 'today(JST)'}}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- with_choices: \`${{ github.event.inputs.with_choices || 'false'}}\`" >> "$GITHUB_STEP_SUMMARY"
+
