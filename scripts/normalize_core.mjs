@@ -18,6 +18,16 @@ import path from 'path';
 import url from 'url';
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
+function hasByDateMap(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  const m = obj.by_date;
+  if (!m || typeof m !== 'object') return false;
+  const keys = Object.keys(m);
+  if (!keys.length) return true; // empty map, still a map
+  // ISO8601 date YYYY-MM-DD
+  return keys.every(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+}
+
 // Wave dash variants to full-width tilde U+301C or ASCII hyphen?
 // Here, normalize to ASCII hyphen-minus and collapse repeats.
 export function normalizeDashes(s) {
