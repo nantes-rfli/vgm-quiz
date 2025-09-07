@@ -1,6 +1,58 @@
 {
-  "exported_at": "2025-09-07T15:08:20.731Z",
+  "exported_at": "2025-09-07T15:41:24.994Z",
   "items": [
+    {
+      "number": 432,
+      "title": "Authoring: harvester-min（公式ソース収集器）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/432",
+      "labels": [
+        "area:pipeline",
+        "roadmap:post-v1.7"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:49Z",
+      "roadmap": [
+        "roadmap:post-v1.7"
+      ]
+    },
+    {
+      "number": 449,
+      "title": "Scripts: 未翻訳/未使用キーの静的チェック",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/449",
+      "labels": [
+        "area:ops",
+        "i18n",
+        "type:scripts",
+        "roadmap:post-v1.6"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:48Z",
+      "roadmap": [
+        "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 448,
+      "title": "E2E: ?lang=ja|en スモーク",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/448",
+      "labels": [
+        "type:test",
+        "i18n",
+        "area:test",
+        "roadmap:post-v1.6"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:47Z",
+      "roadmap": [
+        "roadmap:post-v1.6"
+      ]
+    },
     {
       "number": 609,
       "title": "v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）",
@@ -133,77 +185,6 @@
       ]
     },
     {
-      "number": 450,
-      "title": "Docs: STYLEGUIDE_I18N/ROADMAP の整備",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/450",
-      "labels": [
-        "type:docs",
-        "roadmap:v1.6",
-        "i18n"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:35Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 449,
-      "title": "Scripts: 未翻訳/未使用キーの静的チェック",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/449",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.6",
-        "i18n",
-        "type:scripts"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:35Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 448,
-      "title": "E2E: ?lang=ja|en スモーク",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/448",
-      "labels": [
-        "type:test",
-        "roadmap:v1.6",
-        "i18n",
-        "area:test"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:34Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 447,
-      "title": "i18n: a11yメッセージのキー管理へ統合",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/447",
-      "labels": [
-        "roadmap:v1.6",
-        "type:code",
-        "i18n",
-        "area:a11y"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:34Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
       "number": 446,
       "title": "i18n: Intl.DateTimeFormat/NumberFormat での表記統一",
       "state": "open",
@@ -237,77 +218,6 @@
       "updated_at": "2025-09-04T07:52:33Z",
       "roadmap": [
         "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 444,
-      "title": "i18n: initI18n() を app.js 起動時に配線",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/444",
-      "labels": [
-        "roadmap:v1.6",
-        "area:app",
-        "type:code",
-        "i18n"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:33Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 443,
-      "title": "i18n: locales/en.json & ja.json（最小キー）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/443",
-      "labels": [
-        "roadmap:v1.6",
-        "area:app",
-        "i18n",
-        "type:data"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:32Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 442,
-      "title": "i18n: コアモジュール導入（i18n.mjs）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/442",
-      "labels": [
-        "roadmap:v1.6",
-        "area:app",
-        "type:code",
-        "i18n"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:32Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 438,
-      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/438",
-      "labels": [
-        "type:docs",
-        "roadmap:v1.7",
-        "area:ops"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T05:49:19Z",
-      "roadmap": [
-        "roadmap:v1.7"
       ]
     },
     {
@@ -345,61 +255,12 @@
       ]
     },
     {
-      "number": 435,
-      "title": "Authoring: distractors-v1（ダミー生成）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/435",
-      "labels": [
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T05:49:18Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 434,
-      "title": "Authoring: difficulty-v1（簡易スコア）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/434",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T05:49:18Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
       "number": 433,
       "title": "Authoring: clip-start-heuristics-v1",
       "state": "open",
       "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/433",
       "labels": [
         "type:test",
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T05:49:17Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 432,
-      "title": "Authoring: harvester-min（公式ソース収集器）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/432",
-      "labels": [
         "roadmap:v1.7",
         "area:pipeline"
       ],
@@ -676,6 +537,300 @@
       "updated_at": "2025-09-04T00:40:52Z",
       "roadmap": [
         "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 627,
+      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/627",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.7",
+        "area:ops",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:14Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 626,
+      "title": "Authoring: distractors-v1（ダミー生成）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/626",
+      "labels": [
+        "roadmap:v1.7",
+        "area:pipeline",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:14Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 625,
+      "title": "Authoring: difficulty-v1（簡易スコア）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/625",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:pipeline",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:13Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 624,
+      "title": "Docs: STYLEGUIDE_I18N/ROADMAP の整備",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/624",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.6",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:13Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 623,
+      "title": "i18n: a11yメッセージのキー管理へ統合",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/623",
+      "labels": [
+        "roadmap:v1.6",
+        "type:code",
+        "i18n",
+        "area:a11y",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:12Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 622,
+      "title": "i18n: initI18n() を app.js 起動時に配線",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/622",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:11Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 621,
+      "title": "i18n: locales/en.json & ja.json（最小キー）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/621",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "i18n",
+        "type:data",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:11Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 620,
+      "title": "i18n: コアモジュール導入（i18n.mjs）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/620",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:38:10Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 438,
+      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/438",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.7",
+        "area:ops",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:52Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 435,
+      "title": "Authoring: distractors-v1（ダミー生成）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/435",
+      "labels": [
+        "roadmap:v1.7",
+        "area:pipeline",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:51Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 434,
+      "title": "Authoring: difficulty-v1（簡易スコア）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/434",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:pipeline",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:50Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 450,
+      "title": "Docs: STYLEGUIDE_I18N/ROADMAP の整備",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/450",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.6",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:49Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 447,
+      "title": "i18n: a11yメッセージのキー管理へ統合",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/447",
+      "labels": [
+        "roadmap:v1.6",
+        "type:code",
+        "i18n",
+        "area:a11y",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:47Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 444,
+      "title": "i18n: initI18n() を app.js 起動時に配線",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/444",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:46Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 443,
+      "title": "i18n: locales/en.json & ja.json（最小キー）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/443",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "i18n",
+        "type:data",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:46Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 442,
+      "title": "i18n: コアモジュール導入（i18n.mjs）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/442",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-07T15:36:45Z",
+      "roadmap": [
+        "roadmap:v1.6"
       ]
     },
     {

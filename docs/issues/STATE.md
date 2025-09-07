@@ -1,6 +1,19 @@
 # Issues snapshot
 
-Exported at: 2025-09-07T15:08:20.731Z
+Exported at: 2025-09-07T15:41:24.995Z
+
+## post-v1.6
+
+| # | Title | State | Labels | Assignees | Updated |
+|---:|---|---|---|---|---|
+| 449 | [Scripts: 未翻訳/未使用キーの静的チェック](https://github.com/nantes-rfli/vgm-quiz/issues/449) | open | area:ops, i18n, type:scripts, roadmap:post-v1.6 |  | 2025-09-07T15:36:48Z |
+| 448 | [E2E: ?lang=ja|en スモーク](https://github.com/nantes-rfli/vgm-quiz/issues/448) | open | type:test, i18n, area:test, roadmap:post-v1.6 |  | 2025-09-07T15:36:47Z |
+
+## post-v1.7
+
+| # | Title | State | Labels | Assignees | Updated |
+|---:|---|---|---|---|---|
+| 432 | [Authoring: harvester-min（公式ソース収集器）](https://github.com/nantes-rfli/vgm-quiz/issues/432) | open | area:pipeline, roadmap:post-v1.7 |  | 2025-09-07T15:36:49Z |
 
 ## v1.10
 
@@ -46,27 +59,32 @@ Exported at: 2025-09-07T15:08:20.731Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 450 | [Docs: STYLEGUIDE_I18N/ROADMAP の整備](https://github.com/nantes-rfli/vgm-quiz/issues/450) | open | type:docs, roadmap:v1.6, i18n |  | 2025-09-04T07:52:35Z |
-| 449 | [Scripts: 未翻訳/未使用キーの静的チェック](https://github.com/nantes-rfli/vgm-quiz/issues/449) | open | area:ops, roadmap:v1.6, i18n, type:scripts |  | 2025-09-04T07:52:35Z |
-| 448 | [E2E: ?lang=ja|en スモーク](https://github.com/nantes-rfli/vgm-quiz/issues/448) | open | type:test, roadmap:v1.6, i18n, area:test |  | 2025-09-04T07:52:34Z |
-| 447 | [i18n: a11yメッセージのキー管理へ統合](https://github.com/nantes-rfli/vgm-quiz/issues/447) | open | roadmap:v1.6, type:code, i18n, area:a11y |  | 2025-09-04T07:52:34Z |
+| 624 | [Docs: STYLEGUIDE_I18N/ROADMAP の整備](https://github.com/nantes-rfli/vgm-quiz/issues/624) | closed | type:docs, roadmap:v1.6, i18n, status:done |  | 2025-09-07T15:38:13Z |
+| 623 | [i18n: a11yメッセージのキー管理へ統合](https://github.com/nantes-rfli/vgm-quiz/issues/623) | closed | roadmap:v1.6, type:code, i18n, area:a11y, status:done |  | 2025-09-07T15:38:12Z |
+| 622 | [i18n: initI18n() を app.js 起動時に配線](https://github.com/nantes-rfli/vgm-quiz/issues/622) | closed | roadmap:v1.6, area:app, type:code, i18n, status:done |  | 2025-09-07T15:38:11Z |
+| 621 | [i18n: locales/en.json & ja.json（最小キー）](https://github.com/nantes-rfli/vgm-quiz/issues/621) | closed | roadmap:v1.6, area:app, i18n, type:data, status:done |  | 2025-09-07T15:38:11Z |
+| 620 | [i18n: コアモジュール導入（i18n.mjs）](https://github.com/nantes-rfli/vgm-quiz/issues/620) | closed | roadmap:v1.6, area:app, type:code, i18n, status:done |  | 2025-09-07T15:38:10Z |
+| 450 | [Docs: STYLEGUIDE_I18N/ROADMAP の整備](https://github.com/nantes-rfli/vgm-quiz/issues/450) | closed | type:docs, roadmap:v1.6, i18n, status:done |  | 2025-09-07T15:36:49Z |
+| 447 | [i18n: a11yメッセージのキー管理へ統合](https://github.com/nantes-rfli/vgm-quiz/issues/447) | closed | roadmap:v1.6, type:code, i18n, area:a11y, status:done |  | 2025-09-07T15:36:47Z |
+| 444 | [i18n: initI18n() を app.js 起動時に配線](https://github.com/nantes-rfli/vgm-quiz/issues/444) | closed | roadmap:v1.6, area:app, type:code, i18n, status:done |  | 2025-09-07T15:36:46Z |
+| 443 | [i18n: locales/en.json & ja.json（最小キー）](https://github.com/nantes-rfli/vgm-quiz/issues/443) | closed | roadmap:v1.6, area:app, i18n, type:data, status:done |  | 2025-09-07T15:36:46Z |
+| 442 | [i18n: コアモジュール導入（i18n.mjs）](https://github.com/nantes-rfli/vgm-quiz/issues/442) | closed | roadmap:v1.6, area:app, type:code, i18n, status:done |  | 2025-09-07T15:36:45Z |
 | 446 | [i18n: Intl.DateTimeFormat/NumberFormat での表記統一](https://github.com/nantes-rfli/vgm-quiz/issues/446) | open | roadmap:v1.6, area:app, type:code, i18n |  | 2025-09-04T07:52:34Z |
 | 445 | [i18n: Start/History/Share のテキスト外部化（第1段）](https://github.com/nantes-rfli/vgm-quiz/issues/445) | open | area:ui, roadmap:v1.6, type:code, i18n |  | 2025-09-04T07:52:33Z |
-| 444 | [i18n: initI18n() を app.js 起動時に配線](https://github.com/nantes-rfli/vgm-quiz/issues/444) | open | roadmap:v1.6, area:app, type:code, i18n |  | 2025-09-04T07:52:33Z |
-| 443 | [i18n: locales/en.json & ja.json（最小キー）](https://github.com/nantes-rfli/vgm-quiz/issues/443) | open | roadmap:v1.6, area:app, i18n, type:data |  | 2025-09-04T07:52:32Z |
-| 442 | [i18n: コアモジュール導入（i18n.mjs）](https://github.com/nantes-rfli/vgm-quiz/issues/442) | open | roadmap:v1.6, area:app, type:code, i18n |  | 2025-09-04T07:52:32Z |
 
 ## v1.7
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 438 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/438) | open | type:docs, roadmap:v1.7, area:ops |  | 2025-09-04T05:49:19Z |
+| 627 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/627) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-07T15:38:14Z |
+| 626 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/626) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:38:14Z |
+| 625 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/625) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:38:13Z |
+| 438 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/438) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-07T15:36:52Z |
+| 435 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/435) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:51Z |
+| 434 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/434) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:50Z |
 | 437 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/437) | open | type:test, roadmap:v1.7, area:ops |  | 2025-09-04T05:49:19Z |
 | 436 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/436) | open | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-04T05:49:18Z |
-| 435 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/435) | open | roadmap:v1.7, area:pipeline |  | 2025-09-04T05:49:18Z |
-| 434 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/434) | open | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-04T05:49:18Z |
 | 433 | [Authoring: clip-start-heuristics-v1](https://github.com/nantes-rfli/vgm-quiz/issues/433) | open | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-04T05:49:17Z |
-| 432 | [Authoring: harvester-min（公式ソース収集器）](https://github.com/nantes-rfli/vgm-quiz/issues/432) | open | roadmap:v1.7, area:pipeline |  | 2025-09-04T05:49:17Z |
 | 405 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/405) | open | type:docs, roadmap:v1.7, area:ops |  | 2025-09-04T00:40:57Z |
 | 404 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/404) | open | type:test, roadmap:v1.7, area:ops |  | 2025-09-04T00:40:57Z |
 | 403 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/403) | open | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-04T00:40:56Z |
