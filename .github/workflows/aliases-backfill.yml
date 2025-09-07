@@ -1,0 +1,34 @@
+name: aliases backfill
+on:
+  workflow_dispatch: {}
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run backfill
+        run: |
+          node scripts/backfill_aliases_v1.mjs
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aliases_backfill
+          path: |
+            data/aliases/*.json
+            build/logs/*.txt
+          if-no-files-found: error
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "chore(aliases): backfill aliases"
+          branch: "chore/aliases-backfill"
+          commit-message: "chore(aliases): backfill aliases"
+          add-paths: |
+            data/aliases/*.json
+            build/logs/*.txt
