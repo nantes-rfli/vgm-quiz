@@ -14,6 +14,10 @@
 - **整形**：`norm`（title/answer/composer/series/game）を補う。media が無くても可。
 - **サマリ**：Step Summary に件数/除外理由を出力。
 
+### 追加ガード（推奨）
+- `scripts/heuristic_media_guard_v0.mjs`：provider/id 形式・title/answer 欠落など**明らかな不正**を除外（外部ネット無し）
+- ワークフロー `candidates (score+pick PR)` に組み込み済み（ingest → **guard** → score → pick）
+
 ## 使い方
 ```bash
 # 1) seed/allow を確認・編集
