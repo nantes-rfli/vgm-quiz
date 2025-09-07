@@ -1,0 +1,53 @@
+name: apple overrides (generate v2)
+on:
+  workflow_dispatch:
+    inputs:
+      jsonl_path:
+        description: "入力JSONLのパス（省略時は自動組み立て: seeds→score→enrich）"
+        required: false
+        default: ""
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Assemble scored_enriched JSONL
+        run: |
+          set -euxo pipefail
+          mkdir -p public/app build
+          if [ -n "${{ github.event.inputs.jsonl_path }}" ]; then
+            # 指定パスをそのまま利用
+            cp "${{ github.event.inputs.jsonl_path }}" public/app/daily_candidates_scored_enriched.jsonl
+          elif [ -f public/app/daily_candidates_scored_enriched.jsonl ]; then
+            echo "Found public/app/daily_candidates_scored_enriched.jsonl"
+          elif [ -f public/app/daily_candidates_scored.jsonl ]; then
+            node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+          elif [ -f public/app/daily_candidates.jsonl ]; then
+            node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
+            node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+          elif [ -f sources/seed_candidates.jsonl ]; then
+            cp sources/seed_candidates.jsonl public/app/daily_candidates.jsonl
+            node scripts/score_candidates.js --in public/app/daily_candidates.jsonl --out public/app/daily_candidates_scored.jsonl
+            node scripts/enrich_media_start.js --in public/app/daily_candidates_scored.jsonl --out public/app/daily_candidates_scored_enriched.jsonl
+          else
+            echo "No inputs found: please provide jsonl_path or add sources/seed_candidates.jsonl"; exit 2
+          fi
+          test -s public/app/daily_candidates_scored_enriched.jsonl
+
+      - name: Generate Apple override candidates JSONC
+        run: |
+          node scripts/generate_apple_override_candidates.mjs --in public/app/daily_candidates_scored_enriched.jsonl --out build/apple_override_candidates.jsonc
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple_override_candidates
+          path: build/apple_override_candidates.jsonc
+          if-no-files-found: error
