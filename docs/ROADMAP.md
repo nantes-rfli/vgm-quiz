@@ -267,4 +267,9 @@
 - `docs/V1_8_PLAN.md` — v1.8 の目的/スコープ/DoD/タスク/リスク/成果物
 - `docs/DESIGN_OGP.md` — OGP 静的生成（SVG→PNG）設計
 - `docs/SPEC_CHOICES_MODE.md` — 出題の選択肢制御仕様（auto/always4/one + 品質ゲート）
+ 
+## v1.8 進捗メモ（2025-09-07 JST）
+- **Stub卒業**: `EXPORT_SLIM_STUB_ON_EMPTY` を CI で常時OFF。日次のスリム出力は「実データのみ」を許容。
+- Apple優先のメディア添付: `data/apple_overrides.jsonc` を運用に組み込み（Chrono Trigger / Final Fantasy / Sonic）
+- Smokeワークフロー追加: 任意キーで Apple 埋め込みの成果物をアーティファクト検証（リポ差分なし）
 
