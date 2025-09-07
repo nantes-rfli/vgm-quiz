@@ -99,6 +99,20 @@ node scripts/distractors_v1_post.mjs --in public/app/daily_auto.json
 node scripts/export_today_slim.mjs --in public/app/daily_auto.json
 ```
 
+## オーバーライド候補の自動抽出
+- 既存の候補JSONLから、Appleオーバーライドの **正規化キー** を自動生成できます。
+- 出力は JSONC。各エントリに `media.apple` の空テンプレが入るため、URLを埋めて保存すればそのまま適用可能です。
+
+### 使い方
+```bash
+node scripts/generate_apple_override_candidates.mjs --out build/apple_override_candidates.jsonc
+# 内容を確認・編集してから data/apple_overrides.jsonc へ反映
+cp build/apple_override_candidates.jsonc data/apple_overrides.jsonc
+```
+
+- キーの優先順: `norm.game__norm.title` → `norm.answer__norm.title` → `norm.answer` → `norm.title`
+- 厳密一致をしたい場合は、各エントリに `match: { title, game, answer }` を付けてください。
+
 ## Stub 運用の卒業（v1.8）
 - 原則として **stub に依存しません**。出題がゼロの日は `ensure_min_items_v1_post.mjs` により最低 1 件を補います。
 - `scripts/export_today_slim.mjs` は **厳格モード**（有効データがない場合は非ゼロ終了）を維持します。
