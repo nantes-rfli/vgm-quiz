@@ -30,9 +30,24 @@ jobs:
         with:
           node-version: 20
 
+      - name: Resolve default key (empty input)
+        id: resolve
+        run: |
+          KEY_IN="${{ github.event.inputs.key }}"
+          TITLE_IN="${{ github.event.inputs.title }}"
+          GAME_IN="${{ github.event.inputs.game }}"
+          if [ -z "$KEY_IN" ] && [ -z "$TITLE_IN" ] && [ -z "$GAME_IN" ]; then
+            # Pick the first key in data/apple_overrides.jsonc as a sensible default smoke target
+            KEY=$(node -e 'const fs=require("fs");let r="";try{const raw=fs.readFileSync("data/apple_overrides.jsonc","utf8").replace(/\/\\*(?:.|\n|\r)*?\\*\\//g,"").replace(/(^|\s+)//.*$/gm,"");const o=JSON.parse(raw);r=Object.keys(o)[0]||"";}catch{};console.log(r)')
+            echo "key=$KEY" >> "$GITHUB_OUTPUT"
+            echo "[smoke] default key -> $KEY"
+          else
+            echo "key=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run smoke script
         run: |
-          KEY="${{ github.event.inputs.key }}"
+          KEY="${{ steps.resolve.outputs.key != '' && steps.resolve.outputs.key || github.event.inputs.key }}"
           TITLE="${{ github.event.inputs.title }}"
           GAME="${{ github.event.inputs.game }}"
           COMP="${{ github.event.inputs.composer }}"

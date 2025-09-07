@@ -20,3 +20,9 @@
 ### メモ
 - ブランチは `chore/aliases-backfill-<run_id>`（ユニーク）で作成します。
 - `CPR_PAT` が未設定の場合は PR 作成で失敗します（`required secret not found`）。設定後に再実行してください。
+
+### 変更なしの場合の挙動
+バックフィル後に差分が無い場合は、ワークフロー側で **PR 作成をスキップ** します。  
+（ログに `[aliases-backfill] no changes detected; skipping PR` と表示）  
+差分があるはずなのにスキップされた場合は、`data/aliases/*.json` の内容・`build/logs/backfill_*.txt` を確認してください。
+`.gitignore` により `build/logs` が除外される場合でも、`data/aliases` の差分があれば PR が作成されます。

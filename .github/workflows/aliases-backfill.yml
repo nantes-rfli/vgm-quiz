@@ -29,11 +29,30 @@ jobs:
             data/aliases/*.json
             build/logs/*.txt
           if-no-files-found: error
+      - name: Diff
+        id: diff
+        run: |
+          if [ -z "$(git status --porcelain data/aliases build/logs 2>/dev/null)" ]; then
+            echo "[aliases-backfill] no changes detected; skipping PR"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Configure Git user
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Stage changes
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          # 明示的にステージング（create-pull-requestのadd-pathsでも拾われますが、念のため）
+          git add data/aliases/*.json || true
+          # build/logs は .gitignore の対象の可能性があるためステージングは best-effort
+          if [ -f build/logs/backfill_*.txt ]; then
+            git add -f build/logs/*.txt || true
+          fi
       - name: Create PR
+        if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: "${{ secrets.CPR_PAT }}"
