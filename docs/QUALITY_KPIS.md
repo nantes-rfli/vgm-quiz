@@ -3,6 +3,14 @@
 ## 目的
 自動化の拡張に伴う品質劣化を**早期に検知**し、運用で矯正可能にする。
 
+## 最小必須セット（Step Summary への出力）
+- **guard**: `in/kept/drop`、`warn` 件数、主な理由トップ3
+- **dedup**: `examined/dup-exact/dup-similar`、`θ_main`（実行値）
+- **score/notability**: `mean/median`、帯域比（High/Med/Low）
+- **pick**: 採用件数 / スキップ理由（重複/枯渇/既存日）
+
+> これらは**全ワークフロー**で共通出力とし、欠落時は赤信号（要修正）。
+
 ## 日次KPI（Step Summary に出力）
 - guard: `in/kept/drop`, reasons（`youtube-id-format`, `suspicious-title` など）
 - dedup: `examined/dup-exact/dup-similar`

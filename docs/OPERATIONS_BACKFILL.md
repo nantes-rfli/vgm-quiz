@@ -3,6 +3,25 @@
 ## 目的
 数千～数万件規模の過去出題を**安全に**追加し、日次運用と両立させる。
 
+## by_year I/F（擬似例）
+```jsonc
+// public/app/by_year/1995.json
+{
+  "year": 1995,
+  "items": [
+    { "date": "1995-04-27", "id": "apple:1550828100", "title": "Corridors of Time", "game": "Chrono Trigger" },
+    { "date": "1995-08-11", "id": "apple:1550828200", "title": "Battle with Magus",  "game": "Chrono Trigger" }
+  ]
+}
+```
+
+### 集約ビュー
+- `public/app/daily_auto.json` は by_year を集約した**読み取りビュー**にする（生成時に結合）。
+- 先取りは**最大90日**（未来地平線）。超過分は Pool に留め、段階投入。
+
+### PR 粒度
+- 1PR = 30–90日分を目安。レビュー容易性とCI時間を確保。
+
 ## 原則
 - **年別分割**: by_date を年ごとに分割（`public/app/by_year/YYYY.json`）。`daily_auto.json` から参照できる集約ビューを用意。
 - **未来地平線**: 先取りは最大90日。超過分は **Pool** に留め、段階的に反映。

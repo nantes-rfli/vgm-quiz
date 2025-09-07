@@ -2,6 +2,19 @@
 
 このドキュメントは `docs/issues/*.json` による **自動Issue登録** と、`docs/issues/STATE.md` の **スナップショット出力** の運用手順です。
 
+## クイック手順（作成・更新の順番）
+1. **編集**：`docs/issues/*.json` を追加/更新（`title/labels/body` 必須、`id` 推奨、`state` 任意）
+2. **検証**：Actions → **issues (validate)**（PR時は自動）で JSON 体裁をチェック
+3. **id 付与（任意）**：Actions → **issues (ids assign)** を実行  
+   - 付与PRは自動作成→自動マージ（`CPR_PAT` が必要）
+4. **同期**：Actions → **issues (sync)** を実行（または `docs/issues/*.json` を main にマージ）  
+   - 既存Issueは `id`（本文埋め込み） or タイトルで一致更新／無ければ新規作成  
+   - `state` 指定があれば **open/closed** を反映
+5. **スナップショット**：Actions → **issues (export)** を実行  
+   - `docs/issues/STATE.md` / `state.json` を更新するPRが自動作成→自動マージ
+
+> v1.9 以前の **未作成Issue** も、該当する JSON に追記してから上記 2→3→4→5 で一括反映できます。
+
 ## 1) 登録（sync）
 - 変更点を `docs/issues/*.json` に書く（PRは Codex 経由でOK）
 - マージで **issues (sync)** が走り、タイトル一致 or `id` 一致で **作成/更新**

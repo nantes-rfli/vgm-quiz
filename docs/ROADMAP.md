@@ -322,6 +322,15 @@ DoD: Actions 全体が緑／ `daily_auto.json` が日次で増加（候補枯渇
 
 **参考**: 詳細は `docs/POLICY_PROVENANCE.md` / `docs/SPEC_DEDUP_v1.md` / `docs/QUALITY_KPIS.md` を参照。
 
+### 既定パラメータ（初期値）
+- De-dup: `θ_main=0.80`（strict=0.82）
+- Notability: High/Med/Low = `75/20/5`
+- Gate（自動採用）: **保守的開始**（θ は PR 送り多め。KPI安定後に緩和）
+- Backfill: **by_year** 導入（PR粒度=30–90日、地平線=90日）
+- KPI（Step Summary）: guard/dedup/notability/pick の**最小必須セット**を出力
+
+> これらは v1.10 実装中に回帰・KPI観測で微調整可能。
+
 ## v1.11 — Collector 本格化（Discovery → 自動収集 → 自動作問）
 **目的**: **完全自動**を段階的に解禁。v1.10 の地盤を下敷きに、量を安全に増やす。
 

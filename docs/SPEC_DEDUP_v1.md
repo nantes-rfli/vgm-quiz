@@ -3,6 +3,16 @@
 ## 目的
 自動収集の前に、**同曲/別表記/軽微な差**による重複を抑える。
 
+## 既定パラメータ（v1.10 初期値）
+- **N-gram**: 3-gram（タイトル・ゲーム・作曲者の見出し語を統一正規化後にトークン化）
+- **類似度閾値**: `θ_main = 0.80`（初期値）  
+  - **strictモード**（リスクが高いとき）: `θ_strict = 0.82`
+- **減点語（suspicious-title）**: cover / remix / extended / arrange / ost mix / long ver. / karaoke / bgm edit …（適用時は類似度を 0.02 減衰）
+- **完全重複**: `provider|id` 一致は即除外
+
+> 調整方針: ゴールデン10件の回帰テストを**必ず**実施し、`θ_main` は 0.78–0.82 の範囲で最適化する。
+> Step Summary には `examined/dup-exact/dup-similar` を必須出力。
+
 ## 正規化
 - 小文字化、空白圧縮、CJK間スペース除去、長音/波ダッシュ統一、ローマ数字分離、記号類の標準化
 - `normalize_core.mjs` をベースに、Clojure側でも同等関数を実装（言語差異はテストで担保）
