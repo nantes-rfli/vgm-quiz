@@ -1,7 +1,8 @@
 # VGM Quiz Roadmap (v1.x)
 
-> ※ドキュメント言語は日本語に統一（用語/API名は英語可）
-目的: v1.0.1 以降の開発方針を明確化し、**小さな安全な前進**を積み重ねる。各マイルストーンには**受け入れ基準 (DoD)** を設定。
+> 言語ポリシー: 本ドキュメントは **日本語** で記載（固有名詞/API名は英語可）。  
+> 目的: 方針のブレを防ぎ、**安全な自動化**を段階的に進める。各マイルストーンには **受け入れ基準 (DoD)** と **KPI** を設定。
+
 
 > **Note on source of truth**
 > - 機能の正本は **`docs/FEATURES.yml`**（implemented / planned / deprecated）。
@@ -293,19 +294,54 @@
 - `docs/OPERATIONS_AUTHORING.md`
 - `docs/BACKFILL_ALIASES.md`
 
-## v1.9 — Collector v0（安全な候補収集）
-- 収集ソース優先度：**Apple公式 > YouTube公式 > その他**
-- `scripts/ingest_candidates_v0.mjs` により allowlist/seed を取り込み、`public/app/daily_candidates.jsonl` を生成（重複排除・非公式除外）
-- `candidates (ingest)` ワークフローで手動実行・成果物をアーティファクト確認（当面はコミットせず）
+## v1.9 — Collector v0（安全な候補収集・最小）
+- ingest（allowlist/seed）→ guard → score → pick → PR/自動マージ の安定化
+- cron（00:05 JST）で毎日1問を自動作問（差分なければスキップ）
+> 注: v1.9 は **手動seed中心**。候補が尽きない限り自走する。net harvest は**まだ本格導入しない**。
 
-### 進捗（2025-09-07 JST）
-- ✅ ingest（候補JSONL生成）導入済み
-- ✅ score+pick PR ワークフロー追加（Actionsのみで daily_auto.json を更新）
-- ✅ cron 化：毎日 00:05 JST に pick & PR（差分なければスキップ）
+DoD: Actions 全体が緑／ `daily_auto.json` が日次で増加（候補枯渇時はスキップ）。
 
-**ToDo（v1.9 の残件）**
-- allowlist/seed の拡充（運用で育てる）
-- 埋め込み不可の推定強化（guard v1: pattern 追加）
-- choices 付与の自動化パラメータの調整（`choices_mode=auto` 前提）
+（参考）任意の準備タスク（dry-runのみ）: 週次の net 提案seed（Apple/iTunes Search）と bulk pick（手動）。
 
-## v1.10 — Difficulty 2.0 & De-dup v1（近似重複抑制）
+## v1.10 — Quality Foundation（Difficulty 2.0 & De-dup v1）
+**目的**: 大量投入前に**品質の地盤**を固める。  
+**範囲**:
+- Difficulty 2.0（帯域設計・目標正答率60–85%）
+- De-dup v1.5（正規化＋トークン化＋N-gram類似、疑似pHash/SimHashの導入検討）
+- Provenance（候補に `source/provider/id/collected_at/hash/license_hint` を付与）
+- Guard v1（suspicious-title 警告/厳格化スイッチ、provider/id形式検査の強化）
+- Observability（KPI出力: drop/warn率、dedup率、採用率、PRスキップ率）
+- Rate/Cost Control（レート制御・バックオフ・キャッシュ方針の明文化）
+- Revertability（PR/日単位のロールバック手順）
+- Human-in-the-loop（信頼度閾値未満はPR承認に回す）
+
+**DoD**
+- KPIが安定（warn≦30%、dedup≧5–10%程度で漸減、日次異常なし）
+- 緊急停止/ロールバック手順を運用に展開済み
+- スキーマ拡張（Provenance項目）を ingest/guard/pick に配線
+
+**参考**: 詳細は `docs/POLICY_PROVENANCE.md` / `docs/SPEC_DEDUP_v1.md` / `docs/QUALITY_KPIS.md` を参照。
+
+## v1.11 — Collector 本格化（Discovery → 自動収集 → 自動作問）
+**目的**: **完全自動**を段階的に解禁。v1.10 の地盤を下敷きに、量を安全に増やす。
+
+**構成**:
+1. Discovery（自動探索）: ゲーム/アルバム語 → 公式ソース探索（iTunes Search → Apple Music API/YouTube Data API）
+2. Harvest（収集）: 収集→正規化→Provenance付与→重複排除
+3. Gate（ゲーティング）: 信頼度スコア ≥ θ は**自動採用**、< θ は**PR承認**に回す
+4. Supply（供給）: seedに自動追加 → 日次 cron で pick
+5. Mix（出題ミックス）: Notability×Difficulty の2軸で日次構成（High帯中心、Low帯はExplore枠）
+
+**運用ガイド**:
+- backfillは「**年別分割**」＋「**未来地平線90日**」＋「**PR粒度 30–90日**」でスケール
+- “Pool（在庫）”と“by_date（カレンダー）”を分離し、段階的に反映可能にする
+
+**DoD**
+- 自動収集のdry-runが KPI 内で安定（異常時は自動停止）
+- θ（自動採用閾値）を定義し、PR承認フローが運用に乗る
+- Notability スコアを導入（SPEC参照）し、High帯中心の出題が維持される
+
+**関連**: `docs/SPEC_NOTABILITY.md` / `docs/OPERATIONS_BACKFILL.md` / `docs/ARCHITECTURE.md`。
+
+## v1.12+（以降の展望）
+- Audio特性の活用（将来）／モデリング高度化／UI改善 等

@@ -1,6 +1,11 @@
 # 候補パイプライン運用（ingest → score → pick）
 
-> ドキュメント言語は日本語（固有名詞/API名は英語可）
+> 参照:
+> - `docs/POLICY_PROVENANCE.md`（由来メタデータ）
+> - `docs/SPEC_DEDUP_v1.md`（近似重複抑制）
+> - `docs/SPEC_NOTABILITY.md`（知名度スコア）
+> - `docs/OPERATIONS_BACKFILL.md`（大量追加の指針）
+> - `docs/QUALITY_KPIS.md`（品質KPIとSLO）
 
 本番では **ローカル実行せず**、Actions だけで出題候補の取込・スコア付け・当日分の選出を行います。
 
