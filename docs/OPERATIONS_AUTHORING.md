@@ -161,3 +161,13 @@ cp build/apple_override_candidates.jsonc data/apple_overrides.jsonc
   EXPORT_SLIM_STUB_ON_EMPTY=true node scripts/export_today_slim.mjs --in public/app/daily_auto.json
   ```
   を使用してください（CIでは常にOFF）。
+
+
+## 正規化（v1.8 Phase 2）
+- 入力揺れを `scripts/normalize_core.mjs` で統一します。
+
+### 使い方
+```bash
+node scripts/normalize_core.mjs --in public/app/daily_auto.json
+```
+
