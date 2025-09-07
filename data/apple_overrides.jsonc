@@ -10,6 +10,51 @@
         // "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
       }
     }
+  },
+  "super mario bros.__main theme (super mario bros.)": {
+    "media": {
+      "apple": {
+        "url": "https://music.apple.com/jp/album/xxxxx",
+        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
+        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+      }
+    }
+  },
+  "final fantasy__final fantasy main theme": {
+    "media": {
+      "apple": {
+        "url": "https://music.apple.com/jp/album/xxxxx",
+        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
+        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+      }
+    }
+  },
+  "sonic the hedgehog__green hill zone": {
+    "media": {
+      "apple": {
+        "url": "https://music.apple.com/jp/album/xxxxx",
+        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
+        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+      }
+    }
+  },
+  "the legend of zelda__the legend of zelda main theme": {
+    "media": {
+      "apple": {
+        "url": "https://music.apple.com/jp/album/xxxxx",
+        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
+        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+      }
+    }
+  },
+  "chrono trigger__chrono trigger (main theme)": {
+    "media": {
+      "apple": {
+        "url": "https://music.apple.com/jp/album/xxxxx",
+        "embedUrl": "https://embed.music.apple.com/jp/album/xxxxx",
+        "previewUrl": "https://is1-ssl.mzstatic.com/.../preview.m4a"
+      }
+    }
   }
 
   // ほかのトラックは generator で作った雛形を追記してください
