@@ -2,12 +2,18 @@ name: aliases backfill
 on:
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   backfill:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -23,12 +29,19 @@ jobs:
             data/aliases/*.json
             build/logs/*.txt
           if-no-files-found: error
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
         with:
+          token: "${{ secrets.CPR_PAT }}"
           title: "chore(aliases): backfill aliases"
-          branch: "chore/aliases-backfill"
+          branch: "chore/aliases-backfill-${{ github.run_id }}"
           commit-message: "chore(aliases): backfill aliases"
           add-paths: |
             data/aliases/*.json
             build/logs/*.txt
+          labels: "automerge, chore, aliases"
+          draft: false

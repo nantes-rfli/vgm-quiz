@@ -49,8 +49,12 @@
   - roadmap-guard: `FEATURES.yml` の planned が ROADMAP に無いと **警告**。  
   - docs-legacy-guard: 旧ファイルの再導入は **警告**。
 
-- **PRチェック（最小）**  
-  1) 正本の更新有無（`urls-and-params.md` 等）  
-  2) ROADMAP/FEATURES の drift 無し  
-  3) 古い docs の再導入無し（ARCHIVE に追記済み）  
+- **PRチェック（最小）**
+  1) 正本の更新有無（`urls-and-params.md` 等）
+  2) ROADMAP/FEATURES の drift 無し
+  3) 古い docs の再導入無し（ARCHIVE に追記済み）
   4) 変更に応じて E2E / Budgets の説明を必要最小限で更新
+
+## ドキュメント言語ポリシー
+本リポジトリのドキュメントは **日本語に統一** します（固有名詞・API名・エラー文などは英語表記可）。  
+新規追加・更新時は日本語で記述し、英語ドキュメントを追加する場合は別ファイルにせず原則日本語へ統合します。
