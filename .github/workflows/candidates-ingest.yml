@@ -1,0 +1,31 @@
+name: candidates (ingest)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ingest candidates v0
+        run: |
+          node scripts/ingest_candidates_v0.mjs
+
+      - name: Upload candidates artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-candidates
+          path: public/app/daily_candidates.jsonl
+          if-no-files-found: error
+
+      - name: Summary (result)
+        run: echo "### candidates (ingest) result" >> "$GITHUB_STEP_SUMMARY"
