@@ -15,6 +15,22 @@
         "composer": ""
       },
       "difficulty": 5
+    },
+    "2025-09-08": {
+      "provider": "youtube",
+      "id": "3pGqg-8iN3Q",
+      "title": "Green Hill Zone",
+      "game": "Sonic the Hedgehog",
+      "answers": {
+        "canonical": "Green Hill Zone"
+      },
+      "norm": {
+        "title": "green hill zone",
+        "answer": "green hill zone",
+        "game": "sonic the hedgehog",
+        "composer": ""
+      },
+      "difficulty": 5
     }
   }
 }
