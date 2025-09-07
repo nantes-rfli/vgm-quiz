@@ -3,8 +3,8 @@
     "id": "authoring-harvester-min",
     "title": "Authoring: harvester-min（公式ソース収集器）",
     "labels": [
-      "roadmap:v1.7",
-      "area:pipeline"
+      "area:pipeline",
+      "roadmap:post-v1.7"
     ],
     "body": "### Scope\n- 公式YouTube/Apple API優先で収集\n- レート制御・失敗時リトライ\n\n### DoD\n- 最低1件の有効候補を日次で獲得可能\n- 失敗時の理由をログ/サマリで確認可能"
   },
@@ -22,20 +22,24 @@
     "id": "authoring-difficulty-v1",
     "title": "Authoring: difficulty-v1（簡易スコア）",
     "labels": [
-      "roadmap:v1.7",
       "area:pipeline",
+      "roadmap:v1.7",
+      "status:done",
       "type:test"
     ],
-    "body": "### Scope\n- 年代/別名密度/シリーズ知名度などから 0–100\n- Node/Browserパリティ\n- 分布チェック\n\n### DoD\n- 既存問題の分布が中央値±10pt以内\n- テスト緑"
+    "body": "### Scope\n- 年代/別名密度/シリーズ知名度などから 0–100\n- Node/Browserパリティ\n- 分布チェック\n\n### DoD\n- 既存問題の分布が中央値±10pt以内\n- テスト緑",
+    "state": "closed"
   },
   {
     "id": "authoring-distractors-v1",
     "title": "Authoring: distractors-v1（ダミー生成）",
     "labels": [
+      "area:pipeline",
       "roadmap:v1.7",
-      "area:pipeline"
+      "status:done"
     ],
-    "body": "### Scope\n- 同年代/作曲者/シリーズ近傍から抽出\n- 最低品質ガード\n\n### DoD\n- 明らかに不適切な選択肢が混入しない（軽量ルールベース）"
+    "body": "### Scope\n- 同年代/作曲者/シリーズ近傍から抽出\n- 最低品質ガード\n\n### DoD\n- 明らかに不適切な選択肢が混入しない（軽量ルールベース）",
+    "state": "closed"
   },
   {
     "id": "authoring-authoring-schema-json",
@@ -61,10 +65,12 @@
     "id": "authoring-ops-docs",
     "title": "Authoring: ops-docs（運用手順と監視ポイント）",
     "labels": [
+      "area:ops",
       "roadmap:v1.7",
-      "type:docs",
-      "area:ops"
+      "status:done",
+      "type:docs"
     ],
-    "body": "### Scope\n- Secrets/PAT、失敗時の手順、監視ディシプリン\n\n### DoD\n- Docs整備 & link-check緑"
+    "body": "### Scope\n- Secrets/PAT、失敗時の手順、監視ディシプリン\n\n### DoD\n- Docs整備 & link-check緑",
+    "state": "closed"
   }
 ]
