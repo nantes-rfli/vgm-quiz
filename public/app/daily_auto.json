@@ -1,29 +1,20 @@
 {
   "by_date": {
     "2025-09-07": {
-      "title": "Main Theme (Super Mario Bros.)",
-      "game": "Super Mario Bros.",
-      "composer": "Koji Kondo",
-      "media": {
-        "provider": "youtube",
-        "id": "NTa6Xbzfq1U",
-        "start": 0,
-        "duration": 30
-      },
+      "provider": "apple",
+      "id": "1550828100",
+      "title": "Corridors of Time",
+      "game": "Chrono Trigger",
       "answers": {
-        "canonical": "Super Mario Bros."
+        "canonical": "Corridors of Time"
       },
-      "choices": [
-        "Super Mario Bros."
-      ],
-      "difficulty": 0.5540000000000002,
       "norm": {
-        "title": "main theme (super mario bros.)",
-        "game": "super mario bros.",
-        "series": "super mario",
-        "composer": "koji kondo",
-        "answer": "super mario bros."
-      }
+        "title": "corridors of time",
+        "answer": "corridors of time",
+        "game": "chrono trigger",
+        "composer": ""
+      },
+      "difficulty": 5
     }
   }
 }
