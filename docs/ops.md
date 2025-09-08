@@ -80,3 +80,12 @@
 > Quick links（本番。`NOW` はキャッシュバスター置換）  
 > - `/build/version.json` / `/app/../build/version.json`  
 > - `/build.json?ts=NOW` / `/app/build.json?ts=NOW`
+
+## Issues 運用ルール（ラベル相互排他・汎用）
+
+- **唯一の正は `docs/issues/*.json`**。GitHub 側は `script/sync_issues_v3.mjs` で常に上書き。
+- `post-*` ラベルは **JSON が真実**（sync 時に GitHub ラベルも上書きされる）。
+- **相互排他（全バージョン共通）**: 同一 Issue に以下のラベルを **同時に付けない**。  
+  - `roadmap:vX.Y` **と** `roadmap:post-vX.Y`（X.Y は任意のバージョン、例: 1.5 / 1.7 / 1.11 …）  
+  → バリデータ（`script/validate_issue_specs.mjs`）で検出し、CI を **落とす** ようにしてある。
+- 先送り・保留項目は `roadmap:post-vX.Y` を **明示** し、タイトルや本文で文脈が変わる場合は Issue を分離（重複タイトルは v3.1 同期で安全に close される）。

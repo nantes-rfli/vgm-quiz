@@ -59,6 +59,31 @@ for (const f of files) {
   });
 }
 
+
+// --- Roadmap label mutual exclusion guard (generic) ---
+// Any issue must NOT have both `roadmap:vX.Y` and `roadmap:post-vX.Y` for the same X.Y.
+for (const f of files) {
+  const json = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf-8'));
+  json.forEach((it, idx) => {
+    const where = `${f}#${idx+1}${it.id ? `(${it.id})` : ''}`;
+    const labels = Array.isArray(it.labels) ? it.labels : [];
+    const v = new Set();
+    const post = new Set();
+    for (const lb of labels) {
+      let m = lb.match(/^roadmap:v(\d+\.\d+)$/);
+      if (m) v.add(m[1]);
+      m = lb.match(/^roadmap:post-v(\d+\.\d+)$/);
+      if (m) post.add(m[1]);
+    }
+    const both = [...v].filter(x => post.has(x));
+    if (both.length > 0) {
+      console.error(`✗ ${where}: mutually exclusive labels for roadmap version(s): ${both.join(', ')}`);
+      ok = false;
+    }
+  });
+}
+// --- end mutual exclusion guard ---
+
 if (!ok) {
   process.exit(1);
 } else {
