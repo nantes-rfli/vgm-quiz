@@ -45,21 +45,25 @@
     "id": "authoring-authoring-schema-json",
     "title": "Authoring: authoring-schema（生成JSONスキーマ）",
     "labels": [
-      "roadmap:v1.7",
-      "type:test",
-      "area:pipeline"
+      "area:pipeline",
+      "roadmap:post-v1.7",
+      "status:done",
+      "type:test"
     ],
-    "body": "### Scope\n- 生成JSONのスキーマ定義\n- schema検証\n\n### DoD\n- CIでschemaバリデーションが走る"
+    "body": "### Scope\n- 生成JSONのスキーマ定義\n- schema検証\n\n### DoD\n- CIでschemaバリデーションが走る",
+    "state": "closed"
   },
   {
     "id": "authoring-daily-publish-json-ogp",
     "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
     "labels": [
-      "roadmap:v1.7",
       "area:ops",
+      "roadmap:post-v1.7",
+      "status:done",
       "type:test"
     ],
-    "body": "### Scope\n- `public/daily/YYYY-MM-DD.json` と OGPを生成\n- latest連携・E2Eスモーク追加\n\n### DoD\n- `schedule: daily` で1問生成が安定\n- 失敗時のスキップと通知"
+    "body": "### Scope\n- `public/daily/YYYY-MM-DD.json` と OGPを生成\n- latest連携・E2Eスモーク追加\n\n### DoD\n- `schedule: daily` で1問生成が安定\n- 失敗時のスキップと通知",
+    "state": "closed"
   },
   {
     "id": "authoring-ops-docs",
