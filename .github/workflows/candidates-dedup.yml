@@ -20,9 +20,13 @@ jobs:
       - name: Install deps
         run: echo "no extra deps"
 
-      - name: Restore candidates artifact
-        uses: actions/download-artifact@v4
+      - name: Download candidates artifact from latest successful 'candidates-harvest'
+        uses: dawidd6/action-download-artifact@v2
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: candidates-harvest.yml
+          workflow_conclusion: success
+          branch: ${{ github.ref_name }}
           name: daily-candidates
           path: public/app
 

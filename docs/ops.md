@@ -81,6 +81,11 @@
 > - `/build/version.json` / `/app/../build/version.json`  
 > - `/build.json?ts=NOW` / `/app/build.json?ts=NOW`
 
+### Artifacts（ワークフロー間の受け渡し）
+- `actions/download-artifact` は **同一ワークフロー実行(run)** の成果物のみ取得可能。
+- **別ワークフローの成果物**を取得する場合は `dawidd6/action-download-artifact@v2` を使用し、
+  `workflow: <workflow file> / workflow_conclusion: success / branch: <branch> / name: <artifact>` を指定する。
+
 ## Issues の重複（タイトル一致）の後始末
 
 - まれに `sync_issues_v3.mjs` の初回同期やラベル移行で **同一タイトルの Open が複数** 残ることがあります。
