@@ -1,6 +1,42 @@
 {
-  "exported_at": "2025-09-08T01:41:33.698Z",
+  "exported_at": "2025-09-08T02:26:28.631Z",
   "items": [
+    {
+      "number": 636,
+      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/636",
+      "labels": [
+        "type:test",
+        "area:ops",
+        "status:done",
+        "roadmap:post-v1.7"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T02:23:36Z",
+      "roadmap": [
+        "roadmap:post-v1.7"
+      ]
+    },
+    {
+      "number": 635,
+      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/635",
+      "labels": [
+        "type:test",
+        "area:pipeline",
+        "status:done",
+        "roadmap:post-v1.7"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T02:23:36Z",
+      "roadmap": [
+        "roadmap:post-v1.7"
+      ]
+    },
     {
       "number": 433,
       "title": "Authoring: clip-start-heuristics-v1",
@@ -238,74 +274,6 @@
       ]
     },
     {
-      "number": 437,
-      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/437",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:ops"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T05:49:19Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 436,
-      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/436",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T05:49:18Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 404,
-      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/404",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:ops"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T00:40:57Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 403,
-      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/403",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T00:40:56Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
       "number": 400,
       "title": "Authoring: clip-start-heuristics-v1",
       "state": "open",
@@ -350,9 +318,79 @@
       ],
       "assignees": [],
       "milestone": null,
-      "updated_at": "2025-09-08T01:39:19Z",
+      "updated_at": "2025-09-08T02:23:35Z",
       "roadmap": [
         "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 437,
+      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/437",
+      "labels": [
+        "type:test",
+        "area:ops",
+        "status:done",
+        "roadmap:post-v1.7"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T02:20:31Z",
+      "roadmap": [
+        "roadmap:post-v1.7"
+      ]
+    },
+    {
+      "number": 404,
+      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/404",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:ops"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T02:20:31Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 403,
+      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/403",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:pipeline"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T02:20:30Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 436,
+      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/436",
+      "labels": [
+        "type:test",
+        "area:pipeline",
+        "status:done",
+        "roadmap:post-v1.7"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T02:20:29Z",
+      "roadmap": [
+        "roadmap:post-v1.7"
       ]
     },
     {
