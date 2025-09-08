@@ -43,6 +43,10 @@ jobs:
           const s = ['### candidates (harvest) details','- count: **'+N+'**'];
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, s.join('\n')+'\n');
           NODE
+
+      - name: Compute Notability v1 (score + band)
+        run: node scripts/notability_v1.mjs
+
       - name: Upload candidates artifact
         uses: actions/upload-artifact@v4
         with:
