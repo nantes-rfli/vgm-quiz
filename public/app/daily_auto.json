@@ -31,6 +31,36 @@
         "composer": ""
       },
       "difficulty": 5
+    },
+    "2025-09-09": {
+      "provider": "youtube",
+      "id": "wupYlZRL8Y4",
+      "title": "Main Theme (Super Mario Bros.)",
+      "game": "Super Mario Bros.",
+      "answers": {
+        "canonical": "Main Theme"
+      },
+      "norm": {
+        "title": "main theme (super mario bros.)",
+        "answer": "main theme",
+        "game": "super mario bros.",
+        "composer": ""
+      },
+      "provenance": {
+        "source": "seed",
+        "collected_at": "2025-09-08T15:28:00.256Z",
+        "license_hint": "unknown",
+        "hash": "sha1:fb6c0431bca021ed6ef2ad31aa7c4bab54dd6e6c"
+      },
+      "meta": {
+        "provenance": {
+          "source": "seed",
+          "collected_at": "2025-09-08T15:28:00.256Z",
+          "license_hint": "unknown",
+          "hash": "sha1:fb6c0431bca021ed6ef2ad31aa7c4bab54dd6e6c"
+        }
+      },
+      "difficulty": 5
     }
   }
 }
