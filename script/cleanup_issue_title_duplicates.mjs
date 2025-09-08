@@ -1,6 +1,7 @@
 /**
  * Standalone: Close duplicate open issues that share the same title.
  * Canonical: prefer issue that contains an <!-- issue-id: ... --> marker; else most recently updated.
+ * Adds 'duplicate' label to closed duplicates.
  */
 const REPO = process.env.GITHUB_REPOSITORY;
 const TOKEN = process.env.GITHUB_TOKEN;
@@ -27,7 +28,19 @@ async function gh(path, init = {}) {
   return ctype.includes('application/json') ? res.json() : res.text();
 }
 
+async function ensureLabelDuplicate() {
+  // Try to add; if fails because label doesn't exist, create it then add again.
+  async function addLabel(number) {
+    await gh(`/repos/${owner}/${repo}/issues/${number}/labels`, {
+      method: 'POST',
+      body: JSON.stringify({ labels: ['duplicate'] }),
+    });
+  }
+  return { addLabel };
+}
+
 async function run() {
+  const { addLabel } = await ensureLabelDuplicate();
   const open = [];
   let page = 1;
   while (true) {
@@ -59,6 +72,20 @@ async function run() {
         method: 'POST',
         body: JSON.stringify({ body: `Closed as duplicate of #${keep.number} (title match).` }),
       });
+      try {
+        await addLabel(it.number);
+      } catch (e) {
+        // Attempt to create label then re-add
+        try {
+          await gh(`/repos/${owner}/${repo}/labels`, {
+            method: 'POST',
+            body: JSON.stringify({ name: 'duplicate', color: 'cccccc', description: 'Closed as duplicate' }),
+          });
+          await addLabel(it.number);
+        } catch (e2) {
+          console.warn(`[cleanup] failed to add 'duplicate' label to #${it.number}:`, e2.message || e2);
+        }
+      }
       console.log(`[cleanup] closed dup #${it.number} -> keep #${keep.number}: ${title}`);
     }
   }
