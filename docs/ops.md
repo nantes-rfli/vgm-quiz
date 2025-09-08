@@ -89,6 +89,10 @@
   1. Actions → **issues (cleanup duplicates)** を手動実行
   2. もしくは次回以降の **issues (sync)** 実行後、自動のグローバル重複掃除で収束（本スクリプトに内蔵）
 
+### 重複クローズ時のラベル
+- 同一タイトルの重複を自動クローズした Issue には **`duplicate`** ラベルを付与します（存在しない場合は作成して付与）。
+- 手動で `issues (cleanup duplicates)` を実行した場合も同様に付与されます。
+
 ## Issues 運用ルール（ラベル相互排他・汎用）
 
 - **唯一の正は `docs/issues/*.json`**。GitHub 側は `script/sync_issues_v3.mjs` で常に上書き。
