@@ -1,107 +1,103 @@
 #!/usr/bin/env node
 /**
  * provenance_fallbacks_v1.mjs
- * Ensure provenance exists for candidates (.jsonl) and authoring today (.json).
- * Usage:
- *   node scripts/provenance_fallbacks_v1.mjs --jsonl public/app/daily_candidates.jsonl
- *   node scripts/provenance_fallbacks_v1.mjs --json public/app/daily_auto.json
+ *  - --jsonl <path>: JSON Lines (candidates)
+ *  - --json  <path>: JSON (authoring today)
+ * 既存の meta.provenance が欠けている、または必須キーが不足している場合に最小項目を補完する。
+ * v1 最小: source / provider / id / collected_at / hash / license_hint
+ * - idempotent（複数回の実行で二重加筆しない）
+ * - 可能であれば top-level の item.provenance も meta.provenance と同一化（後方互換）
  */
-import fs from 'node:fs';
-import fsp from 'node:fs/promises';
-import crypto from 'node:crypto';
 
-function mkFallback(meta){
-  const now = new Date().toISOString();
-  const provider = meta?.provider || 'manual';
-  const id = String(meta?.id || 'n/a');
-  const base = `${meta?.title||''}|${meta?.game||''}|${meta?.composer||''}|${provider}|${id}`;
-  const hash = 'sha1:'+crypto.createHash('sha1').update(base).digest('hex');
-  return {
-    source: provider==='manual' ? 'manual' : 'fallback',
-    provider, id, collected_at: now, hash,
-    license_hint: provider==='apple' ? 'official' : 'unknown'
-  };
+import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+
+function sha1(s) {
+  return 'sha1:' + createHash('sha1').update(String(s)).digest('hex');
 }
 
-function readJSON(p){ return JSON.parse(fs.readFileSync(p,'utf-8')); }
+function ensureProvenance(item, nowIso) {
+  if (!item || typeof item !== 'object') return { fixed: false, item };
+  item.meta = item.meta || {};
+  const basePv = (item.meta && item.meta.provenance) || item.provenance || {};
+  const pv = { ...basePv };
 
-async function runJsonl(p){
-  const lines = fs.readFileSync(p,'utf-8').trim().split(/\r?\n/);
-  const out = [];
-  let fixed = 0, total = 0;
-  for (const line of lines){
-    if (!line.trim()) continue;
-    total++;
-    let o; try { o = JSON.parse(line); } catch { out.push(line); continue; }
-    const has = !!(o?.meta?.provenance || o?.provenance);
-    if (!has){
-      const provider = o?.media?.provider || o?.clip?.provider || 'manual';
-      const id = o?.media?.id || o?.clip?.id || null;
-      const meta = {
-        provider, id,
-        title: o?.title || o?.track?.name || '',
-        game: o?.game || o?.series || '',
-        composer: o?.composer || (Array.isArray(o?.track?.composer)?o.track.composer.join(', '):o?.track?.composer||''),
-      };
-      const pv = mkFallback(meta);
-      o.meta = Object.assign({}, o.meta||{}, { provenance: pv });
-      fixed++;
+  // 必須フィールドを埋める
+  if (!pv.source) pv.source = basePv.source || 'seed';
+  if (!pv.provider && item.provider) pv.provider = item.provider;
+  if (!pv.id && (item.id || (item.media && item.media.id))) pv.id = item.id || item.media.id;
+  if (!pv.collected_at) pv.collected_at = nowIso;
+  if (!pv.license_hint) pv.license_hint = 'unknown';
+  if (!pv.hash) {
+    // provider+id を優先。なければ title/game を畳み込む。
+    const base = pv.provider && pv.id ? `${pv.provider}:${pv.id}`
+      : [item.title, item.game && (item.game.name || item.game), item.answers && item.answers.canonical]
+          .filter(Boolean).join('|');
+    pv.hash = sha1(base);
+  }
+
+  // 変更検出（idempotentのため shallow 比較）
+  const before = JSON.stringify(item.meta.provenance || {});
+  item.meta.provenance = pv;
+  item.provenance = pv; // 後方互換
+  const after = JSON.stringify(pv);
+  return { fixed: before !== after, item };
+}
+
+async function runJsonl(path) {
+  const raw = await readFile(path, 'utf8');
+  const lines = raw.split(/\r?\n/).filter(Boolean);
+  const nowIso = new Date().toISOString();
+  let fixed = 0;
+  const outLines = lines.map(line => {
+    try {
+      const obj = JSON.parse(line);
+      const res = ensureProvenance(obj, nowIso);
+      if (res.fixed) fixed++;
+      return JSON.stringify(res.item);
+    } catch {
+      return line; // 破損行は素通し
     }
-    out.push(JSON.stringify(o));
-  }
-  fs.writeFileSync(p, out.join('\n')+'\n', 'utf-8');
-  const msg = `[provenance-fallbacks] jsonl fixed=${fixed} / total=${total}`;
-  console.log(msg);
-  if (process.env.GITHUB_STEP_SUMMARY){
-    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n- ${msg}\n`);
-  }
+  });
+  await writeFile(path, outLines.join('\n') + '\n', 'utf8');
+  console.log(`[provenance-fallbacks] jsonl fixed=${fixed} / total=${lines.length}`);
 }
 
-async function runJson(p){
-  const json = readJSON(p);
-  const by = json?.by_date || {};
+async function runJson(path) {
+  const data = JSON.parse(await readFile(path, 'utf8'));
+  const nowIso = new Date().toISOString();
   let fixed = 0, total = 0;
-  for (const d of Object.keys(by)){
-    const day = by[d];
-    const arr = Array.isArray(day?.items) ? day.items : (Array.isArray(day)?day:[]);
-    for (const it of arr){
+
+  if (Array.isArray(data.items)) {
+    data.items = data.items.map(it => {
       total++;
-      const has = !!(it?.meta?.provenance || it?.provenance);
-      if (!has){
-        const provider = it?.media?.provider || it?.clip?.provider || 'manual';
-        const id = it?.media?.id || it?.clip?.id || null;
-        const meta = {
-          provider, id,
-          title: it?.title || it?.track?.name || '',
-          game: it?.game || it?.series || '',
-          composer: it?.composer || (Array.isArray(it?.track?.composer)?it.track.composer.join(', '):it?.track?.composer||''),
-        };
-        const pv = mkFallback(meta);
-        it.meta = Object.assign({}, it.meta||{}, { provenance: pv });
-        fixed++;
-      }
-    }
+      const res = ensureProvenance(it, nowIso);
+      if (res.fixed) fixed++;
+      return res.item;
+    });
+  } else if (data.item) {
+    total = 1;
+    const res = ensureProvenance(data.item, nowIso);
+    if (res.fixed) fixed++;
+    data.item = res.item;
   }
-  fs.writeFileSync(p, JSON.stringify(json, null, 2), 'utf-8');
-  const msg = `[provenance-fallbacks] json fixed=${fixed} / total=${total}`;
-  console.log(msg);
-  if (process.env.GITHUB_STEP_SUMMARY){
-    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n- ${msg}\n`);
-  }
+  await writeFile(path, JSON.stringify(data, null, 2), 'utf8');
+  console.log(`[provenance-fallbacks] json fixed=${fixed} / total=${total}`);
 }
 
-async function main(){
+async function main() {
   const args = process.argv.slice(2);
-  const jlIdx = args.indexOf('--jsonl');
-  const jIdx  = args.indexOf('--json');
-  if (jlIdx>=0 && args[jlIdx+1]){
-    await runJsonl(args[jlIdx+1]);
-  } else if (jIdx>=0 && args[jIdx+1]){
-    await runJson(args[jIdx+1]);
-  } else {
-    console.error('[provenance-fallbacks] usage: --jsonl <path> | --json <path>');
-    process.exit(2);
+  const idxJsonl = args.indexOf('--jsonl');
+  const idxJson  = args.indexOf('--json');
+  if (idxJsonl >= 0 && args[idxJsonl+1]) {
+    return runJsonl(args[idxJsonl+1]);
   }
+  if (idxJson >= 0 && args[idxJson+1]) {
+    return runJson(args[idxJson+1]);
+  }
+  console.error('Usage: node scripts/provenance_fallbacks_v1.mjs (--jsonl <path> | --json <path>)');
+  process.exit(2);
 }
-main().catch(e=>{ console.error(e); process.exit(1); });
+
+main().catch(e => { console.error(e); process.exit(1); });
 
