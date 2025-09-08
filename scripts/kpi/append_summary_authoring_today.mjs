@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Append KPI summary for build/daily_today.json to $GITHUB_STEP_SUMMARY
- * Usage: node scripts/kpi/append_summary_authoring_today.mjs --in build/daily_today.json
+ * Append KPI summary for build/daily_today.json to $GITHUB_STEP_SUMMARY and echo to console.
  */
 import fs from 'node:fs';
 
@@ -17,7 +16,10 @@ function readJSON(p){
 
 function main(){
   if (!fs.existsSync(IN)){
-    console.log(`::warning::KPI authoring: file not found: ${IN}`);
+    const warn = `::warning::KPI authoring: file not found: ${IN}`;
+    console.log(warn);
+    const SUM = process.env.GITHUB_STEP_SUMMARY;
+    if (SUM) fs.appendFileSync(SUM, warn+'\n');
     return;
   }
   const j = readJSON(IN);
@@ -30,12 +32,12 @@ function main(){
     media: !!(it.media && (it.media.apple && (it.media.apple.embedUrl||it.media.apple.url||it.media.apple.previewUrl) || (it.media.provider==='youtube' && it.media.id)))
   };
   const prov = it.media?.apple ? 'apple' : (it.media?.provider || 'none');
-  const SUM = process.env.GITHUB_STEP_SUMMARY;
   const lines = [];
   lines.push(`### KPI (authoring today)`);
   lines.push(`- ok: title=${ok.title}, game=${ok.game}, composer=${ok.composer}, answers=${ok.answers}, media=${ok.media}`);
   lines.push(`- media.provider: **${prov}**`);
+  const SUM = process.env.GITHUB_STEP_SUMMARY;
   if (SUM) fs.appendFileSync(SUM, lines.join('\n')+'\n');
-  else console.log(lines.join('\n'));
+  console.log(lines.join('\n'));
 }
 main();

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Append KPI summary for candidates JSONL to $GITHUB_STEP_SUMMARY
- * Usage: node scripts/kpi/append_summary_candidates.mjs --in public/app/daily_candidates.jsonl --label "pre-dedup"
+ * Append KPI summary for candidates JSONL to $GITHUB_STEP_SUMMARY and echo to console.
  */
 import fs from 'node:fs';
 
@@ -39,8 +38,7 @@ function summarize(items){
   return out;
 }
 
-function appendSummary(label, s){
-  const SUM = process.env.GITHUB_STEP_SUMMARY;
+function buildLines(label, s){
   const lines = [];
   lines.push(`### KPI (candidates) — ${label}`);
   lines.push(`- total: **${s.total}**`);
@@ -52,9 +50,12 @@ function appendSummary(label, s){
       lines.push(`  - ${k}: ${s.clip_flags[k]}`);
     }
   }
-  if (SUM) fs.appendFileSync(SUM, lines.join('\n')+'\n');
-  else console.log(lines.join('\n'));
+  return lines;
 }
 
 const items = readJSONL(IN);
-appendSummary(LABEL, summarize(items));
+const lines = buildLines(LABEL, summarize(items));
+const SUM = process.env.GITHUB_STEP_SUMMARY;
+if (SUM) fs.appendFileSync(SUM, lines.join('\n')+'\n');
+// Always echo to console as well
+console.log(lines.join('\n'));
