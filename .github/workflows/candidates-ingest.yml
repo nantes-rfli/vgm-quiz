@@ -27,6 +27,9 @@ jobs:
           path: public/app/daily_candidates.jsonl
           if-no-files-found: error
 
+      - name: Provenance fallback (candidates)
+        run: node scripts/provenance_fallbacks_v1.mjs --jsonl public/app/daily_candidates.jsonl
+
       - name: KPI (provenance, candidates)
         run: node scripts/kpi/append_summary_provenance.mjs --jsonl public/app/daily_candidates.jsonl
 

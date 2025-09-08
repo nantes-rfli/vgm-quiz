@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 /**
  * Robust exporter for today's slim artifact.
  * - Input: daily_auto.json (--in path)
