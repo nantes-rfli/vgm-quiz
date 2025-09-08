@@ -26,7 +26,7 @@
       "area:quality",
       "area:pipeline"
     ],
-    "body": "### Scope\n- source/provider/id/collected_at/hash/license_hint の継承\n- JSONL/JSON のスキーマ差分棚卸し\n\n### DoD\n- 欠落なしで通過\n- POLICY_PROVENANCE.md に実装例追記"
+    "body": "### Scope\n- source/provider/id/collected_at/hash/license_hint の継承\n- JSONL/JSON のスキーマ差分棚卸し\n- **stub 既定**の導入（`provider:'stub'`, `id:'stub:'+sha1hex(title|game|answers)`, `license_hint:'stub'`）\n- authoring の **export 後に fallback を必須適用**\n- ingest/harvest のアーティファクトは **fallback 後**を保存\n\n### DoD\n- candidates: provenance 付与率 **100%**（`provider/id` 欠落なし or stub付与）\n- authoring today: `item.meta.provenance` の有無 **100%**\n- POLICY_PROVENANCE.md / SPEC_PROVENANCE_WIRE_v1.md に実装例と stub 規定を反映"
   },
   {
     "id": "v110-kpi-summary",

@@ -14,8 +14,9 @@
 4) **ensure_min_items**（空なら 1 件注入）  
 5) **distractors_v1 / difficulty_v1**（選択肢補完・難易度付与）  
 6) **finalize_daily_v1**（フラット形 + 必須フィールド補完）  
-7) **validate**（`validate_nonempty_today` → `validate_authoring`）  
-8) **export_today_slim**（検収用 `build/daily_today.json/.md`）  
+7) **validate**（`validate_nonempty_today` → `validate_authoring`）
+8) **export_today_slim**（検収用 `build/daily_today.json/.md`）
+8.5) **provenance フォールバック**（`scripts/provenance_fallbacks_v1.mjs --json build/daily_today.json` を適用）
 9) **PR 作成 → Auto-merge**
 
 > ジョブ: `authoring (heuristics smoke)` / `daily (auto extended)`
