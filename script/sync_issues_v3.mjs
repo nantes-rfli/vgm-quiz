@@ -184,4 +184,145 @@ async function main() {
   }
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+// --- Global duplicate cleanup (title-based) ---
+async function __cleanupDuplicatesByTitleGlobal() {
+  try {
+    const repoStr = process.env.GITHUB_REPOSITORY || REPO;
+    if (!repoStr) return;
+    const [owner, repo] = repoStr.split('/');
+    const token = process.env.GITHUB_TOKEN || TOKEN;
+    const base = 'https://api.github.com';
+
+    async function gh2(path, init = {}) {
+      const res = await fetch(base + path, {
+        ...init,
+        headers: {
+          'authorization': `Bearer ${token}`,
+          'accept': 'application/vnd.github+json',
+          ...(init.headers || {}),
+        },
+      });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText} on ${path}`);
+      const ctype = res.headers.get('content-type') || '';
+      return ctype.includes('application/json') ? res.json() : res.text();
+    }
+
+    // Collect open issues (paginate)
+    const open = [];
+    let page = 1;
+    while (true) {
+      const arr = await gh2(`/repos/${owner}/${repo}/issues?state=open&per_page=100&page=${page}`);
+      if (!Array.isArray(arr) || arr.length === 0) break;
+      open.push(...arr.filter(x => !x.pull_request));
+      page++;
+      if (arr.length < 100) break;
+    }
+
+    // Group by title
+    const byTitle = new Map();
+    for (const it of open) {
+      const key = it.title.trim();
+      if (!byTitle.has(key)) byTitle.set(key, []);
+      byTitle.get(key).push(it);
+    }
+
+    for (const [title, list] of byTitle.entries()) {
+      if (list.length < 2) continue;
+      // Prefer the one that has <!-- issue-id: ... --> in the body; else the most recently updated
+      let keep = list.find(x => /<!--\s*issue-id:\s*[-a-z0-9]+\s*-->/.test(x.body || ''));
+      if (!keep) {
+        keep = list.slice().sort((a,b) => new Date(b.updated_at) - new Date(a.updated_at))[0];
+      }
+      for (const it of list) {
+        if (it.number === keep.number) continue;
+        await gh2(`/repos/${owner}/${repo}/issues/${it.number}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ state: 'closed' }),
+        });
+        // leave a short comment for traceability
+        await gh2(`/repos/${owner}/${repo}/issues/${it.number}/comments`, {
+          method: 'POST',
+          body: JSON.stringify({ body: `Closed as duplicate of #${keep.number} (title match).` }),
+        });
+        console.log(`[cleanup] closed dup #${it.number} -> keep #${keep.number}: ${title}`);
+      }
+    }
+  } catch (e) {
+    console.warn('cleanupDuplicatesByTitleGlobal warning:', e.message || e);
+  }
+}
+// --- end cleanup ---
+
+// --- Enforce 'closed' specs: close stray open issues by title and avoid recreating closed ones ---
+async function __enforceClosedSpecs() {
+  try {
+    const repoStr = process.env.GITHUB_REPOSITORY || REPO;
+    if (!repoStr) return;
+    const [owner, repo] = repoStr.split('/');
+    const token = process.env.GITHUB_TOKEN || TOKEN;
+    const base = 'https://api.github.com';
+
+    async function gh(path, init = {}) {
+      const res = await fetch(base + path, {
+        ...init,
+        headers: {
+          'authorization': `Bearer ${token}`,
+          'accept': 'application/vnd.github+json',
+          ...(init.headers || {}),
+        },
+      });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText} on ${path}`);
+      const ctype = res.headers.get('content-type') || '';
+      return ctype.includes('application/json') ? res.json() : res.text();
+    }
+
+    // Load spec titles that are supposed to be closed
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const DIR = 'docs/issues';
+    const files = fs.existsSync(DIR) ? fs.readdirSync(DIR).filter(f => f.endsWith('.json') && f !== 'state.json') : [];
+    const closedTitles = new Set();
+    for (const f of files) {
+      const arr = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf-8'));
+      for (const it of arr) {
+        if ((it.state || '').toLowerCase() === 'closed') {
+          closedTitles.add((it.title || '').trim());
+        }
+      }
+    }
+
+    if (closedTitles.size === 0) return;
+
+    // Paginate open issues and close those that match closedTitles
+    let page = 1;
+    while (true) {
+      const arr = await gh(`/repos/${owner}/${repo}/issues?state=open&per_page=100&page=${page}`);
+      if (!Array.isArray(arr) || arr.length === 0) break;
+      const issues = arr.filter(x => !x.pull_request);
+      for (const it of issues) {
+        const t = (it.title || '').trim();
+        if (closedTitles.has(t)) {
+          await gh(`/repos/${owner}/${repo}/issues/${it.number}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ state: 'closed' }),
+          });
+          await gh(`/repos/${owner}/${repo}/issues/${it.number}/comments`, {
+            method: 'POST',
+            body: JSON.stringify({ body: `Closed to enforce spec state=closed for "${t}".` }),
+          });
+          console.log(`[enforceClosedSpecs] closed #${it.number}: ${t}`);
+        }
+      }
+      page++;
+      if (arr.length < 100) break;
+    }
+  } catch (e) {
+    console.warn('enforceClosedSpecs warning:', e.message || e);
+  }
+}
+// --- end enforce 'closed' specs ---
+
+main()
+  .then(__cleanupDuplicatesByTitleGlobal)
+  .then(__enforceClosedSpecs)
+  .catch(e => { console.error(e); process.exit(1); });
