@@ -1,12 +1,8 @@
 #!/usr/bin/env node
 /**
  * Notability v1 — simple score & banding for candidates JSONL
- * Features (0..1): official(apple) / alias_norm / provider_signal
- * Score = 0.5*official + 0.3*alias_norm + 0.2*provider_signal
- * Bands: high>=0.67, low<=0.33, else med
- * Input:  public/app/daily_candidates.jsonl
- * Output: in-place enrichment: item.meta.notability = {score, band}
- * Summary: prints band ratios to $GITHUB_STEP_SUMMARY and console
+ * Writes to: obj.meta.notability = {score, band}  (FLAT; no extra nesting)
+ * Also flattens legacy shape: if obj.meta.notability.notability exists, it is replaced.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,21 +27,12 @@ function writeJSONL(file, arr){
 
 function aliasCount(ans){
   if (!ans) return 0;
-  // supports: {acceptables:[]}, array, or string
   if (Array.isArray(ans)) return ans.length;
   if (typeof ans==='object' && Array.isArray(ans.acceptables)) return ans.acceptables.length;
   return 0;
 }
-function aliasNorm(c){
-  // cap at 5 -> 1.0
-  const cap = 5;
-  return Math.max(0, Math.min(1, c / cap));
-}
-function isOfficial(o){
-  const m = o?.media;
-  if (m?.apple && (m.apple.embedUrl || m.apple.url || m.apple.previewUrl)) return 1;
-  return 0;
-}
+function aliasNorm(c){ const cap=5; return Math.max(0, Math.min(1, c/cap)); }
+function isOfficial(o){ const m=o?.media; return (m?.apple && (m.apple.embedUrl||m.apple.url||m.apple.previewUrl)) ? 1 : 0; }
 function providerSignal(o){
   const m=o?.media;
   if (m?.apple) return 1.0;
@@ -53,7 +40,20 @@ function providerSignal(o){
   if (!m) return 0.2;
   return 0.4;
 }
-function ensureMeta(o){ if (!o.meta) o.meta={}; if (!o.meta.notability) o.meta.notability={}; return o.meta.notability; }
+
+function flattenLegacyNotability(o){
+  const meta = o.meta && typeof o.meta==='object' ? o.meta : (o.meta={});
+  const nb = meta.notability;
+  if (nb && typeof nb==='object' && nb.notability && typeof nb.notability==='object'){
+    meta.notability = nb.notability; // flatten
+  }
+  return meta;
+}
+
+function setNotability(o, score, band){
+  const meta = flattenLegacyNotability(o);
+  meta.notability = { score: Number(score.toFixed(3)), band };
+}
 
 function main(){
   const arr = readJSONL(IN);
@@ -64,12 +64,10 @@ function main(){
     const aNorm = aliasNorm(aliases);
     const pSig = providerSignal(o);
     let score = W_OFFICIAL*official + W_ALIAS*aNorm + W_SIGNAL*pSig;
-    // bound
     score = Math.max(0, Math.min(1, score));
     let band = 'med';
     if (score >= TH_HIGH) band = 'high'; else if (score <= TH_LOW) band = 'low';
-    const meta = ensureMeta(o);
-    meta.notability = { score: Number(score.toFixed(3)), band };
+    setNotability(o, score, band);
     if (band==='high') high++; else if (band==='low') low++; else med++;
   }
   writeJSONL(OUT, arr);
@@ -82,4 +80,3 @@ function main(){
   console.log(lines.join('\n'));
 }
 main();
-
