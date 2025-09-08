@@ -186,4 +186,4 @@ node scripts/normalize_core.mjs --in public/app/daily_auto.json
 - 使い方:  
   `node scripts/normalize_core_guard_cli.mjs --in build/daily_today.json --out build/daily_today.json`  
 - `by_date` を検出した場合は **NO-OP** として終了します。
-
+- 参考: `docs/HARVESTER_MIN.md`（公式ソース最小導入ガイド）

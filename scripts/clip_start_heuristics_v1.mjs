@@ -50,6 +50,10 @@ if (args.help || !args.in || !args.out) {
   usage();
   process.exit(args.help ? 0 : 1);
 }
+
+const MIN_SEGMENT_SEC = 15;     // 短すぎ対策（常に最低15sは確保）
+const YT_MIN_OFFSET_SEC = 3;    // YouTubeは冒頭ノイズ/ジングルを避けて+3s
+const CHORUS_DEFAULT_SEC = 45;  // サビ/Chorus は目安で45s（曲による）
 function clamp(n, lo, hi) {
   return Math.max(lo, Math.min(hi, n));
 }
@@ -72,7 +76,9 @@ function keywordStart(text) {
   if (battle.test(text)) return 12;
   // 末尾系
   const ending = /(ending|credits|staff\s*roll|エンディング|スタッフ.?ロール)/i;
+  const chorus = /(chorus|サビ)/i;
   if (ending.test(text)) return 20;
+  if (chorus.test(text)) return CHORUS_DEFAULT_SEC;
   return null;
 }
 function providerDefault(provider) {
@@ -111,12 +117,23 @@ async function run(inputPath, outputPath, { defaultStart, max, force }) {
     obj.clip = obj.clip || {};
     const hadNumeric = hasNumericStart(obj.clip);
     if (!hadNumeric || force) {
-      const s = guessStart(obj, { defaultStart, maxStart: max });
+      let flags = [];
+      let s = guessStart(obj, { defaultStart, maxStart: max });
       if (!Number.isFinite(obj.clip.duration)) {
-        // duration 未設定なら最小安全値 15 をセット（UI側で上限60を尊重）
-        obj.clip.duration = 15;
+        obj.clip.duration = MIN_SEGMENT_SEC;
+      } else if (obj.clip.duration < MIN_SEGMENT_SEC) {
+        obj.clip.duration = MIN_SEGMENT_SEC;
+        flags.push('too_short');
+      }
+      if (obj.clip.provider && String(obj.clip.provider).toLowerCase().includes('youtube') && s < YT_MIN_OFFSET_SEC) {
+        s = YT_MIN_OFFSET_SEC;
+        flags.push('start_below_min');
+      }
+      if (s === max) {
+        flags.push('late_start_clamped');
       }
       obj.clip.start = s;
+      if (flags.length) obj.clip.flags = Array.from(new Set([...(obj.clip.flags||[]), ...flags]));
       updated++;
     }
     out.write(JSON.stringify(obj) + '\n');
