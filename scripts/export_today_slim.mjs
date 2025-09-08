@@ -151,6 +151,7 @@ async function coerce(raw){
   }
   const difficulty = typeof raw.difficulty === 'number' ? raw.difficulty : undefined;
   const item = { title, game, composer, media, answers };
+  const pv = (raw?.meta && raw.meta.provenance) || raw?.provenance; if (pv && typeof pv==='object'){ item.meta = Object.assign({}, item.meta||{}, { provenance: pv }); }
   if (typeof difficulty !== 'undefined') item.difficulty = difficulty;
   // Attach Apple overrides if available
   try {

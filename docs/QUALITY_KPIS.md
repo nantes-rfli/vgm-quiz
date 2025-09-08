@@ -30,3 +30,9 @@
 ## 運用
 - 赤信号の閾値を越えたら自動採用を停止（Repo Variables）
 - 重要KPIは README バッジ化 or 週次PRのSummaryに集約
+
+
+## provenance（存在チェック, v1.10）
+- candidates: `public/app/daily_candidates.jsonl` の `provenance` 付与率（provider/id/collected_at）
+- authoring today: `build/daily_today.json` の `item.meta.provenance` 有無
+> 実装: `scripts/kpi/append_summary_provenance.mjs`

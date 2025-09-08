@@ -9,6 +9,34 @@
 const fs = require('fs');
 const path = require('path');
 const { normalizeAnswer } = require('./pipeline/normalize');
+const crypto = require('crypto');
+function deriveProviderId(media){
+  const a = (media && typeof media==='object' && media.apple) ? media.apple : null;
+  if (a && (a.embedUrl || a.url || a.previewUrl)){
+    return { provider: 'apple', id: a.embedUrl || a.url || a.previewUrl };
+  }
+  if (media && media.provider && media.id){
+    return { provider: media.provider, id: String(media.id) };
+  }
+  return null;
+}
+function ensureProvenance(c, source='dataset'){
+  if (!c || typeof c!=='object') return c;
+  const prev = c.provenance || (c.meta && c.meta.provenance) || {};
+  const prov = { ...prev };
+  if (!prov.source) prov.source = source;
+  const pid = deriveProviderId(c.media || c.clip);
+  if (pid){ prov.provider = prov.provider || pid.provider; prov.id = prov.id || pid.id; }
+  if (!prov.collected_at) prov.collected_at = new Date().toISOString();
+  if (!prov.license_hint) prov.license_hint = (c.media && c.media.apple) ? 'official' : 'unknown';
+  if (!prov.hash){
+    const base = `${c.norm?.title||c.title||''}|${c.norm?.game||c.game||''}|${c.norm?.composer||c.composer||''}|${prov.provider||''}|${prov.id||''}`;
+    prov.hash = 'sha1:'+crypto.createHash('sha1').update(base).digest('hex');
+  }
+  c.provenance = prov;
+  c.meta = c.meta || {}; c.meta.provenance = prov;
+  return c;
+}
 const JSONC = {
   parse(src){
     // very small JSONC: strip // and /* */ comments
@@ -149,7 +177,7 @@ function main(){
     if(!c.norm.title || !c.norm.game || !c.norm.composer) continue;
     if(seen.has(key)) continue;
     seen.add(key);
-    ws.write(JSON.stringify(c) + '\n');
+    ws.write(JSON.stringify(ensureProvenance(c)) + '\n');
     kept++;
   }
   ws.end();
