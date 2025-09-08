@@ -1,0 +1,47 @@
+
+name: candidates (dedup v1.5)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  dedup:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: echo "no extra deps"
+
+      - name: Restore candidates artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: daily-candidates
+          path: public/app
+
+      - name: Run de-dup v1.5
+        env:
+          DEDUP_IN: public/app/daily_candidates.jsonl
+          DEDUP_OUT: public/app/daily_candidates_deduped.jsonl
+          DEDUP_REPLACE: '1'
+          DEDUP_THETA_MAIN: '0.80'
+          DEDUP_THETA_STRICT: '0.82'
+        run: node scripts/dedup_v1_5.mjs
+
+      - name: Upload candidates (deduped)
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-candidates
+          path: public/app/daily_candidates.jsonl
+          if-no-files-found: error
+
+      - name: Summary (result)
+        run: echo "### candidates (dedup v1.5) result" >> "$GITHUB_STEP_SUMMARY"
+
