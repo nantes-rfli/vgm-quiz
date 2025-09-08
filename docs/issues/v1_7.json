@@ -12,9 +12,9 @@
     "id": "authoring-clip-start-heuristics-v1",
     "title": "Authoring: clip-start-heuristics-v1",
     "labels": [
-      "roadmap:v1.7",
       "area:pipeline",
-      "type:test"
+      "type:test",
+      "roadmap:post-v1.7"
     ],
     "body": "### Scope\n- t=/start=>メタ=>既定値の優先順位\n- 異常値ガード\n- ユニットテスト\n\n### DoD\n- 代表ケースで期待値\n- エッジケースでフェイルセーフ"
   },

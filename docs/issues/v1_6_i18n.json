@@ -42,10 +42,10 @@
     "id": "replace-strings-step1",
     "title": "i18n: Start/History/Share のテキスト外部化（第1段）",
     "labels": [
-      "roadmap:v1.6",
       "area:ui",
       "type:code",
-      "i18n"
+      "i18n",
+      "roadmap:post-v1.6"
     ],
     "body": "### Scope\n- 目に触れるUIテキストのキー化（Start/History/Share）\n\n### DoD\n- スクリーンショット差分で視覚回帰なし\n- 既存E2E緑維持",
     "state": "open"
@@ -54,10 +54,10 @@
     "id": "intl-dates-numbers",
     "title": "i18n: Intl.DateTimeFormat/NumberFormat での表記統一",
     "labels": [
-      "roadmap:v1.6",
       "area:app",
       "type:code",
-      "i18n"
+      "i18n",
+      "roadmap:post-v1.6"
     ],
     "body": "### Scope\n- 日付/数値表示の Intl.* 化\n\n### DoD\n- ロケールに応じた表記\n- 未対応環境でもフォールバック（英語）",
     "state": "open"
