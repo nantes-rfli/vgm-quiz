@@ -1,5 +1,5 @@
 /**
- * sync_issues_v3.mjs
+ * sync_issues_v3.mjs (v3.1)
  * Like v2, but supports optional `state` in specs ("open"|"closed").
  * - Match by `id` marker (<!-- issue-id: ... -->) or title (first-time)
  * - Update title/body/labels as before
@@ -93,10 +93,14 @@ function normSpec(i) {
 }
 
 function indexIssues(issues) {
-  const byTitle = new Map();
+  const byTitle = new Map();   // title -> Issue[] (keep duplicates)
   const byId = new Map();
   for (const it of issues) {
-    if (it.title) byTitle.set(it.title, it);
+    if (it.title) {
+      const arr = byTitle.get(it.title) || [];
+      arr.push(it);
+      byTitle.set(it.title, arr);
+    }
     const m = (it.body || '').match(/<!--\s*issue-id:\s*([a-z0-9-]+)\s*-->/i);
     if (m) byId.set(m[1], it);
   }
@@ -123,7 +127,14 @@ async function main() {
   const { byTitle, byId } = indexIssues(issues);
 
   for (const s of specs) {
-    const target = s.id ? byId.get(s.id) : byTitle.get(s.title);
+    const titleArr = byTitle.get(s.title) || [];
+    let target = s.id ? byId.get(s.id) : (titleArr[0] || null);
+
+    // fallback when spec has id but existing issue lacks marker: match by title (prefer open)
+    if (!target && s.id && titleArr.length > 0) {
+      target = titleArr.find(it => it.state === 'open') || titleArr[0];
+    }
+
     if (!target) {
       const created = await gh(`/repos/${owner}/${repo}/issues`, {
         method: 'POST',
@@ -156,6 +167,19 @@ async function main() {
       console.log(`Updated #${updated.number}: ${updated.title} (${updated.state})`);
     } else {
       console.log(`No change: #${target.number} ${target.title} (${target.state})`);
+    }
+
+    // Close duplicate-by-title issues when spec is closed
+    if (s.state === 'closed' && (titleArr.length > 1)) {
+      for (const it of titleArr) {
+        if (it.number === target.number) continue;
+        if (it.state === 'closed') continue;
+        await gh(`/repos/${owner}/${repo}/issues/${it.number}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ state: 'closed' }),
+        });
+        console.log(`Closed duplicate by title #${it.number}: ${it.title}`);
+      }
     }
   }
 }
