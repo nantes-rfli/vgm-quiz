@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-08T13:12:37.365Z
+Exported at: 2025-09-08T15:08:37.715Z
 
 ## post-v1.6
 
@@ -44,7 +44,7 @@ Exported at: 2025-09-08T13:12:37.365Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 551 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/551) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-08T13:12:11Z |
+| 551 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/551) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-08T13:13:11Z |
 | 398 | [Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）](https://github.com/nantes-rfli/vgm-quiz/issues/398) | closed | roadmap:v1.5, type:docs |  | 2025-09-08T01:12:32Z |
 | 397 | [Tests: UI/Responsive最小スモーク追加（JS不増を担保）](https://github.com/nantes-rfli/vgm-quiz/issues/397) | closed | roadmap:v1.5, responsive, type:test |  | 2025-09-08T01:12:32Z |
 | 396 | [UI: ライトテーマのコントラスト微調整](https://github.com/nantes-rfli/vgm-quiz/issues/396) | closed | roadmap:v1.5, area:ui, a11y |  | 2025-09-08T01:12:31Z |
