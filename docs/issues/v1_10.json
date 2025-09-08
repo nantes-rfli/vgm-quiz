@@ -15,7 +15,8 @@
       "roadmap:v1.10",
       "area:quality"
     ],
-    "body": "### Scope\n- 特徴量: Apple Popularity / aliases頻度 / 公式フラグ\n- 帯域閾値: 0.67 / 0.33（初期）\n- pick ミックスに適用\n\n### DoD\n- Summary に帯域比\n- SPEC_NOTABILITY.md 反映\n- 直近7日の正答率が 60–85% 帯に入る（観測）"
+    "body": "### Scope\n- 特徴量: Apple Popularity / aliases頻度 / 公式フラグ\n- 帯域閾値: 0.67 / 0.33（初期）\n- pick ミックスに適用\n\n### DoD\n- Summary に帯域比\n- SPEC_NOTABILITY.md 反映\n- 直近7日の正答率が 60–85% 帯に入る（観測）",
+    "state": "closed"
   },
   {
     "id": "v110-provenance-wire",
@@ -34,7 +35,8 @@
       "roadmap:v1.10",
       "area:ops"
     ],
-    "body": "### Scope\n- guard/dedup/notability/pick の最小必須セット\n\n### DoD\n- 全主要WFで表示\n- QUALITY_KPIS.md と突合可能"
+    "body": "### Scope\n- guard/dedup/notability/pick の最小必須セット\n\n### DoD\n- 全主要WFで表示\n- QUALITY_KPIS.md と突合可能",
+    "state": "closed"
   },
   {
     "id": "v110-backfill-by-year-if",
