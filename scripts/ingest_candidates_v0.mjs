@@ -8,6 +8,34 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import crypto from 'node:crypto';
+function deriveProviderId(media){
+  const a = (media && typeof media==='object' && media.apple) ? media.apple : null;
+  if (a && (a.embedUrl || a.url || a.previewUrl)){
+    return { provider: 'apple', id: a.embedUrl || a.url || a.previewUrl };
+  }
+  if (media && media.provider && media.id){
+    return { provider: media.provider, id: String(media.id) };
+  }
+  return null;
+}
+function ensureProvenance(c, source='seed'){
+  if (!c || typeof c!=='object') return c;
+  const prev = c.provenance || (c.meta && c.meta.provenance) || {};
+  const prov = { ...prev };
+  if (!prov.source) prov.source = source;
+  const pid = deriveProviderId(c.media || c.clip);
+  if (pid){ prov.provider = prov.provider || pid.provider; prov.id = prov.id || pid.id; }
+  if (!prov.collected_at) prov.collected_at = new Date().toISOString();
+  if (!prov.license_hint) prov.license_hint = (c.media && c.media.apple) ? 'official' : 'unknown';
+  if (!prov.hash){
+    const base = `${c.norm?.title||c.title||''}|${c.norm?.game||c.game||''}|${c.norm?.composer||c.composer||''}|${prov.provider||''}|${prov.id||''}`;
+    prov.hash = 'sha1:'+crypto.createHash('sha1').update(base).digest('hex');
+  }
+  c.provenance = prov;
+  c.meta = c.meta || {}; c.meta.provenance = prov;
+  return c;
+}
 
 function normText(s){
   return String(s||'')
@@ -69,7 +97,7 @@ async function main(){
     kept.push(c); stats.kept++;
   }
   await fsp.mkdir(path.dirname(out), { recursive:true });
-  await fsp.writeFile(out, kept.map(o=>JSON.stringify(o)).join('\n')+'\n', 'utf-8');
+  await fsp.writeFile(out, kept.map(o=>JSON.stringify(ensureProvenance(o))).join('\n')+'\n', 'utf-8');
   // Step Summary
   const s = [
     '### candidates (ingest) details',

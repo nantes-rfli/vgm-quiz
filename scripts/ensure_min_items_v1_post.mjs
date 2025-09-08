@@ -143,6 +143,8 @@ function buildItem(c) {
     answers,
     sources: Array.isArray(c.sources) ? c.sources : undefined
   };
+  // carry provenance
+  const pv = c?.meta?.provenance || c?.provenance; if (pv){ item.meta = Object.assign({}, item.meta||{}, { provenance: pv }); }
   ensureNorm(item);
   // debug: 出力アイテムの主要キーをログに出す
   try {
