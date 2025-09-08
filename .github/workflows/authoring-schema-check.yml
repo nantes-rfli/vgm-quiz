@@ -37,8 +37,9 @@ jobs:
           node -e "const fs=require('fs'); const p='build/daily_today.json'; const j=JSON.parse(fs.readFileSync(p,'utf-8')); if(!j.item||!j.item.title||!j.item.game||!(j.item.media&&j.item.media.provider&&j.item.media.id)&&!(j.item.answers&&j.item.answers.canonical)){ console.error('::error:: build/daily_today.json.item is invalid'); process.exit(1); }"
           echo "[authoring] OK: build/daily_today.json and .md are ready"
 
-      - name: Provenance fallback (authoring)
-        run: node scripts/provenance_fallbacks_v1.mjs --json public/app/daily_auto.json
+      - name: Provenance fallback (authoring after export)
+        run: |
+          node scripts/provenance_fallbacks_v1.mjs --json build/daily_today.json || true
 
       - name: Upload authoring artifacts
         uses: actions/upload-artifact@v4
