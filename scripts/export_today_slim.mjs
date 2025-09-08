@@ -151,7 +151,23 @@ async function coerce(raw){
   }
   const difficulty = typeof raw.difficulty === 'number' ? raw.difficulty : undefined;
   const item = { title, game, composer, media, answers };
-  const pv = (raw?.meta && raw.meta.provenance) || raw?.provenance; if (pv && typeof pv==='object'){ item.meta = Object.assign({}, item.meta||{}, { provenance: pv }); }
+
+  // Fallback: ensure item.meta.provenance exists (v1.10)
+  if (!item.meta || !item.meta.provenance) {
+    const now = new Date().toISOString();
+    const provider = (item.media && item.media.provider) ? item.media.provider : 'manual';
+    const pid = (item.media && item.media.id) ? String(item.media.id) : `${title||''}|${game||''}|${composer||''}`;
+    const base = `${title||''}|${game||''}|${composer||''}|${provider}|${pid}`;
+    const hash = 'sha1:' + require('crypto').createHash('sha1').update(base).digest('hex');
+    item.meta = Object.assign({}, item.meta||{}, { provenance: {
+      source: provider==='manual' ? 'manual' : 'fallback',
+      provider, id: pid, collected_at: now, hash, license_hint: provider==='apple' ? 'official' : 'unknown'
+    }});
+  }
+  const pv = (raw?.meta && raw.meta.provenance) || raw?.provenance;
+  if (pv && typeof pv === 'object') {
+    item.meta = Object.assign({}, item.meta || {}, { provenance: pv });
+  }
   if (typeof difficulty !== 'undefined') item.difficulty = difficulty;
   // Attach Apple overrides if available
   try {

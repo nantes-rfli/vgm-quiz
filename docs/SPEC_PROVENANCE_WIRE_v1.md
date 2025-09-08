@@ -25,6 +25,16 @@ provenance: {
 - `ensure_min_items_v1_post.mjs`：`buildItem()` で `meta.provenance` を引き継ぐ。
 - `export_today_slim.mjs`：`coerce()` で `raw.meta.provenance` もしくは `raw.provenance` を `item.meta.provenance` に反映。
 
+
+
+## フォールバック（v1.10）
+- 目的: media が無い／手入力 item でも `meta.provenance` を欠かさない。
+- 方式: **fallback** として `source=manual|fallback` を付与し、`provider/id` は `media` から推定（無ければ `title|game|composer` 派生）。
+- 実装:
+  - コード内: `export_today_slim.mjs`／`ensure_min_items_v1_post.mjs` で **欠落時に動的付与**。
+  - 運用: `scripts/provenance_fallbacks_v1.mjs` を **candidates / authoring** 両方のWFに追加。
+- KPI: 付与率（candidates）／有無（authoring today）が **100%** であることを Must とする。
+
 ## KPI（存在チェック）
 - **candidates**: `public/app/daily_candidates.jsonl` に対し、`provenance` の**付与率**を Step Summary に出力。
 - **authoring today**: `build/daily_today.json` に対し、`item.meta.provenance` の**有無**を Step Summary に出力。
