@@ -81,6 +81,14 @@
 > - `/build/version.json` / `/app/../build/version.json`  
 > - `/build.json?ts=NOW` / `/app/build.json?ts=NOW`
 
+## Issues の重複（タイトル一致）の後始末
+
+- まれに `sync_issues_v3.mjs` の初回同期やラベル移行で **同一タイトルの Open が複数** 残ることがあります。
+- 原則：**同タイトルは常に1件**に統一。本文に `<!-- issue-id: ... -->` を持つものを **正** として残し、それ以外は close。
+- 方法：
+  1. Actions → **issues (cleanup duplicates)** を手動実行
+  2. もしくは次回以降の **issues (sync)** 実行後、自動のグローバル重複掃除で収束（本スクリプトに内蔵）
+
 ## Issues 運用ルール（ラベル相互排他・汎用）
 
 - **唯一の正は `docs/issues/*.json`**。GitHub 側は `script/sync_issues_v3.mjs` で常に上書き。
