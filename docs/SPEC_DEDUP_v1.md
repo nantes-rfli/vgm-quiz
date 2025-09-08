@@ -35,3 +35,24 @@
 
 ## テスト
 - 代表曲の別表記セットでゴールデンテストを作成し、CIで閾値劣化を検出
+
+## 正規化（v1.5 実装）
+- Unicode 正規化: **NFKC**
+- 小文字化、記号→空白に置換、連続空白の圧縮
+- 結合対象: `title + game + composer` を半角スペースで連結
+
+## 類似度（3-gram Dice）
+- 文字列から**連続3文字の部分列**（3-gram）集合を作る
+- **Dice 係数**: `sim = 2 * |A∩B| / (|A| + |B|)`
+- **suspicious-title 減点**: either side が `cover/remix/extended/arrange/...` を含むと `sim -= 0.02`
+
+## しきい値
+- 既定: `θ_main = 0.80`
+- strict: `θ_strict = 0.82`
+- 判定: `sim >= θ` を **近似重複**として除外（`provider|id` 完全一致は即除外）
+
+## Step Summary 出力（必須）
+- `examined`（入力件数）
+- `dup-exact`（完全重複）
+- `dup-similar`（近似重複）
+- `samples`（最大5組: titleA ↔ titleB, sim）

@@ -1,0 +1,10 @@
+{"title":"Main Theme","game":"Sample Game","composer":"John Doe","media":{"provider":"youtube","id":"aaaaaaaaaaa"}}
+{"title":"Main Theme (Long Ver.)","game":"Sample Game","composer":"John Doe","media":{"provider":"youtube","id":"bbbbbbbbbbb"}}
+{"title":"Boss Battle","game":"Sample Game","composer":"John Doe","media":{"provider":"youtube","id":"ccccccccccc"}}
+{"title":"Boss Battle (Arrange)","game":"Sample Game","composer":"John Doe","media":{"provider":"youtube","id":"ddddddddddd"}}
+{"title":"Another Track","game":"Other Game","composer":"Jane","media":{"provider":"youtube","id":"eeeeeeeeeee"}}
+{"title":"Another Track","game":"Other Game","composer":"Jane","media":{"provider":"youtube","id":"eeeeeeeeeee"}}
+{"title":"Ending Theme","game":"Sample Game","composer":"John Doe","media":{"apple":{"embedUrl":"https://embed.apple.com/t/123"}}}
+{"title":"Ending Theme","game":"Sample Game","composer":"John Doe","media":{"apple":{"embedUrl":"https://embed.apple.com/t/123"}}}
+{"title":"Victory Fanfare","game":"Sample Game","composer":"John Doe","media":{"provider":"youtube","id":"ffffffffffg"}}
+{"title":"Victory","game":"Sample Game","composer":"John Doe","media":{"provider":"youtube","id":"ffffffffffg"}}
