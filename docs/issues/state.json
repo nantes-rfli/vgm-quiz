@@ -1,6 +1,59 @@
 {
-  "exported_at": "2025-09-08T01:15:15.442Z",
+  "exported_at": "2025-09-08T01:41:33.698Z",
   "items": [
+    {
+      "number": 433,
+      "title": "Authoring: clip-start-heuristics-v1",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/433",
+      "labels": [
+        "type:test",
+        "area:pipeline",
+        "roadmap:post-v1.7"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T01:39:01Z",
+      "roadmap": [
+        "roadmap:post-v1.7"
+      ]
+    },
+    {
+      "number": 446,
+      "title": "i18n: Intl.DateTimeFormat/NumberFormat での表記統一",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/446",
+      "labels": [
+        "area:app",
+        "type:code",
+        "i18n",
+        "roadmap:post-v1.6"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T01:39:00Z",
+      "roadmap": [
+        "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 445,
+      "title": "i18n: Start/History/Share のテキスト外部化（第1段）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/445",
+      "labels": [
+        "area:ui",
+        "type:code",
+        "i18n",
+        "roadmap:post-v1.6"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T01:38:59Z",
+      "roadmap": [
+        "roadmap:post-v1.6"
+      ]
+    },
     {
       "number": 432,
       "title": "Authoring: harvester-min（公式ソース収集器）",
@@ -185,42 +238,6 @@
       ]
     },
     {
-      "number": 446,
-      "title": "i18n: Intl.DateTimeFormat/NumberFormat での表記統一",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/446",
-      "labels": [
-        "roadmap:v1.6",
-        "area:app",
-        "type:code",
-        "i18n"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:34Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 445,
-      "title": "i18n: Start/History/Share のテキスト外部化（第1段）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/445",
-      "labels": [
-        "area:ui",
-        "roadmap:v1.6",
-        "type:code",
-        "i18n"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T07:52:33Z",
-      "roadmap": [
-        "roadmap:v1.6"
-      ]
-    },
-    {
       "number": 437,
       "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
       "state": "open",
@@ -250,23 +267,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-04T05:49:18Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 433,
-      "title": "Authoring: clip-start-heuristics-v1",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/433",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-04T05:49:17Z",
       "roadmap": [
         "roadmap:v1.7"
       ]
@@ -350,7 +350,7 @@
       ],
       "assignees": [],
       "milestone": null,
-      "updated_at": "2025-09-08T01:14:33Z",
+      "updated_at": "2025-09-08T01:39:19Z",
       "roadmap": [
         "roadmap:v1.5"
       ]
