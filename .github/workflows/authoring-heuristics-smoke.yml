@@ -117,3 +117,6 @@ jobs:
             public/app/daily_auto.json
             build/daily_today.json
             build/daily_today.md
+
+      - name: KPI summary (authoring today)
+        run: node scripts/kpi/append_summary_authoring_today.mjs --in build/daily_today.json
