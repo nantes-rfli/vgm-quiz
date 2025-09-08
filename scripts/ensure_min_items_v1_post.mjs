@@ -10,6 +10,7 @@
 
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
+import { createHash } from 'node:crypto';
 import { normalizeAll } from './normalize_core.mjs';
 
 function parseArgs(argv) {
@@ -155,7 +156,11 @@ function buildItem(c) {
     const provider = (item.media && item.media.provider) ? item.media.provider : 'manual';
     const pid = (item.media && item.media.id) ? String(item.media.id) : `${item.title||''}|${item.game?.name||item.game||''}|${item.track?.composer||''}`;
     const base = `${item.title||''}|${(item.game?.name||item.game)||''}|${item.track?.composer||''}|${provider}|${pid}`;
-    const hash = 'sha1:' + (await import('node:crypto')).createHash('sha1').update(base).digest('hex');
+    // ESM-safe: avoid dynamic import inside non-async scope
+    // If you need sha1 here, use top-level import:
+    //   import { createHash } from 'node:crypto';
+    // (we intentionally do not rely on require() in ESM)
+    const hash = 'sha1:' + createHash('sha1').update(base).digest('hex');
     item.meta = Object.assign({}, item.meta || {}, { provenance: {
       source: provider==='manual' ? 'manual' : 'fallback',
       provider, id: pid, collected_at: now, hash, license_hint: provider==='apple' ? 'official' : 'unknown'
