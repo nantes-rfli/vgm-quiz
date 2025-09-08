@@ -49,5 +49,8 @@ jobs:
           name: daily-candidates
           path: public/app/daily_candidates.jsonl
 
+      - name: KPI summary (candidates, pre-dedup)
+        run: node scripts/kpi/append_summary_candidates.mjs --in public/app/daily_candidates.jsonl --label "pre-dedup"
+
       - name: Summary (result)
         run: echo "### candidates (harvest) result" >> "$GITHUB_STEP_SUMMARY"

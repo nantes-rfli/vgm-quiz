@@ -53,6 +53,9 @@ jobs:
           SCHEMA_CHECK_STRICT=true node scripts/validate_authoring_schema.mjs
         # v1.8: strict mode (fail-fast)
 
+      - name: KPI summary (authoring today)
+        run: node scripts/kpi/append_summary_authoring_today.mjs --in build/daily_today.json
+
       - name: Summary
         run: |
           echo "### Authoring schema check (strict)" >> $GITHUB_STEP_SUMMARY
