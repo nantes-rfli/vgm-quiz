@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-08T01:41:33.699Z
+Exported at: 2025-09-08T02:26:28.631Z
 
 ## post-v1.6
 
@@ -15,6 +15,10 @@ Exported at: 2025-09-08T01:41:33.699Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 636 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/636) | open | type:test, area:ops, status:done, roadmap:post-v1.7 |  | 2025-09-08T02:23:36Z |
+| 635 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/635) | open | type:test, area:pipeline, status:done, roadmap:post-v1.7 |  | 2025-09-08T02:23:36Z |
+| 437 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/437) | closed | type:test, area:ops, status:done, roadmap:post-v1.7 |  | 2025-09-08T02:20:31Z |
+| 436 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/436) | closed | type:test, area:pipeline, status:done, roadmap:post-v1.7 |  | 2025-09-08T02:20:29Z |
 | 433 | [Authoring: clip-start-heuristics-v1](https://github.com/nantes-rfli/vgm-quiz/issues/433) | open | type:test, area:pipeline, roadmap:post-v1.7 |  | 2025-09-08T01:39:01Z |
 | 432 | [Authoring: harvester-min（公式ソース収集器）](https://github.com/nantes-rfli/vgm-quiz/issues/432) | open | area:pipeline, roadmap:post-v1.7 |  | 2025-09-07T15:36:49Z |
 
@@ -40,7 +44,7 @@ Exported at: 2025-09-08T01:41:33.699Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 551 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/551) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-08T01:39:19Z |
+| 551 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/551) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-08T02:23:35Z |
 | 398 | [Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）](https://github.com/nantes-rfli/vgm-quiz/issues/398) | closed | roadmap:v1.5, type:docs |  | 2025-09-08T01:12:32Z |
 | 397 | [Tests: UI/Responsive最小スモーク追加（JS不増を担保）](https://github.com/nantes-rfli/vgm-quiz/issues/397) | closed | roadmap:v1.5, responsive, type:test |  | 2025-09-08T01:12:32Z |
 | 396 | [UI: ライトテーマのコントラスト微調整](https://github.com/nantes-rfli/vgm-quiz/issues/396) | closed | roadmap:v1.5, area:ui, a11y |  | 2025-09-08T01:12:31Z |
@@ -77,6 +81,8 @@ Exported at: 2025-09-08T01:41:33.699Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 404 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/404) | closed | type:test, roadmap:v1.7, area:ops |  | 2025-09-08T02:20:31Z |
+| 403 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/403) | closed | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-08T02:20:30Z |
 | 405 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/405) | closed | type:docs, roadmap:v1.7, area:ops |  | 2025-09-08T01:12:34Z |
 | 402 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/402) | closed | roadmap:v1.7, area:pipeline |  | 2025-09-08T01:12:33Z |
 | 401 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/401) | closed | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-08T01:12:33Z |
@@ -86,10 +92,6 @@ Exported at: 2025-09-08T01:41:33.699Z
 | 438 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/438) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-07T15:36:52Z |
 | 435 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/435) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:51Z |
 | 434 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/434) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:50Z |
-| 437 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/437) | open | type:test, roadmap:v1.7, area:ops |  | 2025-09-04T05:49:19Z |
-| 436 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/436) | open | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-04T05:49:18Z |
-| 404 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/404) | open | type:test, roadmap:v1.7, area:ops |  | 2025-09-04T00:40:57Z |
-| 403 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/403) | open | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-04T00:40:56Z |
 | 400 | [Authoring: clip-start-heuristics-v1](https://github.com/nantes-rfli/vgm-quiz/issues/400) | open | type:test, roadmap:v1.7, area:pipeline |  | 2025-09-04T00:40:55Z |
 | 399 | [Authoring: harvester-min（公式ソース収集器）](https://github.com/nantes-rfli/vgm-quiz/issues/399) | open | roadmap:v1.7, area:pipeline |  | 2025-09-04T00:40:55Z |
 
