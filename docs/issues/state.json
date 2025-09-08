@@ -1,5 +1,5 @@
 {
-  "exported_at": "2025-09-08T04:40:59.284Z",
+  "exported_at": "2025-09-08T13:12:37.364Z",
   "items": [
     {
       "number": 433,
@@ -173,22 +173,6 @@
       ]
     },
     {
-      "number": 605,
-      "title": "v1.10: Step Summary にKPI最小セットを出す",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/605",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.10"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-07T15:04:56Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
       "number": 604,
       "title": "v1.10: provenance 配線（ingest→pick）",
       "state": "open",
@@ -201,22 +185,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-07T15:04:56Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 603,
-      "title": "v1.10: Notability v1（High/Med/Low=75/20/5）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/603",
-      "labels": [
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-07T15:04:55Z",
       "roadmap": [
         "roadmap:v1.10"
       ]
@@ -249,9 +217,41 @@
       ],
       "assignees": [],
       "milestone": null,
-      "updated_at": "2025-09-08T04:40:05Z",
+      "updated_at": "2025-09-08T13:12:11Z",
       "roadmap": [
         "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 603,
+      "title": "v1.10: Notability v1（High/Med/Low=75/20/5）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/603",
+      "labels": [
+        "roadmap:v1.10",
+        "area:quality"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T13:10:59Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
+    {
+      "number": 605,
+      "title": "v1.10: Step Summary にKPI最小セットを出す",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/605",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.10"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-08T13:10:58Z",
+      "roadmap": [
+        "roadmap:v1.10"
       ]
     },
     {
@@ -937,22 +937,6 @@
       "updated_at": "2025-09-07T15:07:13Z",
       "roadmap": [
         "roadmap:v1.9"
-      ]
-    },
-    {
-      "number": 558,
-      "title": "Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/558",
-      "labels": [
-        "roadmap:v1.5",
-        "type:docs"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-06T15:08:07Z",
-      "roadmap": [
-        "roadmap:v1.5"
       ]
     }
   ]
