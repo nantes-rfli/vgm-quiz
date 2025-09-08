@@ -53,6 +53,15 @@ node scripts/generate_daily_from_candidates.js \
 - `Ending` を含むと `20` になる
 - `apple` で `15` / `youtube` で `10` になる
 - 既存 `clip.start=7` がある場合は上書きしない（`--force` でのみ上書き）
+ 
+## 閾値・NG検出（v1.7 最小）
+- **最短尺**: `MIN_SEGMENT_SEC=15` を保証（`clip.duration<15` は 15 に引き上げ）
+- **YouTube の冒頭回避**: `YT_MIN_OFFSET_SEC=3`（開始秒が 3 未満なら 3 に補正）
+- **サビ検出（テキスト準拠）**: タイトルに `Chorus/サビ` を含む場合は `start=45` を目安にする（`CHORUS_DEFAULT_SEC=45`）。
+- **遅すぎ補正**: `max`（既定120）を超える推定は **クランプ**し、`clip.flags` に `late_start_clamped` を記録
+- **フラグ付与**: `clip.flags=[too_short|start_below_min|late_start_clamped|...]` を付与して後段でレビュー可能にする
+
+> 注: v1 は**音響解析を行いません**。無音判定は未対応で、将来の v2+ にてピーク/ビート/スペクトルで補正予定。
 
 ## 将来拡張（v2+）
 - 音響解析（無音検出・ピーク・ビート）と組み合わせた補正

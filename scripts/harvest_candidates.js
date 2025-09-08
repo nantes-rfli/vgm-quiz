@@ -9,6 +9,69 @@
 const fs = require('fs');
 const path = require('path');
 const { normalizeAnswer } = require('./pipeline/normalize');
+const JSONC = {
+  parse(src){
+    // very small JSONC: strip // and /* */ comments
+    const noBlock = src.replace(/\/\*[\s\S]*?\*\//g, '');
+    const noLine = noBlock.replace(/(^|\s+)\/\/.*$/gm, '$1');
+    return JSON.parse(noLine);
+  }
+};
+
+function loadAllowlist(p){
+  try {
+    const txt = fs.readFileSync(p, 'utf-8');
+    return JSON.parse(txt);
+  } catch {
+    return null;
+  }
+}
+
+function loadAppleOverrides(p){
+  try {
+    const txt = fs.readFileSync(p, 'utf-8');
+    return JSONC.parse(txt);
+  } catch {
+    return null;
+  }
+}
+
+function toAppleMediaFromOverride(entry){
+  if (!entry || !entry.media || !entry.media.apple) return null;
+  const a = entry.media.apple;
+  const apple = {};
+  if (a.embedUrl) apple.embedUrl = a.embedUrl;
+  if (a.previewUrl) apple.previewUrl = a.previewUrl;
+  if (a.url) apple.url = a.url;
+  const media = { apple };
+  if (a.start_ms) media.start_ms = a.start_ms;
+  return media.apple.embedUrl || media.apple.previewUrl || media.apple.url ? media : null;
+}
+
+function fillMedia(candidate, rec, opts){
+  const { allowlist, appleOverrides } = opts || {};
+  // 1) Apple overrides (official & safest)
+  const key = `${candidate.norm.game}__${candidate.norm.title}`.toLowerCase().trim();
+  if (appleOverrides && appleOverrides[key]){
+    const m = toAppleMediaFromOverride(appleOverrides[key]);
+    if (m) return m;
+  }
+  // 2) Dataset-provided Apple (if any)
+  if (rec?.media?.apple && (rec.media.apple.embedUrl || rec.media.apple.previewUrl || rec.media.apple.url)){
+    return { apple: {
+      embedUrl: rec.media.apple.embedUrl,
+      previewUrl: rec.media.apple.previewUrl,
+      url: rec.media.apple.url
+    }};
+  }
+  // 3) YouTube fallback (strict allowlist: video id exact matchのみ)
+  const vid = rec?.media?.youtube?.id || rec?.youtubeId || rec?.yt || null;
+  if (vid && allowlist?.youtube && (allowlist.youtube[vid] === true)){
+    return { provider: 'youtube', id: vid, start_ms: rec?.media?.youtube?.start_ms || 0 };
+  }
+  // 4) none
+  return null;
+}
 
 function readJSON(p){ return JSON.parse(fs.readFileSync(p,'utf-8')); }
 function ensureDir(dir){ fs.mkdirSync(dir, { recursive:true }); }
@@ -57,6 +120,13 @@ function toCandidate(rec){
 function main(){
   const { out, src: srcArg } = parseArgs();
   const src = resolveSrc(srcArg);
+
+  // Load allowlist / apple overrides (optional)
+  const allowlistPath = path.join(process.cwd(), 'sources/allowlist.json');
+  const appleOverridesPath = path.join(process.cwd(), 'resources/data/apple_overrides.jsonc');
+  const allowlist = loadAllowlist(allowlistPath);
+  const appleOverrides = loadAppleOverrides(appleOverridesPath);
+
   if(!src){
     console.error(`[harvest] source not found: ${srcArg}`);
     console.error('[harvest] Tips:');
@@ -74,6 +144,7 @@ function main(){
   for(const rec of list){
     total++;
     const c = toCandidate(rec);
+    if(!c.media){ c.media = fillMedia(c, rec, { allowlist, appleOverrides }); }
     const key = `${c.norm.title}|${c.norm.game}|${c.norm.composer}`;
     if(!c.norm.title || !c.norm.game || !c.norm.composer) continue;
     if(seen.has(key)) continue;
