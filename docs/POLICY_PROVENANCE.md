@@ -11,7 +11,7 @@ provenance: {
   "id": "external id",
   "collected_at": "ISO-8601 UTC",
   "hash": "sha1:... (payloadの安定ハッシュ)",
-  "license_hint": "official|label|unknown"
+  "license_hint": "apple_embed|youtube_embed|ugc_youtube|official_site|label|unknown|stub"
 }
 ```
 
@@ -26,6 +26,13 @@ provenance: {
 
 ## 例外
 - 手動seed（`source=manual`）は `collected_at` の記録だけでも許容する。
+
+## Stub 既定（v1.10）
+- `provider/id` が取得不能なケースでは **stub 既定**を採用する。
+  - `provider`: "stub"
+  - `id`: "stub:" + <sha1hex(title|game|answers.canonical)> （正規化後の連結文字列を SHA-1）
+  - `license_hint`: "stub"
+- 既存の `provider/id` がある場合は**上書きしない**（idempotent）。
 
 ## 参考
 - `docs/SPEC_DEDUP_v1.md`, `docs/SPEC_NOTABILITY.md`, `docs/QUALITY_KPIS.md`

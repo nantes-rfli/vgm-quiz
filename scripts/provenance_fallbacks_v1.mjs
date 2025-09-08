@@ -15,6 +15,7 @@ import { createHash } from 'node:crypto';
 function sha1(s) {
   return 'sha1:' + createHash('sha1').update(String(s)).digest('hex');
 }
+function sha1hex(s){ return createHash('sha1').update(String(s)).digest('hex'); }
 
 function ensureProvenance(item, nowIso) {
   if (!item || typeof item !== 'object') return { fixed: false, item };
@@ -22,21 +23,35 @@ function ensureProvenance(item, nowIso) {
   const basePv = (item.meta && item.meta.provenance) || item.provenance || {};
   const pv = { ...basePv };
 
-  // 必須フィールドを埋める
+  // 必須フィールドを埋める（idempotent）
   if (!pv.source) pv.source = basePv.source || 'seed';
   if (!pv.provider && item.provider) pv.provider = item.provider;
   if (!pv.id && (item.id || (item.media && item.media.id))) pv.id = item.id || item.media.id;
   if (!pv.collected_at) pv.collected_at = nowIso;
   if (!pv.license_hint) pv.license_hint = 'unknown';
+
+  // provider/id が依然として欠落 → stub 既定を付与（idempotent）
+  if (!pv.provider || !pv.id) {
+    const base = [
+      item?.norm?.title || item.title,
+      item?.norm?.game || (item.game && (item.game.name || item.game)),
+      item?.norm?.composer || item.composer,
+      item.answers && item.answers.canonical
+    ].filter(Boolean).join('|');
+    if (!pv.provider) pv.provider = 'stub';
+    if (!pv.id) pv.id = 'stub:' + sha1hex(base);
+    if (!basePv.license_hint) pv.license_hint = 'stub';
+  }
+
   if (!pv.hash) {
-    // provider+id を優先。なければ title/game を畳み込む。
+    // provider+id を優先。なければ title|game|answers を畳み込む。
     const base = pv.provider && pv.id ? `${pv.provider}:${pv.id}`
       : [item.title, item.game && (item.game.name || item.game), item.answers && item.answers.canonical]
           .filter(Boolean).join('|');
     pv.hash = sha1(base);
   }
 
-  // 変更検出（idempotentのため shallow 比較）
+  // 変更検出（idempotent のため shallow 比較）
   const before = JSON.stringify(item.meta.provenance || {});
   item.meta.provenance = pv;
   item.provenance = pv; // 後方互換

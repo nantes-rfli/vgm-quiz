@@ -12,7 +12,7 @@ provenance: {
   "id": "external id or url",
   "collected_at": "ISO-8601 UTC",
   "hash": "sha1:<stable-hash>",
-  "license_hint": "official|label|unknown"
+  "license_hint": "official|label|unknown|stub"
 }
 ```
 
@@ -30,6 +30,7 @@ provenance: {
 ## フォールバック（v1.10）
 - 目的: media が無い／手入力 item でも `meta.provenance` を欠かさない。
 - 方式: **fallback** として `source=manual|fallback` を付与し、`provider/id` は `media` から推定（無ければ `title|game|composer` 派生）。
+- `provider/id` が欠落する場合は **stub** を付与（`provider:'stub'`, `id:'stub:'+sha1hex(title|game|answers)`）
 - 実装:
   - コード内: `export_today_slim.mjs`／`ensure_min_items_v1_post.mjs` で **欠落時に動的付与**。
   - 運用: `scripts/provenance_fallbacks_v1.mjs` を **candidates / authoring** 両方のWFに追加。
