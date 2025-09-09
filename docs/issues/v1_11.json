@@ -6,7 +6,8 @@
       "roadmap:v1.11",
       "area:collector"
     ],
-    "body": "### Scope\n- game/album 語 → 正規化 → 公式候補を探索（iTunes Search 起点、将来 Apple Music / YouTube API を段階導入）\n- **dry-run のみ**：提案 seed を**アーティファクト**として出力（JSONL: 1行=1候補）\n- 正規化: title/game/composer/aliases、`meta.provenance`（6項目）付与ルールの雛形\n- 重複排除: de-dup v1.5 を**adviceモード**で実行（落とさずスコアだけ付与）\n\n### DoD\n- Actions 実行で**dry-runアーティファクト**が生成（`artifacts/discovery/proposals-*.jsonl`）\n- Step Summary に KPI（official_rate/hit_rate/duplicate_ratio/fail_reasons_top3）が常設\n- 実際の seed への書き込みは**しない**（本Issueではドキュ/設計と dry-run のみ）\n\n### Status\n- documented（このチャット）: `OPERATIONS_DISCOVERY.md` / `SPEC_DISCOVERY_V1.md` に dry-run の I/F・正規化・provenance・KPI を記載。\n- 実装（dry-runワークフロー作成）は後続チャットで対応。\n"
+    "body": "### Scope\n- game/album 語 → 正規化 → 公式候補を探索（iTunes Search 起点、将来 Apple Music / YouTube API を段階導入）\n- **dry-run のみ**：提案 seed を**アーティファクト**として出力（JSONL: 1行=1候補）\n- 正規化: title/game/composer/aliases、`meta.provenance`（6項目）付与ルールの雛形\n- 重複排除: de-dup v1.5 を**adviceモード**で実行（落とさずスコアだけ付与）\n\n### DoD\n- Actions 実行で**dry-runアーティファクト**が生成（`artifacts/discovery/proposals-*.jsonl`）\n- Step Summary に KPI（official_rate/hit_rate/duplicate_ratio/fail_reasons_top3）が常設\n- 実際の seed への書き込みは**しない**（本Issueではドキュ/設計と dry-run のみ）\n\n### Status\n- implemented（このチャット）: `scripts/collector/discovery_dryrun_v1.mjs` と `collector (discovery dry-run)` ワークフローを追加。アーティファクト出力・KPI出力を実装。\n",
+    "state": "closed"
   },
   {
     "id": "v111-gate-threshold",
