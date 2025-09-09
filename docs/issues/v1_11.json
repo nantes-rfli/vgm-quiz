@@ -6,7 +6,7 @@
       "roadmap:v1.11",
       "area:collector"
     ],
-    "body": "### Scope\n- game/album 語 → 正規化 → 提案 seed（dry-run）\n- 公式性判定の最小ルール\n\n### DoD\n- 提案seedをアーティファクト出力\n- 簡易レビューが可能"
+    "body": "### Scope\n- game/album 語 → 正規化 → 公式候補を探索（iTunes Search 起点、将来 Apple Music / YouTube API を段階導入）\n- **dry-run のみ**：提案 seed を**アーティファクト**として出力（JSONL: 1行=1候補）\n- 正規化: title/game/composer/aliases、`meta.provenance`（6項目）付与ルールの雛形\n- 重複排除: de-dup v1.5 を**adviceモード**で実行（落とさずスコアだけ付与）\n\n### DoD\n- Actions 実行で**dry-runアーティファクト**が生成（`artifacts/discovery/proposals-*.jsonl`）\n- Step Summary に KPI（official_rate/hit_rate/duplicate_ratio/fail_reasons_top3）が常設\n- 実際の seed への書き込みは**しない**（本Issueではドキュ/設計と dry-run のみ）\n"
   },
   {
     "id": "v111-gate-threshold",
@@ -16,6 +16,16 @@
       "area:collector",
       "area:ops"
     ],
-    "body": "### Scope\n- 信頼度スコア θ（Notability/Guard/Provider信頼度の合成）\n- 切替（Repo Variables or workflow input）\n\n### DoD\n- θ を docs に明記\n- 切替動作を確認"
+    "body": "### Scope\n- 信頼度スコア θ の初期式（Notability×Provider信頼度×Guard）を docs に明記\n- `θ ≥ 閾値` は**自動採用**、`θ < 閾値` は**PR 承認キュー**へ送る運用を定義\n- Workflow inputs / Repo Variables を用いた**閾値の切替**設計（dry-runでは記録のみ）\n\n### DoD\n- θ の式と初期値を docs（SPEC_NOTABILITY.md / ROADMAP）に追記\n- candidates/collector ワークフローに**入力（threshold）**を設計（実装は後続）\n- Step Summary に `auto_accept_rate` と `pr_queue_size` を出力する項目を定義（ドキュ）\n"
+  },
+  {
+    "id": "v111-kpi-collector",
+    "title": "v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）",
+    "labels": [
+      "roadmap:v1.11",
+      "area:kpi",
+      "area:ops"
+    ],
+    "body": "### Scope\n- Discovery KPI: `official_rate`（公式ソース率）, `hit_rate`（正規化成功率）, `duplicate_ratio`（既存/近似重複率）, `fail_reasons_top3`\n- Harvest KPI: `with_provenance_rate`, `stub_ratio`, `dedup_pairs` と `θ≥0.7/0.8/0.9` 分布\n- Gate KPI: `auto_accept_rate`（θ≥閾値の割合）, `pr_queue_size`（PR送り件数）, `reject_top_reasons`\n- QUALITY_KPIS.md に Collector 章を追加し、**出力項目と算出式**を明文化\n\n### DoD\n- docs/QUALITY_KPIS.md に Collector KPI 章を追加（上記メトリクスを定義）\n- 各ワークフローの Step Summary で出力すべき**キー名**と**短い説明**をドキュメント化\n- 将来の実装時にドキュ差分なしで適用できる粒度まで具体化\n"
   }
 ]
