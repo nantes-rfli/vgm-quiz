@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-09T09:49:40.103Z
+Exported at: 2025-09-09T10:01:21.121Z
 
 ## post-v1.6
 
@@ -37,9 +37,9 @@ Exported at: 2025-09-09T09:49:40.103Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 609 | [v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）](https://github.com/nantes-rfli/vgm-quiz/issues/609) | open | area:ops, roadmap:v1.11, area:collector |  | 2025-09-09T10:00:17Z |
 | 608 | [v1.11: Discovery 設計 & dry-run（iTunes Search 起点）](https://github.com/nantes-rfli/vgm-quiz/issues/608) | open | roadmap:v1.11, area:collector |  | 2025-09-09T09:48:39Z |
 | 687 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/687) | open | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-09T09:33:31Z |
-| 609 | [v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）](https://github.com/nantes-rfli/vgm-quiz/issues/609) | open | area:ops, roadmap:v1.11, area:collector |  | 2025-09-09T09:33:31Z |
 
 ## v1.5
 
@@ -90,6 +90,4 @@ Exported at: 2025-09-09T09:49:40.103Z
 | 626 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/626) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:38:14Z |
 | 625 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/625) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:38:13Z |
 | 438 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/438) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-07T15:36:52Z |
-| 435 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/435) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:51Z |
-| 434 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/434) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:50Z |
 
