@@ -1,5 +1,5 @@
 {
-  "exported_at": "2025-09-09T01:53:27.520Z",
+  "exported_at": "2025-09-09T03:51:00.951Z",
   "items": [
     {
       "number": 602,
@@ -14,23 +14,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-09T01:46:57Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 604,
-      "title": "v1.10: provenance 配線（ingest→pick）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/604",
-      "labels": [
-        "area:pipeline",
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T01:14:21Z",
       "roadmap": [
         "roadmap:v1.10"
       ]
@@ -202,6 +185,23 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-07T15:04:56Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
+    {
+      "number": 604,
+      "title": "v1.10: provenance 配線（ingest→pick）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/604",
+      "labels": [
+        "area:pipeline",
+        "roadmap:v1.10",
+        "area:quality"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T03:43:05Z",
       "roadmap": [
         "roadmap:v1.10"
       ]
