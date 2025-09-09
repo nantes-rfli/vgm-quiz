@@ -41,6 +41,10 @@ jobs:
         run: |
           node scripts/provenance_fallbacks_v1.mjs --json build/daily_today.json || true
 
+      # 冪等性：同一ファイルに再適用して差分が出たら失敗
+      - name: Provenance fallback idempotency check
+        run: node scripts/tests/provenance_fallback_idempotency.mjs --json build/daily_today.json
+
       - name: Upload authoring artifacts
         uses: actions/upload-artifact@v4
         with:

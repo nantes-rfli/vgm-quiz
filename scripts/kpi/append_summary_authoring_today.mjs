@@ -40,6 +40,7 @@ function main(){
   const pv = (it.meta && it.meta.provenance) || it.provenance || {};
   if (pv && pv.provider) {
     lines.push(`- provenance.provider: **${pv.provider}**`);
+    lines.push(`- provenance.id: ${pv.id ?? '(missing)'}`);
     if (pv.provider==='stub') {
       lines.push(`- provenance.id (stub canonical): ${String(pv.id).startsWith('stub:') ? 'OK' : 'NEEDS_NORMALIZE'}`);
     }

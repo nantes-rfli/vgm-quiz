@@ -33,11 +33,14 @@ function getPv(obj){
 
 function kpiFromJSONL(path){
   const items = readJSONL(path);
-  const total = items.length || 1;
-  const have = items.filter(hasProv).length;
-  const pct = (100*have/total).toFixed(1);
-  const stub = items.filter(it => (getPv(it).provider==='stub')).length;
-  return { kind:'jsonl', path, total, with_provenance: have, coverage:`${pct}%`, stub };
+  const total = items.length;
+  const withProv = items.filter(hasProv).length;
+  const providers = {};
+  for (const it of items) {
+    const p = (getPv(it).provider)||'';
+    providers[p] = (providers[p]||0)+1;
+  }
+  return { total, withProv, providers };
 }
 function deepFindItem(node, depth=0){
   if (node==null || depth>4) return null;
@@ -73,12 +76,13 @@ function emit(title, lines){
 function main(){
   const { jsonl, json } = parseArgs();
   if (jsonl){
-    const s = kpiFromJSONL(jsonl);
-    emit('KPI (provenance, candidates)', [
-      `- file: ${s.path}`,
-      `- total: ${s.total}, with_provenance: ${s.with_provenance} (${s.coverage})`,
-      `- stub(provider): ${s.stub}`
-    ]);
+    const k = kpiFromJSONL(jsonl);
+    const lines = [
+      `- file: ${jsonl}`,
+      `- total: ${k.total}, with_provenance: ${k.withProv} (${(k.withProv*100/k.total||0).toFixed(1)}%)`,
+      `- providers: ${Object.entries(k.providers).map(([k2,v])=>k2?`${k2}:${v}`:`(missing):${v}`).join(', ')}`
+    ];
+    emit('KPI (provenance, candidates)', lines);
   }
   if (json){
     const s = kpiFromJSON(json);
