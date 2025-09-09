@@ -61,6 +61,36 @@
         }
       },
       "difficulty": 5
+    },
+    "2025-09-10": {
+      "provider": "apple",
+      "id": "1562640119",
+      "title": "One-Winged Angel",
+      "game": "Final Fantasy VII",
+      "answers": {
+        "canonical": "One-Winged Angel"
+      },
+      "norm": {
+        "title": "one-winged angel",
+        "answer": "one-winged angel",
+        "game": "final fantasy vii",
+        "composer": ""
+      },
+      "provenance": {
+        "source": "seed",
+        "collected_at": "2025-09-09T15:29:01.589Z",
+        "license_hint": "unknown",
+        "hash": "sha1:460511709fdb0fe506243781ad12f6bfc11f5db0"
+      },
+      "meta": {
+        "provenance": {
+          "source": "seed",
+          "collected_at": "2025-09-09T15:29:01.589Z",
+          "license_hint": "unknown",
+          "hash": "sha1:460511709fdb0fe506243781ad12f6bfc11f5db0"
+        }
+      },
+      "difficulty": 5
     }
   }
 }
