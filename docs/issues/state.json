@@ -1,5 +1,5 @@
 {
-  "exported_at": "2025-09-09T04:08:24.461Z",
+  "exported_at": "2025-09-09T05:03:26.474Z",
   "items": [
     {
       "number": 606,
@@ -9,23 +9,6 @@
       "labels": [
         "area:ops",
         "roadmap:v1.10"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T04:02:46Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 602,
-      "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/602",
-      "labels": [
-        "area:pipeline",
-        "roadmap:v1.10",
-        "area:quality"
       ],
       "assignees": [],
       "milestone": null,
@@ -170,6 +153,23 @@
       "updated_at": "2025-09-07T15:04:57Z",
       "roadmap": [
         "roadmap:v1.11"
+      ]
+    },
+    {
+      "number": 602,
+      "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/602",
+      "labels": [
+        "area:pipeline",
+        "roadmap:v1.10",
+        "area:quality"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T04:34:45Z",
+      "roadmap": [
+        "roadmap:v1.10"
       ]
     },
     {
@@ -1038,40 +1038,6 @@
       "updated_at": "2025-09-07T15:36:45Z",
       "roadmap": [
         "roadmap:v1.6"
-      ]
-    },
-    {
-      "number": 612,
-      "title": "v1.9: aliases backfill ベース運用",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/612",
-      "labels": [
-        "roadmap:v1.9",
-        "status:done",
-        "area:data"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-07T15:07:14Z",
-      "roadmap": [
-        "roadmap:v1.9"
-      ]
-    },
-    {
-      "number": 611,
-      "title": "v1.9: smoke apple override（即時検証フロー）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/611",
-      "labels": [
-        "area:pipeline",
-        "roadmap:v1.9",
-        "status:done"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-07T15:07:13Z",
-      "roadmap": [
-        "roadmap:v1.9"
       ]
     }
   ]
