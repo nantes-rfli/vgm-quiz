@@ -2,7 +2,7 @@
 
 > 参照:
 > - `docs/POLICY_PROVENANCE.md`（由来メタデータ）
-> - `docs/SPEC_DEDUP_v1.md`（近似重複抑制）
+> - `docs/SPEC_DEDUP_V1_5.md`（KPI/ゲート） / `docs/SPEC_DEDUP_v1.md`（将来の自動抑制方針）
 > - `docs/SPEC_NOTABILITY.md`（知名度スコア）
 > - `docs/OPERATIONS_BACKFILL.md`（大量追加の指針）
 > - `docs/QUALITY_KPIS.md`（品質KPIとSLO）
@@ -67,3 +67,7 @@
 ## 関連ドキュメント
 - `docs/COLLECTOR_V0.md`
 - `docs/ALLOWLIST_SEED.md`
+
+
+- **KPI/Gate**: `scripts/kpi/append_summary_dedup_ngram_v1_5.mjs` を `harvest` 終端で実行。  
+  `DEDUP_FAIL_THRESHOLD`（例: `0.88`）を設定すると **任意ゲート**が有効化され、θ がしきい値以上のペア検出時にジョブを失敗させる。
