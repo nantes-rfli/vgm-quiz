@@ -2,7 +2,8 @@ name: collector (gate from artifact by id - REST)
 
 permissions:
   actions: read
-  contents: read
+  contents: write
+  pull-requests: write
 
 on:
   workflow_dispatch:
@@ -95,6 +96,14 @@ jobs:
         run: |
           node scripts/collector/gate_apply_v1.mjs
 
+      - name: Stage candidate files
+        if: ${{ inputs.dry_run != 'true' && inputs.threshold != '' }}
+        run: |
+          git status --porcelain
+          git add -A resources/candidates || true
+          echo 'Staged files:'
+          git status --porcelain
+
       - name: Create PR (queued + auto) if not dry-run and threshold set
         if: ${{ inputs.dry_run != 'true' && inputs.threshold != '' }}
         uses: peter-evans/create-pull-request@v6
@@ -113,8 +122,8 @@ jobs:
             queue:collector
             docs:skip
           add-paths: |
-            resources/candidates/auto/*
-            resources/candidates/queue/*
+            resources/candidates/**
 
       - name: Summary
         run: echo "### collector (gate from artifact by id - REST) finished" >> "$GITHUB_STEP_SUMMARY"
+
