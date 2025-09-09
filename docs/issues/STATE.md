@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-09T09:34:23.892Z
+Exported at: 2025-09-09T09:49:40.103Z
 
 ## post-v1.6
 
@@ -37,9 +37,9 @@ Exported at: 2025-09-09T09:34:23.892Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 608 | [v1.11: Discovery 設計 & dry-run（iTunes Search 起点）](https://github.com/nantes-rfli/vgm-quiz/issues/608) | open | roadmap:v1.11, area:collector |  | 2025-09-09T09:48:39Z |
 | 687 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/687) | open | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-09T09:33:31Z |
 | 609 | [v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）](https://github.com/nantes-rfli/vgm-quiz/issues/609) | open | area:ops, roadmap:v1.11, area:collector |  | 2025-09-09T09:33:31Z |
-| 608 | [v1.11: Discovery 設計 & dry-run（iTunes Search 起点）](https://github.com/nantes-rfli/vgm-quiz/issues/608) | open | roadmap:v1.11, area:collector |  | 2025-09-09T09:33:30Z |
 
 ## v1.5
 
@@ -74,8 +74,6 @@ Exported at: 2025-09-09T09:34:23.892Z
 | 622 | [i18n: initI18n() を app.js 起動時に配線](https://github.com/nantes-rfli/vgm-quiz/issues/622) | closed | roadmap:v1.6, area:app, type:code, i18n, status:done |  | 2025-09-07T15:38:11Z |
 | 621 | [i18n: locales/en.json & ja.json（最小キー）](https://github.com/nantes-rfli/vgm-quiz/issues/621) | closed | roadmap:v1.6, area:app, i18n, type:data, status:done |  | 2025-09-07T15:38:11Z |
 | 620 | [i18n: コアモジュール導入（i18n.mjs）](https://github.com/nantes-rfli/vgm-quiz/issues/620) | closed | roadmap:v1.6, area:app, type:code, i18n, status:done |  | 2025-09-07T15:38:10Z |
-| 450 | [Docs: STYLEGUIDE_I18N/ROADMAP の整備](https://github.com/nantes-rfli/vgm-quiz/issues/450) | closed | type:docs, roadmap:v1.6, i18n, status:done |  | 2025-09-07T15:36:49Z |
-| 447 | [i18n: a11yメッセージのキー管理へ統合](https://github.com/nantes-rfli/vgm-quiz/issues/447) | closed | roadmap:v1.6, type:code, i18n, area:a11y, status:done |  | 2025-09-07T15:36:47Z |
 
 ## v1.7
 
