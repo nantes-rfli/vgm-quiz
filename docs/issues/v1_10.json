@@ -57,6 +57,7 @@
       "area:ops",
       "type:docs"
     ],
-    "body": "### Scope\n- レートリミット/バックオフ/キャッシュの指針\n\n### DoD\n- ROADMAP.md および関連 docs に反映"
+    "body": "### Scope\n- レートリミット/バックオフ/キャッシュの指針\n\n### DoD\n- **docs/OPERATIONS_RATE_COST.md** に方針/KPI/運用指針を記載（本PRで追加）\n- ROADMAP v1.10 の「Rate/Cost Control」要件を満たす\n### Status\n- **DONE（ドキュメント整備のみ）**",
+    "state": "closed"
   }
 ]
