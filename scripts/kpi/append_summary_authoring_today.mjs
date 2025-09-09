@@ -32,10 +32,18 @@ function main(){
     media: !!(it.media && (it.media.apple && (it.media.apple.embedUrl||it.media.apple.url||it.media.apple.previewUrl) || (it.media.provider==='youtube' && it.media.id)))
   };
   const prov = it.media?.apple ? 'apple' : (it.media?.provider || 'none');
-  const lines = [];
-  lines.push(`### KPI (authoring today)`);
+  const lines = ['### KPI (authoring today)'];
   lines.push(`- ok: title=${ok.title}, game=${ok.game}, composer=${ok.composer}, answers=${ok.answers}, media=${ok.media}`);
-  lines.push(`- media.provider: **${prov}**`);
+  if (ok.media) {
+    lines.push(`- media.provider: **${prov}**`);
+  }
+  const pv = (it.meta && it.meta.provenance) || it.provenance || {};
+  if (pv && pv.provider) {
+    lines.push(`- provenance.provider: **${pv.provider}**`);
+    if (pv.provider==='stub') {
+      lines.push(`- provenance.id (stub canonical): ${String(pv.id).startsWith('stub:') ? 'OK' : 'NEEDS_NORMALIZE'}`);
+    }
+  }
   const SUM = process.env.GITHUB_STEP_SUMMARY;
   if (SUM) fs.appendFileSync(SUM, lines.join('\n')+'\n');
   console.log(lines.join('\n'));

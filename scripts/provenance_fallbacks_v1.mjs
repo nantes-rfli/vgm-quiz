@@ -30,17 +30,25 @@ function ensureProvenance(item, nowIso) {
   if (!pv.collected_at) pv.collected_at = nowIso;
   if (!pv.license_hint) pv.license_hint = 'unknown';
 
-  // provider/id が依然として欠落 → stub 既定を付与（idempotent）
+  // ---- STUB 既定 & 正規化（v1.10）
+  const baseForHash = [
+    item?.norm?.title || item.title,
+    item?.norm?.game || (item.game && (item.game.name || item.game)),
+    item?.norm?.composer || item.composer,
+    item.answers && item.answers.canonical
+  ].filter(Boolean).join('|');
   if (!pv.provider || !pv.id) {
-    const base = [
-      item?.norm?.title || item.title,
-      item?.norm?.game || (item.game && (item.game.name || item.game)),
-      item?.norm?.composer || item.composer,
-      item.answers && item.answers.canonical
-    ].filter(Boolean).join('|');
     if (!pv.provider) pv.provider = 'stub';
-    if (!pv.id) pv.id = 'stub:' + sha1hex(base);
+    if (!pv.id) pv.id = 'stub:' + sha1hex(baseForHash);
     if (!basePv.license_hint) pv.license_hint = 'stub';
+  }
+  if (pv.provider === 'stub') {
+    if (!pv.id || !/^stub:/.test(String(pv.id))) {
+      pv.id = 'stub:' + sha1hex(baseForHash);
+    }
+    if (!pv.license_hint || pv.license_hint === 'unknown') {
+      pv.license_hint = 'stub';
+    }
   }
 
   if (!pv.hash) {
