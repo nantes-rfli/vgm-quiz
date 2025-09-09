@@ -1,6 +1,6 @@
 [
   {
-    "id": "v110-dedup-v1.5",
+    "id": "v110-dedup-v1-5",
     "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
     "labels": ["roadmap:v1.10", "area:quality", "area:pipeline"],
     "body": "### Scope\n- N-gram（3-gram）での近似重複KPI\n- 正規化（NFKC/小文字/空白圧縮）\n- **任意ゲート**（`DEDUP_FAIL_THRESHOLD` 設定時のみCIを落とす）\n\n### DoD（v1.10）\n- KPI を Step Summary に常設（pairs/θバケット/topペア）\n- docs/SPEC_DEDUP_V1_5.md に運用記載（日本語）\n- 任意ゲートの導入（デフォルトOFF、値は運用で調整）\n\n### Status\n- **IN PROGRESS**（このチャットでKPI導入済／ゲート追加済）"
