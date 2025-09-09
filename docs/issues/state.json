@@ -1,6 +1,23 @@
 {
-  "exported_at": "2025-09-09T09:49:40.102Z",
+  "exported_at": "2025-09-09T10:01:21.121Z",
   "items": [
+    {
+      "number": 609,
+      "title": "v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/609",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.11",
+        "area:collector"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T10:00:17Z",
+      "roadmap": [
+        "roadmap:v1.11"
+      ]
+    },
     {
       "number": 608,
       "title": "v1.11: Discovery 設計 & dry-run（iTunes Search 起点）",
@@ -26,23 +43,6 @@
         "area:ops",
         "roadmap:v1.11",
         "area:kpi"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T09:33:31Z",
-      "roadmap": [
-        "roadmap:v1.11"
-      ]
-    },
-    {
-      "number": 609,
-      "title": "v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/609",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.11",
-        "area:collector"
       ],
       "assignees": [],
       "milestone": null,
@@ -924,41 +924,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-07T15:36:52Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 435,
-      "title": "Authoring: distractors-v1（ダミー生成）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/435",
-      "labels": [
-        "roadmap:v1.7",
-        "area:pipeline",
-        "status:done"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-07T15:36:51Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 434,
-      "title": "Authoring: difficulty-v1（簡易スコア）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/434",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:pipeline",
-        "status:done"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-07T15:36:50Z",
       "roadmap": [
         "roadmap:v1.7"
       ]
