@@ -357,4 +357,9 @@ DoD: Actions 全体が緑／ `daily_auto.json` が日次で増加（候補枯渇
 **関連**: `docs/SPEC_NOTABILITY.md` / `docs/OPERATIONS_BACKFILL.md` / `docs/ARCHITECTURE.md`。
 
 ## v1.12+（以降の展望）
+- Gate のルールチューニングと θ 運用指針の固定（0.80–0.85 帯の検証）
+- accepted candidates の Pool 取り込み自動化（`merge_seed_candidates.mjs` 配線）
+- backfill **by_year** I/F の実装（#606 の設計反映）
+- Discovery ソースの拡張（YouTube Official / Bandcamp 等、ライセンス方針と併せて）
+- Ops 整備（PAT/Auto-merge/Artifact 取得手順の統合・簡略化）
 - Audio特性の活用（将来）／モデリング高度化／UI改善 等
