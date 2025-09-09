@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-09T04:08:24.462Z
+Exported at: 2025-09-09T05:03:26.474Z
 
 ## post-v1.6
 
@@ -26,9 +26,9 @@ Exported at: 2025-09-09T04:08:24.462Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 602 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/602) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T04:34:45Z |
 | 607 | [v1.10: Rate/Cost 制御の方針を明文化（任意）](https://github.com/nantes-rfli/vgm-quiz/issues/607) | closed | type:docs, area:ops, roadmap:v1.10 |  | 2025-09-09T04:07:33Z |
 | 606 | [v1.10: backfill の by_year I/F 設計](https://github.com/nantes-rfli/vgm-quiz/issues/606) | open | area:ops, roadmap:v1.10 |  | 2025-09-09T04:02:46Z |
-| 602 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/602) | open | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T04:02:46Z |
 | 604 | [v1.10: provenance 配線（ingest→pick）](https://github.com/nantes-rfli/vgm-quiz/issues/604) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T03:43:05Z |
 | 603 | [v1.10: Notability v1（High/Med/Low=75/20/5）](https://github.com/nantes-rfli/vgm-quiz/issues/603) | closed | roadmap:v1.10, area:quality |  | 2025-09-08T13:10:59Z |
 | 605 | [v1.10: Step Summary にKPI最小セットを出す](https://github.com/nantes-rfli/vgm-quiz/issues/605) | closed | area:ops, roadmap:v1.10 |  | 2025-09-08T13:10:58Z |
@@ -96,11 +96,4 @@ Exported at: 2025-09-09T04:08:24.462Z
 | 438 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/438) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-07T15:36:52Z |
 | 435 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/435) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:51Z |
 | 434 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/434) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-07T15:36:50Z |
-
-## v1.9
-
-| # | Title | State | Labels | Assignees | Updated |
-|---:|---|---|---|---|---|
-| 612 | [v1.9: aliases backfill ベース運用](https://github.com/nantes-rfli/vgm-quiz/issues/612) | closed | roadmap:v1.9, status:done, area:data |  | 2025-09-07T15:07:14Z |
-| 611 | [v1.9: smoke apple override（即時検証フロー）](https://github.com/nantes-rfli/vgm-quiz/issues/611) | closed | area:pipeline, roadmap:v1.9, status:done |  | 2025-09-07T15:07:13Z |
 
