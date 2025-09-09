@@ -1,14 +1,19 @@
 name: candidates (harvest)
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      dedup_fail_threshold:
+        description: 'Optional de-dup θ gate (e.g., 0.88). Empty to disable.'
+        required: false
+        default: ''
 
 jobs:
   harvest:
     runs-on: ubuntu-latest
     env:
       # 任意: θのゲート（例: 0.85）。空ならスキップ。
-      DEDUP_FAIL_THRESHOLD: ""
+      DEDUP_FAIL_THRESHOLD: ${{ inputs.dedup_fail_threshold }}
       TZ: Asia/Tokyo
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +75,15 @@ jobs:
 
       - name: KPI summary (candidates, pre-dedup)
         run: node scripts/kpi/append_summary_candidates.mjs --in public/app/daily_candidates.jsonl --label "pre-dedup"
+
+      - name: Gate threshold summary
+        run: |
+          echo "### de-dup gate (v1.5)" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "${DEDUP_FAIL_THRESHOLD}" ]; then
+            echo "- threshold: ${DEDUP_FAIL_THRESHOLD}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- threshold: (disabled)" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Summary (result)
         run: echo "### candidates (harvest) result" >> "$GITHUB_STEP_SUMMARY"
