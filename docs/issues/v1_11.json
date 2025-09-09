@@ -16,7 +16,7 @@
       "area:collector",
       "area:ops"
     ],
-    "body": "### Scope\n- 信頼度スコア θ の初期式（Notability×Provider信頼度×Guard）を docs に明記\n- `θ ≥ 閾値` は**自動採用**、`θ < 閾値` は**PR 承認キュー**へ送る運用を定義\n- Workflow inputs / Repo Variables を用いた**閾値の切替**設計（dry-runでは記録のみ）\n\n### DoD\n- θ の式と初期値を docs（SPEC_NOTABILITY.md / ROADMAP）に追記\n- candidates/collector ワークフローに**入力（threshold）**を設計（実装は後続）\n- Step Summary に `auto_accept_rate` と `pr_queue_size` を出力する項目を定義（ドキュ）\n"
+    "body": "### Scope\n- 信頼度スコア θ（Notability/Guard/Provider信頼度の合成）\n- 切替（Repo Variables or workflow input）\n\n### DoD\n- θ を docs に明記\n- 切替動作を確認\n\n### Status\n- documented（このチャット）: `SPEC_NOTABILITY.md` に Gate θ の式/係数/動作を追記、`OPERATIONS_GATE.md` を新設。\n- 実装（inputs/vars の配線・PR 作成動作）は後続チャットで対応。"
   },
   {
     "id": "v111-kpi-collector",

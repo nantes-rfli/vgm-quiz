@@ -23,9 +23,48 @@
 - Med: 15–25%
 - Low: 5–10%（Explore枠、連続しないよう制御）
 
+## Gate（自動採用のしきい値 θ）
+
+### 目的
+Discovery/Harvest で得た候補のうち、**十分に信頼できるものだけを自動採用**し、それ以外は **PR 承認**へ回す。
+
+### スコア式（初期案）
+- `score = 0.5 * notability + 0.3 * provider_trust + 0.2 * guard_score`
+  - `notability`：本ドキュ上部の 0–1 値（High/Med/Low を内包）
+  - `provider_trust`：供給元の信頼係数（下表）
+  - `guard_score`：メタ完備性・重複危険度からの減点後スコア（下表）
+
+#### Provider trust（初期係数）
+| provider | 種別 | trust |
+|---|---|---|
+| apple | iTunes Preview / Music API | 1.00 |
+| youtube | 公式チャンネル（将来導入） | 0.85 |
+| youtube | ユーザー投稿（将来導入） | 0.35 |
+| stub | なし | 0.10 |
+
+#### Guard（減点の目安）
+| 条件 | 影響 |
+|---|---|
+| provenance 欠落（6項目のいずれか） | `guard_score = 0` |
+| license_hint=unknown | `guard_score *= 0.5` |
+| composer 欠落 | `guard_score *= 0.8` |
+| de-dup θ ≥ 0.85（近似重複が強い） | `guard_score *= 0.5` |
+| de-dup θ ≥ 0.95 | `guard_score = 0` |
+
+> `guard_score` は初期値 1.0 からの乗算。未該当なら 1.0 のまま。
+
+### しきい値（θ）と動作
+- 既定（初期値）: **θ = 0.72**  
+  - `score ≥ θ` → **自動採用**（Pool へ直接追加）
+  - `0.50 ≤ score < θ` → **PR 承認キュー**へ（人間レビュー）
+  - `score < 0.50` → **reject**（ログのみ）
+- しきい値は **Workflow inputs** または **Repo Variables** で切替可能（未設定ならログのみ）。
+
+### 運用（概要）
+- Discovery は **dry-run** で `score` を出すだけ（書き込まない）。
+- Harvest/Gate 段では `θ` を入力で受け取り、**Summary に `auto_accept_rate` / `pr_queue_size`** を表示。
+- 将来：PR は自動ラベル `queue:collector` を付与。
+
 ## 運用
 - Repo Variables や Workflow inputs で帯域比率を調節可能にする
 - KPI: 直近30日の正答率分布が目標帯（60–85%）に収まるかをモニタ
-
-## 将来
-- 埋め込みベクトル化（タイトル/ゲーム/作曲者）でのクラスタリングにより Notability を補助
