@@ -26,7 +26,7 @@
       "area:quality",
       "area:pipeline"
     ],
-    "body": "### Scope\n- source/provider/id/collected_at/hash/license_hint の継承\n- JSONL/JSON のスキーマ差分棚卸し\n- **stub 既定**の導入（`provider:'stub'`, `id:'stub:'+sha1hex(title|game|answers)`, `license_hint:'stub'`）\n- authoring の **export 後に fallback を必須適用**\n- ingest/harvest のアーティファクトは **fallback 後**を保存\n\n### DoD\n- candidates: provenance 付与率 **100%**（`provider/id` 欠落なし or stub付与）\n- authoring today: `item.meta.provenance` の有無 **100%**\n- POLICY_PROVENANCE.md / SPEC_PROVENANCE_WIRE_v1.md に実装例と stub 規定を反映"
+    "body": "### Scope\n- provenance 最低6項目の欠落なし継承：`source/provider/id/collected_at/hash/license_hint`\n- JSONL/JSON のスキーマ差分棚卸し\n- **stub 既定**の導入（`provider:'stub'`, `id:'stub:'+sha1hex(title|game|answers.canonical)`, `license_hint:'stub'`）\n- **authoring の export 後に fallback を必須適用**\n- **ingest/harvest のアーティファクトは fallback 後のみ保存**（“唯一の正”）\n\n### DoD\n- candidates（harvest）: provenance 付与率 **100%**（`provider/id` 欠落なし、または stub 付与）\n- authoring（today）: `item.meta.provenance` の有無 **100%**、`provider:'stub'` の場合 `id` は **`stub:` で開始**（sha1hex 付き）\n- fallback の **冪等性**（同一ファイルへ 2 回適用しても差分ゼロ）\n- POLICY_PROVENANCE.md / SPEC_PROVENANCE_WIRE_v1.md / OPERATIONS_AUTHORING.md に反映（日本語）\n\n### Status\n- **DONE**（このチャット実行で確認）\n  - candidates（harvest）: `total=4, with_provenance=4 (100%)`, `providers: stub:4`\n  - authoring（schema-check）: `has_provenance:true`, `provenance.provider=stub`, `provenance.id=stub:<sha1hex…>`（canonical OK）\n"
   },
   {
     "id": "v110-kpi-summary",

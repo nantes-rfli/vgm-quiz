@@ -56,8 +56,11 @@ jobs:
           name: daily-candidates
           path: public/app/daily_candidates.jsonl
 
-      - name: KPI (provenance, candidates)
+      - name: Append KPI (provenance, candidates)
         run: node scripts/kpi/append_summary_provenance.mjs --jsonl public/app/daily_candidates.jsonl
+
+      - name: Append KPI (dedup v1.5 preview)
+        run: node scripts/kpi/append_summary_dedup_ngram_v1_5.mjs --in public/app/daily_candidates.jsonl --thresholds "0.7,0.8,0.9"
 
       - name: KPI summary (candidates, pre-dedup)
         run: node scripts/kpi/append_summary_candidates.mjs --in public/app/daily_candidates.jsonl --label "pre-dedup"
