@@ -7,6 +7,8 @@ jobs:
   harvest:
     runs-on: ubuntu-latest
     env:
+      # 任意: θのゲート（例: 0.85）。空ならスキップ。
+      DEDUP_FAIL_THRESHOLD: ""
       TZ: Asia/Tokyo
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +63,10 @@ jobs:
 
       - name: Append KPI (dedup v1.5 preview)
         run: node scripts/kpi/append_summary_dedup_ngram_v1_5.mjs --in public/app/daily_candidates.jsonl --thresholds "0.7,0.8,0.9"
+
+      - name: Gate (dedup v1.5, optional)
+        if: ${{ env.DEDUP_FAIL_THRESHOLD != '' }}
+        run: node scripts/guards/dedup_ngram_gate_v1_5.mjs --in public/app/daily_candidates.jsonl --fail-threshold "${{ env.DEDUP_FAIL_THRESHOLD }}"
 
       - name: KPI summary (candidates, pre-dedup)
         run: node scripts/kpi/append_summary_candidates.mjs --in public/app/daily_candidates.jsonl --label "pre-dedup"

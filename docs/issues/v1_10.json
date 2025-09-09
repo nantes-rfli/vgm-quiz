@@ -1,12 +1,9 @@
 [
   {
-    "id": "v110-dedup-v15",
+    "id": "v110-dedup-v1-5",
     "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
-    "labels": [
-      "roadmap:v1.10",
-      "area:quality"
-    ],
-    "body": "### Scope\n- 3-gram 類似の導入（θ_main=0.80 / strict=0.82）\n- suspicious-title 減点 0.02\n- Step Summary: examined/dup-exact/dup-similar\n\n### DoD\n- ゴールデン10件の回帰緑\n- Summary に dup 率\n- SPEC_DEDUP_v1.md を最終反映"
+    "labels": ["roadmap:v1.10", "area:quality", "area:pipeline"],
+    "body": "### Scope\n- N-gram（3-gram）での近似重複KPI\n- 正規化（NFKC/小文字/空白圧縮）\n- **任意ゲート**（`DEDUP_FAIL_THRESHOLD` 設定時のみCIを落とす）\n\n### DoD（v1.10）\n- KPI を Step Summary に常設（pairs/θバケット/topペア）\n- docs/SPEC_DEDUP_V1_5.md に運用記載（日本語）\n- 任意ゲートの導入（デフォルトOFF、値は運用で調整）\n\n### Status\n- **IN PROGRESS**（このチャットでKPI導入済／ゲート追加済）"
   },
   {
     "id": "v110-notability-v1",
