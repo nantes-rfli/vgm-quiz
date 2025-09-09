@@ -2,7 +2,11 @@
   {
     "id": "v110-dedup-v1-5",
     "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
-    "labels": ["roadmap:v1.10", "area:quality", "area:pipeline"],
+    "labels": [
+      "roadmap:v1.10",
+      "area:quality",
+      "area:pipeline"
+    ],
     "body": "### Scope\n- N-gram（3-gram）での近似重複KPI\n- 正規化（NFKC/小文字/空白圧縮）\n- **任意ゲート**（`DEDUP_FAIL_THRESHOLD` 設定時のみCIを落とす）\n\n### DoD（v1.10）\n- KPI を Step Summary に常設（pairs/θバケット/topペア）\n- docs/SPEC_DEDUP_V1_5.md に運用記載（日本語）\n- 任意ゲートの導入（デフォルトOFF、値は運用で調整）\n\n### Status\n- **IN PROGRESS**（このチャットでKPI導入済／ゲート追加済）"
   },
   {
@@ -23,7 +27,8 @@
       "area:quality",
       "area:pipeline"
     ],
-    "body": "### Scope\n- provenance 最低6項目の欠落なし継承：`source/provider/id/collected_at/hash/license_hint`\n- JSONL/JSON のスキーマ差分棚卸し\n- **stub 既定**の導入（`provider:'stub'`, `id:'stub:'+sha1hex(title|game|answers.canonical)`, `license_hint:'stub'`）\n- **authoring の export 後に fallback を必須適用**\n- **ingest/harvest のアーティファクトは fallback 後のみ保存**（“唯一の正”）\n\n### DoD\n- candidates（harvest）: provenance 付与率 **100%**（`provider/id` 欠落なし、または stub 付与）\n- authoring（today）: `item.meta.provenance` の有無 **100%**、`provider:'stub'` の場合 `id` は **`stub:` で開始**（sha1hex 付き）\n- fallback の **冪等性**（同一ファイルへ 2 回適用しても差分ゼロ）\n- POLICY_PROVENANCE.md / SPEC_PROVENANCE_WIRE_v1.md / OPERATIONS_AUTHORING.md に反映（日本語）\n\n### Status\n- **DONE**（このチャット実行で確認）\n  - candidates（harvest）: `total=4, with_provenance=4 (100%)`, `providers: stub:4`\n  - authoring（schema-check）: `has_provenance:true`, `provenance.provider=stub`, `provenance.id=stub:<sha1hex…>`（canonical OK）\n"
+    "body": "### Scope\n- provenance 最低6項目の欠落なし継承：`source/provider/id/collected_at/hash/license_hint`\n- JSONL/JSON のスキーマ差分棚卸し\n- **stub 既定**の導入（`provider:'stub'`, `id:'stub:'+sha1hex(title|game|answers.canonical)`, `license_hint:'stub'`）\n- **authoring の export 後に fallback を必須適用**\n- **ingest/harvest のアーティファクトは fallback 後のみ保存**\n- 冪等性の保証（同一入力で差分ゼロ）\n\n### Status\n- **DONE**（このチャット）：\n  - candidates（harvest）`with_provenance=100%`\n  - authoring（today）`has_provenance=true / provider=stub / id=stub:<sha1hex…>` を確認\n  - docs（POLICY/SPEC/OPERATIONS）反映済み\n",
+    "state": "closed"
   },
   {
     "id": "v110-kpi-summary",
