@@ -1,6 +1,23 @@
 {
-  "exported_at": "2025-09-09T01:17:29.550Z",
+  "exported_at": "2025-09-09T01:53:27.520Z",
   "items": [
+    {
+      "number": 602,
+      "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/602",
+      "labels": [
+        "area:pipeline",
+        "roadmap:v1.10",
+        "area:quality"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T01:46:57Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
     {
       "number": 604,
       "title": "v1.10: provenance 配線（ingest→pick）",
@@ -185,22 +202,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-07T15:04:56Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 602,
-      "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/602",
-      "labels": [
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-07T15:04:55Z",
       "roadmap": [
         "roadmap:v1.10"
       ]
