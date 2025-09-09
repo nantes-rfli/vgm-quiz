@@ -59,11 +59,15 @@ function ensureProvenance(item, nowIso) {
     pv.hash = sha1(base);
   }
 
-  // 変更検出（idempotent のため shallow 比較）
-  const before = JSON.stringify(item.meta.provenance || {});
-  item.meta.provenance = pv;
-  item.provenance = pv; // 後方互換
-  const after = JSON.stringify(pv);
+  // --- 正規化の最終保証：stub id を必ず "stub:<sha1hex>" へ
+  if (pv.provider === 'stub' && (!pv.id || !/^stub:/.test(String(pv.id)))) {
+    pv.id = 'stub:' + sha1hex(baseForHash);
+  }
+  // 書き戻しはディープコピー（参照共有を避ける）
+  const before = JSON.stringify(item.meta?.provenance || {});
+  item.meta.provenance = JSON.parse(JSON.stringify(pv));
+  item.provenance = JSON.parse(JSON.stringify(pv)); // 後方互換
+  const after = JSON.stringify(item.meta.provenance);
   return { fixed: before !== after, item };
 }
 
