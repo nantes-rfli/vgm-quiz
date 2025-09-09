@@ -27,13 +27,17 @@ function hasProv(obj){
   if (!pv || typeof pv!=='object') return false;
   return !!(pv.provider && pv.id && pv.collected_at);
 }
+function getPv(obj){
+  return obj?.provenance || obj?.meta?.provenance || {};
+}
 
 function kpiFromJSONL(path){
   const items = readJSONL(path);
   const total = items.length || 1;
   const have = items.filter(hasProv).length;
   const pct = (100*have/total).toFixed(1);
-  return { kind:'jsonl', path, total, with_provenance: have, coverage:`${pct}%` };
+  const stub = items.filter(it => (getPv(it).provider==='stub')).length;
+  return { kind:'jsonl', path, total, with_provenance: have, coverage:`${pct}%`, stub };
 }
 function deepFindItem(node, depth=0){
   if (node==null || depth>4) return null;
@@ -54,7 +58,9 @@ function kpiFromJSON(path){
   const obj = readJSON(path) || {};
   const it = deepFindItem(obj) || obj.item || obj;
   const ok = hasProv(it);
-  return { kind:'json', path, has_provenance: ok };
+  const pv = getPv(it);
+  const stub = pv?.provider === 'stub';
+  return { kind:'json', path, has_provenance: ok, stub };
 }
 
 function emit(title, lines){
@@ -70,14 +76,16 @@ function main(){
     const s = kpiFromJSONL(jsonl);
     emit('KPI (provenance, candidates)', [
       `- file: ${s.path}`,
-      `- total: ${s.total}, with_provenance: ${s.with_provenance} (${s.coverage})`
+      `- total: ${s.total}, with_provenance: ${s.with_provenance} (${s.coverage})`,
+      `- stub(provider): ${s.stub}`
     ]);
   }
   if (json){
     const s = kpiFromJSON(json);
     emit('KPI (provenance, authoring today)', [
       `- file: ${s.path}`,
-      `- has_provenance: ${s.has_provenance}`
+      `- has_provenance: ${s.has_provenance}`,
+      `- provider_is_stub: ${s.stub}`
     ]);
   }
 }

@@ -33,6 +33,7 @@ provenance: {
   - `id`: "stub:" + <sha1hex(title|game|answers.canonical)> （正規化後の連結文字列を SHA-1）
   - `license_hint`: "stub"
 - 既存の `provider/id` がある場合は**上書きしない**（idempotent）。
+- ただし `provider='stub'` かつ `id` が `"stub"` のみ、または `"stub:"` プレフィックスが無い場合は**正規化して再付与**（`"stub:<sha1hex(...)")`）。
 
 ## 参考
 - `docs/SPEC_DEDUP_v1.md`, `docs/SPEC_NOTABILITY.md`, `docs/QUALITY_KPIS.md`
