@@ -15,6 +15,8 @@
 ### Status quick view（v1.x）
 | Version | Status | Highlights (Done) | Remaining (key) |
 |---|---|---|---|
+| v1.10 | **Done (2025-09-09)** | Provenance配線（6項目＋stub既定＋export後fallback）／De-dup v1.5（KPI常設＋任意ゲート）／by_year I/F（設計） | — |
+| v1.11 | **In Progress** | Collector本格化の設計着手 | Discovery/Harvest/Gate/Supply/Mix の順で段階導入 |
 | v1.1 | **Done (2025-09-02)** | AUTOトースト/設定UI/バッジA11y、latest CTA・meta、軽量E2E | — |
 | v1.2 | **Done (2025-09-02)** | 正規化ケース拡充、Node/Browserパリティ、alias衝突スモーク、CTA監視、Budgets微調整、Docs整備 | — |
 | v1.3 | **Done (2025-09-03)** | Budgets引き締め、Lazy import、Worker JSON parse、LHCI配線修正 | — |
@@ -304,7 +306,7 @@ DoD: Actions 全体が緑／ `daily_auto.json` が日次で増加（候補枯渇
 
 （参考）任意の準備タスク（dry-runのみ）: 週次の net 提案seed（Apple/iTunes Search）と bulk pick（手動）。
 
-## v1.10 — Quality Foundation（Difficulty 2.0 & De-dup v1）
+## v1.10 — Quality Foundation（Difficulty 2.0 & De-dup v1） — *(Done 2025-09-09)*
 **目的**: 大量投入前に**品質の地盤**を固める。  
 **範囲**:
 - Difficulty 2.0（帯域設計・目標正答率60–85%）
