@@ -26,6 +26,15 @@
   3. 既存PRが“待機中”なら **Close→Reopen** または **空コミット**（`git commit --allow-empty && git push`）で再通知。
 - Pages/CI/E2E の **Required 名**（`pages-pr-build` / `ci-fast-pr-build` / `required-check`）と **Job名** が一致しているかも点検。
 
+## PR が自動マージされない（Auto-Enable PR Auto-Merge が skipped）
+- セキュリティ上、`.github/workflows/**` を変更する PR では自動マージを**無効化**しています（コメントのみ）。
+- それ以外の PR でも、作成主体やブランチ名で条件に合わないと **enable ジョブが skip** されます。
+
+### collector 由来の PR を自動マージしたい
+- ブランチ名が `collector/` で始まる、またはタイトルに `Collector Gate` を含む PR については、
+  `Auto-Enable PR Auto-Merge / enable (collector)` が `CPR_PAT` で **auto-merge を有効化**します（squash）。
+- 既存 PR に適用するには、**ラベル追加**または **Close→Reopen**（`pull_request_target` を再発火）してください。
+
 ## PRが「Some checks haven't completed yet」で止まる（Required チェックが起動しない）
 
 ### 症状
