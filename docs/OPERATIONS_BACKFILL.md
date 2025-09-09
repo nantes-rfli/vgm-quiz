@@ -43,6 +43,51 @@
 ## KPI
 - 1PRあたり追加件数、追加後のエラー率、dedup率の推移、ユーザ正答率帯の変化
 
+## by_year I/F（詳細設計 v1）
+
+### 目的
+- 年単位で参照しやすい**読み取りビュー**を提供する。
+- backfill（過去補填）でも forward（先取り）でも**同一I/F**で扱える。
+
+### 入力（例）
+- `public/daily/YYYY-MM-DD.json` または `build/daily_YYYY-MM-DD.json`
+- フィールド（抜粋）: `date`, `title`, `game`, `answers.canonical`, `meta.provenance`（6項目）
+
+### 出力（ファイル配置）
+- `public/app/by_year/{YYYY}.json`（1年=1ファイル）
+- 生成時に**既存ファイルを丸ごと置換**（冪等）
+
+### 出力スキーマ（最小）
+```jsonc
+{
+  "year": 1995,
+  "items": [
+    { "date": "1995-04-27", "id": "apple:1550828100", "title": "Corridors of Time", "game": "Chrono Trigger" }
+  ],
+  "kpi": { "count": 1, "unknown_ratio": 0.0 }
+}
+```
+
+### ID 規約
+- 優先: `meta.provenance.provider:id`（例: `apple:1550828100`）
+- 不在時: **stub 規定** `provider:"stub", id:"stub:"+sha1hex(title|game|answers.canonical)`
+
+### フォールバック規則
+1. `year` 判定不可 → `unknown` バケットに一時退避（`year: null`）
+2. `title/game` 欠落 → `answers.canonical[0]` を `title` へ補完
+3. `meta.provenance` 欠落 → **export後 fallback** を必ず適用
+4. いずれも**冪等**（同一入力で差分ゼロ）
+
+### KPI（by_year 専用）
+- `count`（年内の件数）
+- `unknown_ratio`（`year=null` の割合）
+- `top_years`（作成時には Step Summary 側で年別上位を併記）
+
+### 検証 / ドライラン
+- スクリプト案: `node scripts/backfill/by_year_v1.mjs --dry-run`
+  - 標準出力: 生成対象年、`count/unknown_ratio`、差分（追加/削除）
+  - `--write` を付けた場合のみ書き込み。
+
 
 ## by_year スキーマ（JSON Schema, 抜粋）
 ```jsonc

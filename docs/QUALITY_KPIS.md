@@ -36,3 +36,8 @@
 - candidates: `public/app/daily_candidates.jsonl` の `provenance` 付与率（provider/id/collected_at）
 - authoring today: `build/daily_today.json` の `item.meta.provenance` 有無
 > 実装: `scripts/kpi/append_summary_provenance.mjs`
+
+### by_year（読み取りビュー）
+- 年別 `count`、`unknown_ratio` を Step Summary に出力
+- しきい値サンプル: `UNKNOWN_RATIO_WARN=0.20`（20%超で警告。ゲートは任意）
+- 直近 N 年の `count` 推移を週次KPIで追跡

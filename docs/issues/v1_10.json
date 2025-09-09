@@ -48,7 +48,8 @@
       "roadmap:v1.10",
       "area:ops"
     ],
-    "body": "### Scope\n- public/app/by_year/YYYY.json のI/F確定\n- 未来地平線90日・PR粒度30–90日\n\n### DoD\n- OPERATIONS_BACKFILL.md にI/F例を追記\n- 小規模試験が可能\n### DoD 追加\n- `docs/OPERATIONS_BACKFILL.md` に **JSON Schema 抜粋**・**失敗時フォールバック**・**KPI**・**検証/ドライラン手順** を追記\n"
+    "body": "### Scope\n- public/app/by_year/YYYY.json のI/F確定\n- 未来地平線90日・PR粒度30–90日\n\n### DoD\n- OPERATIONS_BACKFILL.md にI/F例を追記\n- 小規模試験が可能\n\n\n### Status\n- documented（このチャット）：`OPERATIONS_BACKFILL.md` と `SPEC_BY_YEAR_V1.md` に I/F / フォールバック / KPI / ドライラン手順を追記。\n- 実装は v1.12+ で検討（本Issueは**設計完了**としてクローズ）。\n\n### DoD（更新）\n- I/F 定義（入出力・ファイル配置・最小スキーマ）\n- フォールバック規定（unknown/year:null, stub規定, 冪等）\n- KPI と Step Summary 出力項目\n- 検証/ドライラン手順",
+    "state": "closed"
   },
   {
     "id": "v110-rate-cost-doc",
