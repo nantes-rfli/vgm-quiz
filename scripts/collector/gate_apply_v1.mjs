@@ -4,7 +4,10 @@ import path from 'node:path';
 
 const PROPOSALS = process.env.GATE_PROPOSALS || '';
 const THRESHOLD = process.env.COLLECTOR_GATE_THRESHOLD || '';
-const DRY_RUN = (process.env.GATE_DRY_RUN || '1') === '1';
+const DRY_RUN = (() => {
+  const v = String(process.env.GATE_DRY_RUN ?? '1').toLowerCase().trim();
+  return v === '1' || v === 'true' || v === 'yes' || v === 'on';
+})();
 
 if (!PROPOSALS) {
   console.error('GATE_PROPOSALS is required (path to proposals JSONL)');
