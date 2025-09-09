@@ -108,6 +108,7 @@ jobs:
         if: ${{ inputs.dry_run != 'true' && inputs.threshold != '' }}
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.CPR_PAT }}
           commit-message: "collector: gate decisions (θ=${{ inputs.threshold }})"
           title: "Collector Gate (artifact by id - REST): decisions (θ=${{ inputs.threshold }})"
           body: |

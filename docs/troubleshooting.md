@@ -25,3 +25,20 @@
   2. PRブランチは毎回ユニーク（`bot/apple-enrich-${{ github.run_id }}`）。
   3. 既存PRが“待機中”なら **Close→Reopen** または **空コミット**（`git commit --allow-empty && git push`）で再通知。
 - Pages/CI/E2E の **Required 名**（`pages-pr-build` / `ci-fast-pr-build` / `required-check`）と **Job名** が一致しているかも点検。
+
+## PRが「Some checks haven't completed yet」で止まる（Required チェックが起動しない）
+
+### 症状
+- create-pull-request で作った PR に Required チェックが付与されるが、**ステータスが報告されない**（ずっと待機）。
+
+### 原因
+- `GITHUB_TOKEN` で作成された PR だと、組織やリポのポリシーにより **ワークフローがトリガーされない**設定になっていることがある。
+
+### 対応（推奨）
+1. **PAT（Personal Access Token）** を作ってリポジトリの Actions Secrets に保存：`CPR_PAT`
+   - Classic PAT: `repo`, `workflow` スコープを付与
+   - Fine-grained PAT: **Contents: Read/Write**, **Pull requests: Read/Write**, **Actions/Workflows: Write** 相当
+2. ワークフローで `peter-evans/create-pull-request@v6` の `with.token` に `secrets.CPR_PAT` を指定
+3. 既に作成済みの PR は **Close → Reopen** するか、空コミットを push してチェックを再起動
+
+> 本パッチで `collector (gate from artifact by id - REST)` は `CPR_PAT` を使用するよう更新済み。
