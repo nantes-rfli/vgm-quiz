@@ -17,8 +17,9 @@
       "area:collector",
       "area:ops"
     ],
-    "body": "### Scope\n- 信頼度スコア θ（Notability/Guard/Provider信頼度の合成）\n- 切替（Repo Variables or workflow input）\n\n### DoD\n- θ を docs に明記\n- 切替動作を確認\n\n### Status\n- documented（このチャット）: `SPEC_NOTABILITY.md` に Gate θ の式/係数/動作を追記、`OPERATIONS_GATE.md` を新設。\n- 実装（inputs/vars の配線・PR 作成動作）は後続チャットで対応。"
-  },
+    "body": "### Scope\n- 信頼度スコア θ（Notability/Guard/Provider信頼度の合成）\n- 切替（Repo Variables or workflow input）\n\n### DoD\n- θ を docs に明記\n- 切替動作を確認\n\n### Status\n- implemented（このチャット）: Gate スコア計算・閾値入力・dry-run/PR送りの雛形を実装。`collector (gate)` ワークフローと `scripts/collector/gate_apply_v1.mjs` を追加。\n",
+    "state": "closed"
+    },
   {
     "id": "v111-kpi-collector",
     "title": "v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）",
