@@ -1,0 +1,40 @@
+name: collector (discovery dry-run)
+
+on:
+  workflow_dispatch:
+    inputs:
+      query:
+        description: 'Search query (game/album/series)'
+        required: true
+        type: string
+      limit:
+        description: 'Max results (1-200, default 25)'
+        required: false
+        default: '25'
+      country:
+        description: 'iTunes country code (e.g., jp, us)'
+        required: false
+        default: 'jp'
+
+jobs:
+  discovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run discovery (dry-run)
+        env:
+          DISCOVERY_QUERY: ${{ inputs.query }}
+          DISCOVERY_LIMIT: ${{ inputs.limit }}
+          DISCOVERY_COUNTRY: ${{ inputs.country }}
+        run: |
+          node --version
+          node scripts/collector/discovery_dryrun_v1.mjs
+      - name: Upload proposals artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: discovery-proposals
+          path: public/app/discovery/proposals-*.jsonl
