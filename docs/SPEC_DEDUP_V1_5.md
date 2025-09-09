@@ -26,3 +26,22 @@
 ## 注意
 - 日本語・多言語に対しては NFKC 正規化を採用（辞書は未使用）。将来、分かち書きベースへの切替を検討。
 - 本KPIは **アラート** 目的。自動除外は行わない。
+
+
+## 推奨しきい値（初期運用）
+- 初期値は **0.88** を推奨（保守的）。KPIの分布が安定したら 0.85–0.90 の範囲で微調整。
+- `DEDUP_FAIL_THRESHOLD` が未設定（空）の場合は **ゲート無効**（Summary だけ出す）。
+
+## Step Summary（例）
+```
+[dedup v1.5] pairs=12345
+[dedup v1.5] θ≥0.7: 12 / θ≥0.8: 5 / θ≥0.9: 1
+[dedup v1.5] top pairs:
+  - 0.91: "Corridors of Time" vs "時の回廊" (Chrono Trigger)
+  - 0.83: "Battle with Magus" vs "Decisive Battle" (Chrono Trigger)
+```
+> **運用**: θ≥0.9 が継続する場合は seed / aliases を見直す。
+
+## 性能とスケール
+- n 件に対し **O(n²)** ペア判定。実運用では **Top-K** 抽出と θ 下限の早期打切りを実装。
+- 大規模時は年/シリーズで分割して集計し、Summary に合算を掲載。

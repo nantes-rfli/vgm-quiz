@@ -5,7 +5,7 @@
 
 ## 最小必須セット（Step Summary への出力）
 - **guard**: `in/kept/drop`、`warn` 件数、主な理由トップ3
-- **dedup**: `examined/dup-exact/dup-similar`、`θ_main`（実行値）
+- **dedup**: `pairs` / `θ≥0.7/0.8/0.9` / `top pairs (≤5)`、`DEDUP_FAIL_THRESHOLD`（設定時のみ表示）
 - **score/notability**: `mean/median`、帯域比（High/Med/Low）
 - **pick**: 採用件数 / スキップ理由（重複/枯渇/既存日）
 

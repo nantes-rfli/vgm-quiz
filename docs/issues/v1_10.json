@@ -7,7 +7,7 @@
       "area:quality",
       "area:pipeline"
     ],
-    "body": "### Scope\n- N-gram（3-gram）での近似重複KPI\n- 正規化（NFKC/小文字/空白圧縮）\n- **任意ゲート**（`DEDUP_FAIL_THRESHOLD` 設定時のみCIを落とす）\n\n### DoD（v1.10）\n- KPI を Step Summary に常設（pairs/θバケット/topペア）\n- docs/SPEC_DEDUP_V1_5.md に運用記載（日本語）\n- 任意ゲートの導入（デフォルトOFF、値は運用で調整）\n\n### Status\n- **IN PROGRESS**（このチャットでKPI導入済／ゲート追加済）"
+    "body": "### Scope\n- N-gram（3-gram）での近似重複KPI\n- 正規化（NFKC/小文字/空白圧縮）\n- **任意ゲート**（`DEDUP_FAIL_THRESHOLD` 設定時のみCIを落とす）\n\n### DoD（v1.10）\n- KPI を Step Summary に常設（pairs/θバケット/topペア）\n- docs/SPEC_DEDUP_V1_5.md に運用記載（日本語）\n- 任意ゲートの導入（デフォルトOFF、値は運用で調整）\n\n### Status\n- **IN PROGRESS**（このチャットでKPI導入済／ゲート追加済）\n### DoD 追加\n- `docs/SPEC_DEDUP_V1_5.md` に**推奨しきい値(0.88)**・Step Summary 例・スケール注意を追記\n- `docs/OPERATIONS_CANDIDATES.md` / `docs/QUALITY_KPIS.md` に **θバケット** と **任意ゲート** を明記\n"
   },
   {
     "id": "v110-notability-v1",
@@ -47,7 +47,7 @@
       "roadmap:v1.10",
       "area:ops"
     ],
-    "body": "### Scope\n- public/app/by_year/YYYY.json のI/F確定\n- 未来地平線90日・PR粒度30–90日\n\n### DoD\n- OPERATIONS_BACKFILL.md にI/F例を追記\n- 小規模試験が可能"
+    "body": "### Scope\n- public/app/by_year/YYYY.json のI/F確定\n- 未来地平線90日・PR粒度30–90日\n\n### DoD\n- OPERATIONS_BACKFILL.md にI/F例を追記\n- 小規模試験が可能\n### DoD 追加\n- `docs/OPERATIONS_BACKFILL.md` に **JSON Schema 抜粋**・**失敗時フォールバック**・**KPI**・**検証/ドライラン手順** を追記\n"
   },
   {
     "id": "v110-rate-cost-doc",
