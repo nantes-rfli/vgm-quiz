@@ -6,7 +6,7 @@
       "roadmap:v1.11",
       "area:collector"
     ],
-    "body": "### Scope\n- game/album 語 → 正規化 → 公式候補を探索（iTunes Search 起点、将来 Apple Music / YouTube API を段階導入）\n- **dry-run のみ**：提案 seed を**アーティファクト**として出力（JSONL: 1行=1候補）\n- 正規化: title/game/composer/aliases、`meta.provenance`（6項目）付与ルールの雛形\n- 重複排除: de-dup v1.5 を**adviceモード**で実行（落とさずスコアだけ付与）\n\n### DoD\n- Actions 実行で**dry-runアーティファクト**が生成（`artifacts/discovery/proposals-*.jsonl`）\n- Step Summary に KPI（official_rate/hit_rate/duplicate_ratio/fail_reasons_top3）が常設\n- 実際の seed への書き込みは**しない**（本Issueではドキュ/設計と dry-run のみ）\n\n### Status\n- implemented（このチャット）: `scripts/collector/discovery_dryrun_v1.mjs` と `collector (discovery dry-run)` ワークフローを追加。アーティファクト出力・KPI出力を実装。\n",
+    "body": "### Scope\n- game/album 語 → 正規化 → 提案 seed（dry-run）\n- 公式性判定の最小ルール\n\n### DoD\n- 提案seedをアーティファクト出力\n- 簡易レビューが可能\n\n### Status\n- delivered（このチャット）\n",
     "state": "closed"
   },
   {
@@ -17,9 +17,9 @@
       "area:collector",
       "area:ops"
     ],
-    "body": "### Scope\n- 信頼度スコア θ（Notability/Guard/Provider信頼度の合成）\n- 切替（Repo Variables or workflow input）\n\n### DoD\n- θ を docs に明記\n- 切替動作を確認\n\n### Status\n- implemented（このチャット）: Gate スコア計算・閾値入力・dry-run/PR送りの雛形を実装。`collector (gate)` ワークフローと `scripts/collector/gate_apply_v1.mjs` を追加。\n",
+    "body": "### Scope\n- 信頼度スコア θ（Notability/Guard/Provider信頼度の合成）\n- 切替（Repo Variables or workflow input）\n\n### DoD\n- θ を docs に明記\n- 切替動作を確認\n\n### Status\n- delivered（このチャット）\n- collector gate 実行：PR 自動マージ／生成物 `resources/candidates/auto/accepted-202509091341.jsonl` を確認\n",
     "state": "closed"
-    },
+  },
   {
     "id": "v111-kpi-collector",
     "title": "v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）",
