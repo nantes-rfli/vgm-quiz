@@ -335,6 +335,7 @@ DoD: Actions 全体が緑／ `daily_auto.json` が日次で増加（候補枯渇
 > これらは v1.10 実装中に回帰・KPI観測で微調整可能。
 
 ## v1.11 — Collector 本格化（Discovery → 自動収集 → 自動作問）
+- 状態: **DONE**（Discovery dry-run / Gate / KPI / PR自動化 完了）
 **目的**: **完全自動**を段階的に解禁。v1.10 の地盤を下敷きに、量を安全に増やす。
 
 **構成**:

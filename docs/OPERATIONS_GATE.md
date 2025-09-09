@@ -28,3 +28,17 @@
 - `auto_accept_rate`, `pr_queue_size`, `reject_rate`, `avg_score`（任意）
 - Collector 全体KPIは `QUALITY_KPIS.md` の Collector 章に統合（別Issue）。
 
+
+## 運用方針（v1.11 最終）
+
+### Canonical（残すもの）
+- **collector (discovery dry-run)**
+- **collector (gate from artifact by id - REST)** ← これを標準の Gate ワークフローとする
+
+### Deprecated（削除対象）
+- collector (gate)
+- collector (gate from artifact)
+- collector (gate from artifact robust)
+- collector (gate from artifact by id)
+
+> 理由：artifact 取得や inputs 伝搬の相性課題があり、by-id + REST 版で集約しました。
