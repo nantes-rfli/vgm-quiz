@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-09T05:03:26.474Z
+Exported at: 2025-09-09T09:04:05.771Z
 
 ## post-v1.6
 
@@ -26,9 +26,9 @@ Exported at: 2025-09-09T05:03:26.474Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 602 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/602) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T04:34:45Z |
+| 606 | [v1.10: backfill の by_year I/F 設計](https://github.com/nantes-rfli/vgm-quiz/issues/606) | closed | area:ops, roadmap:v1.10 |  | 2025-09-09T05:20:16Z |
+| 602 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/602) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T05:14:42Z |
 | 607 | [v1.10: Rate/Cost 制御の方針を明文化（任意）](https://github.com/nantes-rfli/vgm-quiz/issues/607) | closed | type:docs, area:ops, roadmap:v1.10 |  | 2025-09-09T04:07:33Z |
-| 606 | [v1.10: backfill の by_year I/F 設計](https://github.com/nantes-rfli/vgm-quiz/issues/606) | open | area:ops, roadmap:v1.10 |  | 2025-09-09T04:02:46Z |
 | 604 | [v1.10: provenance 配線（ingest→pick）](https://github.com/nantes-rfli/vgm-quiz/issues/604) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T03:43:05Z |
 | 603 | [v1.10: Notability v1（High/Med/Low=75/20/5）](https://github.com/nantes-rfli/vgm-quiz/issues/603) | closed | roadmap:v1.10, area:quality |  | 2025-09-08T13:10:59Z |
 | 605 | [v1.10: Step Summary にKPI最小セットを出す](https://github.com/nantes-rfli/vgm-quiz/issues/605) | closed | area:ops, roadmap:v1.10 |  | 2025-09-08T13:10:58Z |
