@@ -58,3 +58,16 @@ jobs:
               body: "\U0001F512 This PR modifies GitHub Actions workflows. Auto-merge is skipped by policy. Please merge manually after checks are green."
             });
 
+  enable-collector:
+    name: enable (collector)
+    needs: changed
+    if: ${{ needs.changed.outputs.touched_workflows != 'true' && (startsWith(github.event.pull_request.head.ref, 'collector/') || contains(github.event.pull_request.title, 'Collector Gate')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge (squash)
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.CPR_PAT }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: SQUASH
+
