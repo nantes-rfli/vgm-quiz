@@ -45,6 +45,12 @@
 
 ---
 ## 運用（θとdry-run）
+
+### 判定順（固定）
+- **減点**（provenance欠落=0、license unknown=×0.5、composer欠落=×0.8、dedup: θ≥0.95→0 / θ≥0.85→×0.5 など）
+- **スコア算出**（`score = 0.5*notability + 0.3*provider_trust + 0.2*guard_score`）
+- **θ判定**（`score ≥ θ` → 自動採用 / `0.50 ≤ score < θ` → PR送り / `<0.50` → reject）
+
 - **本線 θ**: 初期は **0.80** とする（運用で見直し可）。
 - **比較用 θ**: **0.72 / 0.85** を `dry-run` で計測し、**Step Summary** に以下KPIを出す。
   - `auto_accept_rate` / `reject_rate` / `dedup_reject_rate`
