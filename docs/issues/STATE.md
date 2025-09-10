@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-10T09:20:18.270Z
+Exported at: 2025-09-10T11:43:30.768Z
 
 ## post-v1.6
 
@@ -30,9 +30,6 @@ Exported at: 2025-09-10T09:20:18.270Z
 | 712 | [v1.10: provenance 配線（ingest→pick）](https://github.com/nantes-rfli/vgm-quiz/issues/712) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T14:01:39Z |
 | 713 | [v1.10: Step Summary にKPI最小セットを出す](https://github.com/nantes-rfli/vgm-quiz/issues/713) | closed | area:ops, roadmap:v1.10 |  | 2025-09-09T14:01:38Z |
 | 715 | [v1.10: Rate/Cost 制御の方針を明文化（任意）](https://github.com/nantes-rfli/vgm-quiz/issues/715) | closed | type:docs, area:ops, roadmap:v1.10 |  | 2025-09-09T14:01:36Z |
-| 606 | [v1.10: backfill の by_year I/F 設計](https://github.com/nantes-rfli/vgm-quiz/issues/606) | closed | area:ops, roadmap:v1.10 |  | 2025-09-09T05:20:16Z |
-| 602 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/602) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T05:14:42Z |
-| 607 | [v1.10: Rate/Cost 制御の方針を明文化（任意）](https://github.com/nantes-rfli/vgm-quiz/issues/607) | closed | type:docs, area:ops, roadmap:v1.10 |  | 2025-09-09T04:07:33Z |
 
 ## v1.11
 
@@ -48,7 +45,7 @@ Exported at: 2025-09-10T09:20:18.270Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 781 | [v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記](https://github.com/nantes-rfli/vgm-quiz/issues/781) | open | type:docs, roadmap:v1.12, area:architecture |  | 2025-09-10T09:17:07Z |
+| 781 | [v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記](https://github.com/nantes-rfli/vgm-quiz/issues/781) | open | type:docs, roadmap:v1.12, area:architecture |  | 2025-09-10T11:39:24Z |
 | 732 | [v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）](https://github.com/nantes-rfli/vgm-quiz/issues/732) | closed | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:38Z |
 | 773 | [v1.12: UI-slim Phase 2（画面単位分割：play / media）](https://github.com/nantes-rfli/vgm-quiz/issues/773) | open | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:36Z |
 | 735 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/735) | closed | type:docs, roadmap:v1.12, area:ci |  | 2025-09-10T03:06:16Z |
@@ -84,6 +81,10 @@ Exported at: 2025-09-10T09:20:18.270Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 785 | [Tests: UI/Responsive最小スモーク追加（JS不増を担保）](https://github.com/nantes-rfli/vgm-quiz/issues/785) | closed | roadmap:v1.5, responsive, type:test |  | 2025-09-10T11:39:29Z |
+| 786 | [Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）](https://github.com/nantes-rfli/vgm-quiz/issues/786) | closed | roadmap:v1.5, type:docs |  | 2025-09-10T11:39:27Z |
+| 784 | [UI: ライトテーマのコントラスト微調整](https://github.com/nantes-rfli/vgm-quiz/issues/784) | closed | roadmap:v1.5, area:ui, a11y |  | 2025-09-10T09:20:54Z |
+| 783 | [UI: 微小トランジション（opacity/transformのみ）](https://github.com/nantes-rfli/vgm-quiz/issues/783) | closed | roadmap:v1.5, area:ui, perf |  | 2025-09-10T09:20:36Z |
 | 778 | [UI: #choices グリッド2→3→4列のレスポンシブ](https://github.com/nantes-rfli/vgm-quiz/issues/778) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-10T09:17:11Z |
 | 779 | [UI: Historyテーブルのストライプ/ホバー](https://github.com/nantes-rfli/vgm-quiz/issues/779) | closed | roadmap:v1.5, area:ui |  | 2025-09-10T09:17:10Z |
 | 774 | [UI: デザイントークンをCSSで統一](https://github.com/nantes-rfli/vgm-quiz/issues/774) | closed | roadmap:v1.5, area:ui, responsive |  | 2025-09-10T08:55:28Z |
