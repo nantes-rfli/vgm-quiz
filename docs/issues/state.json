@@ -1,38 +1,258 @@
 {
-  "exported_at": "2025-09-09T15:10:46.114Z",
+  "exported_at": "2025-09-10T00:51:41.393Z",
   "items": [
     {
-      "number": 720,
-      "title": "v1.9: aliases backfill ベース運用",
+      "number": 749,
+      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
       "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/720",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/749",
       "labels": [
-        "roadmap:v1.9",
-        "status:done",
-        "area:data"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T14:01:51Z",
-      "roadmap": [
-        "roadmap:v1.9"
-      ]
-    },
-    {
-      "number": 719,
-      "title": "v1.9: smoke apple override（即時検証フロー）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/719",
-      "labels": [
-        "area:pipeline",
-        "roadmap:v1.9",
+        "type:docs",
+        "roadmap:v1.7",
+        "area:ops",
         "status:done"
       ],
       "assignees": [],
       "milestone": null,
-      "updated_at": "2025-09-09T14:01:51Z",
+      "updated_at": "2025-09-10T00:49:36Z",
       "roadmap": [
-        "roadmap:v1.9"
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 744,
+      "title": "v1.15: 追加プロバイダ設計（Spotify/Bandcamp等、実装は後続）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/744",
+      "labels": [
+        "roadmap:v1.15",
+        "area:media",
+        "type:design"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:39Z",
+      "roadmap": [
+        "roadmap:v1.15"
+      ]
+    },
+    {
+      "number": 743,
+      "title": "v1.15: レート制御・許可ドメイン・アーカイブ運用のポリシー文書化",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/743",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.15",
+        "area:policy"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:39Z",
+      "roadmap": [
+        "roadmap:v1.15"
+      ]
+    },
+    {
+      "number": 742,
+      "title": "v1.15: ハーベスタ雛形（限定クロール→アーカイブ→抽出）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/742",
+      "labels": [
+        "roadmap:v1.15",
+        "area:harvest",
+        "type:infra"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:39Z",
+      "roadmap": [
+        "roadmap:v1.15"
+      ]
+    },
+    {
+      "number": 741,
+      "title": "v1.14: 取り込み〜抽出〜正規化〜誤答肢生成 パイプライン実装",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/741",
+      "labels": [
+        "roadmap:v1.14",
+        "area:trivia",
+        "type:impl"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:38Z",
+      "roadmap": [
+        "roadmap:v1.14"
+      ]
+    },
+    {
+      "number": 740,
+      "title": "v1.14: トリビアのスキーマ定義・一意性ロック・信頼度スコア",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/740",
+      "labels": [
+        "roadmap:v1.14",
+        "area:trivia",
+        "type:spec"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:38Z",
+      "roadmap": [
+        "roadmap:v1.14"
+      ]
+    },
+    {
+      "number": 739,
+      "title": "v1.14: トリビア自動MVP（オフライン種）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/739",
+      "labels": [
+        "type:feature",
+        "roadmap:v1.14",
+        "area:trivia"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:38Z",
+      "roadmap": [
+        "roadmap:v1.14"
+      ]
+    },
+    {
+      "number": 738,
+      "title": "v1.13: KPI計測の組み込み（Step Summary）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/738",
+      "labels": [
+        "area:kpi",
+        "roadmap:v1.13"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:37Z",
+      "roadmap": [
+        "roadmap:v1.13"
+      ]
+    },
+    {
+      "number": 737,
+      "title": "v1.13: 復旧手順・運用ドキュ整備（OPERATIONS_DAILY_ONEQ.md）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/737",
+      "labels": [
+        "type:docs",
+        "area:ops",
+        "roadmap:v1.13"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:37Z",
+      "roadmap": [
+        "roadmap:v1.13"
+      ]
+    },
+    {
+      "number": 736,
+      "title": "v1.13: “1問/日” 自動MVP（埋め込みのみ: Apple優先→YouTube→自前なし）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/736",
+      "labels": [
+        "roadmap:v1.13",
+        "area:daily",
+        "type:feature"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:36Z",
+      "roadmap": [
+        "roadmap:v1.13"
+      ]
+    },
+    {
+      "number": 735,
+      "title": "v1.12: docs-lint（リンク切れ）軽量Workflow追加",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/735",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.12",
+        "area:ci"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:36Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 734,
+      "title": "v1.12: ドキュ骨格再編＋必須章更新（日本語統一）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/734",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.12"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:36Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 733,
+      "title": "v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/733",
+      "labels": [
+        "area:ops",
+        "area:kpi",
+        "roadmap:v1.12"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:35Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 732,
+      "title": "v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/732",
+      "labels": [
+        "area:ui",
+        "roadmap:v1.12",
+        "type:refactor"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:35Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 731,
+      "title": "v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/731",
+      "labels": [
+        "roadmap:v1.12",
+        "type:refactor",
+        "area:scripts"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:34Z",
+      "roadmap": [
+        "roadmap:v1.12"
       ]
     },
     {
@@ -155,6 +375,169 @@
       "updated_at": "2025-09-07T15:36:47Z",
       "roadmap": [
         "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 748,
+      "title": "Authoring: distractors-v1（ダミー生成）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/748",
+      "labels": [
+        "roadmap:v1.7",
+        "area:pipeline",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:49:37Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 747,
+      "title": "Authoring: difficulty-v1（簡易スコア）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/747",
+      "labels": [
+        "type:test",
+        "roadmap:v1.7",
+        "area:pipeline",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:49:35Z",
+      "roadmap": [
+        "roadmap:v1.7"
+      ]
+    },
+    {
+      "number": 746,
+      "title": "Docs: STYLEGUIDE_I18N/ROADMAP の整備",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/746",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.6",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:49:34Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 745,
+      "title": "i18n: a11yメッセージのキー管理へ統合",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/745",
+      "labels": [
+        "roadmap:v1.6",
+        "type:code",
+        "i18n",
+        "area:a11y",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:49:33Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 727,
+      "title": "i18n: initI18n() を app.js 起動時に配線",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/727",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:45:43Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 723,
+      "title": "i18n: コアモジュール導入（i18n.mjs）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/723",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "type:code",
+        "i18n",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T15:29:42Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 724,
+      "title": "i18n: locales/en.json & ja.json（最小キー）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/724",
+      "labels": [
+        "roadmap:v1.6",
+        "area:app",
+        "i18n",
+        "type:data",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T15:29:41Z",
+      "roadmap": [
+        "roadmap:v1.6"
+      ]
+    },
+    {
+      "number": 719,
+      "title": "v1.9: smoke apple override（即時検証フロー）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/719",
+      "labels": [
+        "area:pipeline",
+        "roadmap:v1.9",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T15:11:06Z",
+      "roadmap": [
+        "roadmap:v1.9"
+      ]
+    },
+    {
+      "number": 720,
+      "title": "v1.9: aliases backfill ベース運用",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/720",
+      "labels": [
+        "roadmap:v1.9",
+        "status:done",
+        "area:data"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-09T15:11:05Z",
+      "roadmap": [
+        "roadmap:v1.9"
       ]
     },
     {
@@ -604,145 +987,6 @@
       "updated_at": "2025-09-08T13:10:58Z",
       "roadmap": [
         "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 399,
-      "title": "Authoring: harvester-min（公式ソース収集器）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/399",
-      "labels": [
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T03:17:45Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 400,
-      "title": "Authoring: clip-start-heuristics-v1",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/400",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T03:17:44Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 636,
-      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/636",
-      "labels": [
-        "type:test",
-        "area:ops",
-        "status:done",
-        "roadmap:post-v1.7"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T02:26:40Z",
-      "roadmap": [
-        "roadmap:post-v1.7"
-      ]
-    },
-    {
-      "number": 635,
-      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/635",
-      "labels": [
-        "type:test",
-        "area:pipeline",
-        "status:done",
-        "roadmap:post-v1.7"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T02:26:39Z",
-      "roadmap": [
-        "roadmap:post-v1.7"
-      ]
-    },
-    {
-      "number": 437,
-      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/437",
-      "labels": [
-        "type:test",
-        "area:ops",
-        "status:done",
-        "roadmap:post-v1.7"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T02:20:31Z",
-      "roadmap": [
-        "roadmap:post-v1.7"
-      ]
-    },
-    {
-      "number": 404,
-      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/404",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:ops"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T02:20:31Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 403,
-      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/403",
-      "labels": [
-        "type:test",
-        "roadmap:v1.7",
-        "area:pipeline"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T02:20:30Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 436,
-      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/436",
-      "labels": [
-        "type:test",
-        "area:pipeline",
-        "status:done",
-        "roadmap:post-v1.7"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T02:20:29Z",
-      "roadmap": [
-        "roadmap:post-v1.7"
       ]
     }
   ]
