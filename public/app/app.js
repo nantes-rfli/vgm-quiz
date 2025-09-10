@@ -1,28 +1,5 @@
-// i18n baseline (v1.6)
-import { initI18n, whenI18nReady, applyStaticLabels, t } from './i18n.mjs';
 import { registerSW } from './sw-register.js';
-void initI18n(); // non-blocking; updates <html lang> & document.title
-whenI18nReady().then(() => {
-  // Try immediately, then after first paint, then once again after 500ms for safety
-  try { applyStaticLabels(); } catch {}
-  try { requestAnimationFrame(() => applyStaticLabels()); } catch {}
-  setTimeout(() => { try { applyStaticLabels(); } catch {} }, 500);
-  // Initialize live region text
-  try {
-    const live = document.getElementById('feedback');
-    if (live && !live.textContent?.trim()) {
-      live.textContent = t('a11y.ready');
-    }
-  } catch {}
-});
-// Re-apply on language change (future-proofing)
-window.addEventListener('i18n:changed', () => {
-  try { applyStaticLabels(); } catch {}
-  try {
-    const live = document.getElementById('feedback');
-    if (live) live.textContent = t('a11y.ready');
-  } catch {}
-});
+import './i18n-boot.mjs';
 
 // --- perf helpers ---
 async function parseJsonOffMainThread(text) {
@@ -66,6 +43,23 @@ function ensureAliases() {
 }
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
+import {
+  readVersionNoStore,
+  rememberHash,
+  currentHash,
+  checkOnLoad,
+  showUpdateBanner,
+  settings,
+  saveSettings,
+  TYPE_LABELS,
+  recordPlay,
+  fetchHistory,
+  clearHistoryStore,
+  saveAliasProposal,
+  exportAliasProposals,
+  showView,
+  trackId
+} from './version.mjs';
 // lazy import on demand from './media_player.mjs'
 
 let tracks = [];
@@ -88,6 +82,14 @@ let currentRunId = null;
 let datasetLoaded = false;
 let datasetPromise = null;
 const aliases = {};
+function norm(str) {
+  try { return normalizeV2(String(str)); }
+  catch (_) { return String(str ?? '').normalize('NFKC').trim().toLowerCase(); }
+}
+function canonical(str) {
+  const n = norm(str);
+  return aliases[n] || n;
+}
 let questionMode = 'free'; // multiple choice mode uses 'multiple-choice'
 let timerId = null;
 let remaining = 20;
@@ -234,230 +236,14 @@ function applyDailyRestriction() {
   questions = [questions[idx]];
 }
 
-// === バージョン読み取りのメモ化（60s TTL） ========================
-const VERSION_TTL_MS = 60_000;
-const VERSION_TIMEOUT_MS = 8_000; // 8s に延長
-let __readVersionCache = { ts: 0, data: null, etag: null };
-let __readVersionInflight = null;  // ★ in-flight共有
-
-async function readVersionNoStore(force = false) {
-  // 1) in-flight共有
-  if (!force) {
-    if (__readVersionInflight) return __readVersionInflight;
-    if (__readVersionCache.data && (Date.now() - __readVersionCache.ts) < VERSION_TTL_MS) {
-      return __readVersionCache.data;
-    }
-  }
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), VERSION_TIMEOUT_MS);
-  try {
-    const init = { signal: ctrl.signal, cache: 'no-store', headers: {} };
-    if (__readVersionCache.etag) init.headers['If-None-Match'] = __readVersionCache.etag;
-    const p = (async () => {
-      const res = await fetch(VERSION_URL, init);
-      if (res.status === 304 && __readVersionCache.data) {
-        __readVersionCache.ts = Date.now();
-        return __readVersionCache.data;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const etag = res.headers.get('ETag');
-      const data = await res.json();
-      __readVersionCache = { ts: Date.now(), data, etag };
-      return data;
-    })();
-    __readVersionInflight = p;
-    const data = await p;
-    return data;
-  } catch (_) {
-    if (__readVersionCache.data) return __readVersionCache.data;
-    return { dataset: 'mock', commit: 'local', content_hash: 'local' };
-  } finally {
-    clearTimeout(t);
-    __readVersionInflight = null; // in-flight解除
-  }
-}
-function rememberHash(h){ localStorage.setItem(HASH_KEY,h); }
-function currentHash(){ return localStorage.getItem(HASH_KEY); }
-async function checkOnLoad(){
-  try{
-    const {content_hash} = await readVersionNoStore();
-    if(!currentHash()) rememberHash(content_hash);
-  }catch(e){ console.warn('version check failed',e); }
-}
-async function applyUpdateAndReload(){
-  try{
-    const {content_hash} = await readVersionNoStore();
-    rememberHash(content_hash);
-  }catch(_){ }
-  location.reload();
-}
-
-let swRegistration = null;
-// DEPRECATED: legacy SW update banner. Replaced by public/app/sw_update.js.
-// Keeping function for compatibility with older calls; no-op to avoid double banners.
-function showUpdateBanner(){ /* no-op: handled by sw_update.js */ }
-
-const SETTINGS_KEY = 'quiz-options';
-function loadSettings() {
-  try {
-    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
-    const q = new URLSearchParams(location.search).get('mode');
-    if (q === 'multiple-choice' || q === 'free') {
-      s.mode = q;
-    }
-    if (s.mode !== 'multiple-choice' && s.mode !== 'free') {
-      s.mode = 'free';
-    }
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-    return s;
-  } catch {
-    return {};
-  }
-}
-const settings = loadSettings();
-function saveSettings() {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-}
-
-const TYPE_LABELS = {
-  'title-game': 'title→game',
-  'game-composer': 'game→composer',
-  'title-composer': 'title→composer'
-};
-
-const DB_NAME = 'vgm-quiz';
-const DB_VERSION = 2;
-const PLAY_STORE = 'plays';
-const ALIAS_STORE = 'alias_proposals';
-const dbPromise = new Promise((resolve, reject) => {
-  const req = indexedDB.open(DB_NAME, DB_VERSION);
-  req.onupgradeneeded = () => {
-    const db = req.result;
-    if (!db.objectStoreNames.contains(PLAY_STORE)) {
-      db.createObjectStore(PLAY_STORE, { autoIncrement: true });
-    }
-    if (!db.objectStoreNames.contains(ALIAS_STORE)) {
-      db.createObjectStore(ALIAS_STORE, { autoIncrement: true });
-    }
-  };
-  req.onsuccess = () => resolve(req.result);
-  req.onerror = () => reject(req.error);
-});
-
-function showView(id) {
-  ['start-view', 'question-view', 'result-view', 'history-view'].forEach(v => {
-    document.getElementById(v).style.display = id === v ? 'block' : 'none';
-  });
-}
-
-function trackId(track) {
-  if (track['track/id']) return track['track/id'];
-  const str = `${track.title}|${track.game}|${track.composer}|${track.year}`;
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = Math.imul(31, h) + str.charCodeAt(i) | 0;
-  }
-  return h >>> 0;
-}
-
-async function recordPlay(rec) {
-  const db = await dbPromise;
-  const tx = db.transaction(PLAY_STORE, 'readwrite');
-  tx.objectStore(PLAY_STORE).add({ ...rec, ts: Date.now() });
-}
-
-async function fetchHistory() {
-  const db = await dbPromise;
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(PLAY_STORE, 'readonly').objectStore(PLAY_STORE).getAll();
-    req.onsuccess = () => {
-      resolve(req.result.sort((a, b) => b.ts - a.ts).slice(0, 20));
-    };
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function clearHistoryStore() {
-  const db = await dbPromise;
-  db.transaction(PLAY_STORE, 'readwrite').objectStore(PLAY_STORE).clear();
-}
-
-async function saveAliasProposal(cat, canon, alias) {
-  const db = await dbPromise;
-  const tx = db.transaction(ALIAS_STORE, 'readwrite');
-  tx.objectStore(ALIAS_STORE).add({ cat, canon, alias });
-}
-
-async function getAllAliasProposals() {
-  const db = await dbPromise;
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(ALIAS_STORE, 'readonly').objectStore(ALIAS_STORE).getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function proposalsToEdn(data) {
-  const catStrs = Object.entries(data).map(([cat, m]) => {
-    const entries = Object.entries(m).map(([canon, list]) => {
-      const aliases = list.map(a => `"${a.replace(/"/g, '\\"')}"`).join(' ');
-      return `"${canon.replace(/"/g, '\\"')}" #{${aliases}}`;
-    }).join(', ');
-    return `:${cat} {${entries}}`;
-  }).join(' ');
-  return `{${catStrs}}`;
-}
-
-async function exportAliasProposals() {
-  const items = await getAllAliasProposals();
-  const merged = { game: {}, composer: {} };
-  items.forEach(p => {
-    const m = merged[p.cat];
-    (m[p.canon] ||= new Set()).add(p.alias);
-  });
-  const formatted = { game: {}, composer: {} };
-  Object.entries(merged).forEach(([cat, m]) => {
-    Object.entries(m).forEach(([canon, set]) => {
-      (formatted[cat][canon] ||= []).push(...set);
-    });
-  });
-  const edn = proposalsToEdn(formatted);
-  const blob = new Blob([edn], { type: 'application/edn' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'alias-proposals.edn';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function norm(str) {
-  // v1.1: 強化版ノーマライズ（normalize.mjs）へ委譲。失敗時は従来フォールバック。
-  try { return normalizeV2(String(str)); }
-  catch (_) { return String(str ?? '').normalize('NFKC').trim().toLowerCase(); }
-}
-
-function canonical(str) {
-  const n = norm(str);
-  return aliases[n] || n;
-}
-
-// 質問配列が作られた直後（既存ロジックの直後）で並べ替えを適用
-// 例：buildQuestions() / startGame() の直後など、questions が最終確定した箇所にフック
 function afterQuestionsBuiltHook() {
   try {
-    // (1) 出題順の分散（フラグ qp=1 のとき）
     if (getQueryBool('qp') && Array.isArray(questions) && questions.length > 0) {
-      // v0.2: ここで明示的に seed RNG を使う（フォールバックは rngForPipeline 側で済）
       const order = orderByYearBucket(questions, rngForPipeline);
       questions = order.map(i => questions[i]);
     }
-    // (2) デイリー1問（フラグ daily=... のとき）
     if (DAILY.active) {
       if (!DAILY.mapLoaded) {
-        // 先読み未完の場合は同期的に見えるところで諦め、次回以降に反映（安全策）
         console.warn('[daily] map not loaded yet; using fallback (first question)');
         questions = [questions[0]];
       } else {
@@ -465,7 +251,6 @@ function afterQuestionsBuiltHook() {
         applyDailyRestriction();
       }
     }
-    // (3) test=1 のときデバッグ公開
     if (getQueryBool('test') && Array.isArray(questions)) {
       window.__questionIds = questions.map(q => q?.track?.id ?? q?.track?.title ?? '').join(',');
       window.__questionDebug = questions.map(q => ({

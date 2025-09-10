@@ -71,3 +71,11 @@
 ## E2E / Monitoring
 - smoke テスト（/daily + latest / AUTO バッジ）
 - Lighthouse Budgets（warn）
+
+## フロントエンド（app/）の起動分割（v1.12 Phase 1）
+- `boot-params.js`: URL 検索パラメータと `__IS_TEST_MODE__` を先読みして公開（副作用なし）。
+- `sw-register.js`: Service Worker 登録の薄いラッパ。`registerSW(version, onWaiting)` を提供。
+- `i18n-boot.mjs`: i18n 初期化と静的ラベル適用・`i18n:changed` ハンドラを集約。
+- `version.mjs`: バージョン情報の読込（`readVersionNoStore` など）を集約。TTL/ETag メモ化は従来通り。
+
+> 目的: `public/app/app.js` の責務を明確化し、将来の UI 分割（Phase 2 以降）の基盤にする。
