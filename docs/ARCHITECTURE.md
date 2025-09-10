@@ -113,3 +113,26 @@
 2) 残機と回答フローを移譲 → E2E 緑  
 3) `media-select` を導入し、Apple/YouTube 選択を移譲 → E2E 緑  
 4) リファクタ後に **差分レビュー**（提案との整合チェック）を実施。
+
+#### Phase 2 追加: ライフ配線とフローフック（このチャットで導入）
+**目的**: 残機/HUD の再計算と終了判定、回答後のフローハンドリングを **play-controller** 経由に集約しつつ、**挙動不変**を担保する。
+
+- `play-controller.mjs` に以下を追加（UI非依存・DOM非操作）:
+  - `onNext(cb)` / `next()`：次問遷移の**入口**を集約（`app.js` の `nextQuestion` を DI で注入）
+  - `accept(payload)` / `reject(payload)` / `onAccept(cb)` / `onReject(cb)`：回答結果の**通知フック**（委譲のみ）
+  - `afterAnswer({ correct, remaining })` / `onAnswer(cb)`：回答直後の**後処理フック**
+  - `wireLives({ recomputeMistakes, maybeEndGameByLives })`：既存 HUD 再計算・終了判定を**参照注入**
+  - `refreshLives()`：歴史的順序 **`setTimeout(recomputeMistakes,0)` → `maybeEndGameByLives()`** を厳密再現
+
+- `app.js` 側の扱い:
+  - 起動時に `onNext(nextQuestion)` と `wireLives({ recomputeMistakes, maybeEndGameByLives })` を配線
+  - タイムアウト経路は `submitAnswer()` → `__PLAY__.next()` にラップ（最終結果は従来と同一）
+  - `submitAnswer()` 内で正誤に応じて `accept/reject/afterAnswer` を**通知のみ**（副作用は従来ロジックのまま）
+
+**不変条件（DoD）**
+- UI 表示・ARIA・イベント順序は従来と完全一致  
+- 既存 E2E（A11y/AUTO/結果ダイアログ）/ Lighthouse が緑  
+- 依存はすべて **関数参照注入（DI）** とし、テストではフェイク依存に差し替え可能
+
+**テスト**
+- Node 標準の `node --test` によるユニットテストを追加（`tests/`）。`play-controller` と `media-select` の要点を検証。
