@@ -363,3 +363,33 @@ DoD: Actions 全体が緑／ `daily_auto.json` が日次で増加（候補枯渇
 - Discovery ソースの拡張（YouTube Official / Bandcamp 等、ライセンス方針と併せて）
 - Ops 整備（PAT/Auto-merge/Artifact 取得手順の統合・簡略化）
 - Audio特性の活用（将来）／モデリング高度化／UI改善 等
+
+
+## v1.12〜v1.15 計画（確定）
+
+### v1.12（安定化＋リファクタ＋θ運用開始＋ドキュ骨格再編）
+- 目的: 後続MVPを安全に載せられる“土台”づくり（挙動は不変）
+- コード: scripts の lib 分離 / 命名統一 / 設定一元化（入口互換を維持, Node組み込み`node --test`で最小ユニット）
+- UI: app.js を bootstrap/state/engine/media/i18n/ui に**軽量分割**（挙動不変）、sw.js は routes/config へ整理
+- θ運用: 本線 θ=0.80、比較 θ=0.72/0.85 を **dry-run専用Workflow** で定期測定（KPIはStep Summaryへ）
+- ドキュ: 骨格再編（日本語統一）。`OPERATIONS_GATE.md` / `QUALITY_KPIS.md` / `ARCHITECTURE.md` などを整備
+- DoD: E2E 緑 / ユニットがCIで実行 / θ本線開始＆dry-run有効 / ドキュ骨格と必須章更新
+
+### v1.13（“1問/日” 自動MVP：埋め込みのみ＝Apple優先→YouTube→自前なし）
+- 既存 daily 系を拡張（必要に応じて補助Workflowは新設可）
+- 機能: クリップ開始秒選定 / 難易度 / 誤答肢 / 表記正規化 / 重複回避（v1.12のlibを再利用）
+- 成果物: Daily JSON / OGP / Feeds。失敗時の復旧手順を `OPERATIONS_DAILY_ONEQ.md` に明記
+- DoD: 無人運用で安定生成（埋め込みのみ）。復旧手順がドキュ化されている
+
+### v1.14（トリビア自動MVP：オフライン種スタート）
+- 種データ: キュレーション済み JSON/CSV を取り込み
+- 流れ: 取り込み→事実抽出→正規化→一意性ロック→誤答肢→信頼度スコア→出典URL格納
+- DoD: Actions上でフロー再現、トリビアJSONLに信頼度と出典URLが付与
+
+### v1.15（ハイブリッド前段：限定クロール→アーカイブ→抽出 + 追加プロバイダ設計）
+- クローリング: 許可ドメイン allowlist / robots順守 / レート制御 / 夜間ハーベスタ → アーカイブ(Artifacts/branch) → 本線CIはアーカイブのみ参照
+- 抽出: ルールベース抽出 + 正規化辞書。将来の一部自動化に備えスキーマ厳格化
+- プロバイダ: `config/providers.mjs` を軸に Spotify/Bandcamp等の追加設計（実装は後続）
+- DoD: ハーベスタ雛形が安定（レートと許可方針が文書化）。アーカイブ読取でCIが安定
+
+> 注: Workflow は「必要なら作る／不要なら消す」。最小本数主義だが、検証や長時間処理の分離は可。

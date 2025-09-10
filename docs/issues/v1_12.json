@@ -1,0 +1,57 @@
+[
+  {
+    "id": "v112-refactor-core",
+    "title": "v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）",
+    "labels": [
+      "roadmap:v1.12",
+      "type:refactor",
+      "area:scripts"
+    ],
+    "body": "scripts/lib への分離（gate_score/normalize/dedup/provenance/providers）、config一元化、`node --test` の最小ユニット、既存入口は互換維持。",
+    "state": "open"
+  },
+  {
+    "id": "v112-refactor-ui-slim",
+    "title": "v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）",
+    "labels": [
+      "roadmap:v1.12",
+      "type:refactor",
+      "area:ui"
+    ],
+    "body": "app.js を bootstrap/state/engine/media/i18n/ui に分割、sw.js を routes/config へ整理。互換モード/読み込み順維持、E2E緑がDoD。",
+    "state": "open"
+  },
+  {
+    "id": "v112-theta-ops",
+    "title": "v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）",
+    "labels": [
+      "roadmap:v1.12",
+      "area:kpi",
+      "area:ops"
+    ],
+    "body": "本線 θ=0.80。0.72/0.85 は dry-run専用Workflowで数回回し、KPI（auto_accept_rate 等）をStep Summary出力。標本数50–100目安で意思決定。",
+    "state": "open"
+  },
+  {
+    "id": "v112-docs-skeleton",
+    "title": "v1.12: ドキュ骨格再編＋必須章更新（日本語統一）",
+    "labels": [
+      "roadmap:v1.12",
+      "type:docs"
+    ],
+    "body": "章立て整備（ROADMAP/OPERATIONS_GATE/QUALITY_KPIS/ARCHITECTURE など）。既存の移設と決定事項の反映を優先。",
+    "state": "open"
+  },
+  {
+    "id": "v112-docs-lint",
+    "title": "v1.12: docs-lint（リンク切れ）軽量Workflow追加",
+    "labels": [
+      "roadmap:v1.12",
+      "type:docs",
+      "area:ci"
+    ],
+    "body": "docs内のリンク切れ検出のみを行う軽量ジョブを追加。コード側CIに影響を与えない設計。",
+    "state": "open"
+  }
+]
+

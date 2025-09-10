@@ -1,0 +1,35 @@
+[
+  {
+    "id": "v113-daily-oneq-mvp",
+    "title": "v1.13: “1問/日” 自動MVP（埋め込みのみ: Apple優先→YouTube→自前なし）",
+    "labels": [
+      "roadmap:v1.13",
+      "area:daily",
+      "type:feature"
+    ],
+    "body": "既存 daily を拡張し、クリップ開始秒選定/難易度/誤答肢/正規化/重複回避をv1.12のlibで実装。OGP/feeds生成と復旧手順を伴う。",
+    "state": "open"
+  },
+  {
+    "id": "v113-daily-recovery-docs",
+    "title": "v1.13: 復旧手順・運用ドキュ整備（OPERATIONS_DAILY_ONEQ.md）",
+    "labels": [
+      "roadmap:v1.13",
+      "type:docs",
+      "area:ops"
+    ],
+    "body": "失敗時の手順（手動再実行/強制skip/PR巻き戻し）を文書化。",
+    "state": "open"
+  },
+  {
+    "id": "v113-daily-kpi",
+    "title": "v1.13: KPI計測の組み込み（Step Summary）",
+    "labels": [
+      "roadmap:v1.13",
+      "area:kpi"
+    ],
+    "body": "日次生成の成功率・リードタイム・メディア解決率などをStep Summaryに出力。",
+    "state": "open"
+  }
+]
+

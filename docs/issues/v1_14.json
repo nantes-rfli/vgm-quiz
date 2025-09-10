@@ -1,0 +1,36 @@
+[
+  {
+    "id": "v114-trivia-mvp-offline",
+    "title": "v1.14: トリビア自動MVP（オフライン種）",
+    "labels": [
+      "roadmap:v1.14",
+      "area:trivia",
+      "type:feature"
+    ],
+    "body": "キュレーション済みJSON/CSVの取り込み→事実抽出→正規化→一意性ロック→誤答肢→信頼度→出典URL格納のパイプラインをActions上で再現。",
+    "state": "open"
+  },
+  {
+    "id": "v114-trivia-schema",
+    "title": "v1.14: トリビアのスキーマ定義・一意性ロック・信頼度スコア",
+    "labels": [
+      "roadmap:v1.14",
+      "area:trivia",
+      "type:spec"
+    ],
+    "body": "データ項目の定義・正規化ルール・一意性ロックの条件付与・confidenceの算出式を docs/ に明文化。",
+    "state": "open"
+  },
+  {
+    "id": "v114-trivia-pipeline",
+    "title": "v1.14: 取り込み〜抽出〜正規化〜誤答肢生成 パイプライン実装",
+    "labels": [
+      "roadmap:v1.14",
+      "area:trivia",
+      "type:impl"
+    ],
+    "body": "オフライン種を入力として最小の自動生成パイプラインを構築し、成果物を artifacts として保存。",
+    "state": "open"
+  }
+]
+
