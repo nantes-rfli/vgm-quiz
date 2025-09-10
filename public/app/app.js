@@ -24,9 +24,6 @@ async function parseJsonOffMainThread(text) {
     return JSON.parse(text);
   }
 }
-async function yieldToMain() {
-  return new Promise(requestAnimationFrame);
-}
 let aliasesLoadStarted = false;
 let aliasesReadyPromise = null;
 function ensureAliases() {
@@ -43,6 +40,7 @@ function ensureAliases() {
 }
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
+import { yieldToMain, getQueryParam, getQueryBool, xfnv1a, mulberry32 } from './utils-ui.mjs';
 import {
   readVersionNoStore,
   rememberHash,
@@ -106,36 +104,10 @@ const HASH_KEY = 'dataset_hash';
 // TEST MODE: URL に ?test=1 が付いていたら Service Worker を無効化
 const __DEBUG__ = __SEARCH_PARAMS__.get('debug') === '1';
 
-// URLクエリのbool取得（既存があればそれを使用、なければ補助）
-function getQueryBool(key) {
-  try {
-    const v = new URLSearchParams(location.search).get(key);
-    return v === '1' || v === 'true';
-  } catch { return false; }
-}
-
 // DETERMINISTIC RNG: URL に ?seed=xxx があれば Math.random を決定化
 function initSeededRandom() {
   const seedParam = __SEARCH_PARAMS__.get('seed');
   if (!seedParam) return;
-  // xfnv1a + mulberry32 の組み合わせで決定的 PRNG を作る
-  function xfnv1a(str) {
-    // 32-bit FNV-1a
-    let h = 0x811c9dc5;
-    for (let i = 0; i < str.length; i++) {
-      h ^= str.charCodeAt(i);
-      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
-    }
-    return h >>> 0;
-  }
-  function mulberry32(a) {
-    return function () {
-      let t = (a += 0x6D2B79F5) >>> 0;
-      t = Math.imul(t ^ (t >>> 15), t | 1) >>> 0;
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
   const seedInt = xfnv1a(String(seedParam));
   const rng = mulberry32(seedInt);
   const origRandom = window.__ORIG_RANDOM__ || Math.random;
@@ -164,11 +136,6 @@ const DAILY = {
   wanted: null,         // { id?: string, title?: string }
   mapLoaded: false,
 };
-
-function getQueryParam(name) {
-  try { return new URLSearchParams(location.search).get(name); }
-  catch { return null; }
-}
 
 function todayJST() {
   // 'YYYY-MM-DD' を JST で作る
