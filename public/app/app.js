@@ -41,7 +41,7 @@ function ensureAliases() {
 }
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
-import { copyToClipboard, canonicalAppUrl, setupResultShare, openResultDialogA11y, closeResultDialogA11y } from './result-dialog.mjs';
+import { copyToClipboard, canonicalAppUrl, setupResultShare, openResultDialogA11y, closeResultDialogA11y, renderResultSummary } from './result-dialog.mjs';
 import { DAILY, detectDailyParam, initDaily, pickDailyWantedFromMap, applyDailyRestriction } from './daily.mjs';
 import { yieldToMain, getQueryParam, getQueryBool, xfnv1a, mulberry32 } from './utils-ui.mjs';
 import {
@@ -696,13 +696,8 @@ function showResult() {
   // 結果画面では定期更新を停止し、最終値を表示
   stopLivesTicker();
   recomputeMistakes();
-  const list = document.getElementById('summary-list');
-  list.innerHTML = '';
-  questions.forEach(q => {
-    const li = document.createElement('li');
-    li.textContent = `${TYPE_LABELS[q.type]} - ${q.correct ? '✅' : '❌'} - ${q.expected} - ${q.userAnswer || ''} - ${q.track.year} - ${q.track.game} - ${q.elapsed}s`;
-    list.appendChild(li);
-  });
+  // サマリー描画はモジュールへ集約（Codex整合：画面単位のまとまりで分割）
+  renderResultSummary(questions, TYPE_LABELS);
 
   // v2: 結果の共有導線（コピー／Share）をセットアップ
   setupResultShare(buildResultShareText);

@@ -2,6 +2,29 @@
 
 // Depends only on DOM APIs and a provided share-text builder callback.
 
+/**
+ * 結果サマリーを描画（UIロジックのみ；データ加工は呼び出し側で完了している前提）
+ * @param {Array} questions - 出題配列（{type, correct, answer, track:{year,game}, elapsed} を想定）
+ * @param {Object} TYPE_LABELS - タイプごとの表示ラベル
+ * @param {HTMLElement} [listEl=document.getElementById('summary-list')]
+ */
+export function renderResultSummary(questions, TYPE_LABELS, listEl = document.getElementById('summary-list')) {
+  if (!Array.isArray(questions)) return;
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  for (const q of questions) {
+    const li = document.createElement('li');
+    const mark = q && q.correct ? '✅' : '❌';
+    const ans = q && q.answer != null ? String(q.answer) : '';
+    const year = q && q.track && q.track.year != null ? q.track.year : '';
+    const game = q && q.track && q.track.game != null ? q.track.game : '';
+    const elapsed = (q && q.elapsed != null ? q.elapsed : '').toString();
+    const typeLabel = TYPE_LABELS && q ? (TYPE_LABELS[q.type] ?? String(q.type)) : '';
+    li.textContent = `${typeLabel} - ${mark} - ${ans} - ${year} - ${game} - ${elapsed}s`;
+    listEl.appendChild(li);
+  }
+}
+
 let _copyToastTimer = null;
 
 async function copyToClipboard(text) {
@@ -193,5 +216,5 @@ function closeResultDialogA11y(goStart = false) {
   _resultDialogPrevFocus = null;
 }
 
-export { copyToClipboard, canonicalAppUrl, setupResultShare, openResultDialogA11y, closeResultDialogA11y };
+export { copyToClipboard, canonicalAppUrl, setupResultShare, openResultDialogA11y, closeResultDialogA11y, renderResultSummary };
 
