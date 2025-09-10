@@ -137,6 +137,11 @@ if (typeof nextQuestion === 'function' && window.__PLAY__ && typeof window.__PLA
   // wire the next transition (behavior unchanged; just routed via controller)
   window.__PLAY__.onNext(() => nextQuestion());
 }
+if (window.__PLAY__ && typeof window.__PLAY__.wireLives === 'function') {
+  // Inject existing HUD recompute & end-check (no behavior change)
+  // These functions already exist in this module; we just pass references.
+  window.__PLAY__.wireLives({ recomputeMistakes, maybeEndGameByLives });
+}
 
 async function preloadDailyMap() {
   try {
@@ -668,8 +673,14 @@ function submitAnswer() {
   q.userAnswer = rawInput;
   q.correct = correct;
 
-  // Lives: 即時再集計とエンド判定（挙動不変: HUDのみ即時反映）
-  try { setTimeout(recomputeMistakes, 0); maybeEndGameByLives(); } catch (_) {}
+  // Lives: route through controller if available to keep sequencing identical
+  try {
+    if (window.__PLAY__ && typeof window.__PLAY__.refreshLives === 'function') {
+      window.__PLAY__.refreshLives();
+    } else {
+      setTimeout(recomputeMistakes, 0); maybeEndGameByLives();
+    }
+  } catch (_) {}
   recordPlay({
     runId: currentRunId,
     trackId: trackId(q.track),

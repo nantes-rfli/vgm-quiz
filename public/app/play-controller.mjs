@@ -7,6 +7,9 @@ export function createPlayController(deps = {}) {
   let intervalId = null;
   let deadline = 0;
   const hooks = { onTimeout: null, onAnswer: null, onNext: null, onAccept: null, onReject: null };
+  // lives HUD & end-check (wired from app.js; kept optional)
+  let _recomputeMistakes = null;
+  let _maybeEndGameByLives = null;
 
   function tick() {
     const remain = deadline - now();
@@ -82,7 +85,27 @@ export function createPlayController(deps = {}) {
     }
   }
 
-  return { start, stop, afterAnswer, onAnswer, onNext, next, accept, reject, onAccept, onReject };
+  // --- Lives wiring (DI) ---
+  function wireLives({ recomputeMistakes, maybeEndGameByLives } = {}) {
+    _recomputeMistakes = typeof recomputeMistakes === 'function' ? recomputeMistakes : null;
+    _maybeEndGameByLives = typeof maybeEndGameByLives === 'function' ? maybeEndGameByLives : null;
+  }
+  // Keep behavior identical to historical sequence:
+  // schedule recompute via setTimeout(0) and then invoke end-check sync.
+  function refreshLives() {
+    try {
+      if (_recomputeMistakes) setTimeout(() => { try { _recomputeMistakes(); } catch(e) {} }, 0);
+      if (_maybeEndGameByLives) _maybeEndGameByLives();
+    } catch (e) {
+      try { logger && (logger.warn ? logger.warn(e) : logger.log(e)); } catch {}
+    }
+  }
+
+  return {
+    start, stop, afterAnswer, onAnswer, onNext, next,
+    accept, reject, onAccept, onReject,
+    wireLives, refreshLives
+  };
 }
 
 export default { createPlayController };
