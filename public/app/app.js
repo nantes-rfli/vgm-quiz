@@ -101,8 +101,6 @@ const ALIASES_URL = '../build/aliases.json';
 const HASH_KEY = 'dataset_hash';
 
 // TEST MODE: URL に ?test=1 が付いていたら Service Worker を無効化
-const __SEARCH_PARAMS__ = new URLSearchParams(location.search);
-const __IS_TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
 const __DEBUG__ = __SEARCH_PARAMS__.get('debug') === '1';
 
 // URLクエリのbool取得（既存があればそれを使用、なければ補助）
