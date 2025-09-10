@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-10T11:43:30.768Z
+Exported at: 2025-09-10T12:28:16.314Z
 
 ## post-v1.6
 
@@ -35,6 +35,7 @@ Exported at: 2025-09-10T11:43:30.768Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 800 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/800) | open | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-10T12:27:34Z |
 | 687 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/687) | closed | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-10T09:17:06Z |
 | 716 | [v1.11: Discovery 設計 & dry-run（iTunes Search 起点）](https://github.com/nantes-rfli/vgm-quiz/issues/716) | closed | roadmap:v1.11, area:collector |  | 2025-09-09T14:01:56Z |
 | 717 | [v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）](https://github.com/nantes-rfli/vgm-quiz/issues/717) | closed | area:ops, roadmap:v1.11, area:collector |  | 2025-09-09T14:01:55Z |
@@ -45,7 +46,7 @@ Exported at: 2025-09-10T11:43:30.768Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 781 | [v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記](https://github.com/nantes-rfli/vgm-quiz/issues/781) | open | type:docs, roadmap:v1.12, area:architecture |  | 2025-09-10T11:39:24Z |
+| 781 | [v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記](https://github.com/nantes-rfli/vgm-quiz/issues/781) | closed | type:docs, roadmap:v1.12, area:architecture |  | 2025-09-10T12:27:37Z |
 | 732 | [v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）](https://github.com/nantes-rfli/vgm-quiz/issues/732) | closed | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:38Z |
 | 773 | [v1.12: UI-slim Phase 2（画面単位分割：play / media）](https://github.com/nantes-rfli/vgm-quiz/issues/773) | open | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:36Z |
 | 735 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/735) | closed | type:docs, roadmap:v1.12, area:ci |  | 2025-09-10T03:06:16Z |
