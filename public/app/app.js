@@ -132,7 +132,11 @@ function initSeededRandom() {
 initSeededRandom();
 
 // v1.12 Phase 2: play-controller skeleton instance
-const __PLAY__ = createPlayController({ document, onTimeout: () => { try { submitAnswer(); } catch (_) {} try { nextQuestion(); } catch (_) {} } });
+const __PLAY__ = window.__PLAY__ = createPlayController();
+if (typeof nextQuestion === 'function' && window.__PLAY__ && typeof window.__PLAY__.onNext === 'function') {
+  // wire the next transition (behavior unchanged; just routed via controller)
+  window.__PLAY__.onNext(() => nextQuestion());
+}
 
 async function preloadDailyMap() {
   try {
@@ -593,9 +597,16 @@ function showQuestion() {
       break;
   }
   window.__expectedAnswer = q.expected;
-  __PLAY__.setTimerEnabled(useTimer);
-  __PLAY__.reset(20);
-  __PLAY__.start();
+  if (useTimer) {
+    __PLAY__.start(20000, {
+      onTimeout: () => {
+        try { submitAnswer(); } catch (_) {}
+        try { __PLAY__ && __PLAY__.next(); } catch (_) {}
+      }
+    });
+  } else {
+    try { __PLAY__.stop(); } catch (_) {}
+  }
 }
 
 function showHint() {
