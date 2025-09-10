@@ -83,3 +83,4 @@
 
 ## フロントエンド（app/）の起動分割（v1.12 Phase 2）
 - `daily.mjs`: デイリーモードの状態（`DAILY`）とヘルパ（`detectDailyParam` / `initDaily` / `pickDailyWantedFromMap` / `applyDailyRestriction`）を集約。
+- `result-dialog.mjs`: 結果ダイアログのA11y制御と共有導線（コピー/Share）を集約。`setupResultShare(buildResultShareText)` を提供。
