@@ -23,6 +23,18 @@ test('afterAnswer invokes onAnswer hook', () => {
   assert.deepEqual(got, { correct: true, remaining: 2 });
 });
 
+test('accept/reject invoke respective hooks', () => {
+  const pc = createPlayController();
+  let accepted = null;
+  let rejected = null;
+  pc.onAccept(p => { accepted = p; });
+  pc.onReject(p => { rejected = p; });
+  pc.accept({ remaining: 5 });
+  pc.reject({ remaining: 3 });
+  assert.deepEqual(accepted, { remaining: 5 });
+  assert.deepEqual(rejected, { remaining: 3 });
+});
+
 test('stop() is idempotent', () => {
   const pc = createPlayController({ now: () => Date.now() });
   pc.start(10, { onTimeout: () => {} });
