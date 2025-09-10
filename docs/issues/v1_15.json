@@ -1,0 +1,36 @@
+[
+  {
+    "id": "v115-harvester-hybrid",
+    "title": "v1.15: ハーベスタ雛形（限定クロール→アーカイブ→抽出）",
+    "labels": [
+      "roadmap:v1.15",
+      "area:harvest",
+      "type:infra"
+    ],
+    "body": "許可ドメインの限定クロールを夜間Workflowで実行し、成果をアーカイブ（Artifacts/branch）。本線CIはアーカイブのみ参照。",
+    "state": "open"
+  },
+  {
+    "id": "v115-rate-limit-policy",
+    "title": "v1.15: レート制御・許可ドメイン・アーカイブ運用のポリシー文書化",
+    "labels": [
+      "roadmap:v1.15",
+      "type:docs",
+      "area:policy"
+    ],
+    "body": "robots順守・レート設定・アーカイブの保持/更新方針・再現性について docs/ に記載。",
+    "state": "open"
+  },
+  {
+    "id": "v115-provider-ext-design",
+    "title": "v1.15: 追加プロバイダ設計（Spotify/Bandcamp等、実装は後続）",
+    "labels": [
+      "roadmap:v1.15",
+      "area:media",
+      "type:design"
+    ],
+    "body": "`config/providers.mjs` を軸に、将来追加のための設計（優先度/可否判定/エンベッド条件）を具体化。",
+    "state": "open"
+  }
+]
+
