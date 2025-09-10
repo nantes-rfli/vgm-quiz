@@ -1,6 +1,7 @@
 import { registerSW } from './sw-register.js';
 import './i18n-boot.mjs';
 import { initA11y } from './a11y-helpers.mjs';
+import { createPlayController } from './play-controller.mjs';
 
 // --- perf helpers ---
 async function parseJsonOffMainThread(text) {
@@ -129,6 +130,9 @@ function initSeededRandom() {
 }
 
 initSeededRandom();
+
+// v1.12 Phase 2: play-controller skeleton instance
+const __PLAY__ = createPlayController({ document, onTimeout: () => { try { submitAnswer(); } catch (_) {} try { nextQuestion(); } catch (_) {} } });
 
 async function preloadDailyMap() {
   try {
@@ -589,22 +593,9 @@ function showQuestion() {
       break;
   }
   window.__expectedAnswer = q.expected;
-  if (useTimer) {
-    countdown.style.display = 'block';
-    countdown.textContent = remaining;
-    timerId = setInterval(() => {
-      remaining--;
-      countdown.textContent = remaining;
-      if (remaining <= 0) {
-        clearInterval(timerId);
-        timerId = null;
-        submitAnswer();
-        nextQuestion();
-      }
-    }, 1000);
-  } else {
-    countdown.style.display = 'none';
-  }
+  __PLAY__.setTimerEnabled(useTimer);
+  __PLAY__.reset(20);
+  __PLAY__.start();
 }
 
 function showHint() {
@@ -687,6 +678,8 @@ function nextQuestion() {
 }
 
 function showResult() {
+  try { __PLAY__.stop(); } catch (_) {}
+
   if (timerId) {
     clearInterval(timerId);
     timerId = null;
