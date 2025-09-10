@@ -1,16 +1,8 @@
+import { chooseProvider } from './media-select.mjs';
 // Media player: Apple Music preview > YouTube fallback (+ test/LHCI stubbing)
 function secOf(ms) { return Math.max(0, Math.floor((ms || 0) / 1000)); }
 function q(name, d=location.search){ try{ return new URLSearchParams(d).get(name); }catch{ return null; } }
 function isFlagOn(name) { const v = q(name); return v === '1' || v === 'true'; }
-
-function chooseProvider(media){
-  const forced = (q('provider') || '').toLowerCase(); // dev flag: apple|youtube|auto
-  if (forced === 'apple' || forced === 'itunes') return 'apple';
-  if (forced === 'youtube' || forced === 'yt') return 'youtube';
-  // auto
-  if (media && media.apple && (media.apple.embedUrl || media.apple.previewUrl || media.apple.url)) return 'apple';
-  return media && media.provider ? media.provider : 'youtube';
-}
 
 function buildAppleEmbed(media){
   const root = document.createElement('div');
