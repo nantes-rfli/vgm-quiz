@@ -84,3 +84,32 @@
 ## フロントエンド（app/）の起動分割（v1.12 Phase 2）
 - `daily.mjs`: デイリーモードの状態（`DAILY`）とヘルパ（`detectDailyParam` / `initDaily` / `pickDailyWantedFromMap` / `applyDailyRestriction`）を集約。
 - `result-dialog.mjs`: 結果ダイアログのA11y制御と共有導線（コピー/Share）を集約。`setupResultShare(buildResultShareText)` を提供。
+
+### v1.12 Phase 2 — 集約単位と依存注入（DI）の原則
+
+**狙い**: 画面単位の分割を安全に進めるための基準を明文化する（Codex等のブレに依存しない）。
+
+#### 集約単位（最小スコープ）
+- **play-controller.mjs**（新設）  
+  責務: タイマー（`startCountdown` / `stopCountdown`）、残機（lives）監視、回答フロー（accept/reject/next）の集約。  
+  提供: `createPlayController(deps)` → `{ start(), stop(), onAnswer(cb), onTimeout(cb) }`。**DOM直接操作はしない**。
+- **media-select.mjs**（新設）  
+  責務: **Apple優先 → YouTubeフォールバック**の選択ロジックとプレーヤ初期化。  
+  提供: `createMediaSelector(deps)` → `{ pickFor(track), currentProvider(), teardown() }`。`providers.mjs` のIFのみに依存し、描画は呼び出し側。
+
+#### 依存注入（DI）
+- 原則: **モジュール単位のシングルトン禁止**。すべて **ファクトリ関数**で依存を受け取る。
+- 標準依存: `{ i18n, version, providers, storage, logger }`（必要なものだけ受け取り可）。
+- **app.js はオーケストレーター**: 起動時に `deps` を構築し、`play-controller` と `media-select` を生成して配線する。
+- テスト: `node --test` は **フェイク依存**（ダミー providers / fake storage）を注入。E2E は公開APIの挙動を確認。
+
+#### 挙動不変の原則（DoD）
+- UIの見た目・操作フローは **不変**。ARIA属性・イベント発火順も変更しない。
+- 既存 E2E（A11y/AUTO/結果ダイアログ）と Lighthouse が **緑**であること。
+- `public/app/app.js` からは **イベント配線のみ**が残り、ロジックは本節のモジュールへ移譲されている。
+
+#### 段階的抽出ガイド
+1) `play-controller` の骨格導入（`start/stop` と timeout のみ）→ E2E 緑  
+2) 残機と回答フローを移譲 → E2E 緑  
+3) `media-select` を導入し、Apple/YouTube 選択を移譲 → E2E 緑  
+4) リファクタ後に **差分レビュー**（提案との整合チェック）を実施。

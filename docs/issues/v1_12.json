@@ -71,5 +71,16 @@
     ],
     "body": "Scope:\n- プレイ制御（countdown / lives / answer フロー）を play-controller.mjs に集約（挙動不変）\n- メディア選択UI（Apple優先→YouTubeフォールバック）を media-select.mjs に分離（media_player.mjs と整合）\n- Codex整合の原則を ARCHITECTURE.md に明文化（画面単位の集約・DIでの依存注入）\nAlready Done (このチャット):\n- result-dialog.mjs（A11y/共有/サマリー描画）\n- daily.mjs（デイリー1問モード）\nDoD:\n- CI 緑（node-tests / docs-lint）\n- 手動検証（通常 / ?test=1）\n- 既存UI挙動の差異なし\n",
     "state": "open"
+  },
+  {
+    "id": "v112-architecture-di-guidelines",
+    "title": "v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記",
+    "labels": [
+      "roadmap:v1.12",
+      "type:docs",
+      "area:architecture"
+    ],
+    "body": "### 背景\n- Phase 2（画面単位分割）に先立ち、**集約単位**（play-controller / media-select など）と**依存注入（DI）**の基準を明文化する。\n\n### 受け入れ基準（DoD）\n- ARCHITECTURE.md に『v1.12 Phase 2 — 集約単位と依存注入（DI）の原則』節を追加\n- 既存構成（Phase 1）との関係と責務境界が明確\n- 挙動不変を原則とする旨、およびテスト・E2E 影響の扱いを記載\n\n### 備考\n- 実装は `v112-refactor-ui-slim-phase2` と連動。先にドキュを確定させる。",
+    "state": "open"
   }
 ]
