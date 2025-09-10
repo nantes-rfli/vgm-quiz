@@ -1,22 +1,40 @@
 {
-  "exported_at": "2025-09-10T00:51:41.393Z",
+  "exported_at": "2025-09-10T04:11:01.408Z",
   "items": [
     {
-      "number": 749,
-      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
+      "number": 758,
+      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
       "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/749",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/758",
       "labels": [
-        "type:docs",
-        "roadmap:v1.7",
+        "type:test",
         "area:ops",
-        "status:done"
+        "status:done",
+        "roadmap:post-v1.7"
       ],
       "assignees": [],
       "milestone": null,
-      "updated_at": "2025-09-10T00:49:36Z",
+      "updated_at": "2025-09-10T03:06:14Z",
       "roadmap": [
-        "roadmap:v1.7"
+        "roadmap:post-v1.7"
+      ]
+    },
+    {
+      "number": 757,
+      "title": "Authoring: authoring-schema（生成JSONスキーマ）",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/757",
+      "labels": [
+        "type:test",
+        "area:pipeline",
+        "status:done",
+        "roadmap:post-v1.7"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T03:06:13Z",
+      "roadmap": [
+        "roadmap:post-v1.7"
       ]
     },
     {
@@ -172,56 +190,6 @@
       ]
     },
     {
-      "number": 735,
-      "title": "v1.12: docs-lint（リンク切れ）軽量Workflow追加",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/735",
-      "labels": [
-        "type:docs",
-        "roadmap:v1.12",
-        "area:ci"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-10T00:45:36Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 734,
-      "title": "v1.12: ドキュ骨格再編＋必須章更新（日本語統一）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/734",
-      "labels": [
-        "type:docs",
-        "roadmap:v1.12"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-10T00:45:36Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 733,
-      "title": "v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/733",
-      "labels": [
-        "area:ops",
-        "area:kpi",
-        "roadmap:v1.12"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-10T00:45:35Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
       "number": 732,
       "title": "v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）",
       "state": "open",
@@ -234,23 +202,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-10T00:45:35Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 731,
-      "title": "v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/731",
-      "labels": [
-        "roadmap:v1.12",
-        "type:refactor",
-        "area:scripts"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-10T00:45:34Z",
       "roadmap": [
         "roadmap:v1.12"
       ]
@@ -375,6 +326,91 @@
       "updated_at": "2025-09-07T15:36:47Z",
       "roadmap": [
         "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 735,
+      "title": "v1.12: docs-lint（リンク切れ）軽量Workflow追加",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/735",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.12",
+        "area:ci"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T03:06:16Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 734,
+      "title": "v1.12: ドキュ骨格再編＋必須章更新（日本語統一）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/734",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.12"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T03:06:12Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 733,
+      "title": "v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/733",
+      "labels": [
+        "area:ops",
+        "area:kpi",
+        "roadmap:v1.12"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T03:06:12Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 731,
+      "title": "v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/731",
+      "labels": [
+        "roadmap:v1.12",
+        "type:refactor",
+        "area:scripts"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T03:06:11Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 749,
+      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/749",
+      "labels": [
+        "type:docs",
+        "roadmap:v1.7",
+        "area:ops",
+        "status:done"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T00:52:04Z",
+      "roadmap": [
+        "roadmap:v1.7"
       ]
     },
     {
@@ -955,38 +991,6 @@
       "updated_at": "2025-09-08T15:29:41Z",
       "roadmap": [
         "roadmap:v1.5"
-      ]
-    },
-    {
-      "number": 603,
-      "title": "v1.10: Notability v1（High/Med/Low=75/20/5）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/603",
-      "labels": [
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T13:10:59Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 605,
-      "title": "v1.10: Step Summary にKPI最小セットを出す",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/605",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.10"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-08T13:10:58Z",
-      "roadmap": [
-        "roadmap:v1.10"
       ]
     }
   ]

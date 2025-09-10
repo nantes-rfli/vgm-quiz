@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-10T00:51:41.394Z
+Exported at: 2025-09-10T04:11:01.409Z
 
 ## post-v1.6
 
@@ -15,6 +15,8 @@ Exported at: 2025-09-10T00:51:41.394Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 758 | [Authoring: daily-publish（日次JSON/OGP生成と配置）](https://github.com/nantes-rfli/vgm-quiz/issues/758) | open | type:test, area:ops, status:done, roadmap:post-v1.7 |  | 2025-09-10T03:06:14Z |
+| 757 | [Authoring: authoring-schema（生成JSONスキーマ）](https://github.com/nantes-rfli/vgm-quiz/issues/757) | open | type:test, area:pipeline, status:done, roadmap:post-v1.7 |  | 2025-09-10T03:06:13Z |
 | 433 | [Authoring: clip-start-heuristics-v1](https://github.com/nantes-rfli/vgm-quiz/issues/433) | open | type:test, area:pipeline, roadmap:post-v1.7 |  | 2025-09-08T01:39:01Z |
 | 432 | [Authoring: harvester-min（公式ソース収集器）](https://github.com/nantes-rfli/vgm-quiz/issues/432) | open | area:pipeline, roadmap:post-v1.7 |  | 2025-09-07T15:36:49Z |
 
@@ -32,8 +34,6 @@ Exported at: 2025-09-10T00:51:41.394Z
 | 602 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/602) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T05:14:42Z |
 | 607 | [v1.10: Rate/Cost 制御の方針を明文化（任意）](https://github.com/nantes-rfli/vgm-quiz/issues/607) | closed | type:docs, area:ops, roadmap:v1.10 |  | 2025-09-09T04:07:33Z |
 | 604 | [v1.10: provenance 配線（ingest→pick）](https://github.com/nantes-rfli/vgm-quiz/issues/604) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-09T03:43:05Z |
-| 603 | [v1.10: Notability v1（High/Med/Low=75/20/5）](https://github.com/nantes-rfli/vgm-quiz/issues/603) | closed | roadmap:v1.10, area:quality |  | 2025-09-08T13:10:59Z |
-| 605 | [v1.10: Step Summary にKPI最小セットを出す](https://github.com/nantes-rfli/vgm-quiz/issues/605) | closed | area:ops, roadmap:v1.10 |  | 2025-09-08T13:10:58Z |
 
 ## v1.11
 
@@ -49,11 +49,11 @@ Exported at: 2025-09-10T00:51:41.394Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 735 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/735) | open | type:docs, roadmap:v1.12, area:ci |  | 2025-09-10T00:45:36Z |
-| 734 | [v1.12: ドキュ骨格再編＋必須章更新（日本語統一）](https://github.com/nantes-rfli/vgm-quiz/issues/734) | open | type:docs, roadmap:v1.12 |  | 2025-09-10T00:45:36Z |
-| 733 | [v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）](https://github.com/nantes-rfli/vgm-quiz/issues/733) | open | area:ops, area:kpi, roadmap:v1.12 |  | 2025-09-10T00:45:35Z |
+| 735 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/735) | closed | type:docs, roadmap:v1.12, area:ci |  | 2025-09-10T03:06:16Z |
+| 734 | [v1.12: ドキュ骨格再編＋必須章更新（日本語統一）](https://github.com/nantes-rfli/vgm-quiz/issues/734) | closed | type:docs, roadmap:v1.12 |  | 2025-09-10T03:06:12Z |
+| 733 | [v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）](https://github.com/nantes-rfli/vgm-quiz/issues/733) | closed | area:ops, area:kpi, roadmap:v1.12 |  | 2025-09-10T03:06:12Z |
+| 731 | [v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）](https://github.com/nantes-rfli/vgm-quiz/issues/731) | closed | roadmap:v1.12, type:refactor, area:scripts |  | 2025-09-10T03:06:11Z |
 | 732 | [v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）](https://github.com/nantes-rfli/vgm-quiz/issues/732) | open | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T00:45:35Z |
-| 731 | [v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）](https://github.com/nantes-rfli/vgm-quiz/issues/731) | open | roadmap:v1.12, type:refactor, area:scripts |  | 2025-09-10T00:45:34Z |
 
 ## v1.13
 
@@ -108,8 +108,8 @@ Exported at: 2025-09-10T00:51:41.394Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 749 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/749) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-10T00:52:04Z |
 | 748 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/748) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-10T00:49:37Z |
-| 749 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/749) | open | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-10T00:49:36Z |
 | 747 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/747) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-10T00:49:35Z |
 
 ## v1.9
