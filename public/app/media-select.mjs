@@ -1,10 +1,10 @@
 // media-select.mjs
 // Provider selection logic: Apple preference → YouTube fallback (+ ?provider override)
 // Keep DOM-free and UI-agnostic to allow unit tests.
-function q(name, d=location.search){ try{ return new URLSearchParams(d).get(name); }catch{ return null; } }
+import { getQueryParam } from './utils-ui.mjs';
 
 export function chooseProvider(media){
-  const forced = (q('provider') || '').toLowerCase(); // dev flag: apple|youtube|auto
+  const forced = (getQueryParam('provider') || '').toLowerCase(); // dev flag: apple|youtube|auto
   if (forced === 'apple' || forced === 'itunes') return 'apple';
   if (forced === 'youtube' || forced === 'yt') return 'youtube';
   // auto
