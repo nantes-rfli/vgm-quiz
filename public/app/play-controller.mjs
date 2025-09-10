@@ -6,7 +6,7 @@ export function createPlayController(deps = {}) {
   const { logger = console, now = () => Date.now() } = deps;
   let intervalId = null;
   let deadline = 0;
-  const hooks = { onTimeout: null, onAnswer: null };
+  const hooks = { onTimeout: null, onAnswer: null, onNext: null };
 
   function tick() {
     const remain = deadline - now();
@@ -47,8 +47,20 @@ export function createPlayController(deps = {}) {
   function onAnswer(cb) {
     hooks.onAnswer = cb;
   }
+  function onNext(cb) {
+    hooks.onNext = cb;
+  }
 
-  return { start, stop, afterAnswer, onAnswer };
+  // Flow entry: go to next question (callback is injected by app.js).
+  function next() {
+    try {
+      if (hooks.onNext) hooks.onNext();
+    } catch (e) {
+      try { logger && (logger.warn ? logger.warn(e) : logger.log(e)); } catch {}
+    }
+  }
+
+  return { start, stop, afterAnswer, onAnswer, onNext, next };
 }
 
 export default { createPlayController };
