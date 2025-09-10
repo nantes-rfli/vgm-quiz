@@ -80,7 +80,7 @@
       "type:docs",
       "area:architecture"
     ],
-    "body": "### 背景\n- Phase 2（画面単位分割）に先立ち、**集約単位**（play-controller / media-select など）と**依存注入（DI）**の基準を明文化する。\n\n### 受け入れ基準（DoD）\n- ARCHITECTURE.md に『v1.12 Phase 2 — 集約単位と依存注入（DI）の原則』節を追加\n- 既存構成（Phase 1）との関係と責務境界が明確\n- 挙動不変を原則とする旨、およびテスト・E2E 影響の扱いを記載\n\n### 備考\n- 実装は `v112-refactor-ui-slim-phase2` と連動。先にドキュを確定させる。",
+    "body": "### 背景\n- Phase 2（画面単位分割）に先立ち、**集約単位**（play-controller / media-select など）と**依存注入（DI）**の基準を明文化する。\n\n### 受け入れ基準（DoD）\n- ARCHITECTURE.md に『Phase 2—集約単位と依存注入の原則』節を追加\n- 既存構成（Phase 1）との関係と責務境界が明確\n- 挙動不変を原則とする旨、およびテスト・E2E 影響の扱いを記載\n\n### 進捗（このチャット）\n- [x] media-select 抽出（Apple優先→YouTube フォールバックのロジック分離）\n- [x] utils-ui 統合（getQueryParam/getQueryBool の重複排除）\n- [x] play-controller: timer / afterAnswer / next / accept / reject / lives 配線（DI）を導入（**挙動不変**）\n- [x] ユニットテスト追加（tests/media_select.test.mjs, tests/play_controller.test.mjs）\n\n### 備考\n- 実装は v112-refactor-ui-slim-phase2 と連動。先にドキュを確定させる。",
     "state": "open"
   }
 ]
