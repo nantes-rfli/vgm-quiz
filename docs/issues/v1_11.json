@@ -28,6 +28,7 @@
       "area:kpi",
       "area:ops"
     ],
-    "body": "### Scope\n- Discovery KPI: `official_rate`（公式ソース率）, `hit_rate`（正規化成功率）, `duplicate_ratio`（既存/近似重複率）, `fail_reasons_top3`\n- Harvest KPI: `with_provenance_rate`, `stub_ratio`, `dedup_pairs` と `θ≥0.7/0.8/0.9` 分布\n- Gate KPI: `auto_accept_rate`（θ≥閾値の割合）, `pr_queue_size`（PR送り件数）, `reject_top_reasons`\n- QUALITY_KPIS.md に Collector 章を追加し、**出力項目と算出式**を明文化\n\n### DoD\n- docs/QUALITY_KPIS.md に Collector KPI 章を追加（上記メトリクスを定義）\n- 各ワークフローの Step Summary で出力すべき**キー名**と**短い説明**をドキュメント化\n- 将来の実装時にドキュ差分なしで適用できる粒度まで具体化\n"
+    "body": "### Scope\n- Discovery KPI: `official_rate`（公式ソース率）, `hit_rate`（正規化成功率）, `duplicate_ratio`（既存/近似重複率）, `fail_reasons_top3`\n- Harvest KPI: `with_provenance_rate`, `stub_ratio`, `dedup_pairs` と `θ≥0.7/0.8/0.9` 分布\n- Gate KPI: `auto_accept_rate`（θ≥閾値の割合）, `pr_queue_size`（PR送り件数）, `reject_top_reasons`\n- QUALITY_KPIS.md に Collector 章を追加し、**出力項目と算出式**を明文化\n\n### DoD\n- docs/QUALITY_KPIS.md に Collector KPI 章を追加（上記メトリクスを定義）\n- 各ワークフローの Step Summary で出力すべき**キー名**と**短い説明**をドキュメント化\n- 将来の実装時にドキュ差分なしで適用できる粒度まで具体化\n",
+    "state": "closed"
   }
 ]
