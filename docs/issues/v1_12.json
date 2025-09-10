@@ -8,7 +8,8 @@
       "area:scripts"
     ],
     "body": "scripts/lib への分離（gate_score/normalize/dedup/provenance/providers）、config一元化、`node --test` の最小ユニット、既存入口は互換維持。",
-    "state": "open"
+    "state": "closed",
+    "notes": "lib抽出（gate_score.mjs）＋最小ユニット＋CIの導入を適用。gate (dry-run matrix v2) および既存機構への影響なし。"
   },
   {
     "id": "v112-refactor-ui-slim",
@@ -19,7 +20,8 @@
       "area:ui"
     ],
     "body": "app.js を bootstrap/state/engine/media/i18n/ui に分割、sw.js を routes/config へ整理。互換モード/読み込み順維持、E2E緑がDoD。",
-    "state": "open"
+    "state": "open",
+    "notes": "Phase 1 提案パッチは保留（Codex提案との整合優先のため次チャットで再調整）。"
   },
   {
     "id": "v112-theta-ops",
@@ -30,7 +32,8 @@
       "area:ops"
     ],
     "body": "本線 θ=0.80。0.72/0.85 は dry-run専用Workflowで数回回し、KPI（auto_accept_rate 等）をStep Summary出力。標本数50–100目安で意思決定。",
-    "state": "open"
+    "state": "closed",
+    "notes": "gate (dry-run matrix v2) を導入し緑化。0.72/0.80/0.85のマトリクス実行・KPI/Artifacts確認。旧版 (v1) は次チャットで削除予定。"
   },
   {
     "id": "v112-docs-skeleton",
@@ -40,7 +43,8 @@
       "type:docs"
     ],
     "body": "章立て整備（ROADMAP/OPERATIONS_GATE/QUALITY_KPIS/ARCHITECTURE など）。既存の移設と決定事項の反映を優先。",
-    "state": "open"
+    "state": "closed",
+    "notes": "OPERATIONS_GATE/QUALITY_KPIS/README 索引を更新、MVP向け雛形（OPERATIONS_DAILY_ONEQ/OPERATIONS_TRIVIA）を追加。"
   },
   {
     "id": "v112-docs-lint",
@@ -51,7 +55,7 @@
       "area:ci"
     ],
     "body": "docs内のリンク切れ検出のみを行う軽量ジョブを追加。コード側CIに影響を与えない設計。",
-    "state": "open"
+    "state": "closed",
+    "notes": "scripts/docs_link_check.mjs + docs-lint.yml 追加、緑確認。"
   }
 ]
-
