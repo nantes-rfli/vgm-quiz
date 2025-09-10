@@ -1,5 +1,6 @@
 // i18n baseline (v1.6)
 import { initI18n, whenI18nReady, applyStaticLabels, t } from './i18n.mjs';
+import { registerSW } from './sw-register.js';
 void initI18n(); // non-blocking; updates <html lang> & document.title
 whenI18nReady().then(() => {
   // Try immediately, then after first paint, then once again after 500ms for safety
@@ -1414,23 +1415,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (__IS_TEST_MODE__) {
       // E2E / CI 用。SW は登録しない
     } else {
-      navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(v)}`).then(reg => {
-        swRegistration = reg;
-        try { window.dispatchEvent(new CustomEvent('sw-registered', { detail: swRegistration })); } catch (_) {}
-        if (swRegistration.waiting) {
-          showUpdateBanner();
-        }
-        swRegistration.addEventListener('updatefound', () => {
-          const newWorker = swRegistration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (swRegistration.waiting) {
-                showUpdateBanner();
-              }
-            });
-          }
-        });
-      });
+      registerSW(v, () => { try { showUpdateBanner(); } catch (_) {} })
+        .then(reg => {
+          swRegistration = reg;
+          try { window.dispatchEvent(new CustomEvent('sw-registered', { detail: swRegistration })); } catch (_) {}
+        })
+        .catch(() => {});
     }
   }
 });
