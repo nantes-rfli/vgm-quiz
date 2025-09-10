@@ -20,8 +20,11 @@
       "area:ui"
     ],
     "body": "app.js を bootstrap/state/engine/media/i18n/ui に分割、sw.js を routes/config へ整理。互換モード/読み込み順維持、E2E緑がDoD。",
-    "state": "open",
-    "notes": "Phase 1 提案パッチは保留（Codex提案との整合優先のため次チャットで再調整）。"
+    "state": "closed",
+    "notes": [
+      "Phase 1 提案パッチは保留（Codex提案との整合優先のため次チャットで再調整）。",
+      "Phase 1 完了: boot-params / sw-register / i18n-boot / version.mjs / utils-ui / a11y-helpers / daily.mjs / result-dialog.mjs（share+A11y+summary集約）"
+    ]
   },
   {
     "id": "v112-theta-ops",
@@ -57,5 +60,16 @@
     "body": "docs内のリンク切れ検出のみを行う軽量ジョブを追加。コード側CIに影響を与えない設計。",
     "state": "closed",
     "notes": "scripts/docs_link_check.mjs + docs-lint.yml 追加、緑確認。"
+  },
+  {
+    "id": "v112-refactor-ui-slim-phase2",
+    "title": "v1.12: UI-slim Phase 2（画面単位分割：play / media）",
+    "labels": [
+      "roadmap:v1.12",
+      "area:ui",
+      "type:refactor"
+    ],
+    "body": "Scope:\n- プレイ制御（countdown / lives / answer フロー）を play-controller.mjs に集約（挙動不変）\n- メディア選択UI（Apple優先→YouTubeフォールバック）を media-select.mjs に分離（media_player.mjs と整合）\n- Codex整合の原則を ARCHITECTURE.md に明文化（画面単位の集約・DIでの依存注入）\nAlready Done (このチャット):\n- result-dialog.mjs（A11y/共有/サマリー描画）\n- daily.mjs（デイリー1問モード）\nDoD:\n- CI 緑（node-tests / docs-lint）\n- 手動検証（通常 / ?test=1）\n- 既存UI挙動の差異なし\n",
+    "state": "open"
   }
 ]
