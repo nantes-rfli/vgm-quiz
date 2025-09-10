@@ -2,6 +2,23 @@
 // v1.12 Phase2: timer & afterAnswer/accept/reject hooks (no behavior change)
 // Keep this module DOM-free and UI-agnostic.
 
+/**
+ * @typedef {Object} PlayDeps
+ * @property {(msg: any) => void} [logger]
+ * @property {() => number} [now]
+ */
+
+/**
+ * @typedef {Object} LivesWiring
+ * @property {() => void} [recomputeMistakes]  // HUD再計算
+ * @property {() => void} [maybeEndGameByLives] // 終了判定
+ */
+
+/**
+ * @typedef {{correct?: boolean, remaining?: number}} AnswerPayload
+ */
+
+
 export function createPlayController(deps = {}) {
   const { logger = console, now = () => Date.now() } = deps;
   let intervalId = null;
@@ -23,6 +40,7 @@ export function createPlayController(deps = {}) {
     }
   }
 
+  /** @param {number} durationMs */
   function start(durationMs, opts = {}) {
     stop();
     deadline = now() + (durationMs | 0);
@@ -38,7 +56,7 @@ export function createPlayController(deps = {}) {
   }
 
   // New in Phase2: called by app.js right after an answer is submitted.
-  // This is a NO-OP in terms of behavior; it only forwards to an optional hook.
+  // Behavior-neutral: forward to optional hook only.
   function afterAnswer({ correct, remaining } = {}) {
     try {
       if (hooks.onAnswer) hooks.onAnswer({ correct, remaining });
@@ -47,14 +65,17 @@ export function createPlayController(deps = {}) {
     }
   }
 
+  /** @param {(p: AnswerPayload) => void} cb */
   function onAnswer(cb) {
     hooks.onAnswer = cb;
   }
+  /** @param {() => void} cb */
   function onNext(cb) {
     hooks.onNext = cb;
   }
 
   // Flow: accept/reject wrappers (behavior-neutral; only forward to hooks)
+  /** @param {AnswerPayload} [payload] */
   function accept(payload = {}) {
     try {
       if (hooks.onAccept) hooks.onAccept(payload);
@@ -62,6 +83,7 @@ export function createPlayController(deps = {}) {
       try { logger && (logger.warn ? logger.warn(e) : logger.log(e)); } catch {}
     }
   }
+  /** @param {AnswerPayload} [payload] */
   function reject(payload = {}) {
     try {
       if (hooks.onReject) hooks.onReject(payload);
@@ -69,9 +91,11 @@ export function createPlayController(deps = {}) {
       try { logger && (logger.warn ? logger.warn(e) : logger.log(e)); } catch {}
     }
   }
+  /** @param {(p: AnswerPayload) => void} cb */
   function onAccept(cb) {
     hooks.onAccept = cb;
   }
+  /** @param {(p: AnswerPayload) => void} cb */
   function onReject(cb) {
     hooks.onReject = cb;
   }
@@ -86,6 +110,9 @@ export function createPlayController(deps = {}) {
   }
 
   // --- Lives wiring (DI) ---
+  /**
+   * @param {LivesWiring} param0
+   */
   function wireLives({ recomputeMistakes, maybeEndGameByLives } = {}) {
     _recomputeMistakes = typeof recomputeMistakes === 'function' ? recomputeMistakes : null;
     _maybeEndGameByLives = typeof maybeEndGameByLives === 'function' ? maybeEndGameByLives : null;

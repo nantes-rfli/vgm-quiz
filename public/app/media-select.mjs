@@ -1,6 +1,11 @@
 // media-select.mjs
 // Provider selection logic: Apple preference → YouTube fallback (+ ?provider override)
 // Keep DOM-free and UI-agnostic to allow unit tests.
+
+/**
+ * @typedef {{apple?: {embedUrl?: string, previewUrl?: string, url?: string}, youtube?: any, provider?: string}} Media
+ */
+
 import { getQueryParam } from './utils-ui.mjs';
 
 export function chooseProvider(media){

@@ -1,5 +1,4 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { test, strict as assert } from 'node:test';
 import { createPlayController } from '../public/app/play-controller.mjs';
 
 test('start/stop set and clear timer', async (t) => {
@@ -42,4 +41,27 @@ test('stop() is idempotent', () => {
   pc.stop();
   // if no exception, pass
   assert.ok(true);
+});
+
+test('onNext/next triggers callback', () => {
+  const pc = createPlayController();
+  let called = 0;
+  pc.onNext(() => { called++; });
+  pc.next();
+  assert.equal(called, 1);
+});
+
+test('wireLives + refreshLives calls injected functions in order', async () => {
+  const order = [];
+  const pc = createPlayController();
+  pc.wireLives({
+    recomputeMistakes: () => { order.push('recompute'); },
+    maybeEndGameByLives: () => { order.push('maybeEnd'); }
+  });
+  pc.refreshLives();
+  // recomputeMistakes is scheduled via setTimeout(0), so wait a tick
+  await new Promise(r => setTimeout(r, 10));
+  assert.deepEqual(order, ['maybeEnd'] /* may have run first sync */, { message: 'first sync call is maybeEnd' });
+  // NOTE: we cannot deterministically assert timer order cross-env; ensure both eventually run:
+  assert.equal(order.includes('recompute'), true);
 });
