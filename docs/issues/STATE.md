@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-10T12:28:16.314Z
+Exported at: 2025-09-10T15:09:52.651Z
 
 ## post-v1.6
 
@@ -35,7 +35,7 @@ Exported at: 2025-09-10T12:28:16.314Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 800 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/800) | open | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-10T12:27:34Z |
+| 800 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/800) | closed | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-10T12:28:30Z |
 | 687 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/687) | closed | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-10T09:17:06Z |
 | 716 | [v1.11: Discovery 設計 & dry-run（iTunes Search 起点）](https://github.com/nantes-rfli/vgm-quiz/issues/716) | closed | roadmap:v1.11, area:collector |  | 2025-09-09T14:01:56Z |
 | 717 | [v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）](https://github.com/nantes-rfli/vgm-quiz/issues/717) | closed | area:ops, roadmap:v1.11, area:collector |  | 2025-09-09T14:01:55Z |
