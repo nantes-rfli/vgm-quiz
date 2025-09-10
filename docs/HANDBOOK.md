@@ -9,14 +9,14 @@
 - **JS リダイレクト**: `/public/daily/*.html` は `meta refresh` ではなく **JS リダイレクト**でアプリへ遷移。`?no-redirect=1` で抑止、`?redirectDelayMs=1500` で遅延。
 - **SW ハンドシェイク**: `public/app/version.json` を用いた Service Worker の更新検知（~60 秒ポーリング）。
 
-より詳細は [docs/glossary.md](glossary.md) 参照。
+より詳細は [docs/GLOSSARY.md](GLOSSARY.md) 参照。
 
 ## 1. アーキテクチャ概要
 - **データ**: Clojure で `public/build/dataset.json` を生成 → Node スクリプトで `daily.json` / `daily_auto.json` / `/public/daily/*.html` を生成。
 - **アプリ**: GitHub Pages で `/public/app/` を配信。クエリ `?daily=YYYY-MM-DD` で対象データ表示。`?auto=1` で AUTO 反映。
 - **配信**: GitHub Actions（Required → Auto-merge）。フッター右で `Dataset: vN • commit: abcdefg • updated: YYYY-MM-DD HH:mm` を目視確認。
 
-図は略。詳細は [docs/architecture.md](architecture.md)。
+図は略。詳細は [docs/ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ## 2. パイプライン（責務の分離）
 - **daily.json generator (JST)** = `/public/app/daily.json` **と** `/public/daily/*.html` を生成 / 更新
@@ -60,7 +60,7 @@
 - [docs/auto-mode.md](auto-mode.md)
 - [docs/ops-runbook.md](ops-runbook.md)
 - [docs/ops-tips.md](ops-tips.md)
-- [docs/glossary.md](glossary.md)
+- [docs/GLOSSARY.md](GLOSSARY.md)
 - [docs/urls-and-params.md](urls-and-params.md)
 - [docs/e2e-daily-pages-smoke.md](e2e-daily-pages-smoke.md)
 - [docs/e2e-auto-badge-smoke.md](e2e-auto-badge-smoke.md)

@@ -6,14 +6,14 @@
 - [VGM Quiz Handbook](HANDBOOK.md)
 
 ## Architecture / Pipelines / Ops
-- [Architecture (high-level)](architecture.md)
+- [Architecture (high-level)](ARCHITECTURE.md)
 - [Pipeline overview](pipeline.md)
 - [ops / runbook](ops.md)
 - [docs architecture](docs-architecture.md)
 - [Ops Tips](ops-tips.md)
 - [Troubleshooting](troubleshooting.md)
 - [Release checklist](release-checklist.md)
-- [Glossary](glossary.md)
+- [Glossary](GLOSSARY.md)
 - [URLs & Query Params](urls-and-params.md)
 - [labels](labels.md)
 - [ci overview](ci.md)
@@ -58,3 +58,12 @@
 ## ドキュメント言語ポリシー
 本リポジトリのドキュメントは **日本語に統一** します（固有名詞・API名・エラー文などは英語表記可）。  
 新規追加・更新時は日本語で記述し、英語ドキュメントを追加する場合は別ファイルにせず原則日本語へ統合します。
+
+## 索引（主要ドキュメント）
+- ROADMAP: `docs/ROADMAP.md`
+- Gate運用: `docs/OPERATIONS_GATE.md`
+- 品質KPI: `docs/QUALITY_KPIS.md`
+- アーキテクチャ: `docs/ARCHITECTURE.md`
+- 用語集: `docs/GLOSSARY.md`
+- （v1.13）1問/日 運用: `docs/OPERATIONS_DAILY_ONEQ.md`
+- （v1.14）トリビア運用: `docs/OPERATIONS_TRIVIA.md`
