@@ -1,0 +1,27 @@
+name: docs-lint (local links)
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'scripts/docs_link_check.mjs'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'scripts/docs_link_check.mjs'
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run local link checker
+        run: |
+          node --version
+          node scripts/docs_link_check.mjs
+

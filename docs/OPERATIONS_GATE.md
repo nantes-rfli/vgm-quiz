@@ -42,3 +42,17 @@
 - collector (gate from artifact by id)
 
 > 理由：artifact 取得や inputs 伝搬の相性課題があり、by-id + REST 版で集約しました。
+
+---
+## 運用（θとdry-run）
+- **本線 θ**: 初期は **0.80** とする（運用で見直し可）。
+- **比較用 θ**: **0.72 / 0.85** を `dry-run` で計測し、**Step Summary** に以下KPIを出す。
+  - `auto_accept_rate` / `reject_rate` / `dedup_reject_rate`
+  - `avg_provider_trust` / `avg_guard_score` / `avg_notability`
+  - `pr_queue_size`（滞留の兆候） / `lead_time`（PR作成→マージ）
+- **意思決定の目安**: 合計 **50〜100 サンプル**を観測した上で見直す。
+
+### 手順（サマリ）
+1. 本線は `GATE_THRESHOLD=0.80` で運用。
+2. 同一seed/期間で `0.72 / 0.85` を `dry-run` 実行。
+3. KPI差分を `docs/QUALITY_KPIS.md` の定義に従い記録し、Issue（v1.12）に貼付。
