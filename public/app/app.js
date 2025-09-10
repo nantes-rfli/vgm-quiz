@@ -648,6 +648,11 @@ function submitAnswer() {
   }
   q.userAnswer = rawInput;
   q.correct = correct;
+
+  // v1.12 Phase2: delegate post-answer hooks
+  try { if (window.__PLAY__ && typeof window.__PLAY__.afterAnswer === 'function') { window.__PLAY__.afterAnswer({ correct, remaining }); } } catch (_) {}
+  // Lives: 即時再集計とエンド判定（挙動不変: HUDのみ即時反映）
+  try { setTimeout(recomputeMistakes, 0); maybeEndGameByLives(); } catch (_) {}
   recordPlay({
     runId: currentRunId,
     trackId: trackId(q.track),
