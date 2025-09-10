@@ -44,6 +44,8 @@
 
 ## Collector KPI（Discovery / Harvest / Gate）
 
+> **Note**: 各成分（notability / provider_trust / guard_score）は **0..1 に正規化** された値を入力とする。
+
 ### 目的
 - 自動収集ラインを**安全に**拡大するため、各段の**最低限の健全性**を可視化する。
 - すべて **Step Summary**（`$GITHUB_STEP_SUMMARY`）に常設出力する。
