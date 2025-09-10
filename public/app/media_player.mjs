@@ -1,8 +1,7 @@
 import { chooseProvider } from './media-select.mjs';
+import { getQueryParam, getQueryBool } from './utils-ui.mjs';
 // Media player: Apple Music preview > YouTube fallback (+ test/LHCI stubbing)
 function secOf(ms) { return Math.max(0, Math.floor((ms || 0) / 1000)); }
-function q(name, d=location.search){ try{ return new URLSearchParams(d).get(name); }catch{ return null; } }
-function isFlagOn(name) { const v = q(name); return v === '1' || v === 'true'; }
 
 function buildAppleEmbed(media){
   const root = document.createElement('div');
@@ -12,7 +11,7 @@ function buildAppleEmbed(media){
   root.setAttribute('aria-label','Media player (Apple Music)');
   const slot = document.createElement('div'); slot.id = 'media-inner'; root.appendChild(slot);
 
-  const stubOnly = isFlagOn('test') || isFlagOn('lhci') || isFlagOn('nomedia');
+  const stubOnly = getQueryBool('test') || getQueryBool('lhci') || getQueryBool('nomedia');
   if (stubOnly){
     const stub = document.createElement('div');
     stub.id = 'media-stub';
@@ -73,7 +72,7 @@ function buildYouTubeEmbed(media){
   root.setAttribute('aria-label','Media player (YouTube)');
   const slot = document.createElement('div'); slot.id = 'media-inner'; root.appendChild(slot);
 
-  const stubOnly = isFlagOn('test') || isFlagOn('lhci') || isFlagOn('nomedia');
+  const stubOnly = getQueryBool('test') || getQueryBool('lhci') || getQueryBool('nomedia');
   if (stubOnly){
     const stub = document.createElement('div');
     stub.id = 'media-stub';
