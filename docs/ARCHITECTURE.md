@@ -80,3 +80,6 @@
 - `a11y-helpers.mjs`: 起動時に `initA11y()` を呼び、タイマー/プログレスバーなどの ARIA 属性の整備を行う。
 
 > 目的: `public/app/app.js` の責務を明確化し、将来の UI 分割（Phase 2 以降）の基盤にする。
+
+## フロントエンド（app/）の起動分割（v1.12 Phase 2）
+- `daily.mjs`: デイリーモードの状態（`DAILY`）とヘルパ（`detectDailyParam` / `initDaily` / `pickDailyWantedFromMap` / `applyDailyRestriction`）を集約。

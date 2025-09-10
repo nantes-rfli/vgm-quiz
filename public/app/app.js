@@ -41,6 +41,7 @@ function ensureAliases() {
 }
 import { normalize as normalizeV2 } from './normalize.mjs';
 import { orderByYearBucket } from './question_pipeline.mjs';
+import { DAILY, detectDailyParam, initDaily, pickDailyWantedFromMap, applyDailyRestriction } from './daily.mjs';
 import { yieldToMain, getQueryParam, getQueryBool, xfnv1a, mulberry32 } from './utils-ui.mjs';
 import {
   readVersionNoStore,
@@ -128,31 +129,6 @@ function initSeededRandom() {
 
 initSeededRandom();
 
-// ---------------------
-// Daily 1-question mode
-// ---------------------
-const DAILY = {
-  active: false,
-  dateStr: null,        // 'YYYY-MM-DD'
-  wanted: null,         // { id?: string, title?: string }
-  mapLoaded: false,
-};
-
-function todayJST() {
-  // 'YYYY-MM-DD' を JST で作る
-  const fmt = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' });
-  const [{value: y}, , {value: m}, , {value: d}] = fmt.formatToParts(new Date());
-  return `${y}-${m}-${d}`;
-}
-
-function detectDailyParam() {
-  const v = getQueryParam('daily');
-  if (!v) return null;
-  if (v === '1' || v === 'true') return todayJST();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-  return null;
-}
-
 async function preloadDailyMap() {
   try {
     const res = await fetch('./daily.json', { cache: 'no-cache' });
@@ -167,43 +143,6 @@ async function preloadDailyMap() {
   }
 }
 
-function initDaily() {
-  const date = detectDailyParam();
-  if (!date) return;
-  DAILY.active = true;
-  DAILY.dateStr = date;
-}
-
-// タイトル/IDの正規化一致
-function normKey(s) { return normalizeV2(String(s || '')); }
-function pickDailyWantedFromMap() {
-  if (!DAILY.active) return;
-  const entry = DAILY.map?.[DAILY.dateStr];
-  if (!entry) return;
-  if (typeof entry === 'string') {
-    DAILY.wanted = { id: entry }; // 旧式：そのままID扱い
-  } else if (entry && typeof entry === 'object') {
-    DAILY.wanted = { id: entry.id, title: entry.title };
-  }
-}
-
-// 質問配列を 1 問に絞る（可能なら該当トラックを優先）
-function applyDailyRestriction() {
-  if (!DAILY.active || !Array.isArray(questions) || questions.length === 0) return;
-  // 優先順位: ID → タイトル（正規化一致）
-  let idx = -1;
-  if (DAILY.wanted?.id) {
-    const target = normKey(DAILY.wanted.id);
-    idx = questions.findIndex(q => normKey(q?.track?.id) === target);
-  }
-  if (idx < 0 && DAILY.wanted?.title) {
-    const target = normKey(DAILY.wanted.title);
-    idx = questions.findIndex(q => normKey(q?.track?.title) === target);
-  }
-  if (idx < 0) idx = 0; // フォールバック
-  questions = [questions[idx]];
-}
-
 function afterQuestionsBuiltHook() {
   try {
     if (getQueryBool('qp') && Array.isArray(questions) && questions.length > 0) {
@@ -216,7 +155,7 @@ function afterQuestionsBuiltHook() {
         questions = [questions[0]];
       } else {
         pickDailyWantedFromMap();
-        applyDailyRestriction();
+        questions = applyDailyRestriction(questions);
       }
     }
     if (getQueryBool('test') && Array.isArray(questions)) {
