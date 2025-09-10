@@ -1,12 +1,12 @@
 // play-controller.mjs
-// v1.12 Phase2: timer & afterAnswer hook (no behavior change)
+// v1.12 Phase2: timer & afterAnswer/accept/reject hooks (no behavior change)
 // Keep this module DOM-free and UI-agnostic.
 
 export function createPlayController(deps = {}) {
   const { logger = console, now = () => Date.now() } = deps;
   let intervalId = null;
   let deadline = 0;
-  const hooks = { onTimeout: null, onAnswer: null, onNext: null };
+  const hooks = { onTimeout: null, onAnswer: null, onNext: null, onAccept: null, onReject: null };
 
   function tick() {
     const remain = deadline - now();
@@ -51,6 +51,28 @@ export function createPlayController(deps = {}) {
     hooks.onNext = cb;
   }
 
+  // Flow: accept/reject wrappers (behavior-neutral; only forward to hooks)
+  function accept(payload = {}) {
+    try {
+      if (hooks.onAccept) hooks.onAccept(payload);
+    } catch (e) {
+      try { logger && (logger.warn ? logger.warn(e) : logger.log(e)); } catch {}
+    }
+  }
+  function reject(payload = {}) {
+    try {
+      if (hooks.onReject) hooks.onReject(payload);
+    } catch (e) {
+      try { logger && (logger.warn ? logger.warn(e) : logger.log(e)); } catch {}
+    }
+  }
+  function onAccept(cb) {
+    hooks.onAccept = cb;
+  }
+  function onReject(cb) {
+    hooks.onReject = cb;
+  }
+
   // Flow entry: go to next question (callback is injected by app.js).
   function next() {
     try {
@@ -60,7 +82,7 @@ export function createPlayController(deps = {}) {
     }
   }
 
-  return { start, stop, afterAnswer, onAnswer, onNext, next };
+  return { start, stop, afterAnswer, onAnswer, onNext, next, accept, reject, onAccept, onReject };
 }
 
 export default { createPlayController };

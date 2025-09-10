@@ -633,6 +633,14 @@ function submitAnswer() {
   const scoreBar = document.getElementById('score-bar');
   const correct = userAns === expected;
   const aliasBtn = document.getElementById('propose-alias-btn');
+  // Phase2 hook routing（挙動不変）
+  try {
+    if (window.__PLAY__) {
+      if (correct && typeof window.__PLAY__.accept === 'function') window.__PLAY__.accept({ remaining });
+      if (!correct && typeof window.__PLAY__.reject === 'function') window.__PLAY__.reject({ remaining });
+      if (typeof window.__PLAY__.afterAnswer === 'function') window.__PLAY__.afterAnswer({ correct, remaining });
+    }
+  } catch (_) {}
   q.elapsed = 20 - remaining;
   document.querySelectorAll('#choices button').forEach(b => b.disabled = true);
   aliasBtn.style.display = 'none';
@@ -660,8 +668,6 @@ function submitAnswer() {
   q.userAnswer = rawInput;
   q.correct = correct;
 
-  // v1.12 Phase2: delegate post-answer hooks
-  try { if (window.__PLAY__ && typeof window.__PLAY__.afterAnswer === 'function') { window.__PLAY__.afterAnswer({ correct, remaining }); } } catch (_) {}
   // Lives: 即時再集計とエンド判定（挙動不変: HUDのみ即時反映）
   try { setTimeout(recomputeMistakes, 0); maybeEndGameByLives(); } catch (_) {}
   recordPlay({
