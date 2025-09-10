@@ -1,55 +1,21 @@
 {
-  "exported_at": "2025-09-10T08:55:13.134Z",
+  "exported_at": "2025-09-10T09:20:18.269Z",
   "items": [
     {
-      "number": 776,
-      "title": "UI: モバイルで44pxタッチターゲットを担保",
+      "number": 781,
+      "title": "v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記",
       "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/776",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/781",
       "labels": [
-        "roadmap:v1.5",
-        "area:ui",
-        "a11y"
+        "type:docs",
+        "roadmap:v1.12",
+        "area:architecture"
       ],
       "assignees": [],
       "milestone": null,
-      "updated_at": "2025-09-10T08:54:49Z",
+      "updated_at": "2025-09-10T09:17:07Z",
       "roadmap": [
-        "roadmap:v1.5"
-      ]
-    },
-    {
-      "number": 775,
-      "title": "UI: デザイントークンをCSSで統一",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/775",
-      "labels": [
-        "roadmap:v1.5",
-        "area:ui",
-        "responsive"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-10T08:54:49Z",
-      "roadmap": [
-        "roadmap:v1.5"
-      ]
-    },
-    {
-      "number": 774,
-      "title": "UI: デザイントークンをCSSで統一",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/774",
-      "labels": [
-        "roadmap:v1.5",
-        "area:ui",
-        "responsive"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-10T08:54:48Z",
-      "roadmap": [
-        "roadmap:v1.5"
+        "roadmap:v1.12"
       ]
     },
     {
@@ -222,23 +188,6 @@
       ]
     },
     {
-      "number": 687,
-      "title": "v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/687",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.11",
-        "area:kpi"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T09:33:31Z",
-      "roadmap": [
-        "roadmap:v1.11"
-      ]
-    },
-    {
       "number": 433,
       "title": "Authoring: clip-start-heuristics-v1",
       "state": "open",
@@ -341,6 +290,107 @@
       "updated_at": "2025-09-07T15:36:47Z",
       "roadmap": [
         "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 778,
+      "title": "UI: #choices グリッド2→3→4列のレスポンシブ",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/778",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "responsive"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T09:17:11Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 779,
+      "title": "UI: Historyテーブルのストライプ/ホバー",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/779",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T09:17:10Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 687,
+      "title": "v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/687",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.11",
+        "area:kpi"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T09:17:06Z",
+      "roadmap": [
+        "roadmap:v1.11"
+      ]
+    },
+    {
+      "number": 774,
+      "title": "UI: デザイントークンをCSSで統一",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/774",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "responsive"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T08:55:28Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 776,
+      "title": "UI: モバイルで44pxタッチターゲットを担保",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/776",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "a11y"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T08:55:27Z",
+      "roadmap": [
+        "roadmap:v1.5"
+      ]
+    },
+    {
+      "number": 775,
+      "title": "UI: デザイントークンをCSSで統一",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/775",
+      "labels": [
+        "roadmap:v1.5",
+        "area:ui",
+        "responsive"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-10T08:55:25Z",
+      "roadmap": [
+        "roadmap:v1.5"
       ]
     },
     {
@@ -891,56 +941,6 @@
       "updated_at": "2025-09-09T04:07:33Z",
       "roadmap": [
         "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 604,
-      "title": "v1.10: provenance 配線（ingest→pick）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/604",
-      "labels": [
-        "area:pipeline",
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T03:43:05Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 671,
-      "title": "Tests: UI/Responsive最小スモーク追加（JS不増を担保）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/671",
-      "labels": [
-        "roadmap:v1.5",
-        "responsive",
-        "type:test"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T01:14:57Z",
-      "roadmap": [
-        "roadmap:v1.5"
-      ]
-    },
-    {
-      "number": 672,
-      "title": "Docs: STYLEGUIDE/ROADMAP反映（v1.5方針とDoD）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/672",
-      "labels": [
-        "roadmap:v1.5",
-        "type:docs"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-09T01:14:56Z",
-      "roadmap": [
-        "roadmap:v1.5"
       ]
     }
   ]
