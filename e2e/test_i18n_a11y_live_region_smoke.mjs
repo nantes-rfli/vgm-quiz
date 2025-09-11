@@ -68,39 +68,31 @@ import { chromium } from 'playwright';
   if (!clicked) {
     throw new Error('Failed to click a choice via all strategies');
   }
-  // Try to surface the results dialog. Some flows require an explicit "Next/Finish/Results" action.
-  async function clickAny(selectors) {
-    for (const sel of selectors) {
-      const el = await page.$(sel);
-      if (!el) continue;
-      try {
-        await page.locator(sel).first().click({ timeout: 1500 });
-        return true;
-      } catch {}
-      try {
-        await page.$eval(sel, (n) => n && n.click());
-        return true;
-      } catch {}
-    }
-    return false;
-  }
+  // --- Robust path to reach result dialog ---
+  // Purpose of this test: i18n + a11y live region readiness, and ability to reach the final result dialog.
+  // Some locales (e.g., JA) can yield >1 question under ?daily during mock/test. Progress deterministically.
+  const resultDlg = page.locator('#result-view[role="dialog"]');
+  const firstChoice = page.locator('#choices button').first();
+  const nextBtn = page.locator('#next-btn');
 
-  // If dialog didn't show up yet, try candidate controls and keyboard fallback.
-  const dialogSelector = '#result-view[role="dialog"]';
-  try {
-    await page.waitForSelector(dialogSelector, { state: 'visible', timeout: 4000 });
-  } catch {
-    const candidates = [
-      '#next-btn', '[data-testid="next-btn"]', 'button[data-action="next"]',
-      '#finish-btn', '[data-testid="finish-btn"]', 'button[data-action="finish"]',
-      '#show-result-btn', '[data-testid="show-result-btn"]',
-      '#result-btn', '[data-testid="result-btn"]',
-    ];
-    await clickAny(candidates);
-    // Keyboard fallbacks (Enter/Space) in case the control is focused implicitly
-    try { await page.keyboard.press('Enter'); } catch {}
-    try { await page.keyboard.press(' '); } catch {}
-    await page.waitForSelector(dialogSelector, { state: 'visible', timeout: 8000 });
+  // Try up to 6 steps: check result → answer if needed → press Next if possible.
+  let reached = false;
+  for (let step = 0; step < 6; step++) {
+    try {
+      await resultDlg.waitFor({ state: 'visible', timeout: 1200 });
+      reached = true;
+      break;
+    } catch {
+      if (await firstChoice.isVisible()) {
+        await firstChoice.click();
+      }
+      if (await nextBtn.isVisible()) {
+        await nextBtn.click();
+      }
+    }
+  }
+  if (!reached) {
+    throw new Error('result-view not visible after advancing through questions');
   }
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
