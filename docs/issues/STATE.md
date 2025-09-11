@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-10T15:09:52.651Z
+Exported at: 2025-09-11T00:46:59.922Z
 
 ## post-v1.6
 
@@ -46,6 +46,13 @@ Exported at: 2025-09-10T15:09:52.651Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 812 | [v1.12: E2E(matrix) の安定化](https://github.com/nantes-rfli/vgm-quiz/issues/812) | open | type:test, roadmap:v1.12, area:e2e |  | 2025-09-11T00:45:44Z |
+| 811 | [v1.12: E2E(on-demand + nightly) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/811) | open | roadmap:v1.12, area:e2e, type:ci, area:workflow |  | 2025-09-11T00:45:44Z |
+| 810 | [v1.12: E2E(ui responsive smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/810) | open | type:test, roadmap:v1.12, area:e2e, ui |  | 2025-09-11T00:45:43Z |
+| 809 | [v1.12: E2E(i18n a11y live region) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/809) | open | a11y, type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-11T00:45:43Z |
+| 808 | [v1.12: E2E(i18n labels step2) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/808) | open | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-11T00:45:42Z |
+| 807 | [v1.12: E2E(i18n static labels smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/807) | open | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-11T00:45:42Z |
+| 806 | [v1.12: E2E(i18n lang param smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/806) | open | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-11T00:45:42Z |
 | 781 | [v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記](https://github.com/nantes-rfli/vgm-quiz/issues/781) | closed | type:docs, roadmap:v1.12, area:architecture |  | 2025-09-10T12:27:37Z |
 | 732 | [v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）](https://github.com/nantes-rfli/vgm-quiz/issues/732) | closed | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:38Z |
 | 773 | [v1.12: UI-slim Phase 2（画面単位分割：play / media）](https://github.com/nantes-rfli/vgm-quiz/issues/773) | open | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:36Z |
