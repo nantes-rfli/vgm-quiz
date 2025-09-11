@@ -4,7 +4,10 @@
     "title": "v1.12: E2E(i18n lang param smoke) を修正",
     "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
     "body": "### 背景\n- ?lang=ja|en の指定時に <html lang> と文言反映のタイミングが検証で不安定。\n\n### 受け入れ基準（DoD）\n- E2E `i18n lang param smoke` が緑\n- <html lang> が起動直後に希望言語へ設定され、切替時も追従\n- SR向けの言語切替アナウンスが一度だけ発火（多重なし）\n",
-    "state": "open"
+    "state": "closed",
+    "notes": [
+      "BootSeed i18n: <html lang> と <title> の先行設定で安定化。E2E(i18n lang param smoke) は 2025-09-11 JST に緑を確認。"
+    ]
   },
   {
     "id": "v112-e2e-i18n-static-labels-smoke",
