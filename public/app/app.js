@@ -293,13 +293,14 @@ async function loadDataset() {
     const playable = (Array.isArray(tracks) ? tracks : []).filter(t =>
       t && t.media && t.media.provider && t.answers
     ).length;
-    if (!playable) {
-      const qs = new URLSearchParams(location.search || '');
-      const hasMock = qs.get('mock') === '1' || qs.has('mock');
+    // モック時(?mock=1)は“公開データに〜”の注意を出さない（紛らわしいため）
+    const qs = new URLSearchParams(location.search || '');
+    const hasMock = qs.get('mock') === '1' || qs.has('mock');
+    if (!playable && !hasMock) {
       const msg = document.getElementById('dataset-error');
       if (msg) {
         msg.innerHTML = '公開データに再生可能な問題がありません（media/provider/answers が不足）。' +
-          (hasMock ? '' : ' <a href="?mock=1">テストデータで起動する</a>');
+          ' <a href="?mock=1">テストデータで起動する</a>';
         msg.style.display = 'block';
       }
       // Start ボタンに理由を付記（UIスリムの契約は維持：Start は無効のまま）
