@@ -75,6 +75,7 @@ import { chromium } from 'playwright';
   const firstChoice = page.locator('#choices button').first();
   const nextBtn = page.locator('#next-btn');
   const questionTitle = page.locator('#question-title');
+  const startBtn = page.locator('#start-btn');
 
   // Helper: log to aid CI diagnostics
   const logStep = async (label) => {
@@ -82,6 +83,31 @@ import { chromium } from 'playwright';
     const qText = await questionTitle.isVisible().then(v => v ? questionTitle.textContent() : Promise.resolve(''));
     const nextVisible = await nextBtn.isVisible().catch(() => false);
     console.log(`[E2E] step=${label} lang=${lang} nextVisible=${nextVisible} title=${(qText||'').trim()}`);
+  };
+
+  // Helper: ensure quiz has started (start-view → play-view)
+  const ensureStarted = async () => {
+    if (await firstChoice.isVisible().catch(() => false)) return;
+    if (await resultDlg.isVisible().catch(() => false)) return;
+    if (await startBtn.isVisible().catch(() => false)) {
+      // If disabled, wait up to 12s for it to become enabled (prod takes a few seconds)
+      const isDisabled = await startBtn.getAttribute('disabled').catch(() => null);
+      if (isDisabled !== null) {
+        try {
+          await page.waitForSelector('#start-btn:not([disabled])', { timeout: 12000 });
+        } catch {}
+      }
+      // Click when (now) enabled
+      const afterWaitDisabled = await startBtn.getAttribute('disabled').catch(() => null);
+      if (afterWaitDisabled === null) {
+        await startBtn.click({ trial: true }).catch(() => {});
+        await startBtn.click().catch(() => {});
+        await page.waitForTimeout(250);
+        await logStep('clicked-start');
+      } else {
+        await logStep('start-still-disabled');
+      }
+    }
   };
 
   let reached = false;
@@ -94,6 +120,8 @@ import { chromium } from 'playwright';
       reached = true;
       break;
     } catch {}
+
+    await ensureStarted();
 
     // Answer if a choice is visible
     if (await firstChoice.isVisible().catch(() => false)) {
