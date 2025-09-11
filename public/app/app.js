@@ -288,6 +288,8 @@ async function loadDataset() {
     const data = await parseJsonOffMainThread(txt);
     tracks = data.tracks || data; // 互換
     datasetLoaded = true;
+    try { window.__DATASET_READY__ = true; } catch(_) {}
+    try { console.info('[DATASET] ready (tracks=%s)', Array.isArray(tracks) ? tracks.length : 'n/a'); } catch(_) {}
     updateStartButton();
   } catch (err) {
     console.error('Failed to load dataset', err);
@@ -861,17 +863,21 @@ updateStartButton();
 console.log('features', { mode: questionMode === 'multiple-choice' ? 'MC' : 'Free', timer: useTimer ? '20s' : 'off' });
 
 checkOnLoad();
+// Dataset の読み込みタイミング：本番は idle、E2E/検証（?test=1 or ?mock=1）は即時
 {
   const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1));
-  // In CI/E2E (test=1) or mock=1, load dataset immediately so Start becomes enabled promptly.
-  const __TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
-  const __MOCK_MODE__ = __SEARCH_PARAMS__.get('mock') === '1';
-  if (__TEST_MODE__ || __MOCK_MODE__) {
-    try { datasetPromise = loadDataset(); } catch(e){}
+  const isTest = (typeof __IS_TEST_MODE__ !== 'undefined') && __IS_TEST_MODE__ === true;
+  let isMock = false;
+  try { isMock = (new URLSearchParams(location.search).get('mock') === '1'); } catch(_) {}
+  const kick = () => { try { datasetPromise = loadDataset(); } catch(e){} };
+  if (isTest || isMock) {
+    // E2E/検証モード：Start を待たせないため即時ロード
+    kick();
   } else {
-    ric(() => { try { datasetPromise = loadDataset(); } catch(e){} });
+    // 本番：アイドル時にロード
+    ric(kick);
   }
-  // [perf] defer aliases: load after Start button (startQuiz)
+  // [perf] defer aliases: load after Start button (startQuiz) / keep as-is
   // ric(() => { try { ensureAliases(); } catch(e){} });
 }
 
