@@ -8,7 +8,7 @@
  * @param {Object} TYPE_LABELS - タイプごとの表示ラベル
  * @param {HTMLElement} [listEl=document.getElementById('summary-list')]
  */
-export function renderResultSummary(questions, TYPE_LABELS, listEl = document.getElementById('summary-list')) {
+function renderResultSummary(questions, TYPE_LABELS, listEl = document.getElementById('summary-list')) {
   if (!Array.isArray(questions)) return;
   if (!listEl) return;
   listEl.innerHTML = '';
@@ -216,5 +216,5 @@ function closeResultDialogA11y(goStart = false) {
   _resultDialogPrevFocus = null;
 }
 
-export { copyToClipboard, canonicalAppUrl, setupResultShare, openResultDialogA11y, closeResultDialogA11y, renderResultSummary };
+export { renderResultSummary, copyToClipboard, canonicalAppUrl, setupResultShare, openResultDialogA11y, closeResultDialogA11y };
 
