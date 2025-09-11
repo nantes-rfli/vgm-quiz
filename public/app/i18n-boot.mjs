@@ -1,10 +1,14 @@
 import { initI18n, whenI18nReady, applyStaticLabels, seedLiveRegion } from './i18n.mjs';
+import { applyE2EStartFailsafe } from './e2e-failsafe.mjs';
 
 // Early i18n boot so static labels are localized before app logic runs.
 await initI18n();
 await whenI18nReady();
 applyStaticLabels(document);
 seedLiveRegion(document);
+
+// E2E/検証時のみ：Start ボタンの無効化取り残しを救済
+applyE2EStartFailsafe();
 
 // Re-apply immediately when language flips (setLang -> 'i18n:changed').
 function __applyStaticAll() {
