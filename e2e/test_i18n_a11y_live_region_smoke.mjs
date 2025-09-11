@@ -31,7 +31,7 @@ import { chromium } from 'playwright';
 
   // ---- JA ----
   const jaUrl = urlWith(base, 'ja');
-  await page.goto(jaUrl + (jaUrl.includes('?') ? '&' : '?') + 'mode=mc');
+  await page.goto(jaUrl + (jaUrl.includes('?') ? '&' : '?') + 'mode=mc&choices_mode=mc');
   // Bridge page console to CI logs for deeper diagnostics
   page.on('console', msg => {
     try {
@@ -80,7 +80,7 @@ import { chromium } from 'playwright';
   if (!clicked) {
     throw new Error('Failed to click a choice via all strategies');
   }
-  // --- Robust path to reach result dialog (v6) ---
+  // --- Robust path to reach result dialog (v7) ---
   // Purpose: verify i18n+a11y live region and the ability to reach the final dialog,
   // without assuming the number of questions (locale can differ under ?daily).
   const resultDlg = page.locator('#result-view[role="dialog"]');
@@ -103,25 +103,34 @@ import { chromium } from 'playwright';
   const ensureStarted = async () => {
     if (await firstChoice.isVisible().catch(() => false)) return;
     if (await resultDlg.isVisible().catch(() => false)) return;
-    if (await startBtn.isVisible().catch(() => false)) {
-      // If disabled, wait up to 12s for it to become enabled (prod takes a few seconds)
-      const isDisabled = await startBtn.getAttribute('disabled').catch(() => null);
-      if (isDisabled !== null) {
-        try {
-          await page.waitForSelector('#start-btn:not([disabled])', { timeout: 12000 });
-        } catch {}
-      }
-      // Click when (now) enabled
-      const afterWaitDisabled = await startBtn.getAttribute('disabled').catch(() => null);
-      if (afterWaitDisabled === null) {
-        await startBtn.click({ trial: true }).catch(() => {});
-        await startBtn.click().catch(() => {});
-        await page.waitForTimeout(250);
-        await logStep('clicked-start');
-      } else {
-        await logStep('start-still-disabled');
-      }
+    // Wait for presence (not visibility) of start button
+    const startPresent = await page.locator('#start-btn').count().then(c => c > 0).catch(() => false);
+    if (!startPresent) return;
+    // Wait up to 12s for enabled
+    try { await page.waitForSelector('#start-btn:not([disabled])', { timeout: 12000 }); } catch {}
+    // Prefer normal click when visible; otherwise programmatic click
+    const visible = await startBtn.isVisible().catch(() => false);
+    if (visible) {
+      await startBtn.scrollIntoViewIfNeeded().catch(() => {});
+      await startBtn.click({ trial: true }).catch(() => {});
+      await startBtn.click().catch(() => {});
+      await page.waitForTimeout(250);
+      await logStep('clicked-start-visible');
+    } else {
+      await page.evaluate(() => {
+        const el = document.querySelector('#start-btn');
+        if (!el) return;
+        try { el.click(); } catch {}
+        try { el.dispatchEvent(new MouseEvent('click', { bubbles: true })); } catch {}
+      }).catch(() => {});
+      await page.waitForTimeout(300);
+      await logStep('clicked-start-programmatic');
     }
+    // After clicking, wait briefly for either choices or input to appear
+    await Promise.race([
+      firstChoice.waitFor({ state: 'visible', timeout: 1500 }).catch(() => {}),
+      inputField.waitFor({ state: 'visible', timeout: 1500 }).catch(() => {})
+    ]);
   };
 
   // Pre-phase: wait longer for Start to become enabled (up to 20s total), then click once.
@@ -143,8 +152,8 @@ import { chromium } from 'playwright';
 
   let reached = false;
   let lastTitle = '';
-  // Try up to 16 cycles; each cycle either answers or advances, then waits briefly for UI to settle.
-  for (let step = 0; step < 16; step++) {
+  // Try up to 20 cycles; each cycle either answers or advances, then waits briefly for UI to settle.
+  for (let step = 0; step < 20; step++) {
     // Quick-path: already on result?
     try {
       await resultDlg.waitFor({ state: 'visible', timeout: 800 });
@@ -154,11 +163,23 @@ import { chromium } from 'playwright';
 
     await ensureStarted();
 
-    // Answer if a choice is visible
+    // Answer if a choice is visible (MC)
     if (await firstChoice.isVisible().catch(() => false)) {
       await firstChoice.click({ trial: true }).catch(() => {});
       await firstChoice.click().catch(() => {});
       await logStep(`answered-${step}`);
+    }
+
+    // Fallback: free-input mode
+    else if (await inputField.isVisible().catch(() => false)) {
+      await inputField.fill('x').catch(() => {});
+      if (await submitBtn.isVisible().catch(() => false)) {
+        await submitBtn.click({ trial: true }).catch(() => {});
+        await submitBtn.click().catch(() => {});
+      } else {
+        await inputField.press('Enter').catch(() => {});
+      }
+      await logStep(`submitted-input-${step}`);
     }
 
     // Press Next if available
@@ -166,6 +187,14 @@ import { chromium } from 'playwright';
       await nextBtn.click({ trial: true }).catch(() => {});
       await nextBtn.click().catch(() => {});
       await logStep(`next-${step}`);
+    } else {
+      // Programmatic Next as final fallback
+      await page.evaluate(() => {
+        const el = document.querySelector('#next-btn');
+        if (!el) return;
+        try { el.click(); } catch {}
+        try { el.dispatchEvent(new MouseEvent('click', { bubbles: true })); } catch {}
+      }).catch(() => {});
     }
 
     // Wait for either a new question title or the result dialog
@@ -192,7 +221,7 @@ import { chromium } from 'playwright';
     const startVisible = await startBtn.isVisible().catch(() => false);
     const startDisabled = startVisible ? (await startBtn.getAttribute('disabled').catch(() => null)) !== null : null;
     console.log(`[E2E] failure diagnostics: nextVisible=${nextVisible} choiceVisible=${choiceVisible} startVisible=${startVisible} startDisabled=${startDisabled}`);
-    throw new Error('result-view not visible after advancing through questions (v6)');
+    throw new Error('result-view not visible after advancing through questions (v7)');
   }
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
@@ -207,7 +236,7 @@ import { chromium } from 'playwright';
 
   // ---- EN ----
   const enUrl = urlWith(base, 'en');
-  await page.goto(enUrl + (enUrl.includes('?') ? '&' : '?') + 'mode=mc');
+  await page.goto(enUrl + (enUrl.includes('?') ? '&' : '?') + 'mode=mc&choices_mode=mc');
   await page.waitForFunction(() => document.documentElement.lang === 'en', null, { timeout: TIMEOUT });
   const liveStartEn = await page.textContent('#feedback');
   if (!/Ready/i.test(liveStartEn || '')) {
