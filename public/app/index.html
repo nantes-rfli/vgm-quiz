@@ -12,6 +12,14 @@
       var lang = p.get('lang');
       if (lang) {
         document.documentElement.setAttribute('lang', lang);
+        // Seed <title> early so E2E can assert localized title without waiting for modules.
+        // i18n.mjs may later normalize; this is a harmless early hint.
+        var t = document.title || '';
+        if (lang === 'ja') {
+          if (!/VGM.?クイズ/.test(t)) document.title = 'VGMクイズ';
+        } else if (lang === 'en') {
+          if (!/VGM.?Quiz/.test(t)) document.title = 'VGM Quiz';
+        }
       }
     } catch (e) {}
   })();
