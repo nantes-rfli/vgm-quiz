@@ -38,6 +38,8 @@ import { chromium } from 'playwright';
   }
   // Start the quiz (ensure the button is visible before clicking)
   await page.waitForSelector('[data-testid="start-btn"]', { state: 'visible', timeout: TIMEOUT });
+  // Start が disabled のままなら、最大30sまで有効化を待ってからクリック
+  await page.waitForSelector('#start-btn:not([disabled])', { timeout: 30000 });
   await page.click('[data-testid="start-btn"]');
 
   // Choices can exist immediately but be mid-transition / off-visibility.
