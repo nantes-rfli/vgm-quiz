@@ -863,7 +863,14 @@ console.log('features', { mode: questionMode === 'multiple-choice' ? 'MC' : 'Fre
 checkOnLoad();
 {
   const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1));
-  ric(() => { try { datasetPromise = loadDataset(); } catch(e){} });
+  // In CI/E2E (test=1) or mock=1, load dataset immediately so Start becomes enabled promptly.
+  const __TEST_MODE__ = __SEARCH_PARAMS__.get('test') === '1';
+  const __MOCK_MODE__ = __SEARCH_PARAMS__.get('mock') === '1';
+  if (__TEST_MODE__ || __MOCK_MODE__) {
+    try { datasetPromise = loadDataset(); } catch(e){}
+  } else {
+    ric(() => { try { datasetPromise = loadDataset(); } catch(e){} });
+  }
   // [perf] defer aliases: load after Start button (startQuiz)
   // ric(() => { try { ensureAliases(); } catch(e){} });
 }
