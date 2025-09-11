@@ -12,14 +12,6 @@
       var lang = p.get('lang');
       if (lang) {
         document.documentElement.setAttribute('lang', lang);
-        // Seed <title> early so E2E can assert localized title without waiting for modules.
-        // i18n.mjs may later normalize; this is a harmless early hint.
-        var t = document.title || '';
-        if (lang === 'ja') {
-          if (!/VGM.?クイズ/.test(t)) document.title = 'VGMクイズ';
-        } else if (lang === 'en') {
-          if (!/VGM.?Quiz/.test(t)) document.title = 'VGM Quiz';
-        }
       }
     } catch (e) {}
   })();
@@ -27,6 +19,20 @@
 <meta name="robots" content="index,follow">
 <meta name="theme-color" content="#111111">
 <title>VGM Quiz</title>
+<!-- Ensure <title> is localized AFTER the parser has created the <title> node. -->
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(location.search);
+      var lang = p.get('lang') || document.documentElement.getAttribute('lang') || 'en';
+      if (lang === 'ja') {
+        document.title = 'VGMクイズ';
+      } else if (lang === 'en') {
+        document.title = 'VGM Quiz';
+      }
+    } catch (e) {}
+  })();
+  </script>
 <link rel="manifest" href="manifest.webmanifest">
 <!-- ESM の事前解決は modulepreload を使う。credentials 警告回避に crossorigin を明示 -->
 <link rel="modulepreload" href="app.js" crossorigin="anonymous">
