@@ -68,31 +68,70 @@ import { chromium } from 'playwright';
   if (!clicked) {
     throw new Error('Failed to click a choice via all strategies');
   }
-  // --- Robust path to reach result dialog ---
-  // Purpose of this test: i18n + a11y live region readiness, and ability to reach the final result dialog.
-  // Some locales (e.g., JA) can yield >1 question under ?daily during mock/test. Progress deterministically.
+  // --- Robust path to reach result dialog (v3) ---
+  // Purpose: verify i18n+a11y live region and the ability to reach the final dialog,
+  // without assuming the number of questions (locale can differ under ?daily).
   const resultDlg = page.locator('#result-view[role="dialog"]');
   const firstChoice = page.locator('#choices button').first();
   const nextBtn = page.locator('#next-btn');
+  const questionTitle = page.locator('#question-title');
 
-  // Try up to 6 steps: check result → answer if needed → press Next if possible.
+  // Helper: log to aid CI diagnostics
+  const logStep = async (label) => {
+    const lang = await page.locator('html').getAttribute('lang');
+    const qText = await questionTitle.isVisible().then(v => v ? questionTitle.textContent() : Promise.resolve(''));
+    const nextVisible = await nextBtn.isVisible().catch(() => false);
+    console.log(`[E2E] step=${label} lang=${lang} nextVisible=${nextVisible} title=${(qText||'').trim()}`);
+  };
+
   let reached = false;
-  for (let step = 0; step < 6; step++) {
+  let lastTitle = '';
+  // Try up to 10 cycles; each cycle either answers or advances, then waits briefly for UI to settle.
+  for (let step = 0; step < 10; step++) {
+    // Quick-path: already on result?
     try {
-      await resultDlg.waitFor({ state: 'visible', timeout: 1200 });
+      await resultDlg.waitFor({ state: 'visible', timeout: 800 });
+      reached = true;
+      break;
+    } catch {}
+
+    // Answer if a choice is visible
+    if (await firstChoice.isVisible().catch(() => false)) {
+      await firstChoice.click({ trial: true }).catch(() => {});
+      await firstChoice.click().catch(() => {});
+      await logStep(`answered-${step}`);
+    }
+
+    // Press Next if available
+    if (await nextBtn.isVisible().catch(() => false)) {
+      await nextBtn.click({ trial: true }).catch(() => {});
+      await nextBtn.click().catch(() => {});
+      await logStep(`next-${step}`);
+    }
+
+    // Wait for either a new question title or the result dialog
+    const prev = lastTitle;
+    lastTitle = await questionTitle.isVisible().then(v => v ? questionTitle.textContent() : Promise.resolve('')) || '';
+    await page.waitForTimeout(250);
+
+    try {
+      await resultDlg.waitFor({ state: 'visible', timeout: 800 });
       reached = true;
       break;
     } catch {
-      if (await firstChoice.isVisible()) {
-        await firstChoice.click();
-      }
-      if (await nextBtn.isVisible()) {
-        await nextBtn.click();
+      // If neither result became visible nor title changed, give UI a bit more time.
+      const nowTitle = await questionTitle.isVisible().then(v => v ? questionTitle.textContent() : Promise.resolve('')) || '';
+      if ((nowTitle || '') === (prev || '')) {
+        await page.waitForTimeout(350);
       }
     }
   }
   if (!reached) {
-    throw new Error('result-view not visible after advancing through questions');
+    // Extra diagnostics before failing
+    const nextVisible = await nextBtn.isVisible().catch(() => false);
+    const choiceVisible = await firstChoice.isVisible().catch(() => false);
+    console.log(`[E2E] failure diagnostics: nextVisible=${nextVisible} choiceVisible=${choiceVisible}`);
+    throw new Error('result-view not visible after advancing through questions (v3)');
   }
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
