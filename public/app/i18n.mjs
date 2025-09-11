@@ -112,12 +112,15 @@ export async function setLang(lang) {
     document.documentElement.setAttribute('lang', next);
     localStorage.setItem('lang', next);
   } catch {}
-  // Minimal visible reflection in v1.6 baseline
   try {
     document.title = t('app.title');
   } catch {}
+  // Notify listeners synchronously that language has changed.
+  // i18n-boot.mjs listens to 'i18n:changed' and will immediately applyStaticLabels()
+  // and refresh live-region text. This guarantees that by the time tests observe
+  // <html lang> === <next>, visible static labels have already been localized.
   try {
-    window.dispatchEvent(new CustomEvent('i18n:changed', { detail: { lang: next } }));
+    window.dispatchEvent(new Event('i18n:changed'));
   } catch {}
 }
 
