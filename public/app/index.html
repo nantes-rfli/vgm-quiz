@@ -4,6 +4,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Play a fast, browser-based Video Game Music quiz with multiple modes and composers/titles matching. No account required.">
 <link rel="canonical" href="https://nantes-rfli.github.io/vgm-quiz/app/">
+<!-- Preload i18n boot to ensure locales apply before static labels are read -->
+<link rel="modulepreload" href="i18n-boot.mjs" crossorigin="anonymous">
 <script>
   // Early seed: honor ?lang=xx before any module runs (stabilizes E2E and SR's first language)
   (function() {
@@ -36,6 +38,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <!-- ESM の事前解決は modulepreload を使う。credentials 警告回避に crossorigin を明示 -->
 <link rel="modulepreload" href="app.js" crossorigin="anonymous">
+<!-- 起動直後から既存 i18n を有効化（applyStaticLabels を実行） -->
+<script type="module" src="./i18n-boot.mjs"></script>
 <!-- Load AUTO helpers lazily to avoid extra network/parse work -->
 <script type="module" src="./boot_auto.mjs"></script>
 

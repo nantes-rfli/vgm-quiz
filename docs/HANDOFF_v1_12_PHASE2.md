@@ -101,6 +101,20 @@
   - `en` → `VGM Quiz`
 - これにより E2E `test_i18n_lang_param_smoke.mjs` の `titleJa` 取得タイミングでも安定して一致。
 
+### 静的ラベルの初期化（E2E: i18n static labels smoke）
+- 目的: モジュール i18n の初期化前に、起動直後の静的ラベル（例: Start）が言語に合わせて見えるよう **BootSeed** で軽量置換。
+- 手段: `index.html` に最小辞書を持つインラインスクリプトを追加し、`DOMContentLoaded` と短時間の `MutationObserver` で
+  `button / [role="button"] / a / [data-i18n] / [aria-label] / [title]` を走査し、該当文字列のみ置換。
+- 原則: 本処理は**一時的な種入れ**であり、後段の `i18n.mjs` が本番辞書で再適用（**挙動不変**）。
+- 安全弁: `data-boot-i18n-off` で除外可能。観測期間は 3.5s に限定し、不要な恒常書き換えは行わない。
+  
+#### ⬆︎ 上記は見直し：**既存 i18n を先に実行**して解決（辞書の二重管理を避ける）
+- 実施: `public/app/index.html` の `<head>` で **`i18n-boot.mjs` を先行ロード**。  
+  - `i18n-boot.mjs` は `initI18n()` → `whenI18nReady().then(applyStaticLabels)` を実行し、**既存の locales（`public/app/locales/*.json`）**で置換。
+  - これにより **場当たり的なインライン辞書**は不要となる。
+- 効果: `?lang=ja` で **Start → スタート** を、モジュール初期化直後に確実に反映。E2E は辞書由来の表記で安定。
+- 原則: **辞書の単一ソース（`locales/*.json`）**を維持し、インラインの仮辞書は導入しない。
+
 #### 方針の整理（場当たり回避）
 - 「BootSeed i18n」不変条件を定義：**(1) `<html lang>` を最速でセット、(2) `<title>` はタグ直後で言語確定、(3) `i18n.mjs` は最終正規化のみ**。
 - 以後、i18n 初期化順序の変更があっても、この 3 条件を満たす限り E2E と SR 初期読み上げは安定する。
