@@ -71,3 +71,12 @@
 - `docs/issues/*.json` が唯一の正。GitHub 側は Actions で上書き同期
 
 以上。
+
+
+## 2. バグ修正（E2E: i18n lang param smoke）
+
+- 現象: `?lang=ja` 指定時に `<html lang>` が `ja` へ遷移せず、E2E `page.waitForFunction(document.documentElement.lang==='ja')` がタイムアウト。
+- 原因想定: 初期化順の競合またはネットワーク待機により、i18n 初期化前に検査が始まるケースがある（本体モジュール未読込やロケール取得失敗時でも初期反映を保証すべき）。
+- 対策（最小差分・挙動不変）: `public/app/boot-params.js` で **最速のタイミング**（非モジュール）にて `?lang` を検出し、`<html lang>` を**楽観的に先行設定**。後続の `i18n.mjs` が最終的に正規化して再設定。
+  - 影響範囲: `<html lang>` の初期反映が**早まるだけ**（文言差し替えやUIロジックには影響なし）
+  - E2E: `e2e/test_i18n_lang_param_smoke.mjs` の `ja` 待機が満たされる
