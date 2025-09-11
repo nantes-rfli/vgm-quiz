@@ -1,6 +1,132 @@
 {
-  "exported_at": "2025-09-10T15:09:52.651Z",
+  "exported_at": "2025-09-11T00:46:59.922Z",
   "items": [
+    {
+      "number": 812,
+      "title": "v1.12: E2E(matrix) の安定化",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/812",
+      "labels": [
+        "type:test",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-11T00:45:44Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 811,
+      "title": "v1.12: E2E(on-demand + nightly) を修正",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/811",
+      "labels": [
+        "roadmap:v1.12",
+        "area:e2e",
+        "type:ci",
+        "area:workflow"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-11T00:45:44Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 810,
+      "title": "v1.12: E2E(ui responsive smoke) を修正",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/810",
+      "labels": [
+        "type:test",
+        "roadmap:v1.12",
+        "area:e2e",
+        "ui"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-11T00:45:43Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 809,
+      "title": "v1.12: E2E(i18n a11y live region) を修正",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/809",
+      "labels": [
+        "a11y",
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-11T00:45:43Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 808,
+      "title": "v1.12: E2E(i18n labels step2) を修正",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/808",
+      "labels": [
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-11T00:45:42Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 807,
+      "title": "v1.12: E2E(i18n static labels smoke) を修正",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/807",
+      "labels": [
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-11T00:45:42Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 806,
+      "title": "v1.12: E2E(i18n lang param smoke) を修正",
+      "state": "open",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/806",
+      "labels": [
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-11T00:45:42Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
     {
       "number": 773,
       "title": "v1.12: UI-slim Phase 2（画面単位分割：play / media）",
