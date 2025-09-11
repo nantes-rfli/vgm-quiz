@@ -123,6 +123,15 @@
 - 効果: `?lang=ja` で **Start → スタート** を、モジュール初期化直後に確実に反映。E2E は辞書由来の表記で安定。
 - 原則: **辞書の単一ソース（`locales/*.json`）**を維持し、インラインの仮辞書は導入しない。
 
+- 言語切替時・問題切替時のライブリージョン announce が**一度だけ**発火し、文言が locales に一致。重複announceなし、直前の英語→日本語の混在なし。
+
+### 実装メモ（ライブリージョン安定化）
+- **辞書は locales のみ**を使用。`i18n.mjs` に `seedLiveRegion(document)` を追加し、以下のタイミングで呼び出し:
+  - `i18n-boot.mjs`: `whenI18nReady` 直後、`i18n:changed`、`DOMContentLoaded`、初期 3.5s の MutationObserver
+  - `seedLiveRegion` は `[role="status"][aria-live] / [aria-live=polite|assertive] / #sr-live` のいずれかを検出し、`live.ready`→`aria.ready`→`sr.ready`→`ui.start`→`common.ready`→`app.title` の順で最初に存在する翻訳を使用（空なら NBSP）
+  - 変更は **clear → requestAnimationFrame でセット** し、SR に検知させる
+  - これにより E2E の **JA live region not ready**（空文字）を防止
+
 #### 追加の堅牢化（DOM 遅延マウントへの追従）
 - `i18n-boot.mjs` に以下を追加し、**設計は既存 i18n のまま**で初期描画の競合だけを解消：
   - `window.addEventListener('i18n:changed', applyStaticLabels(document))` により、`setLang` 直後に**同期再適用**

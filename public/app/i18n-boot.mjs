@@ -1,13 +1,15 @@
-import { initI18n, whenI18nReady, applyStaticLabels } from './i18n.mjs';
+import { initI18n, whenI18nReady, applyStaticLabels, seedLiveRegion } from './i18n.mjs';
 
 // Early i18n boot so static labels are localized before app logic runs.
 await initI18n();
 await whenI18nReady();
 applyStaticLabels(document);
+seedLiveRegion(document);
 
 // Re-apply immediately when language flips (setLang -> 'i18n:changed').
 function __applyStaticAll() {
   try { applyStaticLabels(document); } catch {}
+  try { seedLiveRegion(document); } catch {}
 }
 window.addEventListener('i18n:changed', __applyStaticAll);
 
