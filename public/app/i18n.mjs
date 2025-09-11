@@ -103,6 +103,34 @@ function get(obj, path) {
     .reduce((acc, k) => (acc && acc[k] != null ? acc[k] : undefined), obj);
 }
 
+/**
+ * Seed the ARIA live region with a localized, non-empty string.
+ * Uses existing locales (no ad-hoc dictionary). Safe to call multiple times.
+ * @param {Document} doc
+ */
+export function seedLiveRegion(doc = document) {
+  try {
+    const root = doc || document;
+    const live =
+      root.querySelector('[role="status"][aria-live]') ||
+      root.querySelector('[aria-live="polite"]') ||
+      root.querySelector('[aria-live="assertive"]') ||
+      root.getElementById('sr-live');
+    if (!live) return;
+    const keys = ['live.ready', 'aria.ready', 'sr.ready', 'ui.start', 'common.ready', 'app.title'];
+    let msg = '';
+    for (const k of keys) {
+      try {
+        const s = t(k);
+        if (s && s !== k) { msg = s; break; }
+      } catch {}
+    }
+    if (!msg) { msg = '\u00A0'; }
+    live.textContent = '';
+    requestAnimationFrame(() => { try { live.textContent = msg; } catch {} });
+  } catch {}
+}
+
 export async function setLang(lang) {
   const next = normalizeLang(lang);
   if (next === currentLang && dict) return;
