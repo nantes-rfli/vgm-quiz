@@ -4,6 +4,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Play a fast, browser-based Video Game Music quiz with multiple modes and composers/titles matching. No account required.">
 <link rel="canonical" href="https://nantes-rfli.github.io/vgm-quiz/app/">
+<script>
+  // Early seed: honor ?lang=xx before any module runs (stabilizes E2E and SR's first language)
+  (function() {
+    try {
+      var p = new URLSearchParams(location.search);
+      var lang = p.get('lang');
+      if (lang) {
+        document.documentElement.setAttribute('lang', lang);
+      }
+    } catch (e) {}
+  })();
+</script>
 <meta name="robots" content="index,follow">
 <meta name="theme-color" content="#111111">
 <title>VGM Quiz</title>
