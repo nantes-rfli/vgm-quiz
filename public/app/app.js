@@ -866,9 +866,13 @@ checkOnLoad();
 // Dataset の読み込みタイミング：本番は idle、E2E/検証（?test=1 or ?mock=1）は即時
 {
   const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1));
-  const isTest = (typeof __IS_TEST_MODE__ !== 'undefined') && __IS_TEST_MODE__ === true;
-  let isMock = false;
-  try { isMock = (new URLSearchParams(location.search).get('mock') === '1'); } catch(_) {}
+  // E2E/検証判定はクエリから直接行う（グローバル変数に依存しない）
+  let isTest = false, isMock = false;
+  try {
+    const qs = new URLSearchParams(location.search);
+    isTest = (qs.get('test') === '1' || qs.has('test'));
+    isMock = (qs.get('mock') === '1' || qs.has('mock'));
+  } catch(_) {}
   const kick = () => { try { datasetPromise = loadDataset(); } catch(e){} };
   if (isTest || isMock) {
     // E2E/検証モード：Start を待たせないため即時ロード
