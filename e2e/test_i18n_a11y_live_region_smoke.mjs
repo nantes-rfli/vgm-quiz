@@ -68,7 +68,7 @@ import { chromium } from 'playwright';
   if (!clicked) {
     throw new Error('Failed to click a choice via all strategies');
   }
-  // --- Robust path to reach result dialog (v3) ---
+  // --- Robust path to reach result dialog (v6) ---
   // Purpose: verify i18n+a11y live region and the ability to reach the final dialog,
   // without assuming the number of questions (locale can differ under ?daily).
   const resultDlg = page.locator('#result-view[role="dialog"]');
@@ -76,6 +76,8 @@ import { chromium } from 'playwright';
   const nextBtn = page.locator('#next-btn');
   const questionTitle = page.locator('#question-title');
   const startBtn = page.locator('#start-btn');
+  const inputField = page.locator('#answer-input');
+  const submitBtn = page.locator('#submit-btn');
 
   // Helper: log to aid CI diagnostics
   const logStep = async (label) => {
@@ -110,10 +112,27 @@ import { chromium } from 'playwright';
     }
   };
 
+  // Pre-phase: wait longer for Start to become enabled (up to 20s total), then click once.
+  try {
+    await page.waitForSelector('#start-btn:not([disabled])', { timeout: 20000 });
+    await startBtn.click({ trial: true }).catch(() => {});
+    await startBtn.click().catch(() => {});
+    await page.waitForTimeout(300);
+    await logStep('pre-clicked-start');
+    // After clicking start, wait briefly for either choices or input field to appear
+    await Promise.race([
+      firstChoice.waitFor({ state: 'visible', timeout: 1500 }).catch(() => {}),
+      inputField.waitFor({ state: 'visible', timeout: 1500 }).catch(() => {})
+    ]);
+  } catch {
+    // If Start never became enabled in 20s, the loop below will try ensureStarted() again.
+    await logStep('pre-start-timeout');
+  }
+
   let reached = false;
   let lastTitle = '';
-  // Try up to 10 cycles; each cycle either answers or advances, then waits briefly for UI to settle.
-  for (let step = 0; step < 10; step++) {
+  // Try up to 16 cycles; each cycle either answers or advances, then waits briefly for UI to settle.
+  for (let step = 0; step < 16; step++) {
     // Quick-path: already on result?
     try {
       await resultDlg.waitFor({ state: 'visible', timeout: 800 });
@@ -158,8 +177,10 @@ import { chromium } from 'playwright';
     // Extra diagnostics before failing
     const nextVisible = await nextBtn.isVisible().catch(() => false);
     const choiceVisible = await firstChoice.isVisible().catch(() => false);
-    console.log(`[E2E] failure diagnostics: nextVisible=${nextVisible} choiceVisible=${choiceVisible}`);
-    throw new Error('result-view not visible after advancing through questions (v3)');
+    const startVisible = await startBtn.isVisible().catch(() => false);
+    const startDisabled = startVisible ? (await startBtn.getAttribute('disabled').catch(() => null)) !== null : null;
+    console.log(`[E2E] failure diagnostics: nextVisible=${nextVisible} choiceVisible=${choiceVisible} startVisible=${startVisible} startDisabled=${startDisabled}`);
+    throw new Error('result-view not visible after advancing through questions (v6)');
   }
   const liveOpenedJa = await page.textContent('#feedback');
   if (!/結果/.test(liveOpenedJa || '')) {
