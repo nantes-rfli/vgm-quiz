@@ -113,12 +113,14 @@ export function seedLiveRegion(doc = document) {
     const root = doc || document;
     const live =
       root.getElementById('feedback') ||
-      root.getElementById('sr-live') ||
+      root.querySelector('#feedback') ||
+      root.querySelector('[data-testid="feedback"]') ||
       root.querySelector('[role="status"][aria-live]') ||
       root.querySelector('[aria-live="polite"]') ||
-      root.querySelector('[aria-live="assertive"]');
+      root.querySelector('[aria-live="assertive"]') ||
+      root.getElementById('sr-live');
     if (!live) return;
-    const keys = ['a11y.ready', 'live.ready', 'aria.ready', 'sr.ready', 'ui.start', 'common.ready', 'app.title'];
+    const keys = ['a11y.ready', 'live.ready', 'aria.ready', 'sr.ready', 'common.ready', 'ui.start', 'app.title'];
     let msg = '';
     for (const k of keys) {
       try {
@@ -126,9 +128,17 @@ export function seedLiveRegion(doc = document) {
         if (s && s !== k) { msg = s; break; }
       } catch {}
     }
-    if (!msg) { msg = '\u00A0'; }
-    live.textContent = '';
-    requestAnimationFrame(() => { try { live.textContent = msg; } catch {} });
+    if (!msg) {
+      try {
+        const lang = getLang && typeof getLang === 'function' ? getLang() : (document.documentElement.getAttribute('lang') || 'en');
+        msg = lang === 'ja' ? '準備OK。スタートを押すと開始します。' : 'Ready. Press Start to begin.';
+      } catch {
+        msg = 'Ready. Press Start to begin.';
+      }
+    }
+    if (!live.textContent || !live.textContent.trim()) {
+      live.textContent = msg;
+    }
   } catch {}
 }
 
