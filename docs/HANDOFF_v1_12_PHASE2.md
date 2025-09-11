@@ -2,13 +2,18 @@
 
 本ドキュメントは、このチャットで実施した v1.12 Phase 2 のリファクタリング内容を要約し、次チャットへ安全に引き継ぐためのメモです。ドキュメント言語は日本語で統一しています。
 
----
-
 ## ステータス更新（E2E）
 
 - **#806 v112-e2e-i18n-lang-param-smoke**：**対応完了**（2025-09-11 JST 緑）。
-  - 対策：BootSeed i18n の不変条件を定義（`<html lang>` の即時設定、`<title>` を `<title>` タグ直後で最終確定、`i18n.mjs` は最終正規化のみ）。
-  - 影響：挙動不変（UI/ARIA/イベント順序に変更なし）。初回 SR 読み上げの安定性が向上。
+- **#807 v112-e2e-i18n-static-labels-smoke**：**対応完了**（2025-09-11 JST 緑）。
+  - 方針：辞書は `public/app/locales/*.json` の単一ソース。`i18n-boot.mjs` を `<head>` で先行ロードし、`whenI18nReady` 完了後と `i18n:changed`/`DOMContentLoaded`/短時間 MutationObserver で `applyStaticLabels(document)` を再適用。
+  - 影響：挙動不変（UI/ARIA/イベント順序は従来どおり）。初回表示の言語安定性が向上。
+
+## 次に着手（Issue キュー順）
+1. **#808 v112-e2e-i18n-labels-step2**（動的要素ラベルの反映タイミング）
+2. **#809 v112-e2e-i18n-live-region**（SR向け告知の一回化と内容整合）
+3. **#810 v112-e2e-ui-responsive-smoke**（折返しと aria-hidden 整合）
+4. **#811 v112-e2e-on-demand-and-nightly**（統合ジョブ前提整合）→ #812 へ
 
 ---
 
