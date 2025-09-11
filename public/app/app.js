@@ -288,6 +288,25 @@ async function loadDataset() {
     const data = await parseJsonOffMainThread(txt);
     tracks = data.tracks || data; // 互換
     datasetLoaded = true;
+
+    // playable 件数（UI-slimの出題判定に近い条件）
+    const playable = (Array.isArray(tracks) ? tracks : []).filter(t =>
+      t && t.media && t.media.provider && t.answers
+    ).length;
+    if (!playable) {
+      const qs = new URLSearchParams(location.search || '');
+      const hasMock = qs.get('mock') === '1' || qs.has('mock');
+      const msg = document.getElementById('dataset-error');
+      if (msg) {
+        msg.innerHTML = '公開データに再生可能な問題がありません（media/provider/answers が不足）。' +
+          (hasMock ? '' : ' <a href="?mock=1">テストデータで起動する</a>');
+        msg.style.display = 'block';
+      }
+      // Start ボタンに理由を付記（UIスリムの契約は維持：Start は無効のまま）
+      const btn = document.getElementById('start-btn');
+      if (btn) btn.setAttribute('data-reason', 'no-playable-items');
+    }
+
     try { window.__DATASET_READY__ = true; } catch(_) {}
     try { console.info('[DATASET] ready (tracks=%s)', Array.isArray(tracks) ? tracks.length : 'n/a'); } catch(_) {}
     updateStartButton();
@@ -295,9 +314,13 @@ async function loadDataset() {
     console.error('Failed to load dataset', err);
     const msg = document.getElementById('dataset-error');
     if (msg) {
-      msg.textContent = 'データが読み込めませんでした。時間をおいて再度お試しください。';
+      const qs = new URLSearchParams(location.search || '');
+      const hasMock = qs.get('mock') === '1' || qs.has('mock');
+      msg.innerHTML = 'データが読み込めませんでした。時間をおいて再度お試しください。' +
+        (hasMock ? '' : ' <a href="?mock=1">テストデータで起動する</a>');
       msg.style.display = 'block';
     }
+    updateStartButton();
   }
 }
 
