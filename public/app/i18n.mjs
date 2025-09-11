@@ -112,12 +112,13 @@ export function seedLiveRegion(doc = document) {
   try {
     const root = doc || document;
     const live =
+      root.getElementById('feedback') ||
+      root.getElementById('sr-live') ||
       root.querySelector('[role="status"][aria-live]') ||
       root.querySelector('[aria-live="polite"]') ||
-      root.querySelector('[aria-live="assertive"]') ||
-      root.getElementById('sr-live');
+      root.querySelector('[aria-live="assertive"]');
     if (!live) return;
-    const keys = ['live.ready', 'aria.ready', 'sr.ready', 'ui.start', 'common.ready', 'app.title'];
+    const keys = ['a11y.ready', 'live.ready', 'aria.ready', 'sr.ready', 'ui.start', 'common.ready', 'app.title'];
     let msg = '';
     for (const k of keys) {
       try {
