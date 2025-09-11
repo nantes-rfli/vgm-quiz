@@ -31,6 +31,17 @@ import { chromium } from 'playwright';
 
   // ---- JA ----
   await page.goto(urlWith(base, 'ja'));
+  // Bridge page console to CI logs for deeper diagnostics
+  page.on('console', msg => {
+    try {
+      console.log(`[APP:${msg.type()}] ${msg.text()}`);
+    } catch {}
+  });
+  console.log(`[E2E] url(ja)=${page.url()}`);
+  // Ensure app shell is present before proceeding
+  try {
+    await page.waitForSelector('#feedback, #start-view, #app, #app-root', { timeout: 20000 });
+  } catch {}
   await page.waitForFunction(() => document.documentElement.lang === 'ja', null, { timeout: TIMEOUT });
   const liveStartJa = await page.textContent('#feedback');
   if (!liveStartJa || !/準備OK/.test(liveStartJa)) {
