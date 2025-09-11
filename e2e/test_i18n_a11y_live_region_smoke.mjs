@@ -30,7 +30,8 @@ import { chromium } from 'playwright';
   const base = process.env.E2E_BASE_URL || process.env.APP_URL || defaultBase();
 
   // ---- JA ----
-  await page.goto(urlWith(base, 'ja'));
+  const jaUrl = urlWith(base, 'ja');
+  await page.goto(jaUrl + (jaUrl.includes('?') ? '&' : '?') + 'mode=mc');
   // Bridge page console to CI logs for deeper diagnostics
   page.on('console', msg => {
     try {
@@ -205,7 +206,8 @@ import { chromium } from 'playwright';
   }
 
   // ---- EN ----
-  await page.goto(urlWith(base, 'en'));
+  const enUrl = urlWith(base, 'en');
+  await page.goto(enUrl + (enUrl.includes('?') ? '&' : '?') + 'mode=mc');
   await page.waitForFunction(() => document.documentElement.lang === 'en', null, { timeout: TIMEOUT });
   const liveStartEn = await page.textContent('#feedback');
   if (!/Ready/i.test(liveStartEn || '')) {
