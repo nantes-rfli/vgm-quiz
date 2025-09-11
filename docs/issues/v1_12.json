@@ -21,8 +21,11 @@
     "id": "v112-e2e-i18n-labels-step2",
     "title": "v1.12: E2E(i18n labels step2) を修正",
     "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
-    "body": "### 背景\n- ステップ2（動的要素のラベル）で aria/テキストの反映タイミング差。\n\n### DoD\n- E2E `i18n labels step2` が緑\n- A11y属性とテキストが言語切替に即時追従\n",
-    "state": "open"
+    "body": "### 背景\n- 動的に差し替わる要素（問題文・選択肢など）の言語が、初回や切替直後に一時的に不一致になることがある\n- 期待: 1回の更新で希望言語へ確定し、多重announceや二重描画がないこと\n### 結果\n- 現状の実装でテストは緑。追加の修正は不要。\n",
+    "state": "closed",
+    "notes": [
+      "2025-09-11 JST に E2E(i18n labels step2) 緑を確認（対処不要）。"
+    ]
   },
   {
     "id": "v112-e2e-i18n-live-region",
