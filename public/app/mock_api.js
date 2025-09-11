@@ -10,11 +10,15 @@
     return;
   }
 
+  // 現状の絶対/固定パスは Pages 配下 (/vgm-quiz/) で 404 になりやすい。
+  // location 基準で相対解決する。
+  function resolve(url) {
+    return new URL(url, location.href).href;
+  }
+
   const aliasUrls = [
-    '/vgm-quiz/build/aliases.json',        // GitHub Pages base path (correct)
-    '/vgm-quiz/public/app/aliases_local.json',
-    '/public/build/aliases.json',          // local dev fallbacks
-    '/public/app/aliases_local.json'
+    resolve('../build/aliases.json'),
+    resolve('./aliases_local.json')
   ];
 
   const romanToArabic = Object.fromEntries([
