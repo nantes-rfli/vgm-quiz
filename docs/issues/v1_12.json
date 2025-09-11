@@ -1,4 +1,53 @@
-[
+[ 
+  {
+    "id": "v112-e2e-i18n-lang-param-smoke",
+    "title": "v1.12: E2E(i18n lang param smoke) を修正",
+    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
+    "body": "### 背景\n- ?lang=ja|en の指定時に <html lang> と文言反映のタイミングが検証で不安定。\n\n### 受け入れ基準（DoD）\n- E2E `i18n lang param smoke` が緑\n- <html lang> が起動直後に希望言語へ設定され、切替時も追従\n- SR向けの言語切替アナウンスが一度だけ発火（多重なし）\n",
+    "state": "open"
+  },
+  {
+    "id": "v112-e2e-i18n-static-labels-smoke",
+    "title": "v1.12: E2E(i18n static labels smoke) を修正",
+    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
+    "body": "### 背景\n- 静的ラベルの翻訳検証が一部失敗。DOM確定前の取得/描画順などタイミング起因が疑われる。\n\n### DoD\n- E2E `i18n static labels smoke` が緑\n- 初期化順序の明文化（i18n → DOM描画 → SR告知の順）\n",
+    "state": "open"
+  },
+  {
+    "id": "v112-e2e-i18n-labels-step2",
+    "title": "v1.12: E2E(i18n labels step2) を修正",
+    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
+    "body": "### 背景\n- ステップ2（動的要素のラベル）で aria/テキストの反映タイミング差。\n\n### DoD\n- E2E `i18n labels step2` が緑\n- A11y属性とテキストが言語切替に即時追従\n",
+    "state": "open"
+  },
+  {
+    "id": "v112-e2e-i18n-live-region",
+    "title": "v1.12: E2E(i18n a11y live region) を修正",
+    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n", "a11y"],
+    "body": "### 背景\n- 言語変更時の SR 告知（polite live region）が未検知または重複。\n\n### DoD\n- E2E `i18n a11y live region` が緑\n- SR向け告知が1回だけ発火し、内容が言語に合致\n",
+    "state": "open"
+  },
+  {
+    "id": "v112-e2e-ui-responsive-smoke",
+    "title": "v1.12: E2E(ui responsive smoke) を修正",
+    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "ui"],
+    "body": "### 背景\n- ビューポート幅によって折返し/aria-hidden などの期待がズレる可能性。CSSの非機能変更での安定化を検討。\n\n### DoD\n- E2E `ui responsive smoke` が緑\n- 可視/不可視の基準をCSS側で安定化（レイアウトシフト抑止）\n",
+    "state": "open"
+  },
+  {
+    "id": "v112-e2e-on-demand-and-nightly",
+    "title": "v1.12: E2E(on-demand + nightly) を修正",
+    "labels": ["roadmap:v1.12", "type:ci", "area:workflow", "area:e2e"],
+    "body": "### 背景\n- on-demand と nightly の統合ジョブで、期待アーティファクト/前提の差異により失敗。\n\n### DoD\n- E2E `on-demand + nightly` が緑\n- 期待アーティファクト（URL/パス/生成物）と事前ステップ（build/prepare）の整合を明文化\n",
+    "state": "open"
+  },
+  {
+    "id": "v112-e2e-matrix",
+    "title": "v1.12: E2E(matrix) の安定化",
+    "labels": ["roadmap:v1.12", "type:test", "area:e2e"],
+    "body": "### 背景\n- 個別テストの安定化後に最終的に matrix を安定化。\n\n### DoD\n- E2E `matrix` が緑\n- 試験分割の根拠とリトライポリシー（必要なら）を docs に記載\n",
+    "state": "open"
+  },
   {
     "id": "v112-refactor-core",
     "title": "v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）",
