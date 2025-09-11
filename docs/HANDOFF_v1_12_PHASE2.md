@@ -115,6 +115,13 @@
 - 効果: `?lang=ja` で **Start → スタート** を、モジュール初期化直後に確実に反映。E2E は辞書由来の表記で安定。
 - 原則: **辞書の単一ソース（`locales/*.json`）**を維持し、インラインの仮辞書は導入しない。
 
+#### 追加の堅牢化（DOM 遅延マウントへの追従）
+- `i18n-boot.mjs` に以下を追加し、**設計は既存 i18n のまま**で初期描画の競合だけを解消：
+  - `window.addEventListener('i18n:changed', applyStaticLabels(document))` により、`setLang` 直後に**同期再適用**
+  - `DOMContentLoaded` フックで DOM 構築完了時点に再適用
+  - **短時間（~3.5s）の MutationObserver** で遅延マウント要素にも一次対応（恒常監視は行わない）
+- これらはすべて **`applyStaticLabels`（＝ locales/*.json を使う既存API）** を呼ぶだけで、辞書の二重管理や場当たり実装はなし。
+
 #### 方針の整理（場当たり回避）
 - 「BootSeed i18n」不変条件を定義：**(1) `<html lang>` を最速でセット、(2) `<title>` はタグ直後で言語確定、(3) `i18n.mjs` は最終正規化のみ**。
 - 以後、i18n 初期化順序の変更があっても、この 3 条件を満たす限り E2E と SR 初期読み上げは安定する。
