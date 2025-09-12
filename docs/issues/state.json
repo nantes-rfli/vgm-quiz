@@ -1,57 +1,21 @@
 {
-  "exported_at": "2025-09-12T09:42:51.223Z",
+  "exported_at": "2025-09-12T12:00:25.281Z",
   "items": [
     {
-      "number": 912,
-      "title": "v1.12: E2E(i18n a11y live region) を修正",
+      "number": 918,
+      "title": "Lighthouse(budgets, nightly): 赤判定の調査と改善（TBT高止まり/予算ゲート）",
       "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/912",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/918",
       "labels": [
-        "a11y",
-        "type:test",
-        "i18n",
         "roadmap:v1.12",
-        "area:e2e"
+        "area:ci",
+        "type:perf",
+        "lighthouse",
+        "budgets"
       ],
       "assignees": [],
       "milestone": null,
-      "updated_at": "2025-09-12T09:42:22Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 911,
-      "title": "v1.12: E2E(i18n labels step2) を修正",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/911",
-      "labels": [
-        "type:test",
-        "i18n",
-        "roadmap:v1.12",
-        "area:e2e"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T09:42:22Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 910,
-      "title": "v1.12: E2E(i18n static labels smoke) を修正",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/910",
-      "labels": [
-        "type:test",
-        "i18n",
-        "roadmap:v1.12",
-        "area:e2e"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T09:42:21Z",
+      "updated_at": "2025-09-12T11:59:31Z",
       "roadmap": [
         "roadmap:v1.12"
       ]
@@ -328,6 +292,114 @@
       "updated_at": "2025-09-07T15:36:47Z",
       "roadmap": [
         "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 915,
+      "title": "v1.12: E2E(on-demand + nightly) を修正",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/915",
+      "labels": [
+        "roadmap:v1.12",
+        "area:e2e",
+        "type:ci",
+        "area:workflow"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T09:47:49Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 916,
+      "title": "v1.12: E2E(matrix) の安定化",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/916",
+      "labels": [
+        "type:test",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T09:47:48Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 914,
+      "title": "v1.12: E2E(ui responsive smoke) を修正",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/914",
+      "labels": [
+        "type:test",
+        "roadmap:v1.12",
+        "area:e2e",
+        "ui"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T09:47:45Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 910,
+      "title": "v1.12: E2E(i18n static labels smoke) を修正",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/910",
+      "labels": [
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T09:43:10Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 911,
+      "title": "v1.12: E2E(i18n labels step2) を修正",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/911",
+      "labels": [
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T09:43:09Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 912,
+      "title": "v1.12: E2E(i18n a11y live region) を修正",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/912",
+      "labels": [
+        "a11y",
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T09:43:08Z",
+      "roadmap": [
+        "roadmap:v1.12"
       ]
     },
     {
@@ -1106,42 +1178,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-11T04:23:32Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 807,
-      "title": "v1.12: E2E(i18n static labels smoke) を修正",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/807",
-      "labels": [
-        "type:test",
-        "i18n",
-        "roadmap:v1.12",
-        "area:e2e"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-11T04:06:23Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 806,
-      "title": "v1.12: E2E(i18n lang param smoke) を修正",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/806",
-      "labels": [
-        "type:test",
-        "i18n",
-        "roadmap:v1.12",
-        "area:e2e"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-11T02:20:23Z",
       "roadmap": [
         "roadmap:v1.12"
       ]

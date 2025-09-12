@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-12T09:42:51.224Z
+Exported at: 2025-09-12T12:00:25.282Z
 
 ## post-v1.6
 
@@ -43,9 +43,13 @@ Exported at: 2025-09-12T09:42:51.224Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 912 | [v1.12: E2E(i18n a11y live region) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/912) | open | a11y, type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T09:42:22Z |
-| 911 | [v1.12: E2E(i18n labels step2) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/911) | open | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T09:42:22Z |
-| 910 | [v1.12: E2E(i18n static labels smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/910) | open | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T09:42:21Z |
+| 918 | [Lighthouse(budgets, nightly): 赤判定の調査と改善（TBT高止まり/予算ゲート）](https://github.com/nantes-rfli/vgm-quiz/issues/918) | open | roadmap:v1.12, area:ci, type:perf, lighthouse, budgets |  | 2025-09-12T11:59:31Z |
+| 915 | [v1.12: E2E(on-demand + nightly) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/915) | closed | roadmap:v1.12, area:e2e, type:ci, area:workflow |  | 2025-09-12T09:47:49Z |
+| 916 | [v1.12: E2E(matrix) の安定化](https://github.com/nantes-rfli/vgm-quiz/issues/916) | closed | type:test, roadmap:v1.12, area:e2e |  | 2025-09-12T09:47:48Z |
+| 914 | [v1.12: E2E(ui responsive smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/914) | closed | type:test, roadmap:v1.12, area:e2e, ui |  | 2025-09-12T09:47:45Z |
+| 910 | [v1.12: E2E(i18n static labels smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/910) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T09:43:10Z |
+| 911 | [v1.12: E2E(i18n labels step2) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/911) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T09:43:09Z |
+| 912 | [v1.12: E2E(i18n a11y live region) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/912) | closed | a11y, type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T09:43:08Z |
 | 909 | [v1.12: E2E(i18n lang param smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/909) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T09:41:37Z |
 | 907 | [本番: フッター要素は可視だがテキストが空](https://github.com/nantes-rfli/vgm-quiz/issues/907) | closed | area:ui, roadmap:v1.12, type:bug, area:prod |  | 2025-09-12T09:41:37Z |
 | 905 | [本番: 初期数秒の英語表示＆ボタン無効 → 数秒後に日本語＆有効](https://github.com/nantes-rfli/vgm-quiz/issues/905) | closed | a11y, i18n, roadmap:v1.12, type:bug, area:prod |  | 2025-09-12T09:41:32Z |
@@ -60,8 +64,6 @@ Exported at: 2025-09-12T09:42:51.224Z
 | 861 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/861) | closed | type:docs, roadmap:v1.12, area:ci |  | 2025-09-11T15:27:07Z |
 | 856 | [v1.12: コア分離（lib化）・命名統一・設定一元化（入口互換）](https://github.com/nantes-rfli/vgm-quiz/issues/856) | closed | roadmap:v1.12, type:refactor, area:scripts |  | 2025-09-11T15:10:33Z |
 | 808 | [v1.12: E2E(i18n labels step2) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/808) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-11T04:23:32Z |
-| 807 | [v1.12: E2E(i18n static labels smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/807) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-11T04:06:23Z |
-| 806 | [v1.12: E2E(i18n lang param smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/806) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-11T02:20:23Z |
 | 773 | [v1.12: UI-slim Phase 2（画面単位分割：play / media）](https://github.com/nantes-rfli/vgm-quiz/issues/773) | open | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:36Z |
 
 ## v1.13
