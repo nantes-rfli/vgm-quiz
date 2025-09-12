@@ -1,190 +1,6 @@
 {
-  "exported_at": "2025-09-12T15:04:08.872Z",
+  "exported_at": "2025-09-12T15:09:25.929Z",
   "items": [
-    {
-      "number": 968,
-      "title": "v1.9: aliases backfill ベース運用",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/968",
-      "labels": [
-        "roadmap:v1.9",
-        "status:done",
-        "area:data"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:03:07Z",
-      "roadmap": [
-        "roadmap:v1.9"
-      ]
-    },
-    {
-      "number": 933,
-      "title": "v1.12: E2E(i18n lang param smoke) を修正",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/933",
-      "labels": [
-        "type:test",
-        "i18n",
-        "roadmap:v1.12",
-        "area:e2e"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:53Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 932,
-      "title": "v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/932",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.11",
-        "area:kpi"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:53Z",
-      "roadmap": [
-        "roadmap:v1.11"
-      ]
-    },
-    {
-      "number": 931,
-      "title": "v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/931",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.11",
-        "area:collector"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:53Z",
-      "roadmap": [
-        "roadmap:v1.11"
-      ]
-    },
-    {
-      "number": 930,
-      "title": "v1.11: Discovery 設計 & dry-run（iTunes Search 起点）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/930",
-      "labels": [
-        "roadmap:v1.11",
-        "area:collector"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:52Z",
-      "roadmap": [
-        "roadmap:v1.11"
-      ]
-    },
-    {
-      "number": 929,
-      "title": "v1.10: Rate/Cost 制御の方針を明文化（任意）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/929",
-      "labels": [
-        "type:docs",
-        "area:ops",
-        "roadmap:v1.10"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:52Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 928,
-      "title": "v1.10: backfill の by_year I/F 設計",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/928",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.10"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:52Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 927,
-      "title": "v1.10: Step Summary にKPI最小セットを出す",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/927",
-      "labels": [
-        "area:ops",
-        "roadmap:v1.10"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:51Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 926,
-      "title": "v1.10: provenance 配線（ingest→pick）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/926",
-      "labels": [
-        "area:pipeline",
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:51Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 925,
-      "title": "v1.10: Notability v1（High/Med/Low=75/20/5）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/925",
-      "labels": [
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:50Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
-    {
-      "number": 924,
-      "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/924",
-      "labels": [
-        "area:pipeline",
-        "roadmap:v1.10",
-        "area:quality"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T15:02:50Z",
-      "roadmap": [
-        "roadmap:v1.10"
-      ]
-    },
     {
       "number": 918,
       "title": "Lighthouse(budgets, nightly): 赤判定の調査と改善（TBT高止まり/予算ゲート）",
@@ -476,6 +292,190 @@
       "updated_at": "2025-09-07T15:36:47Z",
       "roadmap": [
         "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 968,
+      "title": "v1.9: aliases backfill ベース運用",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/968",
+      "labels": [
+        "roadmap:v1.9",
+        "status:done",
+        "area:data"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:26Z",
+      "roadmap": [
+        "roadmap:v1.9"
+      ]
+    },
+    {
+      "number": 933,
+      "title": "v1.12: E2E(i18n lang param smoke) を修正",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/933",
+      "labels": [
+        "type:test",
+        "i18n",
+        "roadmap:v1.12",
+        "area:e2e"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:25Z",
+      "roadmap": [
+        "roadmap:v1.12"
+      ]
+    },
+    {
+      "number": 932,
+      "title": "v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/932",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.11",
+        "area:kpi"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:25Z",
+      "roadmap": [
+        "roadmap:v1.11"
+      ]
+    },
+    {
+      "number": 931,
+      "title": "v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/931",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.11",
+        "area:collector"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:24Z",
+      "roadmap": [
+        "roadmap:v1.11"
+      ]
+    },
+    {
+      "number": 930,
+      "title": "v1.11: Discovery 設計 & dry-run（iTunes Search 起点）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/930",
+      "labels": [
+        "roadmap:v1.11",
+        "area:collector"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:24Z",
+      "roadmap": [
+        "roadmap:v1.11"
+      ]
+    },
+    {
+      "number": 929,
+      "title": "v1.10: Rate/Cost 制御の方針を明文化（任意）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/929",
+      "labels": [
+        "type:docs",
+        "area:ops",
+        "roadmap:v1.10"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:23Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
+    {
+      "number": 928,
+      "title": "v1.10: backfill の by_year I/F 設計",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/928",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.10"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:22Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
+    {
+      "number": 927,
+      "title": "v1.10: Step Summary にKPI最小セットを出す",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/927",
+      "labels": [
+        "area:ops",
+        "roadmap:v1.10"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:22Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
+    {
+      "number": 926,
+      "title": "v1.10: provenance 配線（ingest→pick）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/926",
+      "labels": [
+        "area:pipeline",
+        "roadmap:v1.10",
+        "area:quality"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:21Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
+    {
+      "number": 925,
+      "title": "v1.10: Notability v1（High/Med/Low=75/20/5）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/925",
+      "labels": [
+        "roadmap:v1.10",
+        "area:quality"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:21Z",
+      "roadmap": [
+        "roadmap:v1.10"
+      ]
+    },
+    {
+      "number": 924,
+      "title": "v1.10: De-dup v1.5（N-gram 類似 + 正規化）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/924",
+      "labels": [
+        "area:pipeline",
+        "roadmap:v1.10",
+        "area:quality"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:04:20Z",
+      "roadmap": [
+        "roadmap:v1.10"
       ]
     },
     {
@@ -1544,108 +1544,6 @@
       "assignees": [],
       "milestone": null,
       "updated_at": "2025-09-12T03:44:40Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 866,
-      "title": "Authoring: ops-docs（運用手順と監視ポイント）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/866",
-      "labels": [
-        "type:docs",
-        "roadmap:v1.7",
-        "area:ops",
-        "status:done"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T00:16:58Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 865,
-      "title": "Authoring: distractors-v1（ダミー生成）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/865",
-      "labels": [
-        "roadmap:v1.7",
-        "area:pipeline",
-        "status:done"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T00:16:55Z",
-      "roadmap": [
-        "roadmap:v1.7"
-      ]
-    },
-    {
-      "number": 858,
-      "title": "v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/858",
-      "labels": [
-        "area:ui",
-        "roadmap:v1.12",
-        "type:refactor"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-11T15:27:11Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 859,
-      "title": "v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/859",
-      "labels": [
-        "area:ops",
-        "area:kpi",
-        "roadmap:v1.12"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-11T15:27:10Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 860,
-      "title": "v1.12: ドキュ骨格再編＋必須章更新（日本語統一）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/860",
-      "labels": [
-        "type:docs",
-        "roadmap:v1.12"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-11T15:27:08Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 861,
-      "title": "v1.12: docs-lint（リンク切れ）軽量Workflow追加",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/861",
-      "labels": [
-        "type:docs",
-        "roadmap:v1.12",
-        "area:ci"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-11T15:27:07Z",
       "roadmap": [
         "roadmap:v1.12"
       ]
