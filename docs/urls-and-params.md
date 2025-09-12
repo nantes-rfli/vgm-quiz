@@ -45,6 +45,7 @@
 | `lhci` | `?lhci=1` | Stub media for Lighthouse |
 | `nomedia` | `?nomedia=1` | Manually stub media |
 | `lives` | `?lives=on` / `?lives=5` | End immediately when misses reach limit |
+| `mode` | `?mode=multiple-choice` / `?mode=free` | 回答モードの強制切替（MC/Free）。**省略表記** `mode=mc` も受理（`multiple-choice` と同義）。 |
 
 
 #### provider（dev）
