@@ -256,11 +256,18 @@
     "state": "open",
     "priority": "High",
     "notes": [
-      "CI失敗の直接原因: app/?lhci=1 で color-contrast が 0（#dataset-error が赤字 on 白背景と判定）。#dataset-error をアクセシブルなアラート（白字 on 暗赤の背景 + リンクはinherit+下線）に変更する最小差分パッチを適用予定。",
-      "事実: 提供LHRでは Budgets違反は0。落ち条件は別ゲート（スコア/比較）と推測。",
-      "主因: Main-thread の Other/Unattributable、sw_update、i18n-boot、version.mjs 等の初期処理負荷。",
-      "対策（優先順）: 初期処理のrAF分割/バッチ化、SW更新のIdle/初回操作後へ、version.mjs の遅延import、i18nの対象限定。",
-      "準備手順: docs/lighthouse_prep.md を参照（LHR収集と5点要約、サイズ差分抽出）。"
+      {
+        "at": "2025-09-12T22:45:00+09:00",
+        "by": "bot",
+        "body": [
+          "CI: lighthouse (budgets, nightly) は緑を確認。",
+          "直接の落ち要因は color-contrast（要素: #dataset-error）のみで、",
+          "対処として背景を暗赤＋前景を白へ変更し、内部リンクの色も継承（!important）で統一。",
+          "残っているのは警告（max-potential-fid=0.28、uses-long-cache-ttl=18）。",
+          "予算超過は無し。/daily は引き続き良好。",
+          "次: v1.12 の残タスク（UI-slim Phase 2 / 画面分割の整理）へ移行。"
+        ]
+      }
     ]
   }
 ]
