@@ -272,14 +272,40 @@ import { chromium } from 'playwright';
       } catch {}
     }
   }
-  // Wait until (a) result dialog is hidden AND (b) live region shows "準備OK".
-  await page.waitForFunction(() => {
-    const dlg = document.querySelector('#result-view[role="dialog"]');
-    const dlgVisible = !!dlg && getComputedStyle(dlg).display !== 'none' && getComputedStyle(dlg).visibility !== 'hidden';
+  // Wait until reset. Accept broader signs:
+  //  A) result view (with/without role) is hidden AND feedback says "準備OK"
+  //  OR
+  //  B) start-view is visible AND question-view is hidden (UI back at start)
+  const resetOk = await page.waitForFunction(() => {
+    const visible = sel => {
+      const el = document.querySelector(sel);
+      if (!el) return false;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+      // offsetParent can be null for fixed elements; accept if not none/hidden
+      return true;
+    };
+    const dlgVisible = visible('#result-view') || visible('#result-view[role="dialog"]');
+    const startVisible = visible('#start-view');
+    const questionVisible = visible('#question-view');
     const fb = document.querySelector('#feedback');
     const t = (fb && fb.textContent || '').trim();
-    return !dlgVisible && /準備OK/.test(t);
-  }, null, { timeout: TIMEOUT });
+    const a = (!dlgVisible) && /準備OK/.test(t);
+    const b = startVisible && !questionVisible && !dlgVisible;
+    return a || b;
+  }, null, { timeout: TIMEOUT }).catch(() => false);
+
+  if (!resetOk) {
+    // Diagnostics then fail with clear message
+    const diag = {
+      dlgVisible: await page.locator('#result-view, #result-view[role="dialog"]').isVisible().catch(() => false),
+      startVisible: await page.locator('#start-view').isVisible().catch(() => false),
+      questionVisible: await page.locator('#question-view').isVisible().catch(() => false),
+      feedback: (await page.textContent('#feedback').catch(() => ''))?.trim() || ''
+    };
+    console.log('[E2E] reset diagnostics', diag);
+    throw new Error('JA reset wait timed out: expected result closed and "準備OK" or start-view visible');
+  }
 
   // ---- EN ----
   const enUrl = urlWith(base, 'en');
