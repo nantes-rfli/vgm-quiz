@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-12T15:04:08.874Z
+Exported at: 2025-09-12T15:09:25.930Z
 
 ## post-v1.6
 
@@ -26,26 +26,27 @@ Exported at: 2025-09-12T15:04:08.874Z
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 929 | [v1.10: Rate/Cost 制御の方針を明文化（任意）](https://github.com/nantes-rfli/vgm-quiz/issues/929) | open | type:docs, area:ops, roadmap:v1.10 |  | 2025-09-12T15:02:52Z |
-| 928 | [v1.10: backfill の by_year I/F 設計](https://github.com/nantes-rfli/vgm-quiz/issues/928) | open | area:ops, roadmap:v1.10 |  | 2025-09-12T15:02:52Z |
-| 927 | [v1.10: Step Summary にKPI最小セットを出す](https://github.com/nantes-rfli/vgm-quiz/issues/927) | open | area:ops, roadmap:v1.10 |  | 2025-09-12T15:02:51Z |
-| 926 | [v1.10: provenance 配線（ingest→pick）](https://github.com/nantes-rfli/vgm-quiz/issues/926) | open | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-12T15:02:51Z |
-| 925 | [v1.10: Notability v1（High/Med/Low=75/20/5）](https://github.com/nantes-rfli/vgm-quiz/issues/925) | open | roadmap:v1.10, area:quality |  | 2025-09-12T15:02:50Z |
-| 924 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/924) | open | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-12T15:02:50Z |
+| 929 | [v1.10: Rate/Cost 制御の方針を明文化（任意）](https://github.com/nantes-rfli/vgm-quiz/issues/929) | closed | type:docs, area:ops, roadmap:v1.10 |  | 2025-09-12T15:04:23Z |
+| 928 | [v1.10: backfill の by_year I/F 設計](https://github.com/nantes-rfli/vgm-quiz/issues/928) | closed | area:ops, roadmap:v1.10 |  | 2025-09-12T15:04:22Z |
+| 927 | [v1.10: Step Summary にKPI最小セットを出す](https://github.com/nantes-rfli/vgm-quiz/issues/927) | closed | area:ops, roadmap:v1.10 |  | 2025-09-12T15:04:22Z |
+| 926 | [v1.10: provenance 配線（ingest→pick）](https://github.com/nantes-rfli/vgm-quiz/issues/926) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-12T15:04:21Z |
+| 925 | [v1.10: Notability v1（High/Med/Low=75/20/5）](https://github.com/nantes-rfli/vgm-quiz/issues/925) | closed | roadmap:v1.10, area:quality |  | 2025-09-12T15:04:21Z |
+| 924 | [v1.10: De-dup v1.5（N-gram 類似 + 正規化）](https://github.com/nantes-rfli/vgm-quiz/issues/924) | closed | area:pipeline, roadmap:v1.10, area:quality |  | 2025-09-12T15:04:20Z |
 
 ## v1.11
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
-| 932 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/932) | open | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-12T15:02:53Z |
-| 931 | [v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）](https://github.com/nantes-rfli/vgm-quiz/issues/931) | open | area:ops, roadmap:v1.11, area:collector |  | 2025-09-12T15:02:53Z |
-| 930 | [v1.11: Discovery 設計 & dry-run（iTunes Search 起点）](https://github.com/nantes-rfli/vgm-quiz/issues/930) | open | roadmap:v1.11, area:collector |  | 2025-09-12T15:02:52Z |
+| 932 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/932) | closed | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-12T15:04:25Z |
+| 931 | [v1.11: Gate 閾値 θ の定義（自動採用 vs PR送り）](https://github.com/nantes-rfli/vgm-quiz/issues/931) | closed | area:ops, roadmap:v1.11, area:collector |  | 2025-09-12T15:04:24Z |
+| 930 | [v1.11: Discovery 設計 & dry-run（iTunes Search 起点）](https://github.com/nantes-rfli/vgm-quiz/issues/930) | closed | roadmap:v1.11, area:collector |  | 2025-09-12T15:04:24Z |
 | 904 | [v1.11: Collector KPI 定義（Discovery/Harvest/Gate 用 Step Summary）](https://github.com/nantes-rfli/vgm-quiz/issues/904) | closed | area:ops, roadmap:v1.11, area:kpi |  | 2025-09-12T09:21:39Z |
 
 ## v1.12
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 933 | [v1.12: E2E(i18n lang param smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/933) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T15:04:25Z |
 | 935 | [v1.12: E2E(i18n labels step2) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/935) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T15:03:45Z |
 | 934 | [v1.12: E2E(i18n static labels smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/934) | closed | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T15:03:45Z |
 | 936 | [v1.12: E2E(i18n a11y live region) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/936) | closed | a11y, type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T15:03:44Z |
@@ -60,7 +61,6 @@ Exported at: 2025-09-12T15:04:08.874Z
 | 944 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/944) | closed | type:docs, roadmap:v1.12, area:ci |  | 2025-09-12T15:03:34Z |
 | 946 | [本番: 初期数秒の英語表示＆ボタン無効 → 数秒後に日本語＆有効](https://github.com/nantes-rfli/vgm-quiz/issues/946) | closed | a11y, i18n, roadmap:v1.12, type:bug, area:prod |  | 2025-09-12T15:03:32Z |
 | 947 | [本番: フッター要素は可視だがテキストが空](https://github.com/nantes-rfli/vgm-quiz/issues/947) | closed | area:ui, roadmap:v1.12, type:bug, area:prod |  | 2025-09-12T15:03:31Z |
-| 933 | [v1.12: E2E(i18n lang param smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/933) | open | type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T15:02:53Z |
 | 918 | [Lighthouse(budgets, nightly): 赤判定の調査と改善（TBT高止まり/予算ゲート）](https://github.com/nantes-rfli/vgm-quiz/issues/918) | open | roadmap:v1.12, area:ci, type:perf, lighthouse, budgets |  | 2025-09-12T11:59:31Z |
 | 915 | [v1.12: E2E(on-demand + nightly) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/915) | closed | roadmap:v1.12, area:e2e, type:ci, area:workflow |  | 2025-09-12T09:47:49Z |
 | 916 | [v1.12: E2E(matrix) の安定化](https://github.com/nantes-rfli/vgm-quiz/issues/916) | closed | type:test, roadmap:v1.12, area:e2e |  | 2025-09-12T09:47:48Z |
@@ -76,10 +76,6 @@ Exported at: 2025-09-12T15:04:08.874Z
 | 889 | [v1.12: ARCHITECTURE.md に集約単位／依存注入（DI）の原則を追記](https://github.com/nantes-rfli/vgm-quiz/issues/889) | closed | type:docs, roadmap:v1.12, area:architecture |  | 2025-09-12T04:12:08Z |
 | 810 | [v1.12: E2E(ui responsive smoke) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/810) | closed | type:test, roadmap:v1.12, area:e2e, ui |  | 2025-09-12T04:12:03Z |
 | 809 | [v1.12: E2E(i18n a11y live region) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/809) | closed | a11y, type:test, i18n, roadmap:v1.12, area:e2e |  | 2025-09-12T03:44:40Z |
-| 858 | [v1.12: UI軽量リファクタ（app.js分割 / sw.js整理、挙動不変）](https://github.com/nantes-rfli/vgm-quiz/issues/858) | closed | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-11T15:27:11Z |
-| 859 | [v1.12: Gate θ 運用開始（0.80本線）＋ dry-run専用Workflow（0.72/0.85 比較）](https://github.com/nantes-rfli/vgm-quiz/issues/859) | closed | area:ops, area:kpi, roadmap:v1.12 |  | 2025-09-11T15:27:10Z |
-| 860 | [v1.12: ドキュ骨格再編＋必須章更新（日本語統一）](https://github.com/nantes-rfli/vgm-quiz/issues/860) | closed | type:docs, roadmap:v1.12 |  | 2025-09-11T15:27:08Z |
-| 861 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/861) | closed | type:docs, roadmap:v1.12, area:ci |  | 2025-09-11T15:27:07Z |
 | 773 | [v1.12: UI-slim Phase 2（画面単位分割：play / media）](https://github.com/nantes-rfli/vgm-quiz/issues/773) | open | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:36Z |
 
 ## v1.13
@@ -146,14 +142,12 @@ Exported at: 2025-09-12T15:04:08.874Z
 | 961 | [Authoring: difficulty-v1（簡易スコア）](https://github.com/nantes-rfli/vgm-quiz/issues/961) | closed | type:test, roadmap:v1.7, area:pipeline, status:done |  | 2025-09-12T15:03:16Z |
 | 962 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/962) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-12T15:03:15Z |
 | 965 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/965) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-12T15:03:12Z |
-| 866 | [Authoring: ops-docs（運用手順と監視ポイント）](https://github.com/nantes-rfli/vgm-quiz/issues/866) | closed | type:docs, roadmap:v1.7, area:ops, status:done |  | 2025-09-12T00:16:58Z |
-| 865 | [Authoring: distractors-v1（ダミー生成）](https://github.com/nantes-rfli/vgm-quiz/issues/865) | closed | roadmap:v1.7, area:pipeline, status:done |  | 2025-09-12T00:16:55Z |
 
 ## v1.9
 
 | # | Title | State | Labels | Assignees | Updated |
 |---:|---|---|---|---|---|
+| 968 | [v1.9: aliases backfill ベース運用](https://github.com/nantes-rfli/vgm-quiz/issues/968) | closed | roadmap:v1.9, status:done, area:data |  | 2025-09-12T15:04:26Z |
 | 966 | [v1.9: 日次自動作問の安定化（cron & pick PR）](https://github.com/nantes-rfli/vgm-quiz/issues/966) | closed | area:ops, roadmap:v1.9, status:done |  | 2025-09-12T15:03:11Z |
 | 967 | [v1.9: smoke apple override（即時検証フロー）](https://github.com/nantes-rfli/vgm-quiz/issues/967) | closed | area:pipeline, roadmap:v1.9, status:done |  | 2025-09-12T15:03:10Z |
-| 968 | [v1.9: aliases backfill ベース運用](https://github.com/nantes-rfli/vgm-quiz/issues/968) | open | roadmap:v1.9, status:done, area:data |  | 2025-09-12T15:03:07Z |
 
