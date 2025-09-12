@@ -47,7 +47,12 @@
     "title": "v1.12: E2E(ui responsive smoke) を修正",
     "labels": ["roadmap:v1.12", "type:test", "area:e2e", "ui"],
     "body": "### 背景\n- ビューポート幅によって折返し/aria-hidden などの期待がズレる可能性。CSSの非機能変更での安定化を検討。\n\n### DoD\n- E2E `ui responsive smoke` が緑\n- 可視/不可視の基準をCSS側で安定化（レイアウトシフト抑止）\n",
-    "state": "open"
+    "state": "closed",
+    "notes": [
+      "2025-09-12: CIで緑化を確認。#809 対応（MC起動固定・結果到達前進ループ・live region待機の寛容化）の副作用でレスポンシブ依存の可視判定が安定。",
+      "本番挙動は不変（E2E専用の待機・寛容化のみ）。",
+      "落下時に依存していた start 可視・next 可視の揺れはロバスト化で解消。"
+    ]
   },
   {
     "id": "v112-e2e-on-demand-and-nightly",
