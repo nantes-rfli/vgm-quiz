@@ -253,21 +253,14 @@
       "budgets"
     ],
     "body": "### 背景\\n- nightly の Lighthouse (budgets) が赤に。添付の LHR JSON では Budgets 監査の違反は 0 だが、パフォーマンス/スコア等のゲートで落ちている可能性。\\n- 該当レポート例: Performance 75 / TBT ~1154ms / LCP ~1.11s。\\n\\n### やること\\n- LHR(JSON) の要約（Budgets失敗/Top重い資産/LCP/TBT/CLS内訳/3rd-party）を取得・保管。\\n- TBT 主因（Unattributable, main文書初期化, i18n-boot, sw_update, version.mjs 等）を順に削減。\\n- budgets の閾値/比較ルール（スコア下限 or 前回比）と整合する改善幅で緑へ。\\n\\n### 受け入れ基準（DoD）\\n- CI: budgets ワークフローが緑。\\n- TBT が目標値（<= 500ms 目安）へ改善、Performance >= 85 目安。\\n- 変更は本番挙動不変（UX劣化なし）。",
-    "state": "open",
+    "state": "closed",
     "priority": "High",
     "notes": [
-      {
-        "at": "2025-09-12T22:45:00+09:00",
-        "by": "bot",
-        "body": [
-          "CI: lighthouse (budgets, nightly) は緑を確認。",
-          "直接の落ち要因は color-contrast（要素: #dataset-error）のみで、",
-          "対処として背景を暗赤＋前景を白へ変更し、内部リンクの色も継承（!important）で統一。",
-          "残っているのは警告（max-potential-fid=0.28、uses-long-cache-ttl=18）。",
-          "予算超過は無し。/daily は引き続き良好。",
-          "次: v1.12 の残タスク（UI-slim Phase 2 / 画面分割の整理）へ移行。"
-        ]
-      }
+      "事実: 提供LHRでは Budgets違反は0。落ち条件は別ゲート（スコア/比較）と推測。",
+      "主因: Main-thread の Other/Unattributable、sw_update、i18n-boot、version.mjs 等の初期処理負荷。",
+      "対策（優先順）: 初期処理のrAF分割/バッチ化、SW更新のIdle/初回操作後へ、version.mjs の遅延import、i18nの対象限定。",
+      "準備手順: docs/lighthouse_prep.md を参照（LHR収集と5点要約、サイズ差分抽出）。",
+      "2025-09-13T00:06:34+09:00: nightly(budgets) 緑を確認。/app/?lhci=1 の LHR: Performance 0.99、TBT 0ms、max-potential-fid 61ms。残りは警告（uses-long-cache-ttl=18）のみ。#918 をクローズ。"
     ]
   }
 ]

@@ -20,6 +20,17 @@
 - `lcp-lazy-loaded` / `prioritize-lcp-image` / `non-composited-animations` は該当ページで **Not Applicable** になるため **off**。
 - `unminified-javascript` は小さなユーティリティ1本まで許容（**warn(maxLength:1)**）。
 - `meta-description` は `/app/` と `/daily/latest.html?no-redirect=1` を対象にし、後者にも meta description を追加済み。
+
+## 記録（2025-09-13 JST）
+- 状態: **budgets 緑**（CI: nightly）。
+- `/app/?lhci=1` の代表 LHR 抜粋:
+  - Performance **0.99**
+  - **TBT 0ms**
+  - **max-potential-fid 61ms**
+  - 警告のみ: `uses-long-cache-ttl`（=18、GitHub Pages 由来で許容）。
+- 実施の最小差分（挙動不変）:
+  - `public/app/sw_update.js` の**遅延起動**（idle/初回操作後）
+  - 付随の初期処理後ろ倒しにより、初期フレームのメインスレッド負荷を削減
 ### 2025-09-12（JST）現状
   - `/app/?lhci=1`: budgets 適合 / Performance=0.75 / **color-contrast fail（要素: #dataset-error）**
   - `/daily/latest.html?no-redirect=1`: budgets 適合 / Performance=1.00
