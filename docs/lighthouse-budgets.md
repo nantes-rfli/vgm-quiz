@@ -20,4 +20,12 @@
 - `lcp-lazy-loaded` / `prioritize-lcp-image` / `non-composited-animations` は該当ページで **Not Applicable** になるため **off**。
 - `unminified-javascript` は小さなユーティリティ1本まで許容（**warn(maxLength:1)**）。
 - `meta-description` は `/app/` と `/daily/latest.html?no-redirect=1` を対象にし、後者にも meta description を追加済み。
+### 2025-09-12（JST）現状
+  - `/app/?lhci=1`: budgets 適合 / Performance=0.75 / **color-contrast fail（要素: #dataset-error）**
+  - `/daily/latest.html?no-redirect=1`: budgets 適合 / Performance=1.00
+
+#### フォローアップ（2025-09-12 夜）
+- `#dataset-error` について、背景/前景のコントラストは修正済み（赤背景+白文字）。
+- 追加で **内部リンクの配色が継承されず**、青リンクが暗赤背景と低コントラストになるケースを確認。
+- 対処: `#dataset-error a, #dataset-error a:visited { color: inherit !important; text-decoration: underline; }` を追加し、WCAG AA を満たすよう修正。
 
