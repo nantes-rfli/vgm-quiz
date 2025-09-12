@@ -249,18 +249,25 @@
     color:var(--accent-fg);
     border-color:transparent;
   }
-  /* Accessible error alert styling (contrast-compliant) */
+  /* a11y: dataset-error must meet WCAG AA contrast even when links are present */
   #dataset-error{
-    color: var(--error-fg, #ffffff);
-    background: var(--error-bg, #991b1b);
-    padding: 10px 12px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-1);
-    margin-top: 8px;
+    background:#991b1b; /* dark red (≈#B91C1C family but slightly darker) */
+    color:#ffffff;
+    padding:.75rem 1rem;
+    border-radius:.5rem;
+    line-height:1.5;
+    margin:.5rem 0;
   }
-  #dataset-error a{
-    color: inherit;
-    text-decoration: underline;
+  /* ensure anchors inside the alert inherit the high-contrast color */
+  #dataset-error a,
+  #dataset-error a:visited{
+    color:inherit !important;
+    text-decoration:underline;
+    font-weight:600;
+  }
+  #dataset-error a:focus-visible{
+    outline:2px dashed #ffffff;
+    outline-offset:2px;
   }
 
   #choices{
