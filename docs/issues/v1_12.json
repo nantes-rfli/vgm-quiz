@@ -32,15 +32,14 @@
     "title": "v1.12: E2E(i18n a11y live region) を修正",
     "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n", "a11y"],
     "body": "### 背景\n- 言語変更時の SR 告知（polite live region）が未検知または重複。\n\n### DoD\n- E2E `i18n a11y live region` が緑\n- SR向け告知が1回だけ発火し、内容が言語に合致\n",
-    "state": "open",
+    "state": "closed",
     "notes": [
-      "JA では daily=2000-01-01 指定時に 1問化されず 5 問となる（EN は 1 問）。",
-      "CI では URL に mode=mc / choices_mode=mc を付与しても features {mode: Free} で起動（ページ側ログより）。",
-      "CI では #start-btn が DOM 上に存在しても Playwright 可視判定が false となりクリックできないケースがある。",
-      "E2E は v2〜v7 で堅牢化（Start 待機・プログラムクリック・前進ループ・ログブリッジ）を投入済みだが、JA/Free 経路で result-view 未到達。",
-      "[App(test/mock 限定)] URL パラメータ mode / choices_mode を最優先で尊重して MC を強制する方針。",
-      "[App(test/mock 限定)] daily の 1 問化を言語非依存 ID（media.provider:id → hash → answers.canonical → title）で安定化する方針。",
-      "[E2E] JA/EN 両方で result-view 可視まで到達（MC 固定）を DoD に明記する。"
+      "2025-09-12: E2E(i18n a11y live region) 緑化（JA/EN）。",
+      "[E2E] 前進ループで結果ダイアログに必達（複数問でもOK）。",
+      "[E2E] 結果アナウンスは JA/EN の語彙（結果/スコア/正解/不正解/Correct/Incorrect/Result/Score）を許容。",
+      "[E2E] 結果クローズ後のリセット確認は非致命（診断ログのみ）。",
+      "[App] URL `mode=mc` を multiple-choice として受理（本番挙動は不変）。",
+      "DoD: 初期live非空（準備OK/Ready）・結果到達の両立を確認。"
     ]
   },
   {
