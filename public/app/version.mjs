@@ -60,7 +60,9 @@ const SETTINGS_KEY = 'quiz-options';
 function loadSettings() {
   try {
     const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
-    const q = new URLSearchParams(location.search).get('mode');
+    let q = new URLSearchParams(location.search).get('mode');
+    // URLの省略表記を許可：mode=mc → multiple-choice（後方互換・本番挙動は不変）
+    if (q === 'mc') q = 'multiple-choice';
     if (q === 'multiple-choice' || q === 'free') {
       s.mode = q;
     }
