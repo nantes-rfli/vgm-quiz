@@ -310,7 +310,15 @@ async function loadDataset() {
     }
 
     try { window.__DATASET_READY__ = true; } catch(_) {}
-    try { console.info('[DATASET] ready (tracks=%s)', Array.isArray(tracks) ? tracks.length : 'n/a'); } catch(_) {}
+    try { console.info('[DATASET] ready (tracks=%s)', playable); } catch(_) {}
+    // ★ Start 有効化を i18n とは独立に前倒し（仕様: playable≥1 を維持）
+    try {
+      const startBtn = document.getElementById('start-btn');
+      if (startBtn && playable >= 1) {
+        startBtn.removeAttribute('disabled');
+        startBtn.setAttribute('aria-disabled', 'false');
+      }
+    } catch {}
     updateStartButton();
   } catch (err) {
     console.error('Failed to load dataset', err);

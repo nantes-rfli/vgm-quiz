@@ -22,16 +22,29 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', __applyStaticAll, { once: true });
 }
 
-// Short bootstrap observation window: if components mount after init,
-// localize them using the canonical locales/*.json via applyStaticLabels.
-(function __i18nBootstrapObserve(){
-  try {
-    const stopAt = Date.now() + 3000;
-    const mo = new MutationObserver(() => {
+// DOMの変化を監視して i18n を適用（rAFデバウンス＋再入防止）
+let __i18nApplying = false;
+let __i18nScheduled = false;
+function scheduleI18nApply() {
+  if (__i18nScheduled) return;
+  __i18nScheduled = true;
+  const raf = window.requestAnimationFrame || (cb => setTimeout(cb, 16));
+  raf(() => {
+    __i18nScheduled = false;
+    if (__i18nApplying) return; // すでに実行中なら次フレームへ委譲
+    __i18nApplying = true;
+    try {
       __applyStaticAll();
-      if (Date.now() > stopAt) { try { mo.disconnect(); } catch {} }
-    });
-    mo.observe(document.documentElement, { childList: true, subtree: true });
-    setTimeout(() => { try { mo.disconnect(); } catch {} }, 3500);
-  } catch {}
-})();
+    } finally {
+      __i18nApplying = false;
+    }
+  });
+}
+const mo = new MutationObserver(muts => {
+  // 無関係な属性変更は無視して負荷を下げる
+  const interesting = muts.some(m => m.type === 'childList' || (m.type === 'attributes' && /^(lang|dir|data-i18n)/.test(m.attributeName || '')));
+  if (interesting) scheduleI18nApply();
+});
+mo.observe(document.documentElement, { subtree:true, childList:true, attributes:true, attributeFilter:['lang','dir'] });
+// 初回適用も同一経路で
+scheduleI18nApply();
