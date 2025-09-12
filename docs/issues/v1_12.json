@@ -59,7 +59,14 @@
     "title": "v1.12: E2E(on-demand + nightly) を修正",
     "labels": ["roadmap:v1.12", "type:ci", "area:workflow", "area:e2e"],
     "body": "### 背景\n- on-demand と nightly の統合ジョブで、期待アーティファクト/前提の差異により失敗。\n\n### DoD\n- E2E `on-demand + nightly` が緑\n- 期待アーティファクト（URL/パス/生成物）と事前ステップ（build/prepare）の整合を明文化\n",
-    "state": "open"
+    "state": "open",
+    "notes": [
+      "2025-09-12: nightly-prod で test_results_modal_a11y.mjs が start-btn の visible 待ちで 30s timeout。",
+      "実ログ: locator('[data-testid=\"start-btn\"]').visible を待機 → hidden のまま。ボタン自体は存在し enabled。",
+      "原因仮説: レイアウト/レスポンシブによる可視条件の相違、または autostart=0 の状態で free/MC可視差。",
+      "対応方針（E2E専用・本番不変）: start の可視依存を排し、presence + enabled を条件に可視なら通常クリック、不可視なら programmatic click のフェイルセーフを適用。",
+      "結果モーダルのa11y検証（role=dialog/aria-*）が本テストの主目的のため、開始までの可視条件には依存しない設計に改める。"
+    ]
   },
   {
     "id": "v112-e2e-matrix",
