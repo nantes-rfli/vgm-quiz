@@ -1,25 +1,6 @@
 {
-  "exported_at": "2025-09-12T15:09:25.929Z",
+  "exported_at": "2025-09-12T15:34:26.992Z",
   "items": [
-    {
-      "number": 918,
-      "title": "Lighthouse(budgets, nightly): 赤判定の調査と改善（TBT高止まり/予算ゲート）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/918",
-      "labels": [
-        "roadmap:v1.12",
-        "area:ci",
-        "type:perf",
-        "lighthouse",
-        "budgets"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T11:59:31Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
     {
       "number": 773,
       "title": "v1.12: UI-slim Phase 2（画面単位分割：play / media）",
@@ -292,6 +273,25 @@
       "updated_at": "2025-09-07T15:36:47Z",
       "roadmap": [
         "roadmap:post-v1.6"
+      ]
+    },
+    {
+      "number": 918,
+      "title": "Lighthouse(budgets, nightly): 赤判定の調査と改善（TBT高止まり/予算ゲート）",
+      "state": "closed",
+      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/918",
+      "labels": [
+        "roadmap:v1.12",
+        "area:ci",
+        "type:perf",
+        "lighthouse",
+        "budgets"
+      ],
+      "assignees": [],
+      "milestone": null,
+      "updated_at": "2025-09-12T15:33:51Z",
+      "roadmap": [
+        "roadmap:v1.12"
       ]
     },
     {
