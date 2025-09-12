@@ -29,8 +29,8 @@
     })();
   </script>
   <script defer src="./sw_update.js"></script>
-  <!-- v1.12 perf: 非クリティカル初期処理は idle に後ろ倒し -->
-  <script type="module" src="./idle-init.mjs" defer></script>
+  <!-- v1.12 perf (optional): 非クリティカルの版数フッター処理を idle/初回操作後へ遅延 -->
+  <script type="module" src="./version-late.mjs" defer></script>
 <!-- Open Graph (optional but useful for previews) -->
 <meta property="og:title" content="VGM Quiz">
 <meta property="og:description" content="Play a fast, browser-based Video Game Music quiz with multiple modes and composers/titles matching.">

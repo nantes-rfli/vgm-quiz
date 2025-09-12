@@ -43,8 +43,8 @@
 ### 2025-09-13（JST）MPFID/TBT 微改善（任意）
 - 目的: `max-potential-fid` の警告を抑制（初期フレームでの重い処理を後段へ移動）。
 - 変更（挙動不変）:
-  - `public/app/idle-init.mjs` を新設し、**`version.mjs` の読み込み**を Idle/初回操作後へ遅延。
-  - `public/app/sw_update.js` は **初回操作または idle まで SW 更新監視を遅延**（モジュール内で自動 arm）。
-  - `public/app/index.html` に `sw_update.js` と `idle-init.mjs` を読み込み。
+  - `public/app/version-late.mjs` を新設し、**`version.mjs` の読み込み**を Idle/初回操作後へ遅延。
+  - `public/app/index.html` に `version-late.mjs` を追加読み込み。
+  - （別途実施済み）`public/app/sw_update.js` は **遅延初期化**へ変更済み。
 - 期待効果: 初期メインスレッドの処理量削減 → MPFID/TBT の低下。
 
