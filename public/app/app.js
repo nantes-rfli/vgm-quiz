@@ -293,6 +293,7 @@ async function loadDataset() {
     const playable = (Array.isArray(tracks) ? tracks : []).filter(t =>
       t && t.media && t.media.provider && t.answers
     ).length;
+    try { console.info('[PLAYABLE] count=%s', playable); } catch(_) {}
     // モック時(?mock=1)は“公開データに〜”の注意を出さない（紛らわしいため）
     const qs = new URLSearchParams(location.search || '');
     const hasMock = qs.get('mock') === '1' || qs.has('mock');
