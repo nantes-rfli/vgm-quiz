@@ -887,9 +887,12 @@ updateStartButton();
 console.log('features', { mode: questionMode === 'multiple-choice' ? 'MC' : 'Free', timer: useTimer ? '20s' : 'off' });
 
 checkOnLoad();
-// Dataset の読み込みタイミング：本番は idle、E2E/検証（?test=1 or ?mock=1）は即時
+// Dataset の読み込みタイミング：本番は idle だが、idle が長引く環境向けに timeout フォールバックを追加
 {
-  const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1));
+  // requestIdleCallback が長時間呼ばれないケースに備えて timeout を指定
+  const ric = window.requestIdleCallback
+    ? (cb) => window.requestIdleCallback(cb, { timeout: 1500 })
+    : (cb) => setTimeout(cb, 50);
   // E2E/検証判定はクエリから直接行う（グローバル変数に依存しない）
   let isTest = false, isMock = false;
   try {
@@ -898,16 +901,22 @@ checkOnLoad();
     isMock = (qs.get('mock') === '1' || qs.has('mock'));
   } catch(_) {}
   const kick = () => { try { datasetPromise = loadDataset(); } catch(e){} };
+  let kicked = false;
+  const safeKick = () => { if (kicked) return; kicked = true; kick(); };
   if (isTest || isMock) {
     // E2E/検証モード：Start を待たせないため即時ロード
-    kick();
+    safeKick();
   } else {
-    // 本番：アイドル時にロード
-    ric(kick);
+    // 本番：アイドル時にロード＋最大1.5sのフォールバック
+    ric(safeKick);
+    setTimeout(safeKick, 1500);
   }
   // [perf] defer aliases: load after Start button (startQuiz) / keep as-is
   // ric(() => { try { ensureAliases(); } catch(e){} });
 }
+
+// バージョン情報（フッター）の埋め込みを起動（非同期・失敗時は無視）
+try { loadVersion(); } catch (_) {}
 
 navigator.serviceWorker?.addEventListener('message', async (e)=>{
   if(e.data?.type==='version-refreshed'){
