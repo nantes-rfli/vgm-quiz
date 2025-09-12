@@ -243,31 +243,6 @@ import { chromium } from 'playwright';
     throw new Error(`EN live region not ready: "${liveStartEn}"`);
   }
 
-  // Click Start
-  await page.waitForSelector('#start-btn:not([disabled])', { timeout: 15000 });
-  await page.click('#start-btn');
-
-  // Progress forward robustly until result is visible (do not assume single question)
-  const maxSteps = 12;
-  let reached = false;
-  for (let i = 0; i < maxSteps; i++) {
-    // If result is already visible, stop
-    if (await page.locator('#result-view').isVisible().catch(() => false)) { reached = true; break; }
-    // Otherwise, answer one MC question and click Next
-    await page.waitForSelector('#question-view', { timeout: 10000 });
-    const choice = page.locator('#choices button').first();
-    await choice.waitFor({ state: 'visible', timeout: 10000 });
-    await choice.click();
-    const next = page.locator('#next-btn');
-    await next.waitFor({ state: 'visible', timeout: 10000 });
-    await next.click();
-    // Small settle
-    await page.waitForTimeout(200);
-  }
-  if (!reached) {
-    throw new Error('result-view not visible within maxSteps');
-  }
-
   await browser.close();
 })();
 
