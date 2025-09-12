@@ -1,8 +1,13 @@
-[ 
+[
   {
     "id": "v112-e2e-i18n-lang-param-smoke",
     "title": "v1.12: E2E(i18n lang param smoke) を修正",
-    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:test",
+      "area:e2e",
+      "i18n"
+    ],
     "body": "### 背景\n- ?lang=ja|en の指定時に <html lang> と文言反映のタイミングが検証で不安定。\n\n### 受け入れ基準（DoD）\n- E2E `i18n lang param smoke` が緑\n- <html lang> が起動直後に希望言語へ設定され、切替時も追従\n- SR向けの言語切替アナウンスが一度だけ発火（多重なし）\n",
     "state": "closed",
     "notes": [
@@ -12,15 +17,27 @@
   {
     "id": "v112-e2e-i18n-static-labels-smoke",
     "title": "v1.12: E2E(i18n static labels smoke) を修正",
-    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:test",
+      "area:e2e",
+      "i18n"
+    ],
     "body": "### 背景\n- 起動直後に静的ラベル（Start など）が希望言語で表示されないことがある\n- 期待: i18n 初期化完了時点で applyStaticLabels(document) が実行され、静的要素が locales に基づき反映される\n### 対応\n- i18n-boot.mjs を <head> で先行ロード\n- setLang() 末尾で window.dispatchEvent(new Event('i18n:changed')) を同期発火\n- i18n-boot.mjs で whenI18nReady 後と i18n:changed、DOMContentLoaded、短時間 MutationObserver により applyStaticLabels(document) を再適用\n",
     "state": "closed",
-    "notes": ["2025-09-11 JST に E2E(i18n static labels smoke) 緑を確認。辞書は locales/*.json に一本化。"]
+    "notes": [
+      "2025-09-11 JST に E2E(i18n static labels smoke) 緑を確認。辞書は locales/*.json に一本化。"
+    ]
   },
   {
     "id": "v112-e2e-i18n-labels-step2",
     "title": "v1.12: E2E(i18n labels step2) を修正",
-    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:test",
+      "area:e2e",
+      "i18n"
+    ],
     "body": "### 背景\n- 動的に差し替わる要素（問題文・選択肢など）の言語が、初回や切替直後に一時的に不一致になることがある\n- 期待: 1回の更新で希望言語へ確定し、多重announceや二重描画がないこと\n### 結果\n- 現状の実装でテストは緑。追加の修正は不要。\n",
     "state": "closed",
     "notes": [
@@ -30,7 +47,13 @@
   {
     "id": "v112-e2e-i18n-live-region",
     "title": "v1.12: E2E(i18n a11y live region) を修正",
-    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "i18n", "a11y"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:test",
+      "area:e2e",
+      "i18n",
+      "a11y"
+    ],
     "body": "### 背景\n- 言語変更時の SR 告知（polite live region）が未検知または重複。\n\n### DoD\n- E2E `i18n a11y live region` が緑\n- SR向け告知が1回だけ発火し、内容が言語に合致\n",
     "state": "closed",
     "notes": [
@@ -45,7 +68,12 @@
   {
     "id": "v112-e2e-ui-responsive-smoke",
     "title": "v1.12: E2E(ui responsive smoke) を修正",
-    "labels": ["roadmap:v1.12", "type:test", "area:e2e", "ui"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:test",
+      "area:e2e",
+      "ui"
+    ],
     "body": "### 背景\n- ビューポート幅によって折返し/aria-hidden などの期待がズレる可能性。CSSの非機能変更での安定化を検討。\n\n### DoD\n- E2E `ui responsive smoke` が緑\n- 可視/不可視の基準をCSS側で安定化（レイアウトシフト抑止）\n",
     "state": "closed",
     "notes": [
@@ -57,7 +85,12 @@
   {
     "id": "v112-e2e-on-demand-and-nightly",
     "title": "v1.12: E2E(on-demand + nightly) を修正",
-    "labels": ["roadmap:v1.12", "type:ci", "area:workflow", "area:e2e"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:ci",
+      "area:workflow",
+      "area:e2e"
+    ],
     "body": "### 背景\n- on-demand と nightly の統合ジョブで、期待アーティファクト/前提の差異により失敗。\n\n### DoD\n- E2E `on-demand + nightly` が緑\n- 期待アーティファクト（URL/パス/生成物）と事前ステップ（build/prepare）の整合を明文化\n",
     "state": "closed",
     "notes": [
@@ -71,7 +104,11 @@
   {
     "id": "v112-e2e-matrix",
     "title": "v1.12: E2E(matrix) の安定化",
-    "labels": ["roadmap:v1.12", "type:test", "area:e2e"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:test",
+      "area:e2e"
+    ],
     "body": "### 背景\n- 個別テストの安定化後に最終的に matrix を安定化。\n\n### DoD\n- E2E `matrix` が緑\n- 試験分割の根拠とリトライポリシー（必要なら）を docs に記載\n",
     "state": "closed",
     "notes": [
@@ -167,7 +204,13 @@
   {
     "id": "v112-prod-i18n-start-flicker",
     "title": "本番: 初期数秒の英語表示＆ボタン無効 → 数秒後に日本語＆有効",
-    "labels": ["roadmap:v1.12", "type:bug", "area:prod", "i18n", "a11y"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:bug",
+      "area:prod",
+      "i18n",
+      "a11y"
+    ],
     "body": "### 背景\\n- 初期ロード直後、主要ラベルが英語表示のまま数秒間ボタンが無効。数秒後に日本語化・有効化。\\n- DevTools計測で i18n-boot / i18n 周辺の Microtasks がメインスレッドを占有し、Start解禁とラベル適用・フッター更新が同一トリガーに束ねられて遅延。\\n\\n### 対応\\n- playable≥1 到達時点で Start の disabled を即解除（i18nに非依存）。\\n- i18n MutationObserver を requestAnimationFrame デバウンス＋再入防止。\\n\\n### 受け入れ基準（DoD）\\n- ハードリロード後 1〜2s で Start 押下可能。主要ラベルが同時期に日本語化。\\n- E2E 緑維持（挙動不変・テスト専用堅牢化に影響なし）。",
     "state": "closed",
     "priority": "High",
@@ -183,7 +226,12 @@
   {
     "id": "v112-prod-footer-empty",
     "title": "本番: フッター要素は可視だがテキストが空",
-    "labels": ["roadmap:v1.12", "type:bug", "area:prod", "area:ui"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:bug",
+      "area:prod",
+      "area:ui"
+    ],
     "body": "### 背景\\n- 本番で footer#version が可視だが文言が空のまま。\\n\\n### 対応\\n- DOMContentLoaded で build/version.json / build/dataset.json から常時 populate（失敗時はフェイルセーフ文言）。\\n\\n### 受け入れ基準（DoD）\\n- 本番で常時フッター文言が表示（`Dataset • commit • updated` のいずれか）。",
     "state": "closed",
     "priority": "Medium",
@@ -197,11 +245,18 @@
   {
     "id": "v112-lighthouse-budgets-regression",
     "title": "Lighthouse(budgets, nightly): 赤判定の調査と改善（TBT高止まり/予算ゲート）",
-    "labels": ["roadmap:v1.12", "type:perf", "area:ci", "lighthouse", "budgets"],
+    "labels": [
+      "roadmap:v1.12",
+      "type:perf",
+      "area:ci",
+      "lighthouse",
+      "budgets"
+    ],
     "body": "### 背景\\n- nightly の Lighthouse (budgets) が赤に。添付の LHR JSON では Budgets 監査の違反は 0 だが、パフォーマンス/スコア等のゲートで落ちている可能性。\\n- 該当レポート例: Performance 75 / TBT ~1154ms / LCP ~1.11s。\\n\\n### やること\\n- LHR(JSON) の要約（Budgets失敗/Top重い資産/LCP/TBT/CLS内訳/3rd-party）を取得・保管。\\n- TBT 主因（Unattributable, main文書初期化, i18n-boot, sw_update, version.mjs 等）を順に削減。\\n- budgets の閾値/比較ルール（スコア下限 or 前回比）と整合する改善幅で緑へ。\\n\\n### 受け入れ基準（DoD）\\n- CI: budgets ワークフローが緑。\\n- TBT が目標値（<= 500ms 目安）へ改善、Performance >= 85 目安。\\n- 変更は本番挙動不変（UX劣化なし）。",
     "state": "open",
     "priority": "High",
     "notes": [
+      "CI失敗の直接原因: app/?lhci=1 で color-contrast が 0（#dataset-error が赤字 on 白背景と判定）。#dataset-error をアクセシブルなアラート（白字 on 暗赤の背景 + リンクはinherit+下線）に変更する最小差分パッチを適用予定。",
       "事実: 提供LHRでは Budgets違反は0。落ち条件は別ゲート（スコア/比較）と推測。",
       "主因: Main-thread の Other/Unattributable、sw_update、i18n-boot、version.mjs 等の初期処理負荷。",
       "対策（優先順）: 初期処理のrAF分割/バッチ化、SW更新のIdle/初回操作後へ、version.mjs の遅延import、i18nの対象限定。",
