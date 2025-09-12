@@ -32,6 +32,8 @@ import { chromium } from 'playwright';
   // ---- JA ----
   const jaUrl = urlWith(base, 'ja');
   await page.goto(jaUrl + (jaUrl.includes('?') ? '&' : '?') + 'mode=mc&choices_mode=mc');
+  // Let the document settle minimally
+  try { await page.waitForLoadState('domcontentloaded', { timeout: 10000 }); } catch {}
   // Bridge page console to CI logs for deeper diagnostics
   page.on('console', msg => {
     try {
@@ -44,10 +46,13 @@ import { chromium } from 'playwright';
     await page.waitForSelector('#feedback, #start-view, #app, #app-root', { timeout: 20000 });
   } catch {}
   await page.waitForFunction(() => document.documentElement.lang === 'ja', null, { timeout: TIMEOUT });
+  // Wait until live region is non-empty and includes "準備OK" (reduce flakiness)
+  await page.waitForFunction(() => {
+    const el = document.querySelector('#feedback');
+    const t = (el && el.textContent || '').trim();
+    return !!t && /準備OK/.test(t);
+  }, null, { timeout: TIMEOUT });
   const liveStartJa = await page.textContent('#feedback');
-  if (!liveStartJa || !/準備OK/.test(liveStartJa)) {
-    throw new Error(`JA live region not ready: "${liveStartJa}"`);
-  }
   // Start the quiz (ensure the button is visible before clicking)
   await page.waitForSelector('[data-testid="start-btn"]', { state: 'visible', timeout: TIMEOUT });
   // Start が disabled のままなら、最大30sまで有効化を待ってからクリック
@@ -88,8 +93,9 @@ import { chromium } from 'playwright';
   const nextBtn = page.locator('#next-btn');
   const questionTitle = page.locator('#question-title');
   const startBtn = page.locator('#start-btn');
-  const inputField = page.locator('#answer-input');
-  const submitBtn = page.locator('#submit-btn');
+  // Accept both legacy and current selectors for free-answer flow (fallback path)
+  const inputField = page.locator('#free-answer, #answer-input');
+  const submitBtn = page.locator('#submit-btn, [data-testid="submit-btn"], #submit-answer');
 
   // Helper: log to aid CI diagnostics
   const logStep = async (label) => {
@@ -237,11 +243,13 @@ import { chromium } from 'playwright';
   // ---- EN ----
   const enUrl = urlWith(base, 'en');
   await page.goto(enUrl + (enUrl.includes('?') ? '&' : '?') + 'mode=mc&choices_mode=mc');
+  try { await page.waitForLoadState('domcontentloaded', { timeout: 10000 }); } catch {}
   await page.waitForFunction(() => document.documentElement.lang === 'en', null, { timeout: TIMEOUT });
-  const liveStartEn = await page.textContent('#feedback');
-  if (!/Ready/i.test(liveStartEn || '')) {
-    throw new Error(`EN live region not ready: "${liveStartEn}"`);
-  }
+  await page.waitForFunction(() => {
+    const el = document.querySelector('#feedback');
+    const t = (el && el.textContent || '').trim();
+    return !!t && /Ready/i.test(t);
+  }, null, { timeout: TIMEOUT });
 
   await browser.close();
 })();
