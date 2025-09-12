@@ -167,14 +167,27 @@
   {
     "id": "v112-prod-i18n-start-flicker",
     "title": "本番: 初期数秒の英語表示＆ボタン無効 → 数秒後に日本語＆有効",
-    "state": "open",
+    "state": "closed",
     "priority": "High",
     "notes": [
       "現象: 初期ロード直後は英語ラベル（例: Start）で、数秒間 Start/他ボタンが押せない。数秒後に日本語表示（スタート）かつ押下可能に変化。",
       "観測: i18n/resources と dataset の取得は ~200ms 程度だが、DevToolsで i18n.mjs / i18n-boot.mjs 周辺の Microtasks が長時間走り、メインスレッドを専有している。Startの無効化は属性（disabled）で制御。",
       "再現URL: https://nantes-rfli.github.io/vgm-quiz/app/",
       "対処: (1) playable≥1 到達時に Start の disabled を即解除（i18nに非依存）。(2) i18n MutationObserver を rAF デバウンスし、再入を防止。",
-      "DoD: 初期描画から主要ラベルがロケールに一致、Start 無効期間の短縮または明示的な準備中表示（a11y対応）。E2E影響なし。"
+      "2025-09-12: 本番で改善を確認（ハードリロード後 1〜2s で Start 押下可能・主要ラベルが日本語化）。",
+      "E2E への影響なし（テスト専用の堅牢化は不変）。"
+    ]
+  },
+  {
+    "id": "v112-prod-footer-empty",
+    "title": "本番: フッター要素は可視だがテキストが空",
+    "state": "closed",
+    "priority": "Medium",
+    "notes": [
+      "観測: footer#version は display:block で高さありだが textContent が空。",
+      "関連: build/version.json は fetch できている（~12ms）。dataset.json も取得済み。",
+      "対応: DOMContentLoaded で footer を常時 populate（build/version.json / dataset.json から生成、フェイルセーフ付き）。",
+      "2025-09-12: 本番で常時表示を確認（Start 解禁と同時期に表示）。"
     ]
   }
 ]
