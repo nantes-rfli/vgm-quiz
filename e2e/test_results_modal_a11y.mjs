@@ -21,7 +21,29 @@ import { chromium } from 'playwright';
   })();
 
   await page.goto(url, { waitUntil: 'networkidle' });
-  await page.click('[data-testid="start-btn"]');
+  // Start: do not rely on visibility. Wait for presence + enabled, then click (visible → normal / hidden → programmatic).
+  await page.waitForSelector('#start-btn', { state: 'attached', timeout: TIMEOUT });
+  await page.waitForSelector('#start-btn:not([disabled])', { timeout: TIMEOUT });
+  const startLoc = page.locator('#start-btn');
+  const startVisible = await startLoc.isVisible().catch(() => false);
+  if (startVisible) {
+    await startLoc.scrollIntoViewIfNeeded().catch(() => {});
+    await startLoc.click({ trial: true }).catch(() => {});
+    await startLoc.click().catch(() => {});
+  } else {
+    await page.evaluate(() => {
+      const el = document.querySelector('#start-btn');
+      if (!el) return;
+      try { el.click(); } catch {}
+      try { el.dispatchEvent(new MouseEvent('click', { bubbles: true })); } catch {}
+    }).catch(() => {});
+  }
+  await page.waitForTimeout(200);
+  // After clicking Start, wait for either MC choices or free input to appear (do not assume a mode).
+  await Promise.race([
+    page.waitForSelector('#choices button', { state: 'visible', timeout: 2000 }).catch(() => {}),
+    page.waitForSelector('#answer, [data-testid="answer"]', { state: 'visible', timeout: 2000 }).catch(() => {})
+  ]);
   await page.waitForSelector('[data-testid="quiz-view"]', { state: 'visible', timeout: TIMEOUT });
 
   // 1問を適当に回答→Next→結果
