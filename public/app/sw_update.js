@@ -132,15 +132,39 @@
     listenOnRegistration(reg);
   }
 
-  // Attach to any current registration
-  navigator.serviceWorker.getRegistration().then(attach).catch(() => {});
-  navigator.serviceWorker.ready.then(attach).catch(() => {});
-  waitForRegistration().then(attach);
-  window.addEventListener('sw-registered', (e) => attach(e.detail));
+  // Lazy attach: defer SW update wiring until idle or first interaction
+  function __vgmquiz_sw_init__(){
+    // Attach to any current registration
+    navigator.serviceWorker.getRegistration().then(attach).catch(() => {});
+    navigator.serviceWorker.ready.then(attach).catch(() => {});
+    waitForRegistration().then(attach);
+    window.addEventListener('sw-registered', (e) => attach(e.detail));
 
-  // Also watch future registrations
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    // No-op here; reload is handled on button click path.
-  });
+    // Also watch future registrations
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // No-op here; reload is handled on button click path.
+    });
+  }
+
+  const __idle__ = (cb) => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(cb, { timeout: 2500 });
+    } else {
+      requestAnimationFrame(() => setTimeout(cb, 0));
+    }
+  };
+
+  let __armed__ = false;
+  function __arm__(){
+    if (__armed__) return;
+    __armed__ = true;
+    __idle__(__vgmquiz_sw_init__);
+  }
+
+  // First meaningful user interaction triggers immediately; otherwise idle fallback
+  ['keydown','pointerdown','touchstart'].forEach(t =>
+    window.addEventListener(t, __arm__, { once: true, passive: true })
+  );
+  setTimeout(__arm__, 1500);
 })();
 

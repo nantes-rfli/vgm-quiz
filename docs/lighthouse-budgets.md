@@ -29,3 +29,11 @@
 - 追加で **内部リンクの配色が継承されず**、青リンクが暗赤背景と低コントラストになるケースを確認。
 - 対処: `#dataset-error a, #dataset-error a:visited { color: inherit !important; text-decoration: underline; }` を追加し、WCAG AA を満たすよう修正。
 
+### 2025-09-13（JST）MPFID/TBT 微改善（任意）
+- 目的: `max-potential-fid` の警告を抑制（初期フレームでの重い処理を後段へ移動）。
+- 変更（挙動不変）:
+  - `public/app/idle-init.mjs` を新設し、**`version.mjs` の読み込み**を Idle/初回操作後へ遅延。
+  - `public/app/sw_update.js` は **初回操作または idle まで SW 更新監視を遅延**（モジュール内で自動 arm）。
+  - `public/app/index.html` に `sw_update.js` と `idle-init.mjs` を読み込み。
+- 期待効果: 初期メインスレッドの処理量削減 → MPFID/TBT の低下。
+
