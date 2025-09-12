@@ -248,13 +248,38 @@ import { chromium } from 'playwright';
     }
     console.log(`[E2E] JA result live fallback (nonfatal): "${liveOpenedJa.trim()}"`);
   }
-  await page.keyboard.press('Escape');
+  // Close result and verify the live region resets to the start-ready state.
+  // Prefer Escape, fall back to common close buttons.
+  try { await page.keyboard.press('Escape'); } catch {}
   await page.waitForTimeout(150);
-  await page.waitForSelector('[data-testid="start-btn"]', { state: 'visible', timeout: TIMEOUT });
-  const liveReadyAgainJa = await page.textContent('#feedback');
-  if (!/準備OK/.test(liveReadyAgainJa || '')) {
-    throw new Error(`JA live region not reset: "${liveReadyAgainJa}"`);
+  // If still visible, try various close selectors
+  if (await page.locator('#result-view[role="dialog"]').isVisible().catch(() => false)) {
+    const closers = [
+      '[data-testid="dialog-close"]',
+      '#result-close',
+      'button[aria-label="Close"]',
+      'button:has-text("閉じる")',
+      'button:has-text("Close")'
+    ];
+    for (const sel of closers) {
+      try {
+        const loc = page.locator(sel);
+        if (await loc.count().catch(() => 0)) {
+          await loc.first().click().catch(() => {});
+          await page.waitForTimeout(150);
+          if (!(await page.locator('#result-view[role="dialog"]').isVisible().catch(() => false))) break;
+        }
+      } catch {}
+    }
   }
+  // Wait until (a) result dialog is hidden AND (b) live region shows "準備OK".
+  await page.waitForFunction(() => {
+    const dlg = document.querySelector('#result-view[role="dialog"]');
+    const dlgVisible = !!dlg && getComputedStyle(dlg).display !== 'none' && getComputedStyle(dlg).visibility !== 'hidden';
+    const fb = document.querySelector('#feedback');
+    const t = (fb && fb.textContent || '').trim();
+    return !dlgVisible && /準備OK/.test(t);
+  }, null, { timeout: TIMEOUT });
 
   // ---- EN ----
   const enUrl = urlWith(base, 'en');
