@@ -163,5 +163,18 @@
     ],
     "body": "### 背景\n- Phase 2（画面単位分割）に先立ち、**集約単位**（play-controller / media-select など）と**依存注入（DI）**の基準を明文化する。\n\n### 受け入れ基準（DoD）\n- ARCHITECTURE.md に『Phase 2—集約単位と依存注入の原則』節を追加\n- 既存構成（Phase 1）との関係と責務境界が明確\n- 挙動不変を原則とする旨、およびテスト・E2E 影響の扱いを記載\n\n### 進捗（このチャット）\n- [x] media-select 抽出（Apple優先→YouTube フォールバックのロジック分離）\n- [x] utils-ui 統合（getQueryParam/getQueryBool の重複排除）\n- [x] play-controller: timer / afterAnswer / next / accept / reject / lives 配線（DI）を導入（**挙動不変**）\n- [x] ユニットテスト追加（tests/media_select.test.mjs, tests/play_controller.test.mjs）\n\n### 備考\n- 実装は v112-refactor-ui-slim-phase2 と連動。先にドキュを確定させる。",
     "state": "closed"
+  },
+  {
+    "id": "v112-prod-i18n-start-flicker",
+    "title": "本番: 初期数秒の英語表示＆ボタン無効 → 数秒後に日本語＆有効",
+    "state": "open",
+    "priority": "High",
+    "notes": [
+      "現象: 初期ロード直後は英語ラベル（例: Start）で、数秒間 Start/他ボタンが押せない。数秒後に日本語表示（スタート）かつ押下可能に変化。",
+      "観測: i18n/resources と dataset の取得は ~200ms 程度だが、DevToolsで i18n.mjs / i18n-boot.mjs 周辺の Microtasks が長時間走り、メインスレッドを専有している。Startの無効化は属性（disabled）で制御。",
+      "再現URL: https://nantes-rfli.github.io/vgm-quiz/app/",
+      "対処: (1) playable≥1 到達時に Start の disabled を即解除（i18nに非依存）。(2) i18n MutationObserver を rAF デバウンスし、再入を防止。",
+      "DoD: 初期描画から主要ラベルがロケールに一致、Start 無効期間の短縮または明示的な準備中表示（a11y対応）。E2E影響なし。"
+    ]
   }
 ]
