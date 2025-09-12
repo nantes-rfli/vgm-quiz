@@ -70,7 +70,7 @@
     </select>
   </label>
 <button id="start-btn" disabled data-testid="start-btn" aria-controls="question-view">Start</button>
-  <div id="dataset-error" style="display:none;color:red;"></div>
+  <div id="dataset-error" role="alert" style="display:none;"></div>
   <button id="history-btn" aria-controls="history-view">History</button>
   <button id="export-aliases-btn">Export alias proposals (.edn)</button>
 </div>
@@ -248,6 +248,19 @@
     background:var(--accent);
     color:var(--accent-fg);
     border-color:transparent;
+  }
+  /* Accessible error alert styling (contrast-compliant) */
+  #dataset-error{
+    color: var(--error-fg, #ffffff);
+    background: var(--error-bg, #991b1b);
+    padding: 10px 12px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-1);
+    margin-top: 8px;
+  }
+  #dataset-error a{
+    color: inherit;
+    text-decoration: underline;
   }
 
   #choices{
