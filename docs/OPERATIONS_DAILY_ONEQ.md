@@ -12,6 +12,11 @@
 - 成果物: `public/daily/YYYY-MM-DD.json`（または同等の生成物）と OGP/Feeds。
 - Summary で KPI を確認（成功率・生成LT・メディア解決率・重複拒否件数・ゲート余裕度）。
 
+### media_map（埋め込み用IDの管理）
+- 埋め込み先ID（Apple/YouTube）は `docs/data/media_map.json` で管理（JSON配列）。
+- スキーマ: `{ "track_id": "<datasetの track/id>", "provider": "apple|youtube", "id": "<埋め込みID>" }`
+- 本番CIではネットワーク解決を行わない前提（法務と安定性のため）。`media_map.json` はPRで更新し、レビュー可能な形で履歴を残す。
+
 ## 失敗時の復旧
 - **A. 手動再実行**: フレーク要因の場合はリトライ。Artifacts を確認して原因を要約し、Issue に `notes` として残す。
 - **B. 強制 skip**: Apple/YouTube いずれも解決不可の場合は当日を skip。次回に繰越されることを Summary に明記。

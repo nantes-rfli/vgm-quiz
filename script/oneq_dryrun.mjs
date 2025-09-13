@@ -27,14 +27,32 @@ function* walk(obj) {
 }
 
 function findTracks(dataset) {
-  // datasetのどこかに { media: { provider, id } } を含む配列があるはず、という前提で探索
-  const candidates = [];
+  // 1) まず標準の dataset.tracks を見る（v1.12 以降はここが正）
+  if (dataset && Array.isArray(dataset.tracks)) return dataset.tracks;
+  // 2) 次善: オブジェクト内から music的な要素を総当たり探索（後方互換）
+  const rows = [];
   for (const o of walk(dataset)) {
-    if (o && typeof o === 'object' && o.media && o.media.provider && o.media.id) {
-      candidates.push(o);
-    }
+    if (o && typeof o === 'object' && 'title' in o && 'game' in o) rows.push(o);
   }
-  return candidates;
+  return rows;
+}
+
+function buildMediaMap() {
+  // 任意のローカルマッピング（Docs管理）: docs/data/media_map.json
+  const mapPath = path.resolve('docs/data/media_map.json');
+  if (!fs.existsSync(mapPath)) return null;
+  try {
+    const rows = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+    const byId = new Map();
+    for (const r of Array.isArray(rows) ? rows : []) {
+      const k = String(r.track_id || '').trim();
+      const prov = String(r.provider || '').toLowerCase().trim();
+      const mid = String(r.id || '').trim();
+      if (!k || !prov || !mid) continue;
+      byId.set(k, { provider: prov, id: mid });
+    }
+    return { byId, mapPath };
+  } catch { return null; }
 }
 
 const datasetPath = path.resolve('public/build/dataset.json');
@@ -78,26 +96,48 @@ if (!ds) {
 }
 
 const all = findTracks(ds);
-const apple = all.filter(t => String(t?.media?.provider).toLowerCase() === 'apple');
-const youtube = all.filter(t => String(t?.media?.provider).toLowerCase() === 'youtube');
 
-// 簡易ユニーク性（将来は直近N日の一意性ロックと統合）
-const key = t => [t?.game, t?.track?.title, t?.track?.composer, t?.media?.provider, t?.media?.id].map(x=>String(x||'')).join('｜');
-const uniq = new Set();
-const uniqueCandidates = [];
-for (const t of [...apple, ...youtube]) {
-  const k = key(t);
-  if (!uniq.has(k)) { uniq.add(k); uniqueCandidates.push(t); }
+// provider/id は dataset に含まれない構成が多いため、Docs側の media_map を優先的に使う
+const mediaMap = buildMediaMap();
+function resolveMedia(t) {
+  // 優先: track/id で引く
+  const tid = (t['track/id'] || t.track_id || '').toString();
+  if (mediaMap?.byId && tid && mediaMap.byId.has(tid)) return mediaMap.byId.get(tid);
+  // 次: dataset 内に media があれば使う（後方互換）
+  if (t.media && t.media.provider && t.media.id) {
+    return { provider: String(t.media.provider).toLowerCase(), id: String(t.media.id) };
+  }
+  return null;
 }
 
-const pick = uniqueCandidates[0] || null;
+const resolved = all.map(t => ({ t, m: resolveMedia(t) }));
+const apple = resolved.filter(x => x.m?.provider === 'apple');
+const youtube = resolved.filter(x => x.m?.provider === 'youtube');
+const covered = resolved.filter(x => !!x.m);
+
+// 簡易ユニーク性（将来は直近N日の一意性ロックと統合）
+const key = t => [t?.game || t.game, t?.track?.title || t.title, t?.track?.composer || t.composer, (resolveMedia(t)||{}).provider || '', (resolveMedia(t)||{}).id || ''].map(x=>String(x||'')).join('｜');
+const uniq = new Set();
+const uniqueCandidates = [];
+for (const x of [...apple, ...youtube]) {
+  const k = key(x.t);
+  if (!uniq.has(k)) { uniq.add(k); uniqueCandidates.push(x); }
+}
+
+const pick = uniqueCandidates[0]?.t || null;
 
 const lines = [];
 lines.push(`# oneq dry-run（v1.13 MVP）`);
 lines.push(`- dataset: ${datasetOrigin}`);
-lines.push(`- 全候補: **${all.length}**`);
+lines.push(`- 全トラック数: **${all.length}**`);
+lines.push(`- メディア情報の被覆: **${covered.length} / ${all.length}**`);
 lines.push(`  - Apple: **${apple.length}**`);
 lines.push(`  - YouTube: **${youtube.length}**`);
+if (mediaMap?.mapPath) {
+  lines.push(`- media_map: local:\`${mediaMap.mapPath}\` を使用`);
+} else {
+  lines.push(`- media_map: なし（Docs に \`docs/data/media_map.json\` を作成すると検出可能になります）`);
+}
 lines.push(`- 一意化後の候補（単純ユニーク）: **${uniqueCandidates.length}**`);
 if (pick) {
   const p = pick;
