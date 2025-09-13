@@ -5,7 +5,7 @@
  * - Does NOT commit here; workflow will open a PR with the changes.
  */
 import path from 'node:path';
-import { loadDataset, loadMediaMap, listTracks, resolveMedia, writeJSON, sha256, todayYMD, loadLock, addToLock } from './oneq_lib.mjs';
+import { loadDataset, loadMediaMap, listTracks, resolveMedia, writeJSON, sha256, todayYMD, loadLock, addToLock, readJSON } from './oneq_lib.mjs';
 
 const { ds, origin } = await loadDataset();
 if (!ds) {
@@ -72,5 +72,24 @@ writeJSON(outPath, obj);
 addToLock(lock, track['track/id']);
 writeJSON(lock.path, { used: lock.used });
 
-console.log('[oneq] publish staged:', outPath);
+console.log('[oneq] publish written:', outPath);
+
+// ---- Also append to legacy map: public/app/daily_auto.json (so the app can play it today)
+try {
+  const mapPath = path.resolve('public', 'app', 'daily_auto.json');
+  let j = readJSON(mapPath) || {};
+  if (!j.by_date) j.by_date = {};
+  j.by_date[date] = {
+    provider: prov,
+    id: mid,
+    title: track.title || '',
+    game: track.game || '',
+    composer: track.composer || '',
+    answers: { canonical: track.title || '' }
+  };
+  writeJSON(mapPath, j);
+  console.log('[oneq] daily_auto.json updated:', mapPath);
+} catch (e) {
+  console.warn('[oneq] WARN: failed to update daily_auto.json', e && e.message);
+}
 
