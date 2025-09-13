@@ -1,35 +1,40 @@
 [
   {
-    "id": "v113-daily-oneq-mvp",
-    "title": "v1.13: “1問/日” 自動MVP（埋め込みのみ: Apple優先→YouTube→自前なし）",
-    "labels": [
-      "roadmap:v1.13",
-      "area:daily",
-      "type:feature"
+    "key": "v113-daily-oneq-mvp",
+    "title": "v1.13: “1問/日” 自動MVP（埋め込みのみ: Apple優先→YouTube、自前なし）",
+    "state": "open",
+    "labels": ["v1.13", "feature", "daily", "pipeline", "embedding-only", "legal-safe"],
+    "body": [
+      "目的: 無人で毎日1問を安定配信。法務安全性を担保し埋め込みに統一。",
+      "要件: Apple優先→YouTube埋め込み、クリップ開始秒選定、難易度、誤答肢、正規化、一意性ロック、budgets/E2E緑。",
+      "生成物: Daily JSON / OGP / Feeds（既存dailyの拡張・互換）。",
+      "DoD: 下位Issues（運用・KPI）含めて緑。"
     ],
-    "body": "既存 daily を拡張し、クリップ開始秒選定/難易度/誤答肢/正規化/重複回避をv1.12のlibで実装。OGP/feeds生成と復旧手順を伴う。",
-    "state": "open"
+    "notes": []
   },
   {
-    "id": "v113-daily-recovery-docs",
+    "key": "v113-ops-daily-oneq",
     "title": "v1.13: 復旧手順・運用ドキュ整備（OPERATIONS_DAILY_ONEQ.md）",
-    "labels": [
-      "roadmap:v1.13",
-      "type:docs",
-      "area:ops"
+    "state": "open",
+    "labels": ["v1.13", "docs", "operations", "runbook"],
+    "body": [
+      "手順: 失敗時の手動再実行、強制skip、PRロールバック、Secrets確認。",
+      "確認: Step Summaryの各KPIとArtifactsの整合。",
+      "対象: daily（1問）ジョブ、OGP/Feedsジョブ、ids assign→sync→export の整合。"
     ],
-    "body": "失敗時の手順（手動再実行/強制skip/PR巻き戻し）を文書化。",
-    "state": "open"
+    "notes": []
   },
   {
-    "id": "v113-daily-kpi",
-    "title": "v1.13: KPI計測の組み込み（Step Summary）",
-    "labels": [
-      "roadmap:v1.13",
-      "area:kpi"
+    "key": "v113-kpi-step-summary",
+    "title": "v1.13: KPI 計測の組み込み（Step Summary 出力）",
+    "state": "open",
+    "labels": ["v1.13", "quality", "kpi", "ci"],
+    "body": [
+      "KPI: 成功率、生成リードタイム、メディア解決率、重複拒否件数、ゲート余裕度。",
+      "出力: Actions Summary とログ。スキーマ固定（破壊的変更はNG）。",
+      "運用: 失敗時はKPI含めてSummaryに原因要約を必ず残す。"
     ],
-    "body": "日次生成の成功率・リードタイム・メディア解決率などをStep Summaryに出力。",
-    "state": "open"
+    "notes": []
   }
 ]
 
