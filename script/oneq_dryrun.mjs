@@ -49,6 +49,7 @@ function buildMediaMap() {
       const prov = String(r.provider || '').toLowerCase().trim();
       const mid = String(r.id || '').trim();
       if (!k || !prov || !mid) continue;
+      if (mid === 'FILL_ME' || /^FILL_ME/i.test(mid)) continue; // placeholderは除外
       byId.set(k, { provider: prov, id: mid });
     }
     return { byId, mapPath };
@@ -114,6 +115,7 @@ const resolved = all.map(t => ({ t, m: resolveMedia(t) }));
 const apple = resolved.filter(x => x.m?.provider === 'apple');
 const youtube = resolved.filter(x => x.m?.provider === 'youtube');
 const covered = resolved.filter(x => !!x.m);
+const missing = all.length - covered.length;
 
 // 簡易ユニーク性（将来は直近N日の一意性ロックと統合）
 const key = t => [t?.game || t.game, t?.track?.title || t.title, t?.track?.composer || t.composer, (resolveMedia(t)||{}).provider || '', (resolveMedia(t)||{}).id || ''].map(x=>String(x||'')).join('｜');
@@ -130,7 +132,7 @@ const lines = [];
 lines.push(`# oneq dry-run（v1.13 MVP）`);
 lines.push(`- dataset: ${datasetOrigin}`);
 lines.push(`- 全トラック数: **${all.length}**`);
-lines.push(`- メディア情報の被覆: **${covered.length} / ${all.length}**`);
+lines.push(`- メディア情報の被覆: **${covered.length} / ${all.length}**（未解決: ${missing}）`);
 lines.push(`  - Apple: **${apple.length}**`);
 lines.push(`  - YouTube: **${youtube.length}**`);
 if (mediaMap?.mapPath) {
