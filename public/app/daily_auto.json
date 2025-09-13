@@ -121,6 +121,36 @@
         }
       },
       "difficulty": 4
+    },
+    "2025-09-13": {
+      "title": "クロノ・トリガー",
+      "game": "クロノ・トリガー",
+      "composer": "光田康典",
+      "platform": null,
+      "year": 1995,
+      "media": null,
+      "source": "dataset",
+      "norm": {
+        "title": "クロノトリガ",
+        "game": "クロノトリガ",
+        "composer": "光田康典",
+        "answer": "クロノトリガ"
+      },
+      "provenance": {
+        "source": "dataset",
+        "collected_at": "2025-09-13T15:38:53.373Z",
+        "license_hint": "unknown",
+        "hash": "sha1:49218369f03623dfef92d46ebf1828dcc1c0f0a2"
+      },
+      "meta": {
+        "provenance": {
+          "source": "dataset",
+          "collected_at": "2025-09-13T15:38:53.373Z",
+          "license_hint": "unknown",
+          "hash": "sha1:49218369f03623dfef92d46ebf1828dcc1c0f0a2"
+        }
+      },
+      "difficulty": 4
     }
   }
 }
