@@ -85,7 +85,12 @@ try {
     title: track.title || '',
     game: track.game || '',
     composer: track.composer || '',
-    answers: { canonical: track.title || '' }
+    // 現行UIが期待する簡易回答セット（title/game/composer それぞれの正解候補）
+    answers: {
+      title: [track.title || ''].filter(Boolean),
+      game: [track.game || ''].filter(Boolean),
+      composer: [track.composer || ''].filter(Boolean)
+    }
   };
   writeJSON(mapPath, j);
   console.log('[oneq] daily_auto.json updated:', mapPath);
