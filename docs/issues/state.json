@@ -1,5 +1,5 @@
 {
-  "exported_at": "2025-09-13T09:36:00.546Z",
+  "exported_at": "2025-09-13T15:07:20.248Z",
   "items": [
     {
       "number": 773,
@@ -1073,41 +1073,6 @@
       "updated_at": "2025-09-12T15:03:09Z",
       "roadmap": [
         "roadmap:v1.5"
-      ]
-    },
-    {
-      "number": 915,
-      "title": "v1.12: E2E(on-demand + nightly) を修正",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/915",
-      "labels": [
-        "roadmap:v1.12",
-        "area:e2e",
-        "type:ci",
-        "area:workflow"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T09:47:49Z",
-      "roadmap": [
-        "roadmap:v1.12"
-      ]
-    },
-    {
-      "number": 916,
-      "title": "v1.12: E2E(matrix) の安定化",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/916",
-      "labels": [
-        "type:test",
-        "roadmap:v1.12",
-        "area:e2e"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T09:47:48Z",
-      "roadmap": [
-        "roadmap:v1.12"
       ]
     }
   ]

@@ -1,6 +1,6 @@
 # Issues snapshot
 
-Exported at: 2025-09-13T09:36:00.547Z
+Exported at: 2025-09-13T15:07:20.248Z
 
 ## post-v1.6
 
@@ -59,8 +59,6 @@ Exported at: 2025-09-13T09:36:00.547Z
 | 944 | [v1.12: docs-lint（リンク切れ）軽量Workflow追加](https://github.com/nantes-rfli/vgm-quiz/issues/944) | closed | type:docs, roadmap:v1.12, area:ci |  | 2025-09-12T15:03:34Z |
 | 946 | [本番: 初期数秒の英語表示＆ボタン無効 → 数秒後に日本語＆有効](https://github.com/nantes-rfli/vgm-quiz/issues/946) | closed | a11y, i18n, roadmap:v1.12, type:bug, area:prod |  | 2025-09-12T15:03:32Z |
 | 947 | [本番: フッター要素は可視だがテキストが空](https://github.com/nantes-rfli/vgm-quiz/issues/947) | closed | area:ui, roadmap:v1.12, type:bug, area:prod |  | 2025-09-12T15:03:31Z |
-| 915 | [v1.12: E2E(on-demand + nightly) を修正](https://github.com/nantes-rfli/vgm-quiz/issues/915) | closed | roadmap:v1.12, area:e2e, type:ci, area:workflow |  | 2025-09-12T09:47:49Z |
-| 916 | [v1.12: E2E(matrix) の安定化](https://github.com/nantes-rfli/vgm-quiz/issues/916) | closed | type:test, roadmap:v1.12, area:e2e |  | 2025-09-12T09:47:48Z |
 | 773 | [v1.12: UI-slim Phase 2（画面単位分割：play / media）](https://github.com/nantes-rfli/vgm-quiz/issues/773) | open | area:ui, roadmap:v1.12, type:refactor |  | 2025-09-10T08:53:36Z |
 
 ## v1.13
