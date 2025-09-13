@@ -3,21 +3,21 @@
   "question": {
     "type": "guess-track",
     "locale": "ja",
-    "title": "序曲",
-    "game": "ドラゴンクエスト",
-    "composer": "すぎやまこういち",
-    "track/id": "d18f04f2-7c53-3baf-af77-09952dee1658"
+    "title": "メインテーマ",
+    "game": "ゼルダの伝説",
+    "composer": "近藤浩治",
+    "track/id": "dcb57260-ed1c-3122-809e-73cc6add7659"
   },
   "media": {
     "provider": "apple",
-    "id": "1824662425"
+    "id": "1732110254"
   },
   "provenance": {
     "source": "docs/data/media_map.json",
     "provider": "apple",
-    "id": "1824662425",
-    "collected_at": "2025-09-13T05:08:58.167Z",
-    "hash": "ee1813af0ad95ddd92d22c495560b5cfb98eb8a9c25409c5b587d556f844bab3",
+    "id": "1732110254",
+    "collected_at": "2025-09-13T05:35:36.095Z",
+    "hash": "27b6d2d7d6dc8dbf961fec30d9260ebd6727f816a02be9ce20cc8277026cdc37",
     "license_hint": "embed-only; see provider terms"
   }
 }
