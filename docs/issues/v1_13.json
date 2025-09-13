@@ -1,9 +1,17 @@
 [
   {
+    "id": "v1-13-1-mvp-apple-youtube",
     "key": "v113-daily-oneq-mvp",
     "title": "v1.13: “1問/日” 自動MVP（埋め込みのみ: Apple優先→YouTube、自前なし）",
     "state": "open",
-    "labels": ["v1.13", "feature", "daily", "pipeline", "embedding-only", "legal-safe"],
+    "labels": [
+      "v1.13",
+      "feature",
+      "daily",
+      "pipeline",
+      "embedding-only",
+      "legal-safe"
+    ],
     "body": [
       "目的: 無人で毎日1問を安定配信。法務安全性を担保し埋め込みに統一。",
       "要件: Apple優先→YouTube埋め込み、クリップ開始秒選定、難易度、誤答肢、正規化、一意性ロック、budgets/E2E緑。",
@@ -13,10 +21,16 @@
     "notes": []
   },
   {
+    "id": "v1-13-operations-daily-oneq-md",
     "key": "v113-ops-daily-oneq",
     "title": "v1.13: 復旧手順・運用ドキュ整備（OPERATIONS_DAILY_ONEQ.md）",
     "state": "open",
-    "labels": ["v1.13", "docs", "operations", "runbook"],
+    "labels": [
+      "v1.13",
+      "docs",
+      "operations",
+      "runbook"
+    ],
     "body": [
       "手順: 失敗時の手動再実行、強制skip、PRロールバック、Secrets確認。",
       "確認: Step Summaryの各KPIとArtifactsの整合。",
@@ -25,10 +39,16 @@
     "notes": []
   },
   {
+    "id": "v1-13-kpi-step-summary",
     "key": "v113-kpi-step-summary",
     "title": "v1.13: KPI 計測の組み込み（Step Summary 出力）",
     "state": "open",
-    "labels": ["v1.13", "quality", "kpi", "ci"],
+    "labels": [
+      "v1.13",
+      "quality",
+      "kpi",
+      "ci"
+    ],
     "body": [
       "KPI: 成功率、生成リードタイム、メディア解決率、重複拒否件数、ゲート余裕度。",
       "出力: Actions Summary とログ。スキーマ固定（破壊的変更はNG）。",
@@ -37,4 +57,3 @@
     "notes": []
   }
 ]
-
