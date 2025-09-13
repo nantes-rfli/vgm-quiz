@@ -1,0 +1,72 @@
+[
+  {
+    "key": "v113-app-daily-auto-wire",
+    "title": "daily_auto を tracks へ結線し playable≥1 にする（media/answers 注入）",
+    "state": "open",
+    "labels": ["v1.13", "app", "daily", "auto", "a11y"],
+    "body": "public/app/app.js のロード時に、daily_auto=1 かつ window.__DAILY_AUTO_CHOSEN がある場合、該当トラックへ media(provider/id) と answers(title|game|composer) を注入し、playable≥1 を満たす。赤帯『公開データに再生可能な問題がありません』を解消する。",
+    "notes": [
+      {
+        "at": "2025-09-13T15:40:00+09:00",
+        "by": "bot",
+        "body": "原因: UI側で daily_auto.json の選択結果を tracks に結線しておらず、media/answers が 0 件のため playable=0 だった。対策: 起動時に注入。"
+      }
+    ]
+  },
+  {
+    "key": "v113-app-daily-auto-wanted",
+    "title": "daily_auto=1 のとき 1問化（DAILY.wanted の上書き）",
+    "state": "open",
+    "labels": ["v1.13", "app", "daily"],
+    "body": "問題生成後、daily_auto=1 かつ __DAILY_AUTO_CHOSEN がある場合は DAILY.wanted をそのタイトルに限定し 1問化する。既定値の5問ではなく、”1問/日” の体験に統一する。",
+    "notes": [
+      {
+        "at": "2025-09-13T15:40:00+09:00",
+        "by": "bot",
+        "body": "暫定で既定5問のまま出題されていたため、1問固定に寄せる小差分を入れる。"
+      }
+    ]
+  },
+  {
+    "key": "v113-pages-trigger-simplify",
+    "title": "Pages を push: main（＋manual）に一本化／二重トリガ撤去",
+    "state": "closed",
+    "labels": ["ops", "pages", "ci"],
+    "body": "pages.yml の trigger を push: main + workflow_dispatch に絞り、workflow_run: CI Fast を撤去。PR時プレビューや連続実行との競合で canceled になる事象を回避。",
+    "notes": [
+      {
+        "at": "2025-09-13T15:40:00+09:00",
+        "by": "bot",
+        "body": "publish→自動マージ→push: main→Pages（1回）で安定化。手動再実行が不要に。適用済み。"
+      }
+    ]
+  },
+  {
+    "key": "v113-publish-idempotent-msg",
+    "title": "publish の冪等化メッセージ（当日既存なら PR スキップを明示）",
+    "state": "closed",
+    "labels": ["oneq", "ci"],
+    "body": "public/daily/DATE.json が存在する場合は PR を作らず成功終了し、ログに『already exists → skip creating PR』と明示する。",
+    "notes": [
+      {
+        "at": "2025-09-13T15:40:00+09:00",
+        "by": "bot",
+        "body": "同日再実行時の混乱を防止。適用済み。"
+      }
+    ]
+  },
+  {
+    "key": "v113-docs-daily-pipeline",
+    "title": "DAILY_ONEQ_PIPELINE.md（flow/役割の明文化）",
+    "state": "closed",
+    "labels": ["docs"],
+    "body": "dry-run → preview → publish と public/daily/*.json／public/app/daily_auto.json／docs/data/daily_lock.json の役割、ユーザー導線（latest.html → app）を明文化。",
+    "notes": [
+      {
+        "at": "2025-09-13T15:40:00+09:00",
+        "by": "bot",
+        "body": "一次ソース（public/daily/*.json）と互換ブリッジ（daily_auto.json）の位置付けを定義。適用済み。"
+      }
+    ]
+  }
+]
