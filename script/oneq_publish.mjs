@@ -5,6 +5,7 @@
  * - Does NOT commit here; workflow will open a PR with the changes.
  */
 import path from 'node:path';
+import fs from 'node:fs';
 import { loadDataset, loadMediaMap, listTracks, resolveMedia, writeJSON, sha256, todayYMD, loadLock, addToLock, readJSON } from './oneq_lib.mjs';
 
 const { ds, origin } = await loadDataset();
@@ -36,7 +37,14 @@ if (!enriched.length) {
 }
 
 const pick = enriched[0];
-const date = todayYMD();
+const date = process.env.ONEQ_DATE || todayYMD();
+
+// Idempotent: if today's file already exists, do nothing (PRなし)
+const already = path.resolve('public', 'daily', `${date}.json`);
+if (fs.existsSync(already)) {
+  console.log(`[oneq] daily already exists for ${date}:`, already, '→ skip creating PR');
+  process.exit(0);
+}
 const prov = pick.m.provider;
 const mid = pick.m.id;
 const track = pick.t;
