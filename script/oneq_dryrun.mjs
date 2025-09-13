@@ -8,6 +8,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 
 const SUMMARY = process.env.GITHUB_STEP_SUMMARY;
 
@@ -37,10 +38,42 @@ function findTracks(dataset) {
 }
 
 const datasetPath = path.resolve('public/build/dataset.json');
-const ds = readJSON(datasetPath);
+let ds = readJSON(datasetPath);
+let datasetOrigin = `local:${datasetPath}`;
+
+// ローカルに無ければ GitHub Pages から取得（読み取り専用）
 if (!ds) {
-  console.log('[oneq] WARN: dataset not found or invalid:', datasetPath);
-  if (SUMMARY) fs.appendFileSync(SUMMARY, `\n**oneq dry-run**: dataset not found: \`${datasetPath}\`\n`);
+  const repo = process.env.GITHUB_REPOSITORY || 'nantes-rfli/vgm-quiz';
+  const [owner, name] = repo.split('/');
+  const base = process.env.ONEQ_DATASET_BASE || `https://${owner}.github.io/${name}`;
+  const candidates = [
+    process.env.ONEQ_DATASET_URL,
+    `${base}/build/dataset.json`,
+    `${base}/app/build/dataset.json`
+  ].filter(Boolean);
+
+  async function fetchJSON(url) {
+    try {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch(url, { signal: ctrl.signal, headers: { 'accept': 'application/json' } });
+      clearTimeout(to);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch { return null; }
+  }
+
+  for (const url of candidates) {
+    ds = await fetchJSON(url);
+    if (ds) { datasetOrigin = `remote:${url}`; break; }
+    await sleep(200);
+  }
+}
+
+if (!ds) {
+  const msg = `**oneq dry-run**: dataset not found (tried local and remote). last tried: \`${datasetPath}\``;
+  console.log('[oneq] WARN:', msg);
+  if (SUMMARY) fs.appendFileSync(SUMMARY, `\n${msg}\n`);
   process.exit(0); // 成功扱い（dry-run）
 }
 
@@ -61,7 +94,7 @@ const pick = uniqueCandidates[0] || null;
 
 const lines = [];
 lines.push(`# oneq dry-run（v1.13 MVP）`);
-lines.push(`- dataset: \`${datasetPath}\``);
+lines.push(`- dataset: ${datasetOrigin}`);
 lines.push(`- 全候補: **${all.length}**`);
 lines.push(`  - Apple: **${apple.length}**`);
 lines.push(`  - YouTube: **${youtube.length}**`);
