@@ -1,8 +1,8 @@
 name: daily (oneq publish)
 on:
   workflow_dispatch: {}
-  # schedule:
-  #   - cron: "5 15 * * *" # 00:05 JST (UTC+9)
+  schedule:
+    - cron: "5 0 * * *" # 09:05 JST (UTC+9)
 
 jobs:
   publish:
@@ -30,13 +30,17 @@ jobs:
       - name: Generate daily & update lock
         run: node script/oneq_publish.mjs
 
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: daily-${{ env.ONEQ_DATE }}
+          name: oneq-publish-${{ env.ONEQ_DATE }}
           path: |
-            public/daily/${{ env.ONEQ_DATE }}*.json
+            public/daily/
             docs/data/daily_lock.json
+
+      - name: Write KPI summary
+        run: |
+          node script/oneq_summary.mjs
 
       - name: Create Pull Request
         id: cpr
