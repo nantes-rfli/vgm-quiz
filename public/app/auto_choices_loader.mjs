@@ -1,3 +1,4 @@
+/* v113 diag: warn when requested date missing */
 // Load daily_auto.json and expose today's pick (and its choices) on window
 // Enabled only when ?auto=1 or ?daily_auto=1 is present.
 // Index.html loads this before mc.js so that generateChoices can consult it.
@@ -54,7 +55,14 @@ async function bootstrap() {
   if (!j || !j.by_date) return;
   const date = requestedDate();
   const entry = j.by_date[date];
-  if (!entry) return;
+  if (!entry) {
+    try {
+      const keys = Object.keys(j.by_date || {});
+      console.warn('[auto-choices] no entry for date', date,
+        '(available:', keys.slice(0, 12).join(', '), keys.length > 12 ? '...' : '', ')');
+    } catch (_) {}
+    return;
+  }
   // store raw entry for mc.js to match canonically (alias-aware)
   window.__DAILY_AUTO_CHOSEN = entry;
   if (isForceAny()) {
