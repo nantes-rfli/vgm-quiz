@@ -4,20 +4,8 @@
     "key": "v113-daily-oneq-mvp",
     "title": "v1.13: “1問/日” 自動MVP（埋め込みのみ: Apple優先→YouTube、自前なし）",
     "state": "open",
-    "labels": [
-      "v1.13",
-      "feature",
-      "daily",
-      "pipeline",
-      "embedding-only",
-      "legal-safe"
-    ],
-    "body": [
-      "目的: 無人で毎日1問を安定配信。法務安全性を担保し埋め込みに統一。",
-      "要件: Apple優先→YouTube埋め込み、クリップ開始秒選定、難易度、誤答肢、正規化、一意性ロック、budgets/E2E緑。",
-      "生成物: Daily JSON / OGP / Feeds（既存dailyの拡張・互換）。",
-      "DoD: 下位Issues（運用・KPI）含めて緑。"
-    ],
+    "labels": ["v1.13", "feature", "daily", "pipeline", "embedding-only", "legal-safe"],
+    "body": "目的: 無人で毎日1問を安定配信。法務安全性を担保し埋め込みに統一。\n\n- 要件: Apple優先→YouTube埋め込み、クリップ開始秒選定、難易度、誤答肢、正規化、一意性ロック、budgets/E2E緑\n- 生成物: Daily JSON / OGP / Feeds（既存dailyの拡張・互換）\n- DoD: 下位Issues（運用・KPI）含めて緑",
     "notes": []
   },
   {
@@ -25,17 +13,8 @@
     "key": "v113-ops-daily-oneq",
     "title": "v1.13: 復旧手順・運用ドキュ整備（OPERATIONS_DAILY_ONEQ.md）",
     "state": "open",
-    "labels": [
-      "v1.13",
-      "docs",
-      "operations",
-      "runbook"
-    ],
-    "body": [
-      "手順: 失敗時の手動再実行、強制skip、PRロールバック、Secrets確認。",
-      "確認: Step Summaryの各KPIとArtifactsの整合。",
-      "対象: daily（1問）ジョブ、OGP/Feedsジョブ、ids assign→sync→export の整合。"
-    ],
+    "labels": ["v1.13", "docs", "operations", "runbook"],
+    "body": "手順: 失敗時の手動再実行、強制skip、PRロールバック、Secrets確認。\n\n- 確認: Step Summaryの各KPIとArtifactsの整合\n- 対象: daily（1問）ジョブ、OGP/Feedsジョブ、ids assign→sync→export の整合",
     "notes": []
   },
   {
@@ -43,17 +22,8 @@
     "key": "v113-kpi-step-summary",
     "title": "v1.13: KPI 計測の組み込み（Step Summary 出力）",
     "state": "open",
-    "labels": [
-      "v1.13",
-      "quality",
-      "kpi",
-      "ci"
-    ],
-    "body": [
-      "KPI: 成功率、生成リードタイム、メディア解決率、重複拒否件数、ゲート余裕度。",
-      "出力: Actions Summary とログ。スキーマ固定（破壊的変更はNG）。",
-      "運用: 失敗時はKPI含めてSummaryに原因要約を必ず残す。"
-    ],
+    "labels": ["v1.13", "quality", "kpi", "ci"],
+    "body": "KPI: 成功率、生成リードタイム、メディア解決率、重複拒否件数、ゲート余裕度。\n\n- 出力: Actions Summary とログ（スキーマ固定、破壊的変更はNG）\n- 運用: 失敗時はKPIを含めてSummaryに原因要約を必ず残す",
     "notes": []
   }
 ]
