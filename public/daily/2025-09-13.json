@@ -3,21 +3,21 @@
   "question": {
     "type": "guess-track",
     "locale": "ja",
-    "title": "Megalovania",
-    "game": "UNDERTALE",
-    "composer": "Toby Fox",
-    "track/id": "2a78a753-5f45-39e7-b04c-4e7718aaeab5"
+    "title": "クロノ・トリガー",
+    "game": "クロノ・トリガー",
+    "composer": "光田康典",
+    "track/id": "2d518cb0-0a4a-3b5e-aa62-27b184c6bb25"
   },
   "media": {
     "provider": "apple",
-    "id": "1411893917"
+    "id": "324080961"
   },
   "provenance": {
     "source": "docs/data/media_map.json",
     "provider": "apple",
-    "id": "1411893917",
-    "collected_at": "2025-09-13T04:39:03.847Z",
-    "hash": "914b08a0ee8ff8d203a74b80914c9c16b34b4fe605bd490b9272ccd927c2d6dc",
+    "id": "324080961",
+    "collected_at": "2025-09-13T04:50:38.886Z",
+    "hash": "ec7722d15dbce99f0f2dbad84a02cda131957f773131a718daff91525d60332e",
     "license_hint": "embed-only; see provider terms"
   }
 }
