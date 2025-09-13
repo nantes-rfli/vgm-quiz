@@ -3,21 +3,21 @@
   "question": {
     "type": "guess-track",
     "locale": "ja",
-    "title": "メインテーマ",
-    "game": "ゼルダの伝説",
-    "composer": "近藤浩治",
-    "track/id": "dcb57260-ed1c-3122-809e-73cc6add7659"
+    "title": "Megalovania",
+    "game": "UNDERTALE",
+    "composer": "Toby Fox",
+    "track/id": "2a78a753-5f45-39e7-b04c-4e7718aaeab5"
   },
   "media": {
     "provider": "apple",
-    "id": "1732110254"
+    "id": "1411893917"
   },
   "provenance": {
     "source": "docs/data/media_map.json",
     "provider": "apple",
-    "id": "1732110254",
-    "collected_at": "2025-09-13T05:35:36.095Z",
-    "hash": "27b6d2d7d6dc8dbf961fec30d9260ebd6727f816a02be9ce20cc8277026cdc37",
+    "id": "1411893917",
+    "collected_at": "2025-09-13T06:05:41.134Z",
+    "hash": "914b08a0ee8ff8d203a74b80914c9c16b34b4fe605bd490b9272ccd927c2d6dc",
     "license_hint": "embed-only; see provider terms"
   }
 }
