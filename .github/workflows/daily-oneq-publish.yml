@@ -39,6 +39,7 @@ jobs:
             docs/data/daily_lock.json
 
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           # Prefer DAILY_PR_PAT, fall back to CPR_PAT
@@ -55,4 +56,12 @@ jobs:
             docs/data/daily_lock.json
           signoff: true
           delete-branch: true
+
+      - name: Enable PR auto-merge (squash)
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.DAILY_PR_PAT || secrets.CPR_PAT }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: SQUASH
 

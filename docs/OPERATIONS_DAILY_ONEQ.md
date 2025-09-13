@@ -30,6 +30,11 @@
   - **FGT（細分化）**: 対象リポに対し *Contents: Read/Write*, *Pull requests: Read/Write*, *Actions: Read/Write*
 - 既に作成済みの PR は、`daily (oneq publish)` を**再実行**すると同ブランチへ新規コミットが積まれ、必須チェックが起動します。
 
+### 自動マージの有効化
+- 本ワークフローは PR 作成後に **auto-merge（squash）を自動で有効化**します。
+- リポジトリ設定で **Allow auto-merge** を ON にしてください（Settings → General）。
+- ブランチ保護で「レビュー必須」などの条件がある場合は、条件を満たした時点で自動的にマージされます。
+
 ## 失敗時の復旧
 - **A. 手動再実行**: フレーク要因の場合はリトライ。Artifacts を確認して原因を要約し、Issue に `notes` として残す。
 - **B. 強制 skip**: Apple/YouTube いずれも解決不可の場合は当日を skip。次回に繰越されることを Summary に明記。
