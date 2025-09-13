@@ -1,14 +1,9 @@
 name: Pages
 
 on:
-  # 通常ルート: main に入れば必ず実行
+  # 通常ルート: main に入れば必ず実行（これ一本に単純化）
   push:
     branches: [ main ]
-  # 保険ルート: CI Fast が成功で完了したら実行（重複は concurrency で抑止）
-  workflow_run:
-    workflows: [ "CI Fast" ]
-    types:
-      - completed
   # 手動で再デプロイできるように
   workflow_dispatch: {}
 
