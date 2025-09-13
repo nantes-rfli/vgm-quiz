@@ -35,6 +35,12 @@
 - リポジトリ設定で **Allow auto-merge** を ON にしてください（Settings → General）。
 - ブランチ保護で「レビュー必須」などの条件がある場合は、条件を満たした時点で自動的にマージされます。
 
+### Pages 反映がたまにキャンセルされる問題（簡素化で回避）
+- `Pages` ワークフローが **push** と **workflow_run(CI Fast)** の2経路で二重起動し、concurrency で競合→片方が `canceled` になる事がある。
+- **対策（推奨）**: `pages.yml` のトリガを **push: main** と **workflow_dispatch** のみに**単純化**。  
+  - `workflow_run: CI Fast` は削除（他のデイリー系も push→Pages に寄せる運用のため）
+  - PR 時の必須チェックは `pages-pr-build.yml` の **shim** が満たす（実デプロイは main に入ってから）
+
 ## 失敗時の復旧
 - **A. 手動再実行**: フレーク要因の場合はリトライ。Artifacts を確認して原因を要約し、Issue に `notes` として残す。
 - **B. 強制 skip**: Apple/YouTube いずれも解決不可の場合は当日を skip。次回に繰越されることを Summary に明記。
