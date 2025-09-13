@@ -92,5 +92,25 @@
         "body": "一次ソース（public/daily/*.json）と互換ブリッジ（daily_auto.json）の位置付けを定義。適用済み。"
       }
     ]
+  },
+  {
+    "id": "daily-oneq-publish-inputs-date",
+    "key": "v113-publish-inputs",
+    "title": "daily (oneq publish) に日付入力（workflow_dispatch inputs）を追加（任意）",
+    "state": "open",
+    "labels": [
+      "v1.13",
+      "ci",
+      "ops",
+      "nice-to-have"
+    ],
+    "body": "workflow_dispatch に date 文字列（YYYY-MM-DD）を受け、ONEQ_DATE に渡す。未指定時は JST 今日。DoD: 手動実行で任意日付の生成が可能になり、Step Summary に採用日付が明示される。",
+    "notes": [
+      {
+        "at": "2025-09-13T18:00:00+09:00",
+        "by": "bot",
+        "body": "docs へ追加。後続で workflow 入力と script 側の ONEQ_DATE 取り込みを実装。"
+      }
+    ]
   }
 ]
