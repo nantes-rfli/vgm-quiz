@@ -17,10 +17,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install deps (if any)
+      - name: Install deps (guarded, dry-run needs none)
         run: |
-          if [ -f package.json ]; then
+          if [ -f package-lock.json ]; then
             npm ci --no-audit --no-fund
+          elif [ -f package.json ]; then
+            echo "[oneq] skip install: package-lock.json not found (dry-run does not require deps)"
+          else
+            echo "[oneq] skip install: no package.json"
           fi
 
       - name: Run oneq dry-run
