@@ -1,5 +1,5 @@
 {
-  "exported_at": "2025-09-12T15:34:26.992Z",
+  "exported_at": "2025-09-13T02:03:52.936Z",
   "items": [
     {
       "number": 773,
@@ -127,23 +127,6 @@
       "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/738",
       "labels": [
         "area:kpi",
-        "roadmap:v1.13"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-10T00:45:37Z",
-      "roadmap": [
-        "roadmap:v1.13"
-      ]
-    },
-    {
-      "number": 737,
-      "title": "v1.13: 復旧手順・運用ドキュ整備（OPERATIONS_DAILY_ONEQ.md）",
-      "state": "open",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/737",
-      "labels": [
-        "type:docs",
-        "area:ops",
         "roadmap:v1.13"
       ],
       "assignees": [],
@@ -1492,60 +1475,6 @@
       "updated_at": "2025-09-12T03:44:45Z",
       "roadmap": [
         "roadmap:post-v1.7"
-      ]
-    },
-    {
-      "number": 884,
-      "title": "UI: デザイントークンをCSSで統一",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/884",
-      "labels": [
-        "roadmap:v1.5",
-        "area:ui",
-        "responsive"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T03:44:44Z",
-      "roadmap": [
-        "roadmap:v1.5"
-      ]
-    },
-    {
-      "number": 872,
-      "title": "Authoring: daily-publish（日次JSON/OGP生成と配置）",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/872",
-      "labels": [
-        "type:test",
-        "area:ops",
-        "status:done",
-        "roadmap:post-v1.7"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T03:44:44Z",
-      "roadmap": [
-        "roadmap:post-v1.7"
-      ]
-    },
-    {
-      "number": 809,
-      "title": "v1.12: E2E(i18n a11y live region) を修正",
-      "state": "closed",
-      "html_url": "https://github.com/nantes-rfli/vgm-quiz/issues/809",
-      "labels": [
-        "a11y",
-        "type:test",
-        "i18n",
-        "roadmap:v1.12",
-        "area:e2e"
-      ],
-      "assignees": [],
-      "milestone": null,
-      "updated_at": "2025-09-12T03:44:40Z",
-      "roadmap": [
-        "roadmap:v1.12"
       ]
     }
   ]
