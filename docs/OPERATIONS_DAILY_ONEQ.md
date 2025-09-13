@@ -22,6 +22,13 @@
 - Actions: **daily (oneq publish)** … 1件を pick し、`public/daily/YYYY-MM-DD.json` を生成、`docs/data/daily_lock.json` に追記し、**PR を自動作成**
 - PR をレビューしてマージすると、Pages に `public/daily/YYYY-MM-DD.json` が公開される
 
+### PR作成と必須チェックの起動（PAT設定）
+- `daily (oneq publish)` の PR で **必須チェック（ci-fast-pr-build / pages-pr-build / required-check）** が「Expected」のまま動かない場合、`GITHUB_TOKEN` では後続ワークフローが起動しない設定になっています。
+- 本ワークフローは **`DAILY_PR_PAT` を優先**し、未設定なら **`CPR_PAT`** をフォールバックして使います。
+  - 既存のどちらかを **Settings → Secrets and variables → Actions** に登録してあれば追加作業は不要です。
+  - **クラシックPAT**: `repo` + `workflow` スコープ（推奨: 期限付き）
+  - **FGT（細分化）**: 対象リポに対し *Contents: Read/Write*, *Pull requests: Read/Write*, *Actions: Read/Write*
+- 既に作成済みの PR は、`daily (oneq publish)` を**再実行**すると同ブランチへ新規コミットが積まれ、必須チェックが起動します。
 
 ## 失敗時の復旧
 - **A. 手動再実行**: フレーク要因の場合はリトライ。Artifacts を確認して原因を要約し、Issue に `notes` として残す。
