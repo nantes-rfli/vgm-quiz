@@ -159,6 +159,22 @@ async function preloadDailyMap() {
 
 function afterQuestionsBuiltHook() {
   try {
+    // If AUTO chosen exists, make sure its question comes first (so daily fallback picks it)
+    try {
+      const chosen = (typeof window !== 'undefined') && window.__DAILY_AUTO_CHOSEN;
+      if (chosen && Array.isArray(questions) && questions.length > 0) {
+        const norm = (s) => {
+          try { return normalizeV2(String(s)); }
+          catch (_) { return String(s ?? '').normalize('NFKC').trim().toLowerCase(); }
+        };
+        const idx = questions.findIndex(q => q?.track?.title && chosen.title && norm(q.track.title) === norm(chosen.title));
+        if (idx > 0) {
+          const [picked] = questions.splice(idx, 1);
+          questions.unshift(picked);
+          try { console.info('[auto] moved chosen question to the first slot'); } catch(_) {}
+        }
+      }
+    } catch (e) { console.warn('[auto] reorder failed', e); }
     if (getQueryBool('qp') && Array.isArray(questions) && questions.length > 0) {
       const order = orderByYearBucket(questions, rngForPipeline);
       questions = order.map(i => questions[i]);
@@ -287,10 +303,45 @@ async function loadDataset() {
     const txt = await res.text();
     const data = await parseJsonOffMainThread(txt);
     tracks = data.tracks || data; // 互換
+    // --- AUTO daily: if a chosen entry exists, attach media/answers to the matching track
+    try {
+      const chosen = (typeof window !== 'undefined') && window.__DAILY_AUTO_CHOSEN;
+      if (chosen && tracks && Array.isArray(tracks)) {
+        const norm = (s) => {
+          try { return normalizeV2(String(s)); }
+          catch (_) { return String(s ?? '').normalize('NFKC').trim().toLowerCase(); }
+        };
+        const match = (t) => {
+          // Prefer strict title match; fallback to loose OR with game/composer if present
+          if (t?.title && chosen.title && norm(t.title) === norm(chosen.title)) return true;
+          // Some datasets may only have id
+          if (t?.id && chosen.id && String(t.id) === String(chosen.id)) return true;
+          return false;
+        };
+        const idx = tracks.findIndex(match);
+        if (idx >= 0) {
+          const t = tracks[idx];
+          // attach media (provider/id)
+          if (!t.media) t.media = {};
+          if (!t.media.provider && chosen.provider) t.media.provider = chosen.provider;
+          if (!t.media.id && chosen.id) t.media.id = chosen.id;
+          // attach minimal answers expected by playable check
+          t.answers = t.answers || {};
+          if (!t.answers.title && chosen.title) t.answers.title = [ String(chosen.title) ];
+          if (!t.answers.game && chosen.game) t.answers.game = [ String(chosen.game) ];
+          if (!t.answers.composer && chosen.composer) t.answers.composer = [ String(chosen.composer) ];
+          try { console.info('[auto] attached media/answers to', t.title || t.id); } catch(_) {}
+        } else {
+          console.warn('[auto] chosen entry did not match any track by title/id');
+        }
+      }
+    } catch (e) {
+      console.warn('[auto] attach failed', e);
+    }
     datasetLoaded = true;
 
     // playable 件数（UI-slimの出題判定に近い条件）
-    const playable = (Array.isArray(tracks) ? tracks : []).filter(t =>
+    const playable = (tracks || []).filter(t =>
       t && t.media && t.media.provider && t.answers
     ).length;
     try { console.info('[PLAYABLE] count=%s', playable); } catch(_) {}
