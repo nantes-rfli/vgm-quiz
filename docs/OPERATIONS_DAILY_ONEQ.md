@@ -17,6 +17,12 @@
 - スキーマ: `{ "track_id": "<datasetの track/id>", "provider": "apple|youtube", "id": "<埋め込みID>" }`
 - 本番CIではネットワーク解決を行わない前提（法務と安定性のため）。`media_map.json` はPRで更新し、レビュー可能な形で履歴を残す。
 
+## 公開フロー（publish）
+- Actions: **daily (oneq preview)** … 1件を pick し、`out/daily-YYYY-MM-DD.json` をアーティファクトとして出力（コミットなし）
+- Actions: **daily (oneq publish)** … 1件を pick し、`public/daily/YYYY-MM-DD.json` を生成、`docs/data/daily_lock.json` に追記し、**PR を自動作成**
+- PR をレビューしてマージすると、Pages に `public/daily/YYYY-MM-DD.json` が公開される
+
+
 ## 失敗時の復旧
 - **A. 手動再実行**: フレーク要因の場合はリトライ。Artifacts を確認して原因を要約し、Issue に `notes` として残す。
 - **B. 強制 skip**: Apple/YouTube いずれも解決不可の場合は当日を skip。次回に繰越されることを Summary に明記。
