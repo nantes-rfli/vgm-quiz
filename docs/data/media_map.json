@@ -14,6 +14,22 @@
     "composer": "すぎやまこういち",
     "provider": "apple",
     "id": "1824662425"
+  },
+  {
+    "track_id": "dcb57260-ed1c-3122-809e-73cc6add7659",
+    "title": "メインテーマ",
+    "game": "ゼルダの伝説",
+    "composer": "近藤浩治",
+    "provider": "apple",
+    "id": "1732110254"
+  },
+  {
+    "track_id": "2d518cb0-0a4a-3b5e-aa62-27b184c6bb25",
+    "title": "クロノ・トリガー",
+    "game": "クロノ・トリガー",
+    "composer": "光田康典",
+    "provider": "apple",
+    "id": "324080961"
   }
 ]
 
