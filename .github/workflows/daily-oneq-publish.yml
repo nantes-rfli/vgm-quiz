@@ -1,0 +1,55 @@
+name: daily (oneq publish)
+on:
+  workflow_dispatch: {}
+  # schedule:
+  #   - cron: "5 15 * * *" # 00:05 JST (UTC+9)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Compute date
+        id: date
+        run: echo "ONEQ_DATE=$(node -e \"console.log(new Date().toISOString().slice(0,10))\")" >> $GITHUB_ENV
+
+      - name: Generate daily & update lock
+        run: node script/oneq_publish.mjs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-${{ env.ONEQ_DATE }}
+          path: |
+            public/daily/${{ env.ONEQ_DATE }}*.json
+            docs/data/daily_lock.json
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(oneq): ${{ env.ONEQ_DATE }} daily question"
+          title: "chore(oneq): ${{ env.ONEQ_DATE }} daily question"
+          body: |
+            Auto-generated daily question for ${{ env.ONEQ_DATE }}.
+            - Source: docs/data/media_map.json
+            - Embedding-only policy
+          branch: chore/oneq-${{ env.ONEQ_DATE }}
+          add-paths: |
+            public/daily/${{ env.ONEQ_DATE }}*.json
+            docs/data/daily_lock.json
+          signoff: true
+          delete-branch: true
+
