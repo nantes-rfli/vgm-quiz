@@ -74,7 +74,7 @@ function jstISO(d = new Date()) {
   <script>(function(){try{var p=new URLSearchParams(location.search||"");if(p.get("no-redirect")==="1")return;var delay=parseInt(p.get("redirectDelayMs")||"0",10);if(isNaN(delay)||delay<0)delay=0;setTimeout(function(){location.replace(${JSON.stringify('./'+d+'.html')});},delay);}catch(e){}})();</script>
 </head><body>
   <p>Redirecting to <a href="./${d}.html">${d}</a> …</p>
-  <p><a id="cta-latest-app" href="../app/?daily=${d}">アプリで今日の1問へ</a></p>
+  <p><a id="cta-latest-app" href="../app/?daily_auto=1&daily=${d}">アプリで今日の1問へ</a></p>
 </body></html>`;
 
   fs.writeFileSync(path.join(outDir, 'index.html'), mkIndex());
