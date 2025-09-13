@@ -126,7 +126,8 @@ for (const x of [...apple, ...youtube]) {
   if (!uniq.has(k)) { uniq.add(k); uniqueCandidates.push(x); }
 }
 
-const pick = uniqueCandidates[0]?.t || null;
+const pickEntry = uniqueCandidates[0] || null;
+const pick = pickEntry ? pickEntry.t : null;
 
 const lines = [];
 lines.push(`# oneq dry-run（v1.13 MVP）`);
@@ -143,10 +144,13 @@ if (mediaMap?.mapPath) {
 lines.push(`- 一意化後の候補（単純ユニーク）: **${uniqueCandidates.length}**`);
 if (pick) {
   const p = pick;
-  const title = p?.track?.title || '(unknown title)';
-  const game = p?.game || '(unknown game)';
-  const comp = p?.track?.composer || '(unknown composer)';
-  lines.push(`- 代表候補（サンプル）: **${title}** / ${game} / ${comp} / ${p?.media?.provider}:${p?.media?.id}`);
+  const media = resolveMedia(p) || {};
+  const title = (p?.track?.title || p?.title || '').trim() || '(unknown title)';
+  const game = (p?.game || '').trim() || '(unknown game)';
+  const comp = (p?.track?.composer || p?.composer || '').trim() || '(unknown composer)';
+  const prov = (media.provider || '').trim() || '(no-provider)';
+  const mid = (media.id || '').trim() || '(no-id)';
+  lines.push(`- 代表候補（サンプル）: **${title}** / ${game} / ${comp} / ${prov}:${mid}`);
 } else {
   lines.push(`- 代表候補（サンプル）: なし`);
 }
