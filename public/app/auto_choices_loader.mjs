@@ -62,6 +62,10 @@ async function bootstrap() {
   }
   // Also expose a normalized fallback key for debugging/helpers
   window.__DAILY_AUTO_KEY_NORM = `${norm(entry.title)}|${norm(entry.game)}|${norm(entry.composer)}`;
+  // Notify app that a daily-auto pick is ready (for race-free rewiring)
+  try {
+    window.dispatchEvent(new CustomEvent('daily-auto-ready', { detail: { date, entry } }));
+  } catch (_) {}
   console.log('[auto-choices] loaded for', date, entry.title, '/', entry.game, isForceAny() ? '(FORCE any)' : '');
 }
 

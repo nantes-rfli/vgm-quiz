@@ -66,6 +66,41 @@ import {
 
 let tracks = [];
 let questions = [];
+// --- AUTO daily: helper to attach chosen media/answers to a matching track (idempotent)
+function attachAutoChosenToTracks() {
+  try {
+    const chosen = (typeof window !== 'undefined') && window.__DAILY_AUTO_CHOSEN;
+    if (!chosen || !Array.isArray(tracks)) return false;
+    const norm = (s) => {
+      try { return normalizeV2(String(s)); }
+      catch (_) { return String(s ?? '').normalize('NFKC').trim().toLowerCase(); }
+    };
+    const match = (t) => {
+      // Prefer strict title match; fallback to id match if dataset uses provider id as track.id
+      if (t?.title && chosen.title && norm(t.title) === norm(chosen.title)) return true;
+      if (t?.id && chosen.id && String(t.id) === String(chosen.id)) return true;
+      return false;
+    };
+    const idx = tracks.findIndex(match);
+    if (idx < 0) return false;
+    const t = tracks[idx];
+    // attach media (provider/id)
+    t.media = t.media || {};
+    if (!t.media.provider && chosen.provider) t.media.provider = chosen.provider;
+    if (!t.media.id && chosen.id) t.media.id = chosen.id;
+    // attach minimal answers expected by playable check
+    t.answers = t.answers || {};
+    if (!t.answers.title && chosen.title) t.answers.title = [ String(chosen.title) ];
+    if (!t.answers.game && chosen.game) t.answers.game = [ String(chosen.game) ];
+    if (!t.answers.composer && chosen.composer) t.answers.composer = [ String(chosen.composer) ];
+    try { console.info('[auto] attached media/answers to', t.title || t.id); } catch(_) {}
+    return true;
+  } catch (e) {
+    console.warn('[auto] attach failed', e);
+    return false;
+  }
+}
+
 // パイプライン用の乱数。既定は Math.random（seed 初期化後に差し替える）
 // フォールバックとして、常に window.__rng は function にしておく（デバッグ容易化）
 if (typeof window.__rng !== 'function') {
@@ -303,41 +338,8 @@ async function loadDataset() {
     const txt = await res.text();
     const data = await parseJsonOffMainThread(txt);
     tracks = data.tracks || data; // 互換
-    // --- AUTO daily: if a chosen entry exists, attach media/answers to the matching track
-    try {
-      const chosen = (typeof window !== 'undefined') && window.__DAILY_AUTO_CHOSEN;
-      if (chosen && tracks && Array.isArray(tracks)) {
-        const norm = (s) => {
-          try { return normalizeV2(String(s)); }
-          catch (_) { return String(s ?? '').normalize('NFKC').trim().toLowerCase(); }
-        };
-        const match = (t) => {
-          // Prefer strict title match; fallback to loose OR with game/composer if present
-          if (t?.title && chosen.title && norm(t.title) === norm(chosen.title)) return true;
-          // Some datasets may only have id
-          if (t?.id && chosen.id && String(t.id) === String(chosen.id)) return true;
-          return false;
-        };
-        const idx = tracks.findIndex(match);
-        if (idx >= 0) {
-          const t = tracks[idx];
-          // attach media (provider/id)
-          if (!t.media) t.media = {};
-          if (!t.media.provider && chosen.provider) t.media.provider = chosen.provider;
-          if (!t.media.id && chosen.id) t.media.id = chosen.id;
-          // attach minimal answers expected by playable check
-          t.answers = t.answers || {};
-          if (!t.answers.title && chosen.title) t.answers.title = [ String(chosen.title) ];
-          if (!t.answers.game && chosen.game) t.answers.game = [ String(chosen.game) ];
-          if (!t.answers.composer && chosen.composer) t.answers.composer = [ String(chosen.composer) ];
-          try { console.info('[auto] attached media/answers to', t.title || t.id); } catch(_) {}
-        } else {
-          console.warn('[auto] chosen entry did not match any track by title/id');
-        }
-      }
-    } catch (e) {
-      console.warn('[auto] attach failed', e);
-    }
+    // --- AUTO daily: attach media/answers via helper (idempotent)
+    try { attachAutoChosenToTracks(); } catch (e) { console.warn('[auto] attach failed', e); }
     datasetLoaded = true;
 
     // playable 件数（UI-slimの出題判定に近い条件）
@@ -991,6 +993,27 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     // Lives ルールを起動時に解釈
     initLivesRule();
+    // When daily-auto helpers finish later, (re)attach & enable Start (race-safe)
+    window.addEventListener('daily-auto-ready', () => {
+      try {
+        if (!datasetLoaded) return;
+        const changed = attachAutoChosenToTracks();
+        if (!changed) return;
+        // recompute playable and enable Start if possible
+        const playable = (tracks || []).filter(t =>
+          t && t.media && t.media.provider && t.answers
+        ).length;
+        const startBtn = document.getElementById('start-btn')
+          || document.querySelector('[data-testid="start-btn"]');
+        if (startBtn && playable >= 1) {
+          startBtn.removeAttribute('disabled');
+          startBtn.setAttribute('aria-disabled', 'false');
+        }
+        updateStartButton();
+      } catch (e) {
+        console.warn('[auto] daily-auto-ready hook failed', e);
+      }
+    });
     // Daily 検出＆先読み開始
     initDaily();
     if (DAILY.active) { preloadDailyMap(); }
