@@ -342,6 +342,21 @@ async function loadDataset() {
     try { attachAutoChosenToTracks(); } catch (e) { console.warn('[auto] attach failed', e); }
     datasetLoaded = true;
 
+    // v113 diag: dataset shape when tracks=0
+    try {
+      const len = Array.isArray(tracks) ? tracks.length : (tracks && tracks.tracks && tracks.tracks.length) || 0;
+      if (len === 0) {
+        const probe = (() => {
+          try {
+            const obj = (typeof data === 'object' && data) ? data : {};
+            return Object.keys(obj).slice(0, 10);
+          } catch (_) { return []; }
+        })();
+        console.warn('[diag] dataset has zero tracks. top-level keys:', probe);
+        console.warn('[diag] datasetUrl=', datasetUrl);
+      }
+    } catch (_) {}
+
     // playable 件数（UI-slimの出題判定に近い条件）
     const playable = (tracks || []).filter(t =>
       t && t.media && t.media.provider && t.answers
