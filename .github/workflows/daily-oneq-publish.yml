@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,6 +41,8 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
+          # Prefer DAILY_PR_PAT, fall back to CPR_PAT
+          token: ${{ secrets.DAILY_PR_PAT || secrets.CPR_PAT }}
           commit-message: "chore(oneq): ${{ env.ONEQ_DATE }} daily question"
           title: "chore(oneq): ${{ env.ONEQ_DATE }} daily question"
           body: |
