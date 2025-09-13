@@ -1,0 +1,28 @@
+name: daily (oneq dry-run)
+on:
+  workflow_dispatch: {}
+
+jobs:
+  oneq:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps (if any)
+        run: |
+          if [ -f package.json ]; then
+            npm ci --no-audit --no-fund
+          fi
+
+      - name: Run oneq dry-run
+        run: |
+          node script/oneq_dryrun.mjs
