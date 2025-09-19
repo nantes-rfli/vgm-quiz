@@ -8,4 +8,4 @@ MVPで必要な**最小APIの方針と契約**を管理する（常時バック�
 - 監視・レート制限・CORSの方針（最小限）
 
 ## 目次
-- `api-spec.md` — 最小API契約（エンドポイント/リクエスト例/ステータス/エラー方針）
+- `api-spec.md` – Tokenized Round（stateless）APIの正本
