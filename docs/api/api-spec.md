@@ -1,209 +1,276 @@
-# API Spec (VGM Quiz MVP) — v1
+# API Specification (VGM Quiz v1)
 - Status: Approved
-- Last Updated: 2025-09-16
+- Last Updated: 2025-09-19
 
-## この文書の目的
-フロントエンド（クイズランナー）とバックエンド（出題/計測API）の**疎結合な契約**を定義する。実装やホスティングの記述は含めない。
+## 1. Overview
 
-## スコープ
-- **データプレーン**：問題セットの配信（乱択はサーバ/クライアントいずれでも可）
-- **テレメトリプレーン**：計測イベントの受信（PIIなし）
+本APIは、クイズ用コンテンツ取得と計測送信のための最小セットを提供する。
+エンドポイントは以下の3つ。
 
-## バージョニング
-- パスにバージョンを付与：`/v1/...`
-- レスポンスに `schema_version: "1.0"` を含める（将来の後方互換判断用）
-- 機能フラグ：`features: { randomizedChoices: boolean }` 等で能力を明示
+- `GET /v1/manifest`（クライアント機能フラグ等のメタ）
+- `GET /v1/quizzes/{quizId}/next`（次の設問取得：固定4択）
+- `POST /v1/metrics`（計測イベントのバッチ送信）
 
-## 共通
-- リクエスト/レスポンス：`Content-Type: application/json; charset=utf-8`
-- 認証：本MVPでは不要（将来導入時は `Authorization: Bearer` 等を追加）
-- CORS：送信元の最小ホワイトリスト（詳細はサーバ実装側）
-- キャッシュ：`ETag/If-None-Match` を `GET` 系で推奨（特に `/manifest`）
-- タイムスタンプ：ISO8601（UTC推奨）
-- PII：受理しない（短期 `session_id` のみ）
+### 共通
 
----
+- Base URL: `/<origin>/`（MVPは Cloudflare Pages Functions を想定）
+- Auth: なし（PII不収集・短期セッションID前提）
+- Request/Response: `application/json; charset=utf-8`
+- エラー形式は「7. Error Format」を参照
 
-## 1. データプレーン
+## 2. Versioning
 
-### 1.1 GET `/v1/manifest`
-**目的**：利用可能なクイズセットと推奨件数などのメタ情報を返す。  
-**クエリ**：なし  
-**レスポンス（200）**
+- バージョンはURLに付与（`/v1/...`）。後方互換を破る変更はメジャーを更新。
+- `manifest.schema_version` でサーバ側のスキーマ期待値を通知。
+
+## 3. Manifest
+
+クライアントの挙動を制御するための機能フラグやメタ情報。
+
+### Endpoint
+
+```
+GET /v1/manifest
+```
+
+### Response
+
 ```json
 {
-  "schema_version": "1.0",
-  "features": { "randomizedChoices": true },
-  "quizSets": [
-    { "id": "vgm", "title": "VGM Quiz (Default)", "defaultCount": 10 }
-  ]
+  "schema_version": 1,
+  "app": {
+    "name": "VGM Quiz",
+    "revision": "2025-09-19"
+  },
+  "features": {
+    "inlinePlaybackDefault": false,
+    "allowEmbedProviders": ["youtube", "appleMusic"],
+    "imageProxyEnabled": true
+  }
 }
 ```
 
-**キャッシュ**：`ETag` 推奨（変更時のみ差分取得）
+- `inlinePlaybackDefault`: 結果表示でのインライン埋め込みの既定値
+- `allowEmbedProviders`: インライン埋め込みを許可するプロバイダの許可リスト
+- `imageProxyEnabled`: 外部アートワーク取得をエッジ・プロキシ経由にするか
 
----
+## 4. Next Question
 
-### 1.2 GET `/v1/quizzes/{quizId}/next?count=10&seed={sessionId}`
+次の設問を1件返す。固定4択・内容は正準データに準拠。
 
-**目的**：次に出題する問題を配列で返す（**各問題は4択**）。
-**パス**：`quizId`（例：`vgm`）
-**クエリ**
+### Endpoint
 
-* `count`（省略時10、範囲 1–50）
-* `seed`（任意：セッション識別子。乱択の再現性に使用可）
-* `locale`（任意：`ja-JP` など。ラベル多言語対応時に使用）
+```
+GET /v1/quizzes/{quizId}/next
+```
 
-**レスポンス（200）**
+### Query/Headers
+
+- 必須ヘッダなし
+- サーバ側でセッション継続を持たない想定。クライアントはローカルに出題順を保持
+
+### Response
 
 ```json
 {
-  "schema_version": "1.0",
-  "features": { "randomizedChoices": true },
-  "items": [
-    {
-      "id": "q_0001",
-      "prompt": "「Battle Theme X」の作曲者は？",
-      "choices": [
-        { "id": "composer_ue", "label": "植松 伸夫", "isCorrect": true },
-        { "id": "composer_km", "label": "近藤 浩治", "isCorrect": false },
-        { "id": "composer_sy", "label": "下村 陽子", "isCorrect": false },
-        { "id": "composer_mt", "label": "光田 康典", "isCorrect": false }
+  "quizId": "vgm_v1",
+  "sequence": { "index": 1, "total": 10 },
+  "question": {
+    "id": "q_0001",
+    "prompt": "このBGMの作曲者は？",
+    "choices": [
+      { "id": "a", "label": "作曲者A", "isCorrect": false },
+      { "id": "b", "label": "作曲者B", "isCorrect": true },
+      { "id": "c", "label": "作曲者C", "isCorrect": false },
+      { "id": "d", "label": "作曲者D", "isCorrect": false }
+    ],
+    "reveal": {
+      "links": [
+        { "provider": "youtube", "url": "https://www.youtube.com/watch?v=XXXX", "label": "Official OST" },
+        { "provider": "appleMusic", "url": "https://music.apple.com/..." }
       ],
-      "sources": [
-        { "provider": "ext1", "url": "https://example.com/track1", "priority": 1 },
-        { "provider": "ext2", "url": "https://example.com/track1b", "priority": 2 }
-      ],
-      "backup": false,
-      "meta": { "lengthSec": 30, "startSec": 0 }
-    }
-  ]
+      "embedPreferredProvider": "youtube"
+    },
+    "artwork": {
+      "url": "https://upload.wikimedia.org/.../cover.jpg",
+      "width": 640,
+      "height": 640,
+      "alt": "Game cover art",
+      "license": "CC BY-SA 4.0",
+      "attribution": "© Publisher / Contributor",
+      "sourceName": "Wikimedia",
+      "sourceUrl": "https://commons.wikimedia.org/...",
+      "useProxy": true
+    },
+    "backup": false,
+    "meta": { "lengthSec": 7, "startSec": 30 }
+  }
 }
 ```
 
-**制約/備考**
+- `sequence.index` は1始まり
+- `reveal` と `artwork` は結果表示に使用（存在しない場合もある）
 
-* `choices` は**常に4件**、`isCorrect: true` は**ちょうど1件**。
-* サーバ側で順序を乱択して返してもよい（`features.randomizedChoices` を `true` にする）。クライアント側での再シャッフルは任意。
-* `sources` は**優先度昇順**。クライアントは上位から試行し、全候補不可なら **System Skip** を実行（UX仕様は別文書に準拠）。
-* `count` 件を満たせない場合は利用可能な範囲で返す（必要に応じ `204 No Content` も可）。
+## 5. Metrics
 
-**ステータス**
+クライアント計測のバッチ送信。1リクエストに複数イベントを含められる。
 
-* `200 OK`：配列を返却
-* `204 No Content`：出題可能な問題が一時的にない
-* `400 Bad Request`：パラメータ不正（例：`count` 範囲外）
-* `404 Not Found`：`quizId` 不存在
-* `429 / 5xx`：制限超過 / サーバエラー
+### Endpoint
 
----
+```
+POST /v1/metrics
+Content-Type: application/json
+```
 
-## 2. テレメトリプレーン
-
-### 2.1 POST `/v1/metrics`
-
-**目的**：計測イベントの**バッチ**受信（PIIなし）。
-**ヘッダ（推奨）**：`Idempotency-Key: <uuid>`（重複投稿の二重計上防止）
-
-**リクエスト（例）**
+### Request
 
 ```json
 {
-  "schema_version": "1.0",
-  "session_id": "sess_20250916_abc123",
-  "client": { "app_version": "1.0.0", "platform": "web" },
+  "session_id": "sess_20250919_abc123",
+  "sent_at": "2025-09-19T10:00:00.000Z",
   "events": [
     {
-      "type": "play_start",
-      "ts": "2025-09-16T10:00:05.000Z",
-      "question_id": "q_0001",
-      "ttfs_ms": 520,
-      "source": { "provider": "ext1", "url": "https://example.com/track1" }
-    },
-    {
       "type": "answer_select",
-      "ts": "2025-09-16T10:00:10.000Z",
-      "question_id": "q_0001",
-      "choice_id": "composer_ue",
-      "elapsed_ms": 5000
+      "ts": 1695098400000,
+      "questionId": "q_0001",
+      "choiceId": "b"
     },
     {
       "type": "answer_result",
-      "ts": "2025-09-16T10:00:10.050Z",
-      "question_id": "q_0001",
-      "is_correct": true,
-      "remaining_sec": 7
+      "ts": 1695098401500,
+      "questionId": "q_0001",
+      "outcome": "correct",
+      "remainingSec": 6,
+      "scoreDelta": 130
     },
     {
-      "type": "quiz_complete",
-      "ts": "2025-09-16T10:02:30.000Z",
-      "score": 1234,
-      "correct_count": 8
+      "type": "reveal_open_external",
+      "ts": 1695098403000,
+      "questionId": "q_0001",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/watch?v=XXXX"
+    },
+    {
+      "type": "embed_impression",
+      "ts": 1695098404500,
+      "questionId": "q_0001",
+      "provider": "youtube"
+    },
+    {
+      "type": "embed_play",
+      "ts": 1695098406000,
+      "questionId": "q_0001",
+      "provider": "youtube"
+    },
+    {
+      "type": "embed_error",
+      "ts": 1695098407000,
+      "questionId": "q_0001",
+      "provider": "youtube",
+      "error_code": "blocked",
+      "reason": "region_restriction"
+    },
+    {
+      "type": "embed_fallback_to_link",
+      "ts": 1695098407100,
+      "questionId": "q_0001",
+      "fromProvider": "youtube"
+    },
+    {
+      "type": "settings_inline_toggle",
+      "ts": 1695098450000,
+      "enabled": true
     }
   ]
 }
 ```
 
-**イベント定義（必須フィールド）**
+### Event Types（許容値）
 
-* `play_start`：`question_id`, `ttfs_ms`, `source{provider,url}`
-* `answer_select`：`question_id`, `choice_id`, `elapsed_ms`
-* `answer_result`：`question_id`, `is_correct`, `remaining_sec`
-* `quiz_complete`：`score`, `correct_count`
-* 共通：`type`, `ts`（ISO8601）、`session_id`（ルートに含む）
+- `answer_select`
 
-**レスポンス**
+  - fields: `questionId`, `choiceId`
+- `answer_result`
+
+  - fields: `questionId`, `outcome`（`correct|wrong|timeout|user_skip|system_skip`）, `remainingSec`, `scoreDelta`
+- `quiz_complete`
+
+  - fields: `correctCount`, `total`, `score`
+- `reveal_open_external`
+
+  - fields: `questionId`, `provider?`, `url?`
+- `embed_impression`
+
+  - fields: `questionId`, `provider`
+- `embed_play`
+
+  - fields: `questionId`, `provider`
+- `embed_error`
+
+  - fields: `questionId`, `provider`, `error_code?`, `reason?`
+- `embed_fallback_to_link`
+
+  - fields: `questionId`, `fromProvider`
+- `artwork_impression`（任意）
+
+  - fields: `questionId`, `url?`
+- `artwork_error`（任意）
+
+  - fields: `questionId`, `url?`, `reason?`
+- `settings_inline_toggle`
+
+  - fields: `enabled`
+
+### Response
 
 ```json
-{ "accepted": 4 }
+{ "ok": true }
 ```
 
-**ステータス**
+## 6. Constraints（Privacy/Security）
 
-* `200 OK`：受理（重複は黙って無害化）
-* `400 Bad Request`：スキーマ不正
-* `413 Payload Too Large`：サイズ超過
-* `429 / 5xx`：制限超過 / サーバエラー
+- PIIは送信しない（`session_id` は短期かつ匿名）
+- 送信失敗時はクライアントで**再送**（同一イベントIDを実装する場合は冪等処理可）
+- レート制限は 1 IP あたり適用（429時は指数バックオフ）
 
----
+## 7. Error Format
 
-## 3. エラーフォーマット（共通）
+共通のエラー応答。HTTPステータスに整合。
 
 ```json
 {
   "error": {
     "code": "bad_request",
-    "message": "count must be between 1 and 50",
-    "details": { "field": "count" }
+    "message": "invalid payload",
+    "details": { "pointer": "/events/2/provider" }
   }
 }
 ```
 
-* 代表コード例：`bad_request` / `not_found` / `rate_limited` / `internal`
+- `code` 例: `bad_request`, `unauthorized`, `forbidden`, `not_found`, `rate_limited`, `server_error`
+- `details` は任意（フィールドエラーなど）
 
----
+## 8. Examples
 
-## 4. 型（参考：抜粋）
+### 8.1 Manifest（200）
 
-```ts
-type QuizSet = { id: string; title: string; defaultCount: number };
-
-type Choice = { id: string; label: string; isCorrect: boolean };
-type Source = { provider: string; url: string; priority: number };
-
-type QuizItem = {
-  id: string;
-  prompt: string;
-  choices: Choice[];              // 4件・isCorrectは1件のみ
-  sources: Source[];              // 優先度昇順
-  backup: boolean;
-  meta?: { lengthSec?: number; startSec?: number };
-};
+```http
+GET /v1/manifest
+200 OK
 ```
 
----
+（本文は「3. Manifest」の例を参照）
 
-## 5. ノーテーション
+### 8.2 Next Question（200）
 
-* 本仕様は**クライアント/サーバいずれにも依存しない**中立の契約を意図する。
-* 乱択の責務は `features.randomizedChoices` で明示し、クライアントは返却順をそのまま表示してもよい。
+```http
+GET /v1/quizzes/vgm_v1/next
+200 OK
+```
+
+### 8.3 Metrics（202/200）
+
+```http
+POST /v1/metrics
+202 Accepted
+```
