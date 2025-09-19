@@ -2,7 +2,11 @@
 - Status: Approved
 - Last Updated: 2025-09-19
 
-> See also: [Rounds Token (JWS) — 最小仕様](./rounds-token-spec.md) · [API エラーモデル — 最小仕様](./error-model.md)
+> See also:
+> - [Rounds Token (JWS) — 最小仕様](./rounds-token-spec.md)
+> - [API Error Model — 最小仕様](./error-model.md)
+> - [Embed Vocabulary — 最小仕様](../data/embed-vocabulary.md)
+> - [Embed Policy and Fallback — 最小仕様](../product/embed-policy.md)
 
 ## 1. Overview
 本APIはクイズの提供を「フィルタ指定 → 10問サンプリング → トークンで進行」の流れで行う。サーバはセッションを保持しない。署名付きトークンに順序付きID配列と現在位置を内包し、往復で進行する。
