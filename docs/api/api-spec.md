@@ -1,276 +1,221 @@
-# API Specification (VGM Quiz v1)
+# API Specification — Tokenized Round (Stateless)
 - Status: Approved
 - Last Updated: 2025-09-19
 
 ## 1. Overview
+本APIはクイズの提供を「フィルタ指定 → 10問サンプリング → トークンで進行」の流れで行う。サーバはセッションを保持しない。署名付きトークンに順序付きID配列と現在位置を内包し、往復で進行する。
 
-本APIは、クイズ用コンテンツ取得と計測送信のための最小セットを提供する。
-エンドポイントは以下の3つ。
+- `POST /v1/rounds/start` — 指定条件で問題をサンプリングし、トークンと1問目を返す
+- `POST /v1/rounds/next` — トークンを受け取り、次の1問と更新トークンを返す
+- `GET /v1/manifest` — モード、ファセット（フィルタ選択肢）、機能フラグ
+- `POST /v1/metrics` — 計測バッチ送信
+- 付録: `POST /v1/availability`（任意）— フィルタで取得可能な件数を確認
 
-- `GET /v1/manifest`（クライアント機能フラグ等のメタ）
-- `GET /v1/quizzes/{quizId}/next`（次の設問取得：固定4択）
-- `POST /v1/metrics`（計測イベントのバッチ送信）
+共通: `application/json; charset=utf-8`、PIIなし、エラー形式は「7. Error Format」。
 
-### 共通
+## 2. Concepts
+- Mode: クイズの編成単位（例: `vgm_v1-ja`）。ロケールやテーマ別に分ける。
+- Facets: フィルタに使える軸（例: `era`, `difficulty`, `series`）。
+- Token: 署名付きJWS。順序付きID配列と現在位置などを含むクライアント所有の進行状態。
 
-- Base URL: `/<origin>/`（MVPは Cloudflare Pages Functions を想定）
-- Auth: なし（PII不収集・短期セッションID前提）
-- Request/Response: `application/json; charset=utf-8`
-- エラー形式は「7. Error Format」を参照
+## 3. Endpoints
 
-## 2. Versioning
+### 3.1 Start Round
+```
+POST /v1/rounds/start
+```
+**Body**
+```json
+{
+  "mode": "vgm_v1-ja",
+  "filters": { "era": ["90s"], "difficulty": ["mixed"] },
+  "total": 10,
+  "seed": "optional-string"
+}
+```
 
-- バージョンはURLに付与（`/v1/...`）。後方互換を破る変更はメジャーを更新。
-- `manifest.schema_version` でサーバ側のスキーマ期待値を通知。
+**Response**
+```json
+{
+  "round": {
+    "mode": "vgm_v1-ja",
+    "sequence": { "index": 1, "total": 10 },
+    "token": "<JWS-compact-string>"
+  },
+  "question": { }
+}
+```
 
-## 3. Manifest
+- サーバは `filters` に合致する問題IDを重複なしで `total` 件サンプリングし、順序付き配列をトークンに封入する。
+- `seed` は決定論を高めたい場合に利用可能。同一データ集合と同一 `seed` で同じ並びとなる。
 
-クライアントの挙動を制御するための機能フラグやメタ情報。
+### 3.2 Next Question
+```
+POST /v1/rounds/next
+```
+**Body**
+```json
+{ "token": "<JWS-compact-string>" }
+```
 
-### Endpoint
+**Response**
+```json
+{
+  "round": {
+    "sequence": { "index": 2, "total": 10 },
+    "token": "<updated-JWS>"
+  },
+  "question": { },
+  "hasMore": true
+}
+```
 
+- トークン内の現在位置を1つ進め、該当IDの問題を返す。
+- 最終問後は `hasMore: false`。必要なら `question` を省略可能。
+
+### 3.3 Manifest
 ```
 GET /v1/manifest
 ```
-
-### Response
-
+**Response**
 ```json
 {
-  "schema_version": 1,
-  "app": {
-    "name": "VGM Quiz",
-    "revision": "2025-09-19"
-  },
+  "schema_version": 2,
+  "app": { "name": "VGM Quiz", "revision": "2025-09-19" },
   "features": {
     "inlinePlaybackDefault": false,
     "allowEmbedProviders": ["youtube", "appleMusic"],
     "imageProxyEnabled": true
+  },
+  "modes": [
+    { "id": "vgm_v1-ja", "title": "VGM Quiz Vol.1 (JA)", "defaultTotal": 10, "locale": "ja" }
+  ],
+  "facets": {
+    "era": ["80s","90s","00s","10s","mixed"],
+    "difficulty": ["easy","normal","hard","mixed"],
+    "series": ["ff","dq","zelda","mario","mixed"]
   }
 }
 ```
 
-- `inlinePlaybackDefault`: 結果表示でのインライン埋め込みの既定値
-- `allowEmbedProviders`: インライン埋め込みを許可するプロバイダの許可リスト
-- `imageProxyEnabled`: 外部アートワーク取得をエッジ・プロキシ経由にするか
-
-## 4. Next Question
-
-次の設問を1件返す。固定4択・内容は正準データに準拠。
-
-### Endpoint
-
-```
-GET /v1/quizzes/{quizId}/next
-```
-
-### Query/Headers
-
-- 必須ヘッダなし
-- サーバ側でセッション継続を持たない想定。クライアントはローカルに出題順を保持
-
-### Response
-
-```json
-{
-  "quizId": "vgm_v1",
-  "sequence": { "index": 1, "total": 10 },
-  "question": {
-    "id": "q_0001",
-    "prompt": "このBGMの作曲者は？",
-    "choices": [
-      { "id": "a", "label": "作曲者A", "isCorrect": false },
-      { "id": "b", "label": "作曲者B", "isCorrect": true },
-      { "id": "c", "label": "作曲者C", "isCorrect": false },
-      { "id": "d", "label": "作曲者D", "isCorrect": false }
-    ],
-    "reveal": {
-      "links": [
-        { "provider": "youtube", "url": "https://www.youtube.com/watch?v=XXXX", "label": "Official OST" },
-        { "provider": "appleMusic", "url": "https://music.apple.com/..." }
-      ],
-      "embedPreferredProvider": "youtube"
-    },
-    "artwork": {
-      "url": "https://upload.wikimedia.org/.../cover.jpg",
-      "width": 640,
-      "height": 640,
-      "alt": "Game cover art",
-      "license": "CC BY-SA 4.0",
-      "attribution": "© Publisher / Contributor",
-      "sourceName": "Wikimedia",
-      "sourceUrl": "https://commons.wikimedia.org/...",
-      "useProxy": true
-    },
-    "backup": false,
-    "meta": { "lengthSec": 7, "startSec": 30 }
-  }
-}
-```
-
-- `sequence.index` は1始まり
-- `reveal` と `artwork` は結果表示に使用（存在しない場合もある）
-
-## 5. Metrics
-
-クライアント計測のバッチ送信。1リクエストに複数イベントを含められる。
-
-### Endpoint
-
+### 3.4 Metrics
 ```
 POST /v1/metrics
-Content-Type: application/json
 ```
-
-### Request
-
+**Request（例）**
 ```json
 {
-  "session_id": "sess_20250919_abc123",
+  "session_id": "sess_abc",
   "sent_at": "2025-09-19T10:00:00.000Z",
+  "round_token": "<JWS-truncated>",
   "events": [
-    {
-      "type": "answer_select",
-      "ts": 1695098400000,
-      "questionId": "q_0001",
-      "choiceId": "b"
-    },
-    {
-      "type": "answer_result",
-      "ts": 1695098401500,
-      "questionId": "q_0001",
-      "outcome": "correct",
-      "remainingSec": 6,
-      "scoreDelta": 130
-    },
-    {
-      "type": "reveal_open_external",
-      "ts": 1695098403000,
-      "questionId": "q_0001",
-      "provider": "youtube",
-      "url": "https://www.youtube.com/watch?v=XXXX"
-    },
-    {
-      "type": "embed_impression",
-      "ts": 1695098404500,
-      "questionId": "q_0001",
-      "provider": "youtube"
-    },
-    {
-      "type": "embed_play",
-      "ts": 1695098406000,
-      "questionId": "q_0001",
-      "provider": "youtube"
-    },
-    {
-      "type": "embed_error",
-      "ts": 1695098407000,
-      "questionId": "q_0001",
-      "provider": "youtube",
-      "error_code": "blocked",
-      "reason": "region_restriction"
-    },
-    {
-      "type": "embed_fallback_to_link",
-      "ts": 1695098407100,
-      "questionId": "q_0001",
-      "fromProvider": "youtube"
-    },
-    {
-      "type": "settings_inline_toggle",
-      "ts": 1695098450000,
-      "enabled": true
-    }
+    { "type": "answer_select", "ts": 1695098400000, "questionId": "q_0001", "choiceId": "b" },
+    { "type": "answer_result", "ts": 1695098401500, "questionId": "q_0001", "outcome": "correct", "remainingSec": 6, "scoreDelta": 130 },
+    { "type": "reveal_open_external", "ts": 1695098403000, "questionId": "q_0001", "provider": "youtube" },
+    { "type": "embed_error", "ts": 1695098407000, "questionId": "q_0001", "provider": "youtube", "reason": "region_restriction" },
+    { "type": "settings_inline_toggle", "ts": 1695098450000, "enabled": true }
   ]
 }
 ```
 
-### Event Types（許容値）
+- 許容イベントは `reveal_open_external`, `embed_impression`, `embed_play`, `embed_error`, `embed_fallback_to_link`, `artwork_impression`, `artwork_error`, `settings_inline_toggle`, `answer_select`, `answer_result`, `quiz_complete` を想定する。
 
-- `answer_select`
-
-  - fields: `questionId`, `choiceId`
-- `answer_result`
-
-  - fields: `questionId`, `outcome`（`correct|wrong|timeout|user_skip|system_skip`）, `remainingSec`, `scoreDelta`
-- `quiz_complete`
-
-  - fields: `correctCount`, `total`, `score`
-- `reveal_open_external`
-
-  - fields: `questionId`, `provider?`, `url?`
-- `embed_impression`
-
-  - fields: `questionId`, `provider`
-- `embed_play`
-
-  - fields: `questionId`, `provider`
-- `embed_error`
-
-  - fields: `questionId`, `provider`, `error_code?`, `reason?`
-- `embed_fallback_to_link`
-
-  - fields: `questionId`, `fromProvider`
-- `artwork_impression`（任意）
-
-  - fields: `questionId`, `url?`
-- `artwork_error`（任意）
-
-  - fields: `questionId`, `url?`, `reason?`
-- `settings_inline_toggle`
-
-  - fields: `enabled`
-
-### Response
-
+### 3.5 Availability（任意）
+```
+POST /v1/availability
+```
+**Body**
 ```json
-{ "ok": true }
+{ "mode": "vgm_v1-ja", "filters": { "era": ["90s"], "difficulty": ["mixed"] } }
+```
+**Response**
+```json
+{ "available": 14 }
 ```
 
-## 6. Constraints（Privacy/Security）
+## 4. Schemas
 
-- PIIは送信しない（`session_id` は短期かつ匿名）
-- 送信失敗時はクライアントで**再送**（同一イベントIDを実装する場合は冪等処理可）
-- レート制限は 1 IP あたり適用（429時は指数バックオフ）
+### 4.1 Question
+```json
+{
+  "id": "q_0001",
+  "prompt": "このBGMの作曲者は？",
+  "choices": [
+    { "id": "a", "label": "作曲者A", "isCorrect": false },
+    { "id": "b", "label": "作曲者B", "isCorrect": true },
+    { "id": "c", "label": "作曲者C", "isCorrect": false },
+    { "id": "d", "label": "作曲者D", "isCorrect": false }
+  ],
+  "reveal": {
+    "links": [
+      { "provider": "youtube", "url": "https://www.youtube.com/watch?v=XXXX", "label": "Official OST" },
+      { "provider": "appleMusic", "url": "https://music.apple.com/..." }
+    ],
+    "embedPreferredProvider": "youtube"
+  },
+  "artwork": {
+    "url": "https://upload.wikimedia.org/.../cover.jpg",
+    "width": 640,
+    "height": 640,
+    "alt": "Game cover art",
+    "license": "CC BY-SA 4.0",
+    "attribution": "© Publisher / Contributor",
+    "sourceName": "Wikimedia",
+    "sourceUrl": "https://commons.wikimedia.org/...",
+    "useProxy": true
+  },
+  "backup": false,
+  "meta": { "lengthSec": 7, "startSec": 30, "kind": "title_to_composer" }
+}
+```
+
+### 4.2 Token（JWS payload の論理構造）
+```json
+{
+  "mode": "vgm_v1-ja",
+  "filters": { "era": ["90s"], "difficulty": ["mixed"] },
+  "ids": ["q_0001","q_0007","q_0012"],
+  "i": 0,
+  "limit": 10,
+  "seed": "optional",
+  "policyVersion": 1,
+  "exp": 1760000000
+}
+```
+- 署名方式は JWS（HMAC-SHA256）を想定。改ざん不可。
+- `exp` により短TTLで運用する。IDは難読化を推奨。
+
+## 5. Flows
+
+### 5.1 初回
+- `GET /v1/manifest` で `modes` と `facets` を取得
+- `POST /v1/rounds/start`（mode、filters、total、seed）でトークンと1問目を受け取る
+- 出題 → 回答 → 結果表示
+- 次へで `POST /v1/rounds/next`（token）を呼ぶ
+- 10問後 `hasMore: false` で `/result` へ
+
+### 5.2 途中再開
+- 保存しておいた `token` で `POST /v1/rounds/next` を再開
+- `exp` 超過は `401 unauthorized_token` でやり直し
+
+## 6. Security & Limits
+- レート制限と署名検証エラーで乱用を抑止
+- `token` は短TTL（例: 1時間）
+- `POST /v1/metrics` は冪等IDの導入を推奨（重複除去）
+- CORS は `GET` と `POST` のみ許可
 
 ## 7. Error Format
-
-共通のエラー応答。HTTPステータスに整合。
-
 ```json
 {
   "error": {
     "code": "bad_request",
-    "message": "invalid payload",
-    "details": { "pointer": "/events/2/provider" }
+    "message": "invalid filters",
+    "details": { "pointer": "/filters/era/0" }
   }
 }
 ```
+- `code`: `bad_request`, `unauthorized_token`, `not_found`, `rate_limited`, `server_error`, `insufficient_inventory` など
+- `insufficient_inventory`: 指定 `filters` で `total` を満たせない場合
 
-- `code` 例: `bad_request`, `unauthorized`, `forbidden`, `not_found`, `rate_limited`, `server_error`
-- `details` は任意（フィールドエラーなど）
-
-## 8. Examples
-
-### 8.1 Manifest（200）
-
-```http
-GET /v1/manifest
-200 OK
-```
-
-（本文は「3. Manifest」の例を参照）
-
-### 8.2 Next Question（200）
-
-```http
-GET /v1/quizzes/vgm_v1/next
-200 OK
-```
-
-### 8.3 Metrics（202/200）
-
-```http
-POST /v1/metrics
-202 Accepted
-```
+## 8. Changelog
+- 2025-09-19: Tokenized Round（stateless）を導入。`rounds/start` と `rounds/next` を追加。既存の `GET /v1/quizzes/{quizId}/next` は段階的に廃止予定。
