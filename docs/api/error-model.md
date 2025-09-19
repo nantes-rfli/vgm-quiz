@@ -1,4 +1,4 @@
-# API エラーモデル — 最小仕様
+# API Error Model — 最小仕様
 - Status: Approved
 - Last Updated: 2025-09-19
 
