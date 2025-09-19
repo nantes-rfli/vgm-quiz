@@ -10,3 +10,4 @@
 
 ## 目次
 - `requirements.md` — 要件（1〜8章）：Goal / Non-Goals / Constraints / MVP Scope / User Stories / Success Metrics / Risks / Open Questions
+- `media-integrations.md` – 結果表示での外部メディア紹介ポリシー（リンク既定、設定でインライン再生、埋め込み不可時のリンクフォールバック）
