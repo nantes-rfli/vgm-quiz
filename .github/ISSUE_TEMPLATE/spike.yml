@@ -1,0 +1,19 @@
+name: Spike
+description: Research/Spike
+title: "Spike: <短い要約>"
+labels: ["type:spike"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Research question
+      render: markdown
+  - type: textarea
+    id: plan
+    attributes:
+      label: Plan / Hypothesis
+      render: markdown
+  - type: input
+    id: timebox
+    attributes:
+      label: Timebox (hours)

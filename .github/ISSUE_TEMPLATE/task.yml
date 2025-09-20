@@ -1,0 +1,55 @@
+name: Task
+description: Create a task issue
+title: "<Area> - <短い要約>"
+labels: ["type:task"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - fe
+        - be
+        - api
+        - data
+        - docs
+        - ops
+  - type: input
+    id: key
+    attributes:
+      label: Automation Key (optional)
+      description: 自動化用のキー（例: FE-01 / BE-01）。ラベル `key:<KEY>` が付きます。
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose
+      description: 何のためにやるか（1-2行）
+      render: markdown
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / Changes
+      description: やること（箇条書き）
+      render: markdown
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Deliverables
+      description: 成果物・確認方法
+      render: markdown
+  - type: textarea
+    id: dod
+    attributes:
+      label: DoD
+      description: 受け入れ条件（箇条書き）
+      render: markdown
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: [P0, P1, P2]
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size (T-shirt)
+      options: [S, M, L]

@@ -1,0 +1,21 @@
+name: Bug
+description: Report a bug
+title: "Bug: <短い要約>"
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: 再現手順・期待結果・実際の結果
+      render: markdown
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: Browser/OS/Version etc.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      render: markdown
