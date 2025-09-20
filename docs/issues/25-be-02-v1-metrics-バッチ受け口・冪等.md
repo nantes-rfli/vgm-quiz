@@ -4,7 +4,7 @@ state: open
 title: "BE-02: /v1/metrics（バッチ受け口・冪等）"
 labels: ["type:task", "area:be", "priority:P1", "size:M", "key:BE-02"]
 assignees: []
-updated_at: "2025-09-20T12:41:57Z"
+updated_at: "2025-09-20T12:42:31Z"
 ---
 ### Purpose
 最小の計測受け口。
