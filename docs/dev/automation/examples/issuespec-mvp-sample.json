@@ -1,0 +1,27 @@
+{
+  "issues": [
+    {
+      "key": "BE-01",
+      "title": "BE-01: /v1/rounds/start & /v1/rounds/next（Tokenized Round）",
+      "body": "### Purpose\nStateless Tokenized RoundのBE実装。\n\n### Scope / Changes\n- POST /v1/rounds/start\n- POST /v1/rounds/next（JWS署名・TTL・insufficient_inventory）\n\n### DoD\n- 契約スキーマに合致\n- 単体テスト通過\n",
+      "labels": [
+        "type:task",
+        "area:be",
+        "priority:P0",
+        "size:M"
+      ],
+      "assignees": []
+    },
+    {
+      "key": "OPS-01",
+      "title": "OPS-01: 埋め込み失敗時のRunbook",
+      "body": "### Purpose\nembed_fallback_to_link の初動手順を整備。\n\n### DoD\n- docs/ops/runbooks/audio-playback.md 更新\n",
+      "labels": [
+        "type:task",
+        "area:ops",
+        "priority:P2",
+        "size:S"
+      ]
+    }
+  ]
+}
