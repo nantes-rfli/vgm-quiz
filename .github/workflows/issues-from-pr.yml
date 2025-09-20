@@ -6,7 +6,6 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  repository-projects: write
 jobs:
   create_issues_from_pr:
     if: contains(join(github.event.pull_request.labels.*.name, ','), 'create-issues')
