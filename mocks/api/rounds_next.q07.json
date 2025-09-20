@@ -1,0 +1,55 @@
+{
+  "token": "mock.7.b53f242f-f72a-4a6b-aba2-ca3c1f3c0f6d",
+  "question": {
+    "id": "q_0008",
+    "prompt": "このBGMの作曲者は？",
+    "choices": [
+      {
+        "id": "a",
+        "label": "作曲者A",
+        "isCorrect": false
+      },
+      {
+        "id": "b",
+        "label": "作曲者B",
+        "isCorrect": true
+      },
+      {
+        "id": "c",
+        "label": "作曲者C",
+        "isCorrect": false
+      },
+      {
+        "id": "d",
+        "label": "作曲者D",
+        "isCorrect": false
+      }
+    ],
+    "reveal": {
+      "links": [
+        {
+          "provider": "youtube",
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "id": "dQw4w9WgXcQ",
+          "label": "Official OST"
+        },
+        {
+          "provider": "appleMusic",
+          "url": "https://music.apple.com/jp/album/xyz/123",
+          "id": "123"
+        }
+      ],
+      "embedPreferredProvider": "youtube"
+    },
+    "artwork": {
+      "url": "https://example.com/art.jpg",
+      "width": 1024,
+      "height": 1024,
+      "alt": "Album Art"
+    },
+    "meta": {
+      "kind": "title_to_composer",
+      "index": 7
+    }
+  }
+}

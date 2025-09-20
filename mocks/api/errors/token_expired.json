@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "token_expired",
+    "message": "Token expired.",
+    "retryable": true
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "invalid_token",
+    "message": "Invalid or tampered token.",
+    "retryable": false
+  }
+}
