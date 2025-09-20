@@ -24,7 +24,4 @@ GUIのAuto-addでも代用可。
 
 ## 同期先
 - `docs/issues/*.md`（front-matter + 本文）  
-チャット引き継ぎ時にリポzipを渡せば、Issueがローカルで確認できます。
-
-## 既存運用からの移行
-- 旧 `docs/issues/*.json` 駆動 → **PR駆動**に移行（必要なら旧ワークフロー併用可）
+Issueがローカルで確認できます。
