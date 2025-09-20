@@ -86,3 +86,4 @@
 - 読み始めの導線: **product/requirements.md** → **design/ui-spec.md**
 
 不明点や提案があれば Issue/PR へ。小さく速く、継続的に育てていきます。
+
