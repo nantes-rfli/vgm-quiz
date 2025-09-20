@@ -1,0 +1,14 @@
+{
+  "token": "tok_0002",
+  "question": {
+    "id": "q002",
+    "title": "Zelda Main Theme",
+    "choices": ["OOT", "BOTW", "TOTK", "MM"],
+    "meta": { "kind": "title->game" },
+    "artwork": { "url": "/art/sample.jpg", "width": 640, "height": 640, "alt": "Cover" },
+    "reveal": {
+      "links": [{"provider": "youtube", "url": "https://youtu.be/dQw4w9WgXcQ"}],
+      "embedPreferredProvider": "youtube"
+    }
+  }
+}
