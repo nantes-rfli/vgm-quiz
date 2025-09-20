@@ -1,22 +1,18 @@
 name: Create/Update Issues from PR (generic)
-
 on:
   pull_request:
     types: [opened, edited, labeled, synchronize]
-
 permissions:
   contents: write
   issues: write
   pull-requests: write
   projects: write
-
 jobs:
   create_issues_from_pr:
     if: contains(join(github.event.pull_request.labels.*.name, ','), 'create-issues')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Extract IssueSpec JSON from PR body
         id: extract
         uses: actions/github-script@v7
@@ -24,23 +20,11 @@ jobs:
           script: |
             const body = context.payload.pull_request.body || '';
             const match = body.match(/```issuespec-json\s+([\s\S]*?)```/);
-            if (!match) {
-              core.setFailed('No ```issuespec-json``` fenced block found in PR body');
-              return;
-            }
+            if (!match) { core.setFailed('No ```issuespec-json``` fenced block found'); return; }
             let spec;
-            try {
-              spec = JSON.parse(match[1]);
-            } catch (e) {
-              core.setFailed('Invalid JSON in issuespec block: ' + e.message);
-              return;
-            }
-            if (!Array.isArray(spec.issues)) {
-              core.setFailed('spec.issues must be an array');
-              return;
-            }
+            try { spec = JSON.parse(match[1]); } catch (e) { core.setFailed('Invalid JSON: '+e.message); return; }
+            if (!Array.isArray(spec.issues)) { core.setFailed('spec.issues must be an array'); return; }
             core.setOutput('spec', JSON.stringify(spec));
-
       - name: Create or update issues
         id: create
         uses: actions/github-script@v7
@@ -51,90 +35,47 @@ jobs:
             const spec = JSON.parse(process.env.SPEC);
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
             async function ensureLabel(name, color='666666', description='') {
-              try {
-                await github.rest.issues.getLabel({ owner, repo, name });
-              } catch {
-                await github.rest.issues.createLabel({ owner, repo, name, color, description });
-              }
+              try { await github.rest.issues.getLabel({ owner, repo, name }); }
+              catch { await github.rest.issues.createLabel({ owner, repo, name, color, description }); }
             }
-
-            // Ensure common label families exist
-            const common = [
-              // type
-              ['type:task','1D76DB'], ['type:bug','D73A4A'], ['type:spike','0E8A16'], ['type:chore','BFDADC'],
-              // area
-              ['area:fe','A2EEEF'], ['area:be','A2EEEF'], ['area:api','A2EEEF'],
-              ['area:data','A2EEEF'], ['area:docs','A2EEEF'], ['area:ops','A2EEEF'],
-              // priority
-              ['priority:P0','D93F0B'], ['priority:P1','FBCA04'], ['priority:P2','0E8A16'],
-              // size
-              ['size:S','BFD4F2'], ['size:M','0052CC'], ['size:L','5319E7']
-            ];
-            for (const [name, color] of common) await ensureLabel(name, color);
-
+            const families = [['type:task','1D76DB'],['type:bug','D73A4A'],['type:spike','0E8A16'],['type:chore','BFDADC'],
+                              ['area:fe','A2EEEF'],['area:be','A2EEEF'],['area:api','A2EEEF'],['area:data','A2EEEF'],['area:docs','A2EEEF'],['area:ops','A2EEEF'],
+                              ['priority:P0','D93F0B'],['priority:P1','FBCA04'],['priority:P2','0E8A16'],['size:S','BFD4F2'],['size:M','0052CC'],['size:L','5319E7']];
+            for (const [n,c] of families) await ensureLabel(n,c);
             const results = [];
             for (const item of spec.issues) {
               if (!item.key || !item.title || !item.body) continue;
               const keyLabel = `key:${item.key}`;
-              await ensureLabel(keyLabel, '5319E7', 'Idempotency key for automation');
-
-              // Ensure all labels in the item exist
-              const requested = Array.isArray(item.labels) ? item.labels : [];
-              for (const l of requested) await ensureLabel(l);
-
-              // Try to find existing open issue by key label
-              const search = await github.rest.issues.listForRepo({
-                owner, repo, state: 'open', labels: keyLabel
-              });
+              await ensureLabel(keyLabel, '5319E7', 'Idempotency key');
+              const req = Array.isArray(item.labels)?item.labels:[];
+              for (const l of req) await ensureLabel(l);
+              const search = await github.rest.issues.listForRepo({ owner, repo, state: 'open', labels: keyLabel });
               let issue;
               if (search.data.length > 0) {
                 issue = search.data[0];
-                await github.rest.issues.update({
-                  owner, repo, issue_number: issue.number,
-                  title: item.title,
-                  body: item.body
-                });
-                const labels = Array.from(new Set([keyLabel, ...requested]));
+                await github.rest.issues.update({ owner, repo, issue_number: issue.number, title: item.title, body: item.body });
+                const labels = Array.from(new Set([keyLabel, ...req]));
                 await github.rest.issues.setLabels({ owner, repo, issue_number: issue.number, labels });
-                if (item.assignees && item.assignees.length) {
-                  await github.rest.issues.addAssignees({ owner, repo, issue_number: issue.number, assignees: item.assignees });
-                }
+                if (item.assignees && item.assignees.length) await github.rest.issues.addAssignees({ owner, repo, issue_number: issue.number, assignees: item.assignees });
               } else {
-                const labels = Array.from(new Set([keyLabel, ...requested]));
-                issue = (await github.rest.issues.create({
-                  owner, repo,
-                  title: item.title,
-                  body: item.body,
-                  labels,
-                  assignees: item.assignees || []
-                })).data;
+                const labels = Array.from(new Set([keyLabel, ...req]));
+                issue = (await github.rest.issues.create({ owner, repo, title: item.title, body: item.body, labels, assignees: item.assignees||[] })).data;
               }
-
-              // Optionally add to Projects v2
               if (item.project) {
-                const query = `query($login:String!) {
-                  user(login:$login){ projectsV2(first:100){ nodes { id title } } }
-                  organization(login:$login){ projectsV2(first:100){ nodes { id title } } }
-                }`;
+                const query = `query($login:String!){ user(login:$login){ projectsV2(first:100){ nodes{ id title } } } organization(login:$login){ projectsV2(first:100){ nodes{ id title } } } }`;
                 const login = context.payload.repository.owner.login;
                 const res = await github.graphql(query, { login });
-                const nodes = (res.organization?.projectsV2?.nodes || []).concat(res.user?.projectsV2?.nodes || []);
-                const project = nodes.find(n => n.title === item.project);
+                const nodes = (res.organization?.projectsV2?.nodes||[]).concat(res.user?.projectsV2?.nodes||[]);
+                const project = nodes.find(n=>n.title===item.project);
                 if (project) {
-                  const addMutation = `mutation($projectId:ID!, $issueId:ID!){
-                    addProjectV2ItemById(input:{projectId:$projectId, contentId:$issueId}){ item { id } }
-                  }`;
-                  await github.graphql(addMutation, { projectId: project.id, issueId: issue.node_id });
+                  const add = `mutation($projectId:ID!,$issueId:ID!){ addProjectV2ItemById(input:{projectId:$projectId, contentId:$issueId}){ item{ id } } }`;
+                  await github.graphql(add, { projectId: project.id, issueId: issue.node_id });
                 }
               }
-
               results.push({ key: item.key, number: issue.number, url: issue.html_url });
             }
-
             core.setOutput('created', JSON.stringify(results));
-
       - name: Comment mapping back to PR
         uses: actions/github-script@v7
         with:
@@ -142,12 +83,5 @@ jobs:
             const created = JSON.parse(core.getInput('created', { required: false }) || '[]');
             if (!created.length) return;
             let body = 'Created/updated issues:\n';
-            for (const r of created) {
-              body += `- **${r.key}** → #${r.number}\n`;
-            }
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              body
-            });
+            for (const r of created) body += `- **${r.key}** → #${r.number}\n`;
+            await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.payload.pull_request.number, body });
