@@ -1,9 +1,16 @@
 name: Sync Issues to docs/issues
 on:
+  # 人手で編集した場合など、従来のトリガ
   issues:
     types: [opened, edited, labeled, unlabeled, closed, reopened]
+  # PR→Issue自動作成Workflowが完了したら同期を実行（完全自動化）
+  workflow_run:
+    workflows: ["Create/Update Issues from PR (generic)"]
+    types: [completed]
+  # バックストップ（毎日同期）
   schedule:
     - cron: '0 18 * * *'
+  # 手動実行も可
   workflow_dispatch:
 permissions:
   contents: write
