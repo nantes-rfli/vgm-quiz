@@ -36,8 +36,22 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             async function ensureLabel(name, color='666666', description='') {
-              try { await github.rest.issues.getLabel({ owner, repo, name }); }
-              catch { await github.rest.issues.createLabel({ owner, repo, name, color, description }); }
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+                return;
+              } catch (e) {
+                // not found → create を試す
+                try {
+                  await github.rest.issues.createLabel({ owner, repo, name, color, description });
+                  return;
+                } catch (e2) {
+                  // 既に存在（大小文字差/並行作成など）なら無視して続行
+                  if (e2.status === 422) {
+                    try { await github.rest.issues.getLabel({ owner, repo, name }); return; } catch {}
+                  }
+                  throw e2;
+                }
+              }
             }
             const families = [['type:task','1D76DB'],['type:bug','D73A4A'],['type:spike','0E8A16'],['type:chore','BFDADC'],
                               ['area:fe','A2EEEF'],['area:be','A2EEEF'],['area:api','A2EEEF'],['area:data','A2EEEF'],['area:docs','A2EEEF'],['area:ops','A2EEEF'],
@@ -62,7 +76,7 @@ jobs:
                 const labels = Array.from(new Set([keyLabel, ...req]));
                 issue = (await github.rest.issues.create({ owner, repo, title: item.title, body: item.body, labels, assignees: item.assignees||[] })).data;
               }
-              if (item.project) {
+              if (item.project) try {
                 const query = `query($login:String!){ user(login:$login){ projectsV2(first:100){ nodes{ id title } } } organization(login:$login){ projectsV2(first:100){ nodes{ id title } } } }`;
                 const login = context.payload.repository.owner.login;
                 const res = await github.graphql(query, { login });
@@ -72,15 +86,22 @@ jobs:
                   const add = `mutation($projectId:ID!,$issueId:ID!){ addProjectV2ItemById(input:{projectId:$projectId, contentId:$issueId}){ item{ id } } }`;
                   await github.graphql(add, { projectId: project.id, issueId: issue.node_id });
                 }
+              } catch (e) {
+                core.warning(`Projects add skipped: ${e.message}`);
               }
               results.push({ key: item.key, number: issue.number, url: issue.html_url });
             }
             core.setOutput('created', JSON.stringify(results));
       - name: Comment mapping back to PR
         uses: actions/github-script@v7
+        env:
+          CREATED: ${{ steps.create.outputs.created }}
         with:
           script: |
-            const created = JSON.parse(core.getInput('created', { required: false }) || '[]');
+            const raw = process.env.CREATED || '[]';
+            let created = [];
+            try { created = JSON.parse(raw); }
+            catch (e) { core.warning('parse CREATED failed: '+e.message); }
             if (!created.length) return;
             let body = 'Created/updated issues:\n';
             for (const r of created) body += `- **${r.key}** → #${r.number}\n`;
