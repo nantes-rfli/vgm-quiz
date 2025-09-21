@@ -1,38 +1,82 @@
 'use client';
 
 import { useState } from 'react';
+import type { Question } from '../../src/features/quiz/api/types';
+import * as ds from '../../src/features/quiz/datasource';
 
 export default function PlayPage() {
-  const [log, setLog] = useState<string>('');
+  const [token, setToken] = useState<string | null>(null);
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const callStart = async () => {
-    const res = await fetch('/v1/rounds/start', { method: 'POST' });
-    setLog(`${res.status} ${res.statusText}\n` + JSON.stringify(await res.json(), null, 2));
-  };
+  async function handleStart() {
+    setLoading(true);
+    setError(null);
+    const res = await ds.start();
+    setLoading(false);
+    if (!res.ok) {
+      setError(`${res.error.code}: ${res.error.message}`);
+      return;
+    }
+    setToken(res.data.token);
+    setQuestion(res.data.question);
+  }
 
-  const callNext = async () => {
-    const res = await fetch('/v1/rounds/next', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ token: 'tok_0001' }),
-    });
-    setLog(`${res.status} ${res.statusText}\n` + JSON.stringify(await res.json(), null, 2));
-  };
-
-  const sendMetrics = async () => {
-    const res = await fetch('/v1/metrics', { method: 'POST', body: '[]' });
-    setLog(`${res.status} ${res.statusText}`);
-  };
+  async function handleNext() {
+    if (!token) return;
+    setLoading(true);
+    setError(null);
+    const res = await ds.next(token);
+    setLoading(false);
+    if (!res.ok) {
+      setError(`${res.error.code}: ${res.error.message}`);
+      return;
+    }
+    setToken(res.data.token);
+    setQuestion(res.data.question);
+  }
 
   return (
-    <main className="p-6 space-y-3">
-      <h1 className="text-2xl font-semibold">Play</h1>
-      <div className="space-x-2">
-        <button className="rounded px-3 py-1 border" onClick={callStart}>/v1/rounds/start</button>
-        <button className="rounded px-3 py-1 border" onClick={callNext}>/v1/rounds/next</button>
-        <button className="rounded px-3 py-1 border" onClick={sendMetrics}>/v1/metrics</button>
+    <main className="max-w-xl mx-auto p-6 space-y-4">
+      <h1 className="text-2xl font-bold">Play (FE-03 minimal)</h1>
+
+      <div className="flex gap-2">
+        <button
+          onClick={handleStart}
+          disabled={loading}
+          className="rounded-2xl border px-4 py-2 shadow"
+        >
+          Start
+        </button>
+        <button
+          onClick={handleNext}
+          disabled={loading || !token}
+          className="rounded-2xl border px-4 py-2 shadow"
+        >
+          Next
+        </button>
       </div>
-      {log && <pre className="text-xs bg-black/5 p-3 rounded whitespace-pre-wrap">{log}</pre>}
+
+      {loading && <p>Loading…</p>}
+      {error && <p className="text-red-600">Error: {error}</p>}
+
+      <section className="rounded-2xl border p-4">
+        <h2 className="font-semibold mb-2">State</h2>
+        <p className="text-sm break-all"><strong>token:</strong> {token ?? '—'}</p>
+      </section>
+
+      {question && (
+        <section className="rounded-2xl border p-4">
+          <h2 className="font-semibold mb-2">Question</h2>
+          <p className="mb-2">{question.title}</p>
+          <ul className="list-disc pl-5">
+            {question.choices.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }
