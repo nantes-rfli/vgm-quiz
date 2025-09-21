@@ -1,10 +1,10 @@
 ---
 number: 18
-state: open
+state: closed
 title: "FE-02: MSW配線 + フィクスチャ起動（/v1/* 応答）"
 labels: ["type:task", "area:fe", "priority:P0", "size:S", "key:FE-02"]
 assignees: []
-updated_at: "2025-09-20T12:42:22Z"
+updated_at: "2025-09-20T16:12:23Z"
 ---
 ### Purpose
 BEなしでAPIが動く状態にする（U1前の土台）。
