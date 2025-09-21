@@ -39,7 +39,7 @@ docs/api/schemas/         # JSON Schema（API契約の正本）
 2. 開発時だけMSWを起動（アプリ最上位で1回）
    ```ts
    // src/app/providers.tsx
-   if (process.env.NEXT_PUBLIC_API_MOCK === 'true' && typeof window !== 'undefined') {
+   if (process.env.NEXT_PUBLIC_API_MOCK === 1 && typeof window !== 'undefined') {
      const { worker } = await import('../../mocks/browser');
      await worker.start({ serviceWorker: { url: '/mockServiceWorker.js' } });
    }
