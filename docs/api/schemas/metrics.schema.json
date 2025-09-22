@@ -1,65 +1,50 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "MetricsIngestRequest",
+  "$id": "https://vgm2.dev/schemas/metrics.schema.json",
+  "title": "Metrics Request",
   "type": "object",
+  "additionalProperties": false,
   "required": [
-    "client",
-    "events"
+    "token",
+    "questionId",
+    "choiceId"
   ],
   "properties": {
-    "client": {
+    "token": {
+      "type": "string",
+      "minLength": 1
+    },
+    "questionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "choiceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correct": {
+      "type": "boolean"
+    },
+    "latencyMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "answeredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "extras": {
       "type": "object",
-      "required": [
-        "client_id"
-      ],
+      "additionalProperties": false,
       "properties": {
-        "client_id": {
+        "device": {
           "type": "string"
         },
-        "app_version": {
-          "type": "string"
-        },
-        "tz": {
+        "userAgent": {
           "type": "string"
         }
-      },
-      "additionalProperties": true
-    },
-    "events": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 100,
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "ts"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "ts": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "round_id": {
-            "type": "string"
-          },
-          "question_idx": {
-            "type": "integer"
-          },
-          "attrs": {
-            "type": "object"
-          }
-        },
-        "additionalProperties": true
       }
     }
   },
-  "additionalProperties": false
+  "description": "Server should respond with 202 Accepted and an empty body."
 }

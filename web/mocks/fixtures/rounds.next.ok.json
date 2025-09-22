@@ -2,13 +2,43 @@
   "token": "tok_0002",
   "question": {
     "id": "q002",
-    "title": "Zelda Main Theme",
-    "choices": ["OOT", "BOTW", "TOTK", "MM"],
-    "meta": { "kind": "title->game" },
-    "artwork": { "url": "/art/sample.jpg", "width": 640, "height": 640, "alt": "Cover" },
+    "prompt": "Zelda Main Theme",
+    "choices": [
+      {
+        "id": "c1",
+        "label": "The Legend of Zelda: Ocarina of Time"
+      },
+      {
+        "id": "c2",
+        "label": "The Legend of Zelda: Breath of the Wild"
+      },
+      {
+        "id": "c3",
+        "label": "The Legend of Zelda: Tears of the Kingdom"
+      },
+      {
+        "id": "c4",
+        "label": "The Legend of Zelda: Majora's Mask"
+      }
+    ],
+    "artwork": {
+      "url": "/art/sample-zelda.jpg",
+      "width": 640,
+      "height": 640,
+      "alt": "Zelda Main Theme Artwork"
+    },
     "reveal": {
-      "links": [{"provider": "youtube", "url": "https://youtu.be/dQw4w9WgXcQ"}],
-      "embedPreferredProvider": "youtube"
+      "links": [
+        {
+          "provider": "youtube",
+          "url": "https://youtu.be/dQw4w9WgXcQ"
+        }
+      ]
     }
+  },
+  "finished": false,
+  "progress": {
+    "index": 2,
+    "total": 10
   }
 }

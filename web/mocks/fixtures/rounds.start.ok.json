@@ -1,17 +1,48 @@
 {
   "token": "tok_0001",
+  "max": 10,
   "question": {
     "id": "q001",
-    "title": "Green Hill Zone",
-    "choices": ["Sonic 1", "Sonic 2", "Sonic 3", "Sonic CD"],
-    "meta": { "kind": "title->game" },
-    "artwork": { "url": "/art/sample.jpg", "width": 640, "height": 640, "alt": "Cover" },
+    "prompt": "Green Hill Zone",
+    "choices": [
+      {
+        "id": "c1",
+        "label": "Sonic the Hedgehog"
+      },
+      {
+        "id": "c2",
+        "label": "Sonic the Hedgehog 2"
+      },
+      {
+        "id": "c3",
+        "label": "Sonic the Hedgehog 3"
+      },
+      {
+        "id": "c4",
+        "label": "Sonic CD"
+      }
+    ],
+    "artwork": {
+      "url": "/art/sample-ghz.jpg",
+      "width": 640,
+      "height": 640,
+      "alt": "Green Hill Zone Cover"
+    },
     "reveal": {
       "links": [
-        {"provider": "youtube", "url": "https://youtu.be/dQw4w9WgXcQ"},
-        {"provider": "appleMusic", "url": "https://music.apple.com"}
-      ],
-      "embedPreferredProvider": "youtube"
+        {
+          "provider": "youtube",
+          "url": "https://youtu.be/dQw4w9WgXcQ"
+        },
+        {
+          "provider": "appleMusic",
+          "url": "https://music.apple.com/"
+        }
+      ]
     }
+  },
+  "progress": {
+    "index": 1,
+    "total": 10
   }
 }

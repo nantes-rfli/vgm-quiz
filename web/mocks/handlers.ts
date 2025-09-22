@@ -1,35 +1,40 @@
-import { http, HttpResponse } from 'msw';
-import startFixture from './fixtures/rounds.start.ok.json';
-import nextFixture from './fixtures/rounds.next.ok.json';
-import metricsFixture from './fixtures/metrics.accepted.json';
+// MSW handlers aligned to CONTRACT-ALIGN-01
+// - /v1/metrics: 202 Accepted, empty body
+// - /v1/rounds/start: returns rounds.start.ok.json and resets state
+// - /v1/rounds/next: returns rounds.next.ok.json until the MAX is reached, then finished=true
 
-// 何問で終了させるか（検証を早めたい場合は 3 などに）
+import { http, HttpResponse } from 'msw';
+
+// JSON fixtures (TypeScript's resolveJsonModule should be enabled)
+import roundsStart from './fixtures/rounds.start.ok.json';
+import roundsNextOk from './fixtures/rounds.next.ok.json';
+import roundsNextFinished from './fixtures/rounds.next.finished.json';
+
+// Simple in-memory state to simulate quiz progress
+let answeredCount = 0;
 const MAX_QUESTIONS = 10;
 
-// ラウンド内の出題カウント（メモリ上）
-let count = 0;
-
 export const handlers = [
-  // POST /v1/rounds/start
+  // Start: reset state and return first question
   http.post('/v1/rounds/start', async () => {
-    count = 1;
-    return HttpResponse.json(startFixture, { status: 200 });
+    answeredCount = 0;
+    return HttpResponse.json(roundsStart, { status: 200 });
   }),
 
-  // POST /v1/rounds/next
+  // Next: after each answer, increase the counter.
+  // When the user just answered the last question, return finished:true (no question).
   http.post('/v1/rounds/next', async () => {
-    count += 1;
-    const finished = count > MAX_QUESTIONS;
-
-    // フィクスチャをベースに、終端フラグだけ足す
-    return HttpResponse.json(
-      { ...nextFixture, finished },
-      { status: 200 },
-    );
+    answeredCount += 1;
+    if (answeredCount >= MAX_QUESTIONS) {
+      return HttpResponse.json(roundsNextFinished, { status: 200 });
+    }
+    return HttpResponse.json(roundsNextOk, { status: 200 });
   }),
 
-  // POST /v1/metrics
+  // Metrics: fire-and-forget; respond 202 with empty body
   http.post('/v1/metrics', async () => {
-    return HttpResponse.json(metricsFixture, { status: 202 });
-  }),
+    return new HttpResponse(null, { status: 202 });
+  })
 ];
+
+export default handlers;

@@ -1,29 +1,14 @@
+// Error banner
+// Path: web/src/components/ErrorBanner.tsx
 'use client';
 
-export interface ErrorBannerProps {
-  title?: string;
-  message: string;
-  showRetry?: boolean;
-  onRetry?: () => void;
-}
+type Props = { message: string };
 
-export default function ErrorBanner({
-  title = 'Error',
-  message,
-  showRetry = false,
-  onRetry,
-}: ErrorBannerProps) {
+export default function ErrorBanner({ message }: Props) {
+  if (!message) return null;
   return (
-    <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-red-700">
-      <p className="font-semibold">{title}</p>
-      <p className="text-sm">{message}</p>
-      {showRetry && onRetry && (
-        <div className="mt-2">
-          <button onClick={onRetry} className="rounded-xl border px-3 py-1">
-            Retry
-          </button>
-        </div>
-      )}
+    <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg mb-3">
+      {message}
     </div>
   );
 }

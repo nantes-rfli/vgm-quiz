@@ -1,27 +1,38 @@
-import { httpJson, type Result } from '../../lib/http';
-import type { StartResponse, NextResponse, MetricsRequest } from './api/types';
+// Path: web/src/features/quiz/datasource.ts
+'use client';
 
-const BASE = ''; // relative origin; MSW intercepts /v1/*
-const JSON_HEADERS = { 'Content-Type': 'application/json' } as const;
+import type { RoundsStartResponse, RoundsNextResponse, MetricsRequest } from './api/types';
 
-export async function start(): Promise<Result<StartResponse>> {
-  return httpJson<StartResponse>(`${BASE}/v1/rounds/start`, { method: 'POST' });
+async function json<T>(res: Response): Promise<T> {
+  const text = await res.text();
+  if (!text) {
+    return undefined as unknown as T;
+  }
+  return JSON.parse(text) as T;
 }
 
-export async function next(token: string): Promise<Result<NextResponse>> {
-  return httpJson<NextResponse>(`${BASE}/v1/rounds/next`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function start(): Promise<RoundsStartResponse> {
+  const res = await fetch('/v1/rounds/start', { method: 'POST' });
+  if (!res.ok) throw new Error(`start failed: ${res.status}`);
+  return json<RoundsStartResponse>(res);
 }
 
-// Fire-and-forget metrics (awaits the request but ignores the result)
-export async function sendMetrics(payload: MetricsRequest): Promise<void> {
-  await httpJson<unknown>(`${BASE}/v1/metrics`, {
-    method: 'POST',
-    headers: JSON_HEADERS,
-    body: JSON.stringify(payload),
-  });
+export async function next(): Promise<RoundsNextResponse> {
+  const res = await fetch('/v1/rounds/next', { method: 'POST' });
+  if (!res.ok) throw new Error(`next failed: ${res.status}`);
+  return json<RoundsNextResponse>(res);
+}
+
+// Fire-and-forget metrics
+export function sendMetrics(payload: MetricsRequest): void {
+  try {
+    fetch('/v1/metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true
+    }).catch(() => {});
+  } catch {
+    // ignore
+  }
 }
