@@ -1,10 +1,10 @@
 ---
 number: 43
-state: open
+state: closed
 title: "DEV-API-CONTRACT-ALIGN (pre FE-05): JSON Schema を正本にして fixtures/MSW/FE を整合"
 labels: ["type:task", "area:fe", "area:api", "priority:P1", "size:M", "key:CONTRACT-ALIGN-01"]
 assignees: []
-updated_at: "2025-09-21T12:39:22Z"
+updated_at: "2025-09-22T03:25:06Z"
 ---
 ### Purpose
 JSON Schema（docs/api/schemas/*.json）を唯一の正（SSOT）として確定し、fixtures・MSW・FE型を完全整合させる前準備タスク。
