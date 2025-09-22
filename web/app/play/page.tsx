@@ -1,166 +1,225 @@
+// /play page aligned with new schema and fixtures (robust autostart, no debug logs)
+// Path: web/app/play/page.tsx
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import type { Question } from '../../src/features/quiz/api/types';
-import * as ds from '../../src/features/quiz/datasource';
-import ErrorBanner from '../../src/components/ErrorBanner';
-import Progress from '../../src/components/Progress';
-import QuestionCard from '../../src/components/QuestionCard';
+import ErrorBanner from '@/src/components/ErrorBanner';
+import Progress from '@/src/components/Progress';
+import QuestionCard from '@/src/components/QuestionCard';
+import type { Question, RoundsStartResponse, RoundsNextResponse, MetricsRequest } from '@/src/features/quiz/api/types';
+import { start, next, sendMetrics } from '@/src/features/quiz/datasource';
+import { waitMockReady } from '@/src/lib/waitMockReady';
+
+type State = {
+  token?: string;
+  question?: Question;
+  progress?: { index: number; total: number };
+  loading: boolean;
+  error?: string;
+  selectedId?: string;
+  beganAt?: number; // ms timestamp for current question
+  startedAt?: string; // ISO string for run start
+  answeredCount: number;
+  started: boolean;
+};
+
+const AUTO_START = process.env.NEXT_PUBLIC_PLAY_AUTOSTART !== '0';
 
 export default function PlayPage() {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [index, setIndex] = useState(0); // 1-based display (index+1)
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [focused, setFocused] = useState<number>(0); // choice focus index
-  const containerRef = useRef<HTMLDivElement>(null);
-  const startedAtRef = useRef<number | null>(null);
+  const isMountedRef = React.useRef(true);
+  React.useEffect(() => {
+    return () => { isMountedRef.current = false; };
+  }, []);
 
-  const hasQuestion = !!question;
-  const choices = question?.choices ?? [];
+  const [s, setS] = React.useState<State>({
+    loading: AUTO_START,
+    answeredCount: 0,
+    started: AUTO_START
+  });
 
-  // Start a new round
-  async function handleStart() {
-    setLoading(true);
-    setError(null);
-    const res = await ds.start();
-    setLoading(false);
-    if (!res.ok) {
-      setError(`${res.error.code}: ${res.error.message}`);
-      return;
-    }
-    setToken(res.data.token);
-    setQuestion(res.data.question);
-    setIndex(1);
-    setFocused(0);
-    startedAtRef.current = Date.now();
-  }
+  const bootAndStart = React.useCallback(async () => {
+    try {
+      await waitMockReady({ timeoutMs: 2000 });
 
-  // After answering, go to next question or finish
-  async function goNext(currToken: string) {
-    setLoading(true);
-    setError(null);
-    const res = await ds.next(currToken);
-    setLoading(false);
-    if (!res.ok) {
-      // If token invalid/expired, allow restart
-      setError(`${res.error.code}: ${res.error.message}`);
-      return;
-    }
-    if (res.data.finished) {
-      const endedAt = Date.now();
-      const startedAt = startedAtRef.current ?? endedAt;
+      let res: RoundsStartResponse | undefined;
       try {
-        const summary = {
-          answered: index,
-          startedAt,
-          endedAt,
-          durationMs: Math.max(0, endedAt - startedAt),
-        };
-        sessionStorage.setItem('vgm:lastResult', JSON.stringify(summary));
-      } catch {
-        // ignore storage errors
+        res = await start();
+      } catch (e: unknown) {
+        const isMock = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_MOCK === '1';
+        const message = e instanceof Error ? e.message : String(e);
+        if (isMock && /404/.test(message)) {
+          await new Promise(r => setTimeout(r, 180));
+          res = await start();
+        } else {
+          throw e;
+        }
       }
-      router.push('/result');
-      return;
+
+      if (!isMountedRef.current) return;
+
+      if (!res) {
+        setS(prev => ({ ...prev, loading: false, error: 'Empty response from /v1/rounds/start' }));
+        return;
+      }
+
+      setS({
+        token: res.token,
+        question: res.question,
+        progress: res.progress ?? { index: 1, total: res.max },
+        loading: false,
+        error: undefined,
+        selectedId: undefined,
+        beganAt: performance.now(),
+        startedAt: new Date().toISOString(),
+        answeredCount: 0,
+        started: true
+      });
+    } catch (e: unknown) {
+      if (!isMountedRef.current) return;
+      const message = e instanceof Error ? e.message : String(e);
+      setS(prev => ({ ...prev, loading: false, error: message || 'Failed to start.' }));
     }
-    setToken(res.data.token);
-    setQuestion(res.data.question);
-    setIndex((n) => n + 1);
-    setFocused(0);
-  }
+  }, []);
 
-  async function answer(choice: string) {
-    if (!question || !token) return;
-    // Send minimal metric (non-blocking UX: we await but ignore errors/responses)
-    await ds.sendMetrics({
-      events: [
-        {
-          type: 'answer',
-          questionId: question.id,
-          choice,
-          at: new Date().toISOString(),
-        },
-      ],
-    });
-    await goNext(token);
-  }
+  // bootstrap (autostart mode)
+  React.useEffect(() => {
+    if (!AUTO_START) return;
+    void bootAndStart();
+  }, [bootAndStart]);
 
-  // Keyboard: Up/Down to change focus, Enter to answer, 1..9 to select
-  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (!hasQuestion || loading) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setFocused((i) => (i + 1) % choices.length);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setFocused((i) => (i - 1 + choices.length) % choices.length);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      answer(choices[focused]);
-    } else if (/^[1-9]$/.test(e.key)) {
-      const idx = Number(e.key) - 1;
-      if (idx >= 0 && idx < choices.length) {
-        e.preventDefault();
-        answer(choices[idx]);
+  const onClickStart = React.useCallback(async () => {
+    setS(prev => ({ ...prev, loading: true, error: undefined, started: true }));
+    await bootAndStart();
+  }, [bootAndStart]);
+
+  const submitAnswer = React.useCallback(async () => {
+    if (!s.token || !s.question || !s.selectedId) return;
+    setS(prev => ({ ...prev, loading: true, error: undefined }));
+
+    const payload: MetricsRequest = {
+      token: s.token,
+      questionId: s.question.id,
+      choiceId: s.selectedId,
+      answeredAt: new Date().toISOString(),
+      latencyMs: s.beganAt ? Math.round(performance.now() - s.beganAt) : undefined,
+      extras: { userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined }
+    };
+    sendMetrics(payload);
+
+    try {
+      const res: RoundsNextResponse = await next();
+      if (res.finished === true) {
+        try {
+          const answeredCount = s.answeredCount + 1;
+          const summary = {
+            answeredCount,
+            total: s.progress?.total ?? answeredCount,
+            startedAt: s.startedAt,
+            finishedAt: new Date().toISOString()
+          };
+          sessionStorage.setItem('vgm2.result.summary', JSON.stringify(summary));
+        } catch {}
+        router.push('/result');
+        return;
+      }
+
+      setS(prev => ({
+        ...prev,
+        loading: false,
+        error: undefined,
+        token: res.token ?? prev.token,
+        question: res.question!,
+        progress: res.progress ?? (prev.progress ? { index: prev.progress.index + 1, total: prev.progress.total } : undefined),
+        selectedId: undefined,
+        beganAt: performance.now(),
+        answeredCount: prev.answeredCount + 1
+      }));
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      setS(prev => ({ ...prev, loading: false, error: message || 'Failed to load next.' }));
+    }
+  }, [
+    s.token,
+    s.question,
+    s.selectedId,
+    s.beganAt,
+    s.answeredCount,
+    s.progress?.total,
+    s.startedAt,
+    router
+  ]);
+
+  React.useEffect(() => {
+    function onKeyDown(ev: KeyboardEvent) {
+      if (s.loading || !s.question) return;
+
+      if (/^[1-9]$/.test(ev.key)) {
+        const idx = parseInt(ev.key, 10) - 1;
+        const c = s.question.choices[idx];
+        if (c) {
+          ev.preventDefault();
+          setS(prev => ({ ...prev, selectedId: c.id }));
+        }
+        return;
+      }
+      if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        const choices = s.question.choices;
+        if (!choices.length) return;
+        const curIdx = choices.findIndex(c => c.id === s.selectedId);
+        const dir = ev.key === 'ArrowUp' ? -1 : 1;
+        const nextIdx = ((curIdx >= 0 ? curIdx : -1) + dir + choices.length) % choices.length;
+        setS(prev => ({ ...prev, selectedId: choices[nextIdx].id }));
+        return;
+      }
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        if (s.selectedId) {
+          void submitAnswer();
+        }
       }
     }
-  }
 
-  useEffect(() => {
-    // Focus the container for keyboard shortcuts when question appears
-    if (question && containerRef.current) {
-      containerRef.current.focus();
-    }
-  }, [question]);
-
-  const isAuthError =
-    (error?.startsWith('token_expired') ?? false) ||
-    (error?.startsWith('invalid_token') ?? false);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [s.loading, s.question, s.selectedId, submitAnswer]);
 
   return (
-    <main className="max-w-2xl mx-auto p-6" ref={containerRef} tabIndex={0} onKeyDown={onKeyDown}>
-      <h1 className="text-2xl font-bold mb-4">Play</h1>
-
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={handleStart}
-          disabled={loading}
-          className="rounded-2xl border px-4 py-2 shadow"
-        >
-          {token ? 'Restart' : 'Start'}
-        </button>
-        {index > 0 && <Progress current={index} />}
+    <main className="p-6">
+      <div className="max-w-2xl mx-auto">
+        {!s.started ? (
+          <div className="bg-white rounded-2xl shadow p-6 text-center">
+            <h1 className="text-2xl font-semibold mb-4">Ready?</h1>
+            {s.error ? <div className="mb-3 text-red-700">{s.error}</div> : null}
+            <button
+              type="button"
+              onClick={onClickStart}
+              className="px-4 py-2 rounded-xl bg-black text-white"
+            >
+              Start
+            </button>
+          </div>
+        ) : (
+          <>
+            <Progress index={s.progress?.index} total={s.progress?.total} />
+            {s.error ? <ErrorBanner message={s.error} /> : null}
+            {!s.question && s.loading ? (
+              <div className="text-gray-600">Loading...</div>
+            ) : s.question ? (
+              <QuestionCard
+                prompt={s.question.prompt}
+                choices={s.question.choices}
+                selectedId={s.selectedId}
+                disabled={s.loading}
+                onSelect={(id) => setS(prev => ({ ...prev, selectedId: id }))}
+                onSubmit={submitAnswer}
+              />
+            ) : null}
+          </>
+        )}
       </div>
-
-      {error && (
-        <ErrorBanner
-          message={error}
-          showRetry={isAuthError}
-          onRetry={isAuthError ? handleStart : undefined}
-        />
-      )}
-
-      {!question && !error && (
-        <div className="rounded-2xl border p-6 text-center text-gray-600">
-          <p className="mb-2">
-            Click <strong>Start</strong> to begin the quiz.
-          </p>
-          <p className="text-sm">Keyboard: ↑↓ to move, Enter to answer, 1..9 for quick select</p>
-        </div>
-      )}
-
-      {question && (
-        <QuestionCard
-          question={question}
-          focusedIndex={focused}
-          loading={loading}
-          onAnswer={answer}
-        />
-      )}
     </main>
   );
 }

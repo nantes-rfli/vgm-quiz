@@ -1,15 +1,14 @@
+// Simple progress indicator
+// Path: web/src/components/Progress.tsx
 'use client';
 
-// Simple progress text. Keep as a server component (no hooks).
-export interface ProgressProps {
-  current: number; // 1-based
-  total?: number;  // optional until API provides total
-}
+type Props = { index?: number; total?: number };
 
-export default function Progress({ current, total }: ProgressProps) {
+export default function Progress({ index, total }: Props) {
+  if (!index || !total) return null;
   return (
-    <p className="text-sm text-gray-500">
-      {total ? `Question ${current} / ${total}` : `Question ${current}`}
-    </p>
+    <div className="text-sm text-gray-600 mb-2 text-center">
+      Question {index} / {total}
+    </div>
   );
 }

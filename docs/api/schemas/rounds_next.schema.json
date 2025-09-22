@@ -1,137 +1,176 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RoundsNextResponse",
-  "oneOf": [
-    {
-      "type": "object",
-      "required": [
-        "token",
-        "question"
-      ],
-      "properties": {
-        "token": {
-          "type": "string"
-        },
-        "question": {
-          "type": "object",
-          "required": [
-            "id",
-            "prompt",
-            "choices",
-            "reveal"
-          ],
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "prompt": {
-              "type": "string"
-            },
-            "choices": {
-              "type": "array",
-              "minItems": 2,
-              "items": {
-                "type": "object",
-                "required": [
-                  "id",
-                  "label",
-                  "isCorrect"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "label": {
-                    "type": "string"
-                  },
-                  "isCorrect": {
-                    "type": "boolean"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "reveal": {
-              "type": "object",
-              "required": [
-                "links"
-              ],
-              "properties": {
-                "links": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "provider",
-                      "url"
-                    ],
-                    "properties": {
-                      "provider": {
-                        "type": "string",
-                        "enum": [
-                          "youtube",
-                          "appleMusic"
-                        ]
-                      },
-                      "url": {
-                        "type": "string",
-                        "format": "uri"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "label": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "embedPreferredProvider": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": true
-            },
-            "artwork": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "format": "uri"
-                },
-                "width": {
-                  "type": "integer"
-                },
-                "height": {
-                  "type": "integer"
-                },
-                "alt": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": true
-            },
-            "meta": {
-              "type": "object"
-            }
-          },
-          "additionalProperties": true
-        }
-      },
-      "additionalProperties": false
+  "$id": "https://vgm2.dev/schemas/rounds_next.schema.json",
+  "title": "Rounds Next Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "token"
+  ],
+  "properties": {
+    "token": {
+      "type": "string",
+      "minLength": 1
     },
+    "finished": {
+      "type": "boolean",
+      "default": false
+    },
+    "question": {
+      "$ref": "#/$defs/Question"
+    },
+    "progress": {
+      "$ref": "#/$defs/Progress"
+    }
+  },
+  "allOf": [
     {
-      "type": "object",
-      "required": [
-        "done"
-      ],
-      "properties": {
-        "done": {
-          "type": "boolean"
+      "if": {
+        "properties": {
+          "finished": {
+            "const": true
+          }
         }
       },
-      "additionalProperties": false
+      "then": {
+        "not": {
+          "required": [
+            "question"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "question"
+        ]
+      }
     }
-  ]
+  ],
+  "$defs": {
+    "Question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "prompt",
+        "choices"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Choice"
+          }
+        },
+        "artwork": {
+          "$ref": "#/$defs/Artwork"
+        },
+        "reveal": {
+          "$ref": "#/$defs/Reveal"
+        }
+      }
+    },
+    "Choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "Artwork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "alt": {
+          "type": "string"
+        }
+      }
+    },
+    "Reveal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RevealLink"
+          }
+        }
+      }
+    },
+    "RevealLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "url"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "Progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "total"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
 }

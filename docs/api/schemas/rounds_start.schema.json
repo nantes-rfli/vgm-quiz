@@ -1,7 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RoundsStartResponse",
+  "$id": "https://vgm2.dev/schemas/rounds_start.schema.json",
+  "title": "Rounds Start Response",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "token",
     "max",
@@ -9,118 +11,145 @@
   ],
   "properties": {
     "token": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "max": {
       "type": "integer",
       "minimum": 1
     },
     "question": {
+      "$ref": "#/$defs/Question"
+    },
+    "progress": {
+      "$ref": "#/$defs/Progress"
+    }
+  },
+  "$defs": {
+    "Question": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "id",
         "prompt",
-        "choices",
-        "reveal"
+        "choices"
       ],
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "prompt": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "choices": {
           "type": "array",
           "minItems": 2,
+          "uniqueItems": true,
           "items": {
-            "type": "object",
-            "required": [
-              "id",
-              "label",
-              "isCorrect"
-            ],
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "label": {
-                "type": "string"
-              },
-              "isCorrect": {
-                "type": "boolean"
-              }
-            },
-            "additionalProperties": false
+            "$ref": "#/$defs/Choice"
           }
         },
-        "reveal": {
-          "type": "object",
-          "required": [
-            "links"
-          ],
-          "properties": {
-            "links": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "provider",
-                  "url"
-                ],
-                "properties": {
-                  "provider": {
-                    "type": "string",
-                    "enum": [
-                      "youtube",
-                      "appleMusic"
-                    ]
-                  },
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  },
-                  "id": {
-                    "type": "string"
-                  },
-                  "label": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "embedPreferredProvider": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": true
-        },
         "artwork": {
-          "type": "object",
-          "properties": {
-            "url": {
-              "type": "string",
-              "format": "uri"
-            },
-            "width": {
-              "type": "integer"
-            },
-            "height": {
-              "type": "integer"
-            },
-            "alt": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": true
+          "$ref": "#/$defs/Artwork"
         },
-        "meta": {
-          "type": "object"
+        "reveal": {
+          "$ref": "#/$defs/Reveal"
         }
-      },
-      "additionalProperties": true
+      }
+    },
+    "Choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "Artwork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "alt": {
+          "type": "string"
+        }
+      }
+    },
+    "Reveal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RevealLink"
+          }
+        }
+      }
+    },
+    "RevealLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "url"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "Progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "total"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
     }
-  },
-  "additionalProperties": false
+  }
 }
