@@ -1,10 +1,10 @@
 ---
 number: 20
-state: open
+state: closed
 title: "FE-04: Questionビュー（U1）"
 labels: ["type:task", "area:fe", "priority:P0", "size:M", "key:FE-04"]
 assignees: []
-updated_at: "2025-09-22T09:52:04Z"
+updated_at: "2025-09-22T11:24:50Z"
 ---
 ### Purpose
 1アクション開始→1問目表示（U1）。
