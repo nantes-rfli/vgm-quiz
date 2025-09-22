@@ -1,5 +1,4 @@
-// /play page aligned with new schema and fixtures (robust autostart, no debug logs)
-// Path: web/app/play/page.tsx
+// /play page with pre-save reveal (FE-05 one-point fix)
 'use client';
 
 import React from 'react';
@@ -108,8 +107,17 @@ export default function PlayPage() {
     };
     sendMetrics(payload);
 
+    // --- One-point fix: save the *current* question's reveal BEFORE calling next() ---
+    try {
+      const currentReveal = s.question?.reveal;
+      if (currentReveal) {
+        sessionStorage.setItem('vgm2.result.reveal', JSON.stringify(currentReveal));
+      }
+    } catch {}
+
     try {
       const res: RoundsNextResponse = await next();
+
       if (res.finished === true) {
         try {
           const answeredCount = s.answeredCount + 1;

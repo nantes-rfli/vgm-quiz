@@ -1,16 +1,38 @@
-// Path: web/app/result/page.tsx
 'use client';
 
 import React from 'react';
 import { loadResult } from '@/src/lib/resultStorage';
+import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
+import RevealCard from '@/src/components/RevealCard';
+import type { Reveal } from '@/src/features/quiz/api/types';
+
+function isReveal(x: unknown): x is Reveal {
+  if (typeof x !== 'object' || x === null) return false;
+  const maybe = x as { links?: unknown };
+  return Array.isArray(maybe.links);
+}
 
 export default function ResultPage() {
   const [ready, setReady] = React.useState(false);
   const [summary, setSummary] = React.useState<{ answeredCount: number; total: number; startedAt?: string; finishedAt?: string } | null>(null);
+  const [reveal, setReveal] = React.useState<Reveal | undefined>(undefined);
 
   React.useEffect(() => {
     const s = loadResult();
     setSummary(s ?? null);
+
+    try {
+      const raw = sessionStorage.getItem('vgm2.result.reveal');
+      if (raw) {
+        const obj = JSON.parse(raw) as unknown;
+        if (isReveal(obj)) {
+          setReveal(obj);
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+
     setReady(true);
   }, []);
 
@@ -36,12 +58,19 @@ export default function ResultPage() {
   return (
     <main className="p-6">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-semibold mb-4">Result</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold">Result</h1>
+          <InlinePlaybackToggle />
+        </div>
+
         <div className="bg-white rounded-2xl shadow p-6">
           <p className="mb-2">Answered: <strong>{summary.answeredCount}</strong> / {summary.total}</p>
           {started ? <p className="text-sm text-gray-600">Started at: {started.toLocaleString()}</p> : null}
           {finished ? <p className="text-sm text-gray-600">Finished at: {finished.toLocaleString()}</p> : null}
         </div>
+
+        <RevealCard reveal={reveal} />
+
         <div className="mt-6">
           <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-black text-white">Play again</a>
         </div>
