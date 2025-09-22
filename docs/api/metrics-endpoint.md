@@ -1,6 +1,6 @@
 # Metrics Ingest API — 最小仕様
 - Status: Approved
-- Last Updated: 2025-09-20
+- Last Updated: 2025-09-22
 
 本書はクライアントからの計測イベント投入 I/F（MVP）を定義します。**サーバは受領・整形・蓄積のみ**を行い、同期集計は行いません。エラー語彙は別紙「API Error Model — 最小仕様」を参照。
 
@@ -52,27 +52,9 @@
 - `attrs` は **1イベントあたり 2 KB** 以内を推奨（超過は切り詰め可）。
 
 ## レスポンス
-- 成功: `202 Accepted`
-```json
-{
-  "accepted": 1,
-  "failed": 0,
-  "results": [
-    { "id": "f2b6e4aa-...-3d7", "ok": true, "deduped": false }
-  ]
-}
-```
-- 部分失敗: `202 Accepted`（結果配列に per-item の `error` を格納）
-```json
-{
-  "accepted": 1,
-  "failed": 1,
-  "results": [
-    { "id": "ok-id", "ok": true },
-    { "id": "bad-id", "ok": false, "error": { "code": "validation_error", "message": "unknown event name" } }
-  ]
-}
-```
+- 成功: `202 Accepted`（**本文なし**）
+- クライアントは **レスポンスボディを前提にしない**こと（fire-and-forget）。
+- 障害時の情報付加・部分失敗のトラッキングは**将来拡張**とし、本MVPでは返しません。
 
 ## エラー（HTTP）
 - `429 rate_limited` — `Retry-After` 秒を必ず付与。対象は少なくとも **IP** と `client_id`。
