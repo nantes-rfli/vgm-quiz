@@ -1,6 +1,6 @@
 # 開発用モックの使い方（FE先行）
 - Status: Approved
-- Last Updated: 2025-09-20
+- Last Updated: 2025-09-22
 
 このページは **フロントエンドを先に動かすための最小手順** を5分で読める範囲でまとめたものです。
 
@@ -21,7 +21,6 @@ mocks/                    # APIのモック応答（JSON）とMSWハンドラ
     rounds_next.q00.json ... q09.json
     rounds_next.done.json
     errors/*.json
-    metrics.accepted.json
   handlers.ts
   browser.ts
 docs/api/schemas/         # JSON Schema（API契約の正本）
@@ -52,7 +51,7 @@ docs/api/schemas/         # JSON Schema（API契約の正本）
 - `POST /v1/rounds/start` → `mocks/api/rounds_start.success.json` を返す
 - `POST /v1/rounds/next`  → `mock.<idx>.<rid>` トークンを解釈して次問を返す
   - `token === 'expired'` で 401 `token_expired` をテスト可
-- `POST /v1/metrics`      → 常に `202 Accepted`（部分失敗のケースは必要時に追加）
+- `POST /v1/metrics`      → 常に `202 Accepted`（**空本文**）
 
 ## バリデーション（任意だが推奨）
 - ランタイム検証: `ajv` 等でレスポンスを `docs/api/schemas/*.json` に照合
