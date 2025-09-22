@@ -1,10 +1,10 @@
 ---
 number: 19
-state: open
+state: closed
 title: "FE-03: Data層（QuizDataSource：start/next・エラー型）"
 labels: ["type:task", "area:fe", "priority:P0", "size:M", "key:FE-03"]
 assignees: []
-updated_at: "2025-09-20T12:42:24Z"
+updated_at: "2025-09-22T10:16:48Z"
 ---
 ### Purpose
 UIが依存するAPI窓口を1か所に集約。
