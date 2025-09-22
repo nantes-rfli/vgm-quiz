@@ -1,4 +1,4 @@
-// /play page with pre-save reveal (FE-05 one-point fix)
+// Play page with reveal phase (FE-04 Sub DoD) — clean rewrite
 'use client';
 
 import React from 'react';
@@ -6,7 +6,14 @@ import { useRouter } from 'next/navigation';
 import ErrorBanner from '@/src/components/ErrorBanner';
 import Progress from '@/src/components/Progress';
 import QuestionCard from '@/src/components/QuestionCard';
-import type { Question, RoundsStartResponse, RoundsNextResponse, MetricsRequest } from '@/src/features/quiz/api/types';
+import RevealCard from '@/src/components/RevealCard';
+import type {
+  Question,
+  RoundsStartResponse,
+  RoundsNextResponse,
+  MetricsRequest,
+  Reveal,
+} from '@/src/features/quiz/api/types';
 import { start, next, sendMetrics } from '@/src/features/quiz/datasource';
 import { waitMockReady } from '@/src/lib/waitMockReady';
 
@@ -21,6 +28,10 @@ type State = {
   startedAt?: string; // ISO string for run start
   answeredCount: number;
   started: boolean;
+  // FE-04 sub-DoD
+  phase: 'question' | 'reveal';
+  queuedNext?: RoundsNextResponse;
+  currentReveal?: Reveal;
 };
 
 const AUTO_START = process.env.NEXT_PUBLIC_PLAY_AUTOSTART !== '0';
@@ -29,13 +40,16 @@ export default function PlayPage() {
   const router = useRouter();
   const isMountedRef = React.useRef(true);
   React.useEffect(() => {
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const [s, setS] = React.useState<State>({
     loading: AUTO_START,
     answeredCount: 0,
-    started: AUTO_START
+    started: AUTO_START,
+    phase: 'question',
   });
 
   const bootAndStart = React.useCallback(async () => {
@@ -46,10 +60,12 @@ export default function PlayPage() {
       try {
         res = await start();
       } catch (e: unknown) {
-        const isMock = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_MOCK === '1';
+        const isMock =
+          typeof window !== 'undefined' &&
+          process.env.NEXT_PUBLIC_API_MOCK === '1';
         const message = e instanceof Error ? e.message : String(e);
         if (isMock && /404/.test(message)) {
-          await new Promise(r => setTimeout(r, 180));
+          await new Promise((r) => setTimeout(r, 180));
           res = await start();
         } else {
           throw e;
@@ -59,7 +75,11 @@ export default function PlayPage() {
       if (!isMountedRef.current) return;
 
       if (!res) {
-        setS(prev => ({ ...prev, loading: false, error: 'Empty response from /v1/rounds/start' }));
+        setS((prev) => ({
+          ...prev,
+          loading: false,
+          error: 'Empty response from /v1/rounds/start',
+        }));
         return;
       }
 
@@ -73,12 +93,19 @@ export default function PlayPage() {
         beganAt: performance.now(),
         startedAt: new Date().toISOString(),
         answeredCount: 0,
-        started: true
+        started: true,
+        phase: 'question',
+        queuedNext: undefined,
+        currentReveal: res.question?.reveal,
       });
     } catch (e: unknown) {
       if (!isMountedRef.current) return;
       const message = e instanceof Error ? e.message : String(e);
-      setS(prev => ({ ...prev, loading: false, error: message || 'Failed to start.' }));
+      setS((prev) => ({
+        ...prev,
+        loading: false,
+        error: message || 'Failed to start.',
+      }));
     }
   }, []);
 
@@ -89,32 +116,57 @@ export default function PlayPage() {
   }, [bootAndStart]);
 
   const onClickStart = React.useCallback(async () => {
-    setS(prev => ({ ...prev, loading: true, error: undefined, started: true }));
+    setS((prev) => ({
+      ...prev,
+      loading: true,
+      error: undefined,
+      started: true,
+    }));
     await bootAndStart();
   }, [bootAndStart]);
 
   const submitAnswer = React.useCallback(async () => {
     if (!s.token || !s.question || !s.selectedId) return;
-    setS(prev => ({ ...prev, loading: true, error: undefined }));
 
+    // Switch to reveal phase immediately (freeze UI) and show current reveal
+    const currentReveal = s.question?.reveal;
+    setS((prev) => ({
+      ...prev,
+      loading: false,
+      error: undefined,
+      phase: 'reveal',
+      currentReveal,
+    }));
+
+    // Metrics (fire-and-forget)
     const payload: MetricsRequest = {
       token: s.token,
       questionId: s.question.id,
       choiceId: s.selectedId,
       answeredAt: new Date().toISOString(),
-      latencyMs: s.beganAt ? Math.round(performance.now() - s.beganAt) : undefined,
-      extras: { userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined }
+      latencyMs: s.beganAt
+        ? Math.round(performance.now() - s.beganAt)
+        : undefined,
+      extras: {
+        userAgent:
+          typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      },
     };
     sendMetrics(payload);
 
-    // --- One-point fix: save the *current* question's reveal BEFORE calling next() ---
+    // Persist current reveal for /result (robust even if finished: true)
     try {
-      const currentReveal = s.question?.reveal;
       if (currentReveal) {
-        sessionStorage.setItem('vgm2.result.reveal', JSON.stringify(currentReveal));
+        sessionStorage.setItem(
+          'vgm2.result.reveal',
+          JSON.stringify(currentReveal)
+        );
       }
-    } catch {}
+    } catch {
+      // ignore
+    }
 
+    // Preload next in background
     try {
       const res: RoundsNextResponse = await next();
 
@@ -125,28 +177,26 @@ export default function PlayPage() {
             answeredCount,
             total: s.progress?.total ?? answeredCount,
             startedAt: s.startedAt,
-            finishedAt: new Date().toISOString()
+            finishedAt: new Date().toISOString(),
           };
-          sessionStorage.setItem('vgm2.result.summary', JSON.stringify(summary));
-        } catch {}
-        router.push('/result');
+          sessionStorage.setItem(
+            'vgm2.result.summary',
+            JSON.stringify(summary)
+          );
+        } catch {
+          // ignore
+        }
+        setS((prev) => ({ ...prev, queuedNext: res }));
         return;
       }
 
-      setS(prev => ({
-        ...prev,
-        loading: false,
-        error: undefined,
-        token: res.token ?? prev.token,
-        question: res.question!,
-        progress: res.progress ?? (prev.progress ? { index: prev.progress.index + 1, total: prev.progress.total } : undefined),
-        selectedId: undefined,
-        beganAt: performance.now(),
-        answeredCount: prev.answeredCount + 1
-      }));
+      setS((prev) => ({ ...prev, queuedNext: res }));
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      setS(prev => ({ ...prev, loading: false, error: message || 'Failed to load next.' }));
+      setS((prev) => ({
+        ...prev,
+        error: message || 'Failed to load next.',
+      }));
     }
   }, [
     s.token,
@@ -156,11 +206,46 @@ export default function PlayPage() {
     s.answeredCount,
     s.progress?.total,
     s.startedAt,
-    router
   ]);
+
+  const onNextFromReveal = React.useCallback(() => {
+    const qn = s.queuedNext;
+    if (!qn) return;
+    if (qn.finished === true) {
+      router.push('/result');
+      return;
+    }
+    setS((prev) => ({
+      ...prev,
+      loading: false,
+      error: undefined,
+      token: qn.token ?? prev.token,
+      question: qn.question!,
+      progress:
+        qn.progress ??
+        (prev.progress
+          ? { index: prev.progress.index + 1, total: prev.progress.total }
+          : undefined),
+      selectedId: undefined,
+      beganAt: performance.now(),
+      answeredCount: prev.answeredCount + 1,
+      phase: 'question',
+      queuedNext: undefined,
+      currentReveal: qn.question?.reveal,
+    }));
+  }, [s.queuedNext, router]);
 
   React.useEffect(() => {
     function onKeyDown(ev: KeyboardEvent) {
+      // During reveal phase: only Enter=Next
+      if (s.phase === 'reveal') {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          onNextFromReveal();
+        }
+        return;
+      }
+
       if (s.loading || !s.question) return;
 
       if (/^[1-9]$/.test(ev.key)) {
@@ -168,7 +253,7 @@ export default function PlayPage() {
         const c = s.question.choices[idx];
         if (c) {
           ev.preventDefault();
-          setS(prev => ({ ...prev, selectedId: c.id }));
+          setS((prev) => ({ ...prev, selectedId: c.id }));
         }
         return;
       }
@@ -176,10 +261,12 @@ export default function PlayPage() {
         ev.preventDefault();
         const choices = s.question.choices;
         if (!choices.length) return;
-        const curIdx = choices.findIndex(c => c.id === s.selectedId);
+        const curIdx = choices.findIndex((c) => c.id === s.selectedId);
         const dir = ev.key === 'ArrowUp' ? -1 : 1;
-        const nextIdx = ((curIdx >= 0 ? curIdx : -1) + dir + choices.length) % choices.length;
-        setS(prev => ({ ...prev, selectedId: choices[nextIdx].id }));
+        const nextIdx =
+          ((curIdx >= 0 ? curIdx : -1) + dir + choices.length) %
+          choices.length;
+        setS((prev) => ({ ...prev, selectedId: choices[nextIdx].id }));
         return;
       }
       if (ev.key === 'Enter') {
@@ -192,7 +279,7 @@ export default function PlayPage() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [s.loading, s.question, s.selectedId, submitAnswer]);
+  }, [s.phase, s.loading, s.question, s.selectedId, submitAnswer, onNextFromReveal]);
 
   return (
     <main className="p-6">
@@ -200,7 +287,9 @@ export default function PlayPage() {
         {!s.started ? (
           <div className="bg-white rounded-2xl shadow p-6 text-center">
             <h1 className="text-2xl font-semibold mb-4">Ready?</h1>
-            {s.error ? <div className="mb-3 text-red-700">{s.error}</div> : null}
+            {s.error ? (
+              <div className="mb-3 text-red-700">{s.error}</div>
+            ) : null}
             <button
               type="button"
               onClick={onClickStart}
@@ -213,7 +302,20 @@ export default function PlayPage() {
           <>
             <Progress index={s.progress?.index} total={s.progress?.total} />
             {s.error ? <ErrorBanner message={s.error} /> : null}
-            {!s.question && s.loading ? (
+            {s.phase === 'reveal' ? (
+              <div>
+                <RevealCard reveal={s.currentReveal} />
+                <div className="mt-4 text-right">
+                  <button
+                    type="button"
+                    onClick={onNextFromReveal}
+                    className="px-4 py-2 rounded-xl bg-black text-white"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            ) : !s.question && s.loading ? (
               <div className="text-gray-600">Loading...</div>
             ) : s.question ? (
               <QuestionCard
@@ -221,7 +323,9 @@ export default function PlayPage() {
                 choices={s.question.choices}
                 selectedId={s.selectedId}
                 disabled={s.loading}
-                onSelect={(id) => setS(prev => ({ ...prev, selectedId: id }))}
+                onSelect={(id) =>
+                  setS((prev) => ({ ...prev, selectedId: id }))
+                }
                 onSubmit={submitAnswer}
               />
             ) : null}
