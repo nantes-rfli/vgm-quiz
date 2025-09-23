@@ -1,6 +1,6 @@
 # Rounds Token (JWS) — 最小仕様
 - Status: Approved
-- Last Updated: 2025-09-19
+- Last Updated: 2025-09-23
 
 本書は Tokenized Round（stateless）方式における **ラウンド進行トークン** の最小仕様を定義します。`/v1/rounds/start` と `/v1/rounds/next` の双方に適用されます。
 
@@ -21,7 +21,7 @@
 |---|---|:--:|---|
 | `rid` | string | ✓ | Round ID（例: UUIDv4） |
 | `idx` | number | ✓ | 現在の問題インデックス（0-based） |
-| `max` | number | ✓ | 総問題数（例: 10） |
+| `total` | number | ✓ | 総問題数（例: 10） |
 | `seed` | string | ✓ | サンプリング用シード（16 bytes の base64url 推奨） |
 | `filtersHash` | string | ✓ | **正準化**した filters JSON の SHA-256 を base64url 化 |
 | `ver` | number | ✓ | トークン仕様バージョン。初期値 `1` |
@@ -36,9 +36,9 @@
 
 ## サーバの検証・発行規範
 - **署名検証**・`exp` 未失効であること。
-- 同一ラウンド内で `rid`/`seed`/`filtersHash`/`max` が**不変**であること。
+- 同一ラウンド内で `rid`/`seed`/`filtersHash`/`total` が**不変**であること。
 - `/v1/rounds/next` では受理トークンの `idx` に対し **+1** した `idx` を含む新トークンを発行する（スキップ含め**後戻り不可**）。
-- `idx == max-1` の次は `done: true` を返し、ラウンドを終了する（以降の `next` は `invalid_token`）。
+- `idx == total-1` の次は `finished: true` を返し、ラウンドを終了する（以降の `next` は `invalid_token`）。
 - レート制限は **IP + rid** を推奨。
 
 ## エラーハンドリング（関連）

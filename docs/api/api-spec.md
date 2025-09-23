@@ -1,6 +1,6 @@
 # API Specification — Tokenized Round (Stateless)
 - Status: Approved
-- Last Updated: 2025-09-19
+- Last Updated: 2025-09-23
 
 > See also:
 > - [Rounds Token (JWS) — 最小仕様](./rounds-token-spec.md)
@@ -46,7 +46,7 @@ POST /v1/rounds/start
 {
   "round": {
     "mode": "vgm_v1-ja",
-    "sequence": { "index": 1, "total": 10 },
+    "progress": { "index": 1, "total": 10 },
     "token": "<JWS-compact-string>"
   },
   "question": { }
@@ -69,16 +69,16 @@ POST /v1/rounds/next
 ```json
 {
   "round": {
-    "sequence": { "index": 2, "total": 10 },
+    "progress": { "index": 2, "total": 10 },
     "token": "<updated-JWS>"
   },
   "question": { },
-  "hasMore": true
+  "finished": false
 }
 ```
 
 - トークン内の現在位置を1つ進め、該当IDの問題を返す。
-- 最終問後は `hasMore: false`。必要なら `question` を省略可能。
+- 最終問後は `finished: false`。このフィールドは毎回返され、最後のレスポンスで true となる。必要なら `question` を省略可能。
 
 ### 3.3 Manifest
 ```
@@ -199,7 +199,7 @@ POST /v1/availability
 - `POST /v1/rounds/start`（mode、filters、total、seed）でトークンと1問目を受け取る
 - 出題 → 回答 → 結果表示
 - 次へで `POST /v1/rounds/next`（token）を呼ぶ
-- 10問後 `hasMore: false` で `/result` へ
+- 10問後 `finished: false` で `/result` へ
 
 ### 5.2 途中再開
 - 保存しておいた `token` で `POST /v1/rounds/next` を再開
