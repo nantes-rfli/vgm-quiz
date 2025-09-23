@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import ScoreBadge from '@/src/components/ScoreBadge';
 import { loadResult } from '@/src/lib/resultStorage';
+import type { ResultSummary } from '@/src/lib/resultStorage';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
 import RevealCard from '@/src/components/RevealCard';
 import type { Reveal } from '@/src/features/quiz/api/types';
@@ -18,7 +20,7 @@ export default function ResultPage() {
   const [reveal, setReveal] = React.useState<Reveal | undefined>(undefined);
 
   React.useEffect(() => {
-    const s = loadResult();
+    const s = (loadResult() ?? { answeredCount: 0, total: 0 }) as ResultSummary;
     setSummary(s ?? null);
 
     try {
@@ -64,6 +66,10 @@ export default function ResultPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow p-6">
+      <div className="flex items-center justify-end mb-2">
+        <ScoreBadge correct={0} wrong={0} unknown={summary.answeredCount ?? 0} total={summary.total} />
+      </div>
+    
           <p className="mb-2">Answered: <strong>{summary.answeredCount}</strong> / {summary.total}</p>
           {started ? <p className="text-sm text-gray-600">Started at: {started.toLocaleString()}</p> : null}
           {finished ? <p className="text-sm text-gray-600">Finished at: {finished.toLocaleString()}</p> : null}

@@ -1,54 +1,39 @@
-// Schema-aligned types for quiz API (CONTRACT-ALIGN-01)
-// Path: web/src/features/quiz/api/types.ts
-
+// Schema-aligned types (UPDATED: round.progress in round, finished top-level)
 export type ID = string;
 
-export interface Choice {
-  id: ID;
-  label: string;
-}
-
-export interface Artwork {
-  url: string;
-  width: number;
-  height: number;
-  alt?: string;
-}
+export interface Choice { id: ID; label: string; }
 
 export interface RevealLink {
-  provider: string;
+  provider: 'youtube' | 'applemusic' | 'spotify' | 'other';
   url: string;
 }
 
-export interface Reveal {
-  links?: RevealLink[];
-}
+export interface Reveal { links: RevealLink[]; }
 
 export interface Question {
   id: ID;
   prompt: string;
   choices: Choice[];
-  artwork?: Artwork;
-  reveal?: Reveal;
+  reveal: Reveal;
 }
 
-export interface Progress {
-  index: number;
-  total: number;
+export interface Progress { index: number; total: number; }
+
+export interface RoundMeta {
+  token: string;
+  progress: Progress;
 }
 
 export interface RoundsStartResponse {
-  token: string;
-  max: number;
+  round: RoundMeta;
+  finished: boolean;
   question: Question;
-  progress?: Progress;
 }
 
 export interface RoundsNextResponse {
-  token: string;
-  finished?: boolean;
+  round: RoundMeta;
+  finished: boolean;
   question?: Question; // omitted when finished === true
-  progress?: Progress;
 }
 
 export interface MetricsRequest {
@@ -58,8 +43,5 @@ export interface MetricsRequest {
   correct?: boolean;
   latencyMs?: number;
   answeredAt?: string; // ISO8601
-  extras?: {
-    device?: string;
-    userAgent?: string;
-  };
+  extras?: { device?: string; userAgent?: string };
 }

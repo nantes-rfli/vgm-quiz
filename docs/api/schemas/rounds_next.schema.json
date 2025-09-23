@@ -5,47 +5,48 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "token"
+    "round",
+    "finished"
   ],
   "properties": {
-    "token": {
-      "type": "string",
-      "minLength": 1
-    },
-    "finished": {
-      "type": "boolean",
-      "default": false
+    "round": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token",
+        "progress"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "minLength": 1
+        },
+        "progress": {
+          "$ref": "#/$defs/Progress"
+        }
+      }
     },
     "question": {
       "$ref": "#/$defs/Question"
     },
-    "progress": {
-      "$ref": "#/$defs/Progress"
+    "finished": {
+      "type": "boolean"
     }
   },
   "allOf": [
-    {
-      "if": {
-        "properties": {
-          "finished": {
-            "const": true
-          }
-        }
-      },
-      "then": {
-        "not": {
-          "required": [
-            "question"
-          ]
-        }
-      },
-      "else": {
-        "required": [
-          "question"
-        ]
+  {
+    "if": {
+      "properties": { "finished": { "const": false } },
+      "required": ["finished"]
+    },
+    "then": {
+      "required": ["question"],
+      "properties": {
+        "question": { "$ref": "#/$defs/Question" }
       }
     }
-  ],
+  }
+],
   "$defs": {
     "Question": {
       "type": "object",

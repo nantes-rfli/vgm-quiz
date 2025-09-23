@@ -1,13 +1,13 @@
 {
   "round": {
-    "token": "tok_0001",
+    "token": "tok_0009",
     "progress": {
-      "index": 1,
+      "index": 9,
       "total": 10
     }
   },
   "question": {
-    "id": "q_0001",
+    "id": "q_0009",
     "prompt": "このBGMの作曲者は？",
     "choices": [
       {
@@ -27,6 +27,12 @@
         "label": "作曲者D"
       }
     ],
+    "artwork": {
+      "url": "https://example.com/art.jpg",
+      "width": 1024,
+      "height": 1024,
+      "alt": "Album Art"
+    },
     "reveal": {
       "links": [
         {
@@ -38,12 +44,6 @@
           "url": "https://music.apple.com/jp/album/xyz/123"
         }
       ]
-    },
-    "artwork": {
-      "url": "https://example.com/art.jpg",
-      "width": 1024,
-      "height": 1024,
-      "alt": "Album Art"
     }
   },
   "finished": false

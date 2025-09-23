@@ -84,9 +84,9 @@ export default function PlayPage() {
       }
 
       setS({
-        token: res.token,
+        token: res.round.token,
         question: res.question,
-        progress: res.progress ?? { index: 1, total: res.max },
+        progress: res.round.progress,
         loading: false,
         error: undefined,
         selectedId: undefined,
@@ -219,10 +219,10 @@ export default function PlayPage() {
       ...prev,
       loading: false,
       error: undefined,
-      token: qn.token ?? prev.token,
+      token: qn.round?.token ?? prev.token,
       question: qn.question!,
       progress:
-        qn.progress ??
+        qn.round?.progress ??
         (prev.progress
           ? { index: prev.progress.index + 1, total: prev.progress.total }
           : undefined),
