@@ -8,7 +8,10 @@ export interface RevealLink {
   url: string;
 }
 
-export interface Reveal { links: RevealLink[]; questionId?: ID; choiceId?: ID; correct?: boolean; correctChoiceId?: ID; }
+
+export interface RevealMeta { workTitle?: string; trackTitle?: string; composer?: string; }
+export interface Reveal { links: RevealLink[]; questionId?: ID; choiceId?: ID; correct?: boolean; correctChoiceId?: ID;   meta?: RevealMeta;
+}
 
 export interface Question {
   id: ID;
@@ -27,7 +30,7 @@ export interface RoundMeta {
 export interface RoundsStartResponse {
   round: RoundMeta;
   finished: boolean;
-  question: Question;
+  question: Question;  reveal?: Reveal;
 }
 
 export interface RoundsNextResponse {

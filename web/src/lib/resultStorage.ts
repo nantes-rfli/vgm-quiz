@@ -71,3 +71,11 @@ export function loadReveals<T = unknown>(): T[] {
   const arr = raw ? parseJson<T[]>(raw) : undefined;
   return Array.isArray(arr) ? arr : [];
 }
+
+export function clearReveals(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(REVEALS_KEY as string);
+    window.sessionStorage.removeItem(REVEAL_KEY as string);
+  } catch {}
+}

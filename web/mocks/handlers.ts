@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import startRound from './fixtures/rounds.start.ok.json';
 import { TOTAL as ROUND_TOTAL, getQuestionByIndex } from './fixtures/rounds/index';
 import { ANSWERS } from './fixtures/rounds/answers';
+import { META } from './fixtures/rounds/meta';
 
 type Claims = { rid: string; idx: number; total: number; iat: number; exp: number };
 const ALG = { alg: 'EdDSA', kid: 'mock-key' as const };
@@ -50,6 +51,7 @@ function buildReveal(answer?: { questionId?: string; choiceId?: string } | null)
     choiceId: answer.choiceId,
     correct,
     correctChoiceId: correctChoiceId || undefined,
+    meta: META[answer.questionId],
     links: [], // links are available via previous question's reveal on client; server can omit or fill if needed
   };
 }

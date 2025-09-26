@@ -39,7 +39,8 @@ export default function RevealCard({ reveal }: { reveal?: Reveal }) {
 
   const embedUrl = primary.provider === 'youtube' ? toYouTubeEmbed(primary.url) : null;
 
-  return (
+  const meta = reveal?.meta;
+return (
     <div className="mt-6 bg-white rounded-2xl shadow p-6">
       <h2 className="text-lg font-semibold mb-3">Listen / Watch</h2>
       {inline && embedUrl ? (
@@ -52,6 +53,13 @@ export default function RevealCard({ reveal }: { reveal?: Reveal }) {
             allowFullScreen
             loading="lazy"
           />
+        </div>
+      ) : null}
+      {meta ? (
+        <div className="mb-3 text-sm text-gray-700">
+          {meta.workTitle ? <div><span className="font-medium">Work:</span> {meta.workTitle}</div> : null}
+          {meta.trackTitle ? <div><span className="font-medium">Track:</span> {meta.trackTitle}</div> : null}
+          {meta.composer ? <div><span className="font-medium">Composer:</span> {meta.composer}</div> : null}
         </div>
       ) : null}
       <a

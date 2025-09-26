@@ -5,7 +5,6 @@ import ScoreBadge from '@/src/components/ScoreBadge';
 import { loadResult, loadReveals } from '@/src/lib/resultStorage';
 import type { ResultSummary } from '@/src/lib/resultStorage';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
-import RevealCard from '@/src/components/RevealCard';
 import type { Reveal } from '@/src/features/quiz/api/types';
 
 function isReveal(x: unknown): x is Reveal {
@@ -17,9 +16,7 @@ function isReveal(x: unknown): x is Reveal {
 export default function ResultPage() {
   const [ready, setReady] = React.useState(false);
   const [summary, setSummary] = React.useState<{ answeredCount: number; total: number; startedAt?: string; finishedAt?: string } | null>(null);
-  const [reveal, setReveal] = React.useState<Reveal | undefined>(undefined);
-
-  React.useEffect(() => {
+React.useEffect(() => {
     const s = (loadResult() ?? { answeredCount: 0, total: 0 }) as ResultSummary;
     setSummary(s ?? null);
 
@@ -28,8 +25,7 @@ export default function ResultPage() {
       if (raw) {
         const obj = JSON.parse(raw) as unknown;
         if (isReveal(obj)) {
-          setReveal(obj);
-        }
+          }
       }
     } catch {
       // ignore parse errors
@@ -75,14 +71,16 @@ export default function ResultPage() {
           {finished ? <p className="text-sm text-gray-600">Finished at: {finished.toLocaleString()}</p> : null}
         </div>
 
-        <RevealCard reveal={reveal} />
+        
 
         {(() => {
           const reveals = loadReveals<Reveal>();
           if (!Array.isArray(reveals) || reveals.length === 0) return null;
           return (
             <div className="mt-8">
-              <h2 className="text-lg font-semibold mb-3">All reveals (this run)</h2>
+              <h2 className="text-lg font-semibold mb-3"><a href="/play" className="inline-block px-4 py-2 rounded-xl bg-black text-white">Play again</a>
+
+All reveals (this run)</h2>
               <ul className="space-y-3">
                 {reveals.map((rv, idx) => {
                   const link = rv?.links?.[0];
@@ -113,7 +111,7 @@ export default function ResultPage() {
 
 
         <div className="mt-6">
-          <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-black text-white">Play again</a>
+          
         </div>
       </div>
     </main>
