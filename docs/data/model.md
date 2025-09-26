@@ -1,6 +1,6 @@
 # Data Model (VGM Quiz MVP)
 - Status: Approved
-- Last Updated: 2025-09-19
+- Last Updated: 2025-09-25
 
 ## この文書の目的
 
@@ -13,7 +13,7 @@ MVPにおける**クライアント側の正準データ構造**を定義する�
 
 - `id: string`
 - `prompt: string`
-- `choices: { id: string, label: string, isCorrect: boolean }[]`
+- `choices: { id: string, label: string }[]`
   - **固定4件**。提示順のみクライアントでシャッフル可（内容は固定）
 - `reveal?:` **// 結果表示での紹介用メタ** 
 ```
@@ -64,10 +64,10 @@ MVPにおける**クライアント側の正準データ構造**を定義する�
   "id": "q_0001",
   "prompt": "このBGMの作曲者は？",
   "choices": [
-    { "id": "a", "label": "作曲者 A", "isCorrect": false },
-    { "id": "b", "label": "作曲者 B", "isCorrect": true },
-    { "id": "c", "label": "作曲者 C", "isCorrect": false },
-    { "id": "d", "label": "作曲者 D", "isCorrect": false }
+    { "id": "a", "label": "作曲者 A"},
+    { "id": "b", "label": "作曲者 B"},
+    { "id": "c", "label": "作曲者 C"},
+    { "id": "d", "label": "作曲者 D"}
   ],
   "reveal": {
     "links": [
@@ -123,7 +123,7 @@ MVPにおける**クライアント側の正準データ構造**を定義する�
 
 - **Question**
 
-  - `choices` は常に4件・`isCorrect` は1件のみ
+  - `choices` は常に4件・正解はサーバ側にのみ存在（クライアントへは配布しない）
   - `reveal.links` は **0件以上**（用意があればURLはHTTPS推奨）
   - `reveal.embedPreferredProvider` は `reveal.links[*].provider` のいずれか、もしくは `null`
   - `artwork.url` はHTTPS推奨、`width`/`height` は指定推奨、`alt` は必須

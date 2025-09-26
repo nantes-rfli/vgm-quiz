@@ -1,7 +1,0 @@
-{
-  "error": {
-    "code": "insufficient_inventory",
-    "message": "No questions match the given filters.",
-    "retryable": true
-  }
-}

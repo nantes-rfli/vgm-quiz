@@ -31,22 +31,35 @@
     },
     "finished": {
       "type": "boolean"
+    },
+    "reveal": {
+      "$ref": "#/$defs/Reveal"
     }
   },
   "allOf": [
-  {
-    "if": {
-      "properties": { "finished": { "const": false } },
-      "required": ["finished"]
-    },
-    "then": {
-      "required": ["question"],
-      "properties": {
-        "question": { "$ref": "#/$defs/Question" }
+    {
+      "if": {
+        "properties": {
+          "finished": {
+            "const": false
+          }
+        },
+        "required": [
+          "finished"
+        ]
+      },
+      "then": {
+        "required": [
+          "question"
+        ],
+        "properties": {
+          "question": {
+            "$ref": "#/$defs/Question"
+          }
+        }
       }
     }
-  }
-],
+  ],
   "$defs": {
     "Question": {
       "type": "object",
@@ -134,6 +147,21 @@
           "items": {
             "$ref": "#/$defs/RevealLink"
           }
+        },
+        "questionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "choiceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "correct": {
+          "type": "boolean"
+        },
+        "correctChoiceId": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },

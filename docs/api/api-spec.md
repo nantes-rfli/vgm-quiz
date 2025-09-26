@@ -1,6 +1,6 @@
 # API Specification — Tokenized Round (Stateless)
 - Status: Approved
-- Last Updated: 2025-09-23
+- Last Updated: 2025-09-25
 
 > See also:
 > - [Rounds Token (JWS) — 最小仕様](./rounds-token-spec.md)
@@ -13,7 +13,7 @@
 本APIはクイズの提供を「フィルタ指定 → 10問サンプリング → トークンで進行」の流れで行う。サーバはセッションを保持しない。署名付きトークンに順序付きID配列と現在位置を内包し、往復で進行する。
 
 - `POST /v1/rounds/start` — 指定条件で問題をサンプリングし、トークンと1問目を返す
-- `POST /v1/rounds/next` — トークンを受け取り、次の1問と更新トークンを返す
+- `POST /v1/rounds/next` — トークン＋直前の回答（`answer`）を受け取り、**直前の結果（`reveal`）**と次の1問を返す
 - `GET /v1/manifest` — モード、ファセット（フィルタ選択肢）、機能フラグ
 - `POST /v1/metrics` — 計測バッチ送信
 - 付録: `POST /v1/availability`（任意）— フィルタで取得可能な件数を確認
@@ -148,10 +148,10 @@ POST /v1/availability
   "id": "q_0001",
   "prompt": "このBGMの作曲者は？",
   "choices": [
-    { "id": "a", "label": "作曲者A", "isCorrect": false },
-    { "id": "b", "label": "作曲者B", "isCorrect": true },
-    { "id": "c", "label": "作曲者C", "isCorrect": false },
-    { "id": "d", "label": "作曲者D", "isCorrect": false }
+    { "id": "a", "label": "作曲者A" },
+    { "id": "b", "label": "作曲者B" },
+    { "id": "c", "label": "作曲者C" },
+    { "id": "d", "label": "作曲者D" }
   ],
   "reveal": {
     "links": [
@@ -175,6 +175,9 @@ POST /v1/availability
   "meta": { "lengthSec": 7, "startSec": 30, "kind": "title_to_composer" }
 }
 ```
+
+
+> Security Note: `choices[].isCorrect` はクライアントへは配布しません。正誤判定はサーバ側で行い、回答送信後に**直前1問分のみ** `reveal` として返します（将来の問題の正解は露出しません）。
 
 ### 4.2 Token（JWS payload の論理構造）
 ```json
