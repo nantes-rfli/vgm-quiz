@@ -7,6 +7,9 @@ import ErrorBanner from '@/src/components/ErrorBanner';
 import Progress from '@/src/components/Progress';
 import QuestionCard from '@/src/components/QuestionCard';
 import RevealCard from '@/src/components/RevealCard';
+import ScoreBadge from '@/src/components/ScoreBadge';
+import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
+import { saveResult, appendReveal } from '@/src/lib/resultStorage';
 import type {
   Question,
   RoundsStartResponse,
@@ -157,10 +160,7 @@ export default function PlayPage() {
     // Persist current reveal for /result (robust even if finished: true)
     try {
       if (currentReveal) {
-        sessionStorage.setItem(
-          'vgm2.result.reveal',
-          JSON.stringify(currentReveal)
-        );
+        appendReveal(currentReveal);
       }
     } catch {
       // ignore
@@ -168,7 +168,7 @@ export default function PlayPage() {
 
     // Preload next in background
     try {
-      const res: RoundsNextResponse = await next();
+      const res: RoundsNextResponse = await next({ token: s.token!, answer: { questionId: s.question!.id, choiceId: s.selectedId! } });
 
       if (res.finished === true) {
         try {
@@ -179,11 +179,8 @@ export default function PlayPage() {
             startedAt: s.startedAt,
             finishedAt: new Date().toISOString(),
           };
-          sessionStorage.setItem(
-            'vgm2.result.summary',
-            JSON.stringify(summary)
-          );
-        } catch {
+          saveResult(summary);
+} catch {
           // ignore
         }
         setS((prev) => ({ ...prev, queuedNext: res }));
@@ -284,6 +281,10 @@ export default function PlayPage() {
   return (
     <main className="p-6">
       <div className="max-w-2xl mx-auto">
+        <div className="mb-4 flex items-center justify-between">
+          <ScoreBadge correct={0} wrong={0} unknown={s.answeredCount} total={s.progress?.total} />
+          <InlinePlaybackToggle />
+        </div>
         {!s.started ? (
           <div className="bg-white rounded-2xl shadow p-6 text-center">
             <h1 className="text-2xl font-semibold mb-4">Ready?</h1>

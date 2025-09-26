@@ -2,7 +2,7 @@
 
 import React from 'react';
 import ScoreBadge from '@/src/components/ScoreBadge';
-import { loadResult } from '@/src/lib/resultStorage';
+import { loadResult, loadReveals } from '@/src/lib/resultStorage';
 import type { ResultSummary } from '@/src/lib/resultStorage';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
 import RevealCard from '@/src/components/RevealCard';
@@ -76,6 +76,41 @@ export default function ResultPage() {
         </div>
 
         <RevealCard reveal={reveal} />
+
+        {(() => {
+          const reveals = loadReveals<Reveal>();
+          if (!Array.isArray(reveals) || reveals.length === 0) return null;
+          return (
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold mb-3">All reveals (this run)</h2>
+              <ul className="space-y-3">
+                {reveals.map((rv, idx) => {
+                  const link = rv?.links?.[0];
+                  return (
+                    <li key={idx} className="p-4 rounded-xl bg-white shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">#{idx + 1}</div>
+                        {link ? (
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            Open in {link.provider}
+                          </a>
+                        ) : (
+                          <span className="text-gray-500">No link</span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })()}
+
 
         <div className="mt-6">
           <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-black text-white">Play again</a>

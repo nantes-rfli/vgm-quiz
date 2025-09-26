@@ -11,6 +11,7 @@ export type ResultSummary = {
 
 export const RESULT_KEY = 'vgm2.result.summary';
 export const REVEAL_KEY = 'vgm2.result.reveal';
+export const REVEALS_KEY = 'vgm2.result.reveals';
 
 const FALLBACK_KEYS = ['vgm2.result', 'result.summary', 'resultSummary'];
 
@@ -51,4 +52,22 @@ export function loadLastReveal<T = unknown>(): T | undefined {
   if (typeof window === 'undefined') return undefined;
   const raw = window.sessionStorage.getItem(REVEAL_KEY);
   return raw ? parseJson<T>(raw) : undefined;
+}
+
+export function appendReveal<T = unknown>(reveal: T | undefined): void {
+  if (typeof window === 'undefined' || !reveal) return;
+  try {
+    const raw = window.sessionStorage.getItem(REVEALS_KEY);
+    const arr = raw ? (parseJson<T[]>(raw) ?? []) : [];
+    arr.push(reveal);
+    window.sessionStorage.setItem(REVEALS_KEY, JSON.stringify(arr));
+    window.sessionStorage.setItem(REVEAL_KEY, JSON.stringify(reveal)); // keep last
+  } catch {}
+}
+
+export function loadReveals<T = unknown>(): T[] {
+  if (typeof window === 'undefined') return [];
+  const raw = window.sessionStorage.getItem(REVEALS_KEY);
+  const arr = raw ? parseJson<T[]>(raw) : undefined;
+  return Array.isArray(arr) ? arr : [];
 }

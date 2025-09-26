@@ -8,7 +8,7 @@ export interface RevealLink {
   url: string;
 }
 
-export interface Reveal { links: RevealLink[]; }
+export interface Reveal { links: RevealLink[]; questionId?: ID; choiceId?: ID; correct?: boolean; correctChoiceId?: ID; }
 
 export interface Question {
   id: ID;
@@ -34,13 +34,13 @@ export interface RoundsNextResponse {
   round: RoundMeta;
   finished: boolean;
   question?: Question; // omitted when finished === true
+  reveal?: Reveal;
 }
 
 export interface MetricsRequest {
   token: string;
   questionId: string;
   choiceId: string;
-  correct?: boolean;
   latencyMs?: number;
   answeredAt?: string; // ISO8601
   extras?: { device?: string; userAgent?: string };

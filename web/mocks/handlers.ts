@@ -2,16 +2,63 @@
 import { http, HttpResponse } from 'msw';
 import startRound from './fixtures/rounds.start.ok.json';
 import { TOTAL as ROUND_TOTAL, getQuestionByIndex } from './fixtures/rounds/index';
+import { ANSWERS } from './fixtures/rounds/answers';
 
 type Claims = { rid: string; idx: number; total: number; iat: number; exp: number };
-const enc = (obj: unknown) => Buffer.from(JSON.stringify(obj)).toString('base64url');
-const dec = (b64: string): unknown => JSON.parse(Buffer.from(b64, 'base64url').toString('utf8'));
 const ALG = { alg: 'EdDSA', kid: 'mock-key' as const };
+// --- Safe base64url helpers (browser & Node) ---
+function b64uEncodeString(str: string): string {
+  try {
+    // Browser path
+    const b64 = typeof btoa !== 'undefined'
+      ? btoa(unescape(encodeURIComponent(str)))
+      : Buffer.from(str, 'utf8').toString('base64');
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  } catch {
+    // Fallback to Buffer if available
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyBuf: any = (globalThis as any).Buffer;
+    const b64 = anyBuf ? anyBuf.from(str, 'utf8').toString('base64') : str;
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+}
+
+function b64uDecodeToString(b64u: string): string {
+  const b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
+  try {
+    // Browser path
+    const s = typeof atob !== 'undefined' ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+    // Decode from binary to UTF-8 string
+    const decoded = decodeURIComponent(escape(s));
+    return decoded;
+  } catch {
+    // Fallback to Buffer UTF-8
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyBuf: any = (globalThis as any).Buffer;
+    return anyBuf ? anyBuf.from(b64, 'base64').toString('utf8') : b64u;
+  }
+}
+
+const enc = (obj: unknown) => b64uEncodeString(JSON.stringify(obj));
+const dec = (b64u: string): unknown => JSON.parse(b64uDecodeToString(b64u));
+function buildReveal(answer?: { questionId?: string; choiceId?: string } | null) {
+  if (!answer?.questionId || !answer?.choiceId) return undefined;
+  const correctChoiceId = ANSWERS[answer.questionId];
+  const correct = correctChoiceId ? correctChoiceId === answer.choiceId : false;
+  return {
+    questionId: answer.questionId,
+    choiceId: answer.choiceId,
+    correct,
+    correctChoiceId: correctChoiceId || undefined,
+    links: [], // links are available via previous question's reveal on client; server can omit or fill if needed
+  };
+}
+
 
 function sign(claims: Claims): string {
   const header = enc(ALG);
   const payload = enc(claims);
-  const sig = Buffer.from('mock-signature').toString('base64url');
+  const sig = b64uEncodeString('mock-signature');
   return `${header}.${payload}.${sig}`;
 }
 function verify(token: string): Claims {
@@ -46,7 +93,7 @@ export const handlers = [
   }),
 
   http.post('/v1/rounds/next', async ({ request }) => {
-    const body = (await request.json().catch(() => ({}))) as { token?: string };
+    const body = (await request.json().catch(() => ({}))) as { token?: string; answer?: { questionId?: string; choiceId?: string } };
     const token = body?.token;
     if (!token) return new HttpResponse('Missing token', { status: 400 });
     let claims: Claims;
@@ -58,18 +105,21 @@ export const handlers = [
     }
     const next = nextToken(claims);
     const isFinished = next.idx > next.total;
+
     const newToken = sign(next);
     if (isFinished) {
-      return HttpResponse.json({
-        round: { token: newToken, progress: { index: next.total, total: next.total } },
-        finished: true,
-      });
+      // Even when finished, return reveal for the last answered question if provided
+      const rev = buildReveal(body?.answer);
+      return HttpResponse.json({ round: { token: newToken, progress: { index: next.total, total: next.total } }, finished: true, reveal: rev });
     }
+
     const question = getQuestionByIndex(next.idx);
+    const rev = buildReveal(body?.answer);
     return HttpResponse.json({
       round: { token: newToken, progress: { index: next.idx, total: next.total } },
       question,
       finished: false,
+      reveal: rev,
     });
   }),
 
