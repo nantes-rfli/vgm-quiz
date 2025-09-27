@@ -88,8 +88,7 @@ test.describe('Play page features', () => {
         headers[key] = value;
       });
 
-      const bodyBuffer = await response.body();
-      const originalBody = bodyBuffer?.toString() ?? '';
+      const originalBody = await response.text();
 
       try {
         const data = JSON.parse(originalBody) as {
@@ -98,9 +97,11 @@ test.describe('Play page features', () => {
         if (data?.question?.reveal?.links) {
           data.question.reveal.links = [];
         }
+        delete headers['content-length'];
+        headers['content-type'] = 'application/json';
         await route.fulfill({
           status: response.status(),
-          headers: { ...headers, 'content-type': 'application/json' },
+          headers,
           body: JSON.stringify(data),
         });
       } catch {
