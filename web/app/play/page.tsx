@@ -297,6 +297,8 @@ export default function PlayPage() {
     if (isMountedRef.current) dispatch(a);
   }, []);
 
+  const latestRecord = history.length > 0 ? history[history.length - 1] : undefined;
+
   const bootAndStart = React.useCallback(async () => {
     try {
       await waitMockReady({ timeoutMs: 2000 });
@@ -546,7 +548,20 @@ export default function PlayPage() {
 
             {s.phase === 'reveal' ? (
               <div>
-                <RevealCard reveal={s.currentReveal} />
+                <RevealCard
+                  reveal={s.currentReveal}
+                  result={
+                    latestRecord
+                      ? {
+                          outcome: latestRecord.outcome,
+                          points: latestRecord.points,
+                          remainingMs: latestRecord.remainingMs,
+                          choiceLabel: latestRecord.choiceLabel,
+                          correctLabel: latestRecord.correctLabel,
+                        }
+                      : undefined
+                  }
+                />
                 <div className="mt-4 text-right">
                   <button type="button" onClick={onNextFromReveal} className="px-4 py-2 rounded-xl bg-black text-white">
                     Next
