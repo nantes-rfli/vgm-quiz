@@ -83,11 +83,6 @@ test.describe('Play page features', () => {
   test('handles question timeout and missing reveal links', async ({ page }) => {
     await page.route('**/v1/rounds/start', async (route) => {
       const response = await route.fetch();
-      const headers: Record<string, string> = {};
-      response.headers().forEach((value, key) => {
-        headers[key] = value;
-      });
-
       const originalBody = await response.text();
 
       try {
@@ -97,15 +92,17 @@ test.describe('Play page features', () => {
         if (data?.question?.reveal?.links) {
           data.question.reveal.links = [];
         }
-        delete headers['content-length'];
-        headers['content-type'] = 'application/json';
         await route.fulfill({
           status: response.status(),
-          headers,
+          headers: { 'content-type': 'application/json' },
           body: JSON.stringify(data),
         });
       } catch {
-        await route.fulfill({ status: response.status(), headers, body: originalBody });
+        await route.fulfill({
+          status: response.status(),
+          headers: Object.fromEntries(response.headers()),
+          body: originalBody,
+        });
       }
     });
 
