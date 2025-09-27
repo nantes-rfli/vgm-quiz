@@ -1,6 +1,6 @@
 # 開発用モックの使い方（FE先行）
 - Status: Approved
-- Last Updated: 2025-09-22
+- Last Updated: 2025-09-27
 
 このページは **フロントエンドを先に動かすための最小手順** を5分で読める範囲でまとめたものです。
 
@@ -51,7 +51,9 @@ docs/api/schemas/         # JSON Schema（API契約の正本）
 - `POST /v1/rounds/start` → `mocks/api/rounds_start.success.json` を返す
 - `POST /v1/rounds/next`  → `mock.<idx>.<rid>` トークンを解釈して次問を返す
   - `token === 'expired'` で 401 `token_expired` をテスト可
-- `POST /v1/metrics`      → 常に `202 Accepted`（**空本文**）
+- `POST /v1/metrics`      → 常に `202 Accepted`（**空本文**）。ブラウザ側ではローカルキュー（`vgm2.metrics.queue`）にイベントを蓄積し、まとめて送信。
+
+> **NOTE**: オフライン時は `/v1/metrics` が失敗してもキューに残り、オンライン復帰後に自動再送される。挙動を確認する際は `Application > Local Storage` で該当キーを見る。
 
 ## バリデーション（任意だが推奨）
 - ランタイム検証: `ajv` 等でレスポンスを `docs/api/schemas/*.json` に照合
