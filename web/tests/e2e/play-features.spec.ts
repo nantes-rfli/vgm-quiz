@@ -87,19 +87,25 @@ test.describe('Play page features', () => {
       response.headers().forEach((value, key) => {
         headers[key] = value;
       });
-      let bodyText = await response.text();
+
+      const bodyBuffer = await response.body();
+      const originalBody = bodyBuffer?.toString() ?? '';
+
       try {
-        const data = JSON.parse(bodyText) as {
+        const data = JSON.parse(originalBody) as {
           question?: { reveal?: { links?: Array<unknown> } };
         };
-        if (data?.question?.reveal) {
+        if (data?.question?.reveal?.links) {
           data.question.reveal.links = [];
-          bodyText = JSON.stringify(data);
         }
+        await route.fulfill({
+          status: response.status(),
+          headers: { ...headers, 'content-type': 'application/json' },
+          body: JSON.stringify(data),
+        });
       } catch {
-        // fall through with original body
+        await route.fulfill({ status: response.status(), headers, body: originalBody });
       }
-      await route.fulfill({ status: response.status(), headers, body: bodyText });
     });
 
     await page.goto('/play');
