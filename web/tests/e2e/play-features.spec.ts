@@ -82,6 +82,10 @@ test.describe('Play page features', () => {
 
   test('handles question timeout and missing reveal links', async ({ page }) => {
     await page.addInitScript(() => {
+      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      if (!anyWindow.__ORIGINAL_FETCH__) {
+        anyWindow.__ORIGINAL_FETCH__ = window.fetch;
+      }
       const originalFetch = window.fetch;
       window.fetch = async (...args) => {
         const response = await originalFetch(...args);
@@ -138,12 +142,82 @@ test.describe('Play page features', () => {
     const timeoutCard = page.locator('li', { hasText: '#1 — このBGMの作曲者は？' }).first();
     await expect(timeoutCard.getByText('Timeout')).toBeVisible();
     await expect(timeoutCard.getByText('Your answer: —')).toBeVisible();
+
+    await page.evaluate(() => {
+      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      if (anyWindow.__ORIGINAL_FETCH__) {
+        window.fetch = anyWindow.__ORIGINAL_FETCH__;
+        delete anyWindow.__ORIGINAL_FETCH__;
+      }
+    });
+  });
+
+  test('handles unsupported reveal providers', async ({ page }) => {
+    await page.addInitScript(() => {
+      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      if (!anyWindow.__ORIGINAL_FETCH__) {
+        anyWindow.__ORIGINAL_FETCH__ = window.fetch;
+      }
+      const originalFetch = window.fetch;
+      window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+        try {
+          const request = args[0];
+          const url = typeof request === 'string' ? request : request.url;
+          if (url.includes('/v1/rounds/start')) {
+            const data = await response.clone().json();
+            if (data?.question?.reveal) {
+              data.question.reveal.links = [
+                { provider: 'unknown', url: 'notaurl' } as { provider: string; url: string },
+              ];
+              const headers = new Headers(response.headers);
+              headers.set('content-type', 'application/json');
+              return new Response(JSON.stringify(data), {
+                status: response.status,
+                statusText: response.statusText,
+                headers,
+              });
+            }
+          }
+        } catch {
+          // fall through
+        }
+        return response;
+      };
+    });
+
+    await page.goto('/play');
+    await waitForQuestion(page, 0);
+
+    const firstQuestionId = QUESTION_IDS[0];
+    const correctChoice = ANSWERS[firstQuestionId];
+    await page.getByTestId(`choice-${correctChoice}`).click();
+    const submitButton = page.getByRole('button', { name: 'Answer (Enter)' });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+
+    const fallbackLink = page.getByRole('link', { name: /Open in unknown/i });
+    await expect(fallbackLink).toBeVisible();
+    await expect(fallbackLink).toHaveAttribute('href', 'notaurl');
+    await expect(page.locator('iframe[title="Player"]')).toHaveCount(0);
+
+    await page.evaluate(() => {
+      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      if (anyWindow.__ORIGINAL_FETCH__) {
+        window.fetch = anyWindow.__ORIGINAL_FETCH__;
+        delete anyWindow.__ORIGINAL_FETCH__;
+      }
+    });
   });
 
   test('records metrics events for toggle and reveal interactions', async ({ page, context }) => {
     await context.route('https://www.youtube.com/**', (route) => route.abort());
 
     await page.addInitScript(() => {
+      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      if (!anyWindow.__ORIGINAL_FETCH__) {
+        anyWindow.__ORIGINAL_FETCH__ = window.fetch;
+      }
       const batches: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }> = [];
       const originalFetch = window.fetch;
 
@@ -214,5 +288,114 @@ test.describe('Play page features', () => {
 
     const answerResult = metricEvents.find((event) => event.name === 'answer_result');
     expect(answerResult?.attrs).toMatchObject({ outcome: 'correct', questionId: QUESTION_IDS[0] });
+
+    await page.evaluate(() => {
+      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      if (anyWindow.__ORIGINAL_FETCH__) {
+        window.fetch = anyWindow.__ORIGINAL_FETCH__;
+        delete anyWindow.__ORIGINAL_FETCH__;
+      }
+    });
+  });
+
+  test('retries metrics flush after 429 responses', async ({ page }) => {
+    await page.addInitScript(() => {
+      const anyWindow = window as unknown as {
+        __OVERRIDE_READY__?: boolean;
+        __ORIGINAL_FETCH__?: typeof fetch;
+        __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
+        __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }>;
+        __METRICS_ATTEMPTS__?: number;
+      };
+
+      const applyOverride = () => {
+        if (anyWindow.__OVERRIDE_READY__) return;
+        anyWindow.__OVERRIDE_READY__ = true;
+
+        if (!anyWindow.__ORIGINAL_FETCH__) {
+          anyWindow.__ORIGINAL_FETCH__ = window.fetch;
+        }
+        if (!anyWindow.__ORIGINAL_SET_TIMEOUT__) {
+          anyWindow.__ORIGINAL_SET_TIMEOUT__ = window.setTimeout;
+        }
+
+        const originalFetch = window.fetch;
+        const originalSetTimeout = window.setTimeout;
+
+        anyWindow.__METRICS_LOG__ = [];
+        anyWindow.__METRICS_ATTEMPTS__ = 0;
+
+        window.setTimeout = ((handler: TimerHandler, timeout?: number, ...rest: unknown[]) =>
+          originalSetTimeout(handler, timeout && timeout > 50 ? 50 : timeout ?? 0, ...rest)) as typeof window.setTimeout;
+
+        window.fetch = async (...args) => {
+          const request = typeof args[0] === 'string' ? new Request(args[0], args[1]) : args[0];
+          if (request.url.includes('/v1/metrics')) {
+            try {
+              const text = await request.clone().text();
+              anyWindow.__METRICS_LOG__!.push(JSON.parse(text));
+            } catch {
+              anyWindow.__METRICS_LOG__!.push({});
+            }
+            const attempt = (anyWindow.__METRICS_ATTEMPTS__ = (anyWindow.__METRICS_ATTEMPTS__ ?? 0) + 1);
+            if (attempt === 1) {
+              return new Response('', { status: 429, statusText: 'Too Many Requests', headers: { 'Retry-After': '0' } });
+            }
+            return new Response('', { status: 202, statusText: 'Accepted' });
+          }
+          return originalFetch(args[0], args[1]);
+        };
+      };
+
+      if (navigator.serviceWorker?.controller) {
+        applyOverride();
+      } else {
+        navigator.serviceWorker?.ready.then(applyOverride);
+      }
+    });
+
+    await page.goto('/play');
+    await waitForQuestion(page, 0);
+
+    const toggle = page.getByRole('button', { name: 'Inline playback' });
+    await toggle.click();
+    const correctChoice = ANSWERS[QUESTION_IDS[0]];
+    await page.getByTestId(`choice-${correctChoice}`).click();
+    const submitButton = page.getByRole('button', { name: 'Answer (Enter)' });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+
+    await page.waitForFunction(() => {
+      const anyWindow = window as unknown as { __METRICS_ATTEMPTS__?: number };
+      return (anyWindow.__METRICS_ATTEMPTS__ ?? 0) >= 2;
+    }, { timeout: 15_000 });
+
+    const result = await page.evaluate(() => {
+      const anyWindow = window as unknown as {
+        __METRICS_ATTEMPTS__?: number;
+        __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }>;
+        __ORIGINAL_FETCH__?: typeof fetch;
+        __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
+      };
+      const output = {
+        attempts: anyWindow.__METRICS_ATTEMPTS__ ?? 0,
+        events: (anyWindow.__METRICS_LOG__ ?? []).flatMap((batch) => batch.events ?? []),
+      };
+      if (anyWindow.__ORIGINAL_FETCH__) {
+        window.fetch = anyWindow.__ORIGINAL_FETCH__;
+        delete anyWindow.__ORIGINAL_FETCH__;
+      }
+      if (anyWindow.__ORIGINAL_SET_TIMEOUT__) {
+        window.setTimeout = anyWindow.__ORIGINAL_SET_TIMEOUT__;
+        delete anyWindow.__ORIGINAL_SET_TIMEOUT__;
+      }
+      delete anyWindow.__METRICS_LOG__;
+      delete anyWindow.__METRICS_ATTEMPTS__;
+      delete anyWindow.__OVERRIDE_READY__;
+      return output;
+    });
+
+    expect(result.attempts).toBeGreaterThanOrEqual(2);
+    expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
   });
 });
