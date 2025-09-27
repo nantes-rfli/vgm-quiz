@@ -10,10 +10,11 @@ test.describe('Smoke: complete quiz and reach result', () => {
 
     for (const [index, questionId] of QUESTION_IDS.entries()) {
       const choiceId = ANSWERS[questionId];
+      const waitTimeout = index === 0 ? 60_000 : 15_000;
 
       // Wait until the current question prompt is displayed before interacting
-      await expect(questionPrompt).toBeVisible({ timeout: 15_000 });
-      await expect(page.getByTestId(`choice-${choiceId}`)).toBeVisible({ timeout: 15_000 });
+      await expect(questionPrompt).toBeVisible({ timeout: waitTimeout });
+      await expect(page.getByTestId(`choice-${choiceId}`)).toBeVisible({ timeout: waitTimeout });
 
       // Answer the question with the known correct choice from fixtures
       await page.getByTestId(`choice-${choiceId}`).click();

@@ -37,4 +37,6 @@ jobs:
           NEXT_DISABLE_DEVTOOLS: '1'
           NEXT_TELEMETRY_DISABLED: '1'
           CI: '1'
+          NEXT_PUBLIC_API_MOCK: '1'
+          NEXT_PUBLIC_PLAY_AUTOSTART: '1'
         run: npm run test:e2e

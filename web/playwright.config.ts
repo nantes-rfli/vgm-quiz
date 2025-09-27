@@ -17,7 +17,7 @@ export default defineConfig({
     : {
         command: 'npm run dev',
         cwd: './',
-        env: { NEXT_PUBLIC_PLAY_AUTOSTART: '1' },
+        env: { NEXT_PUBLIC_PLAY_AUTOSTART: '1', NEXT_PUBLIC_API_MOCK: '1' },
         port: 3000,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
