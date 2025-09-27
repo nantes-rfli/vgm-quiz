@@ -138,7 +138,8 @@ test.describe('Play page features', () => {
     await submitSecond.click();
 
     await expect(page.getByRole('heading', { name: 'Listen / Watch' })).toBeVisible();
-    await expect(page.getByText('No links available')).toBeVisible();
+    await expect(page.getByText(/No links available/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('link', { name: /Open in/i })).toHaveCount(0);
     await page.getByTestId('reveal-next').click();
 
     for (const [index, questionId] of QUESTION_IDS.entries()) {
