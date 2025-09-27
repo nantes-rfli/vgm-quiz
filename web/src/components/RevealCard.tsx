@@ -3,6 +3,7 @@ import React from 'react';
 import type { Reveal, RevealLink } from '@/src/features/quiz/api/types';
 import type { Outcome } from '@/src/lib/resultStorage';
 import { getInlinePlayback } from '@/src/lib/inlinePlayback';
+import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
 
 function toYouTubeEmbed(url: string): string | null {
   try {
@@ -57,7 +58,13 @@ function toSeconds(ms: number): number {
   return Math.max(0, Math.floor(ms / 1000));
 }
 
-export default function RevealCard({ reveal, result }: { reveal?: Reveal; result?: ResultInfo }) {
+type RevealTelemetry = {
+  roundId?: string;
+  questionIdx?: number;
+  questionId?: string;
+};
+
+export default function RevealCard({ reveal, result, telemetry }: { reveal?: Reveal; result?: ResultInfo; telemetry?: RevealTelemetry }) {
   const [inline] = React.useState<boolean>(getInlinePlayback());
   const primary = pickPrimaryLink(reveal);
 
@@ -65,6 +72,62 @@ export default function RevealCard({ reveal, result }: { reveal?: Reveal; result
 
   const meta = reveal?.meta;
   const outcome = result ? outcomeText(result.outcome) : undefined;
+  const [fallbackLogged, setFallbackLogged] = React.useState(false);
+  const [errorLogged, setErrorLogged] = React.useState(false);
+
+  React.useEffect(() => {
+    setFallbackLogged(false);
+    setErrorLogged(false);
+  }, [reveal?.questionId, telemetry?.questionId]);
+
+  React.useEffect(() => {
+    if (!inline) {
+      setFallbackLogged(false);
+      return;
+    }
+    if (!primary) return;
+    if (embedUrl) {
+      setFallbackLogged(false);
+      return;
+    }
+    if (fallbackLogged) return;
+    recordMetricsEvent('embed_fallback_to_link', {
+      roundId: telemetry?.roundId,
+      questionIdx: telemetry?.questionIdx,
+      attrs: {
+        questionId: telemetry?.questionId,
+        provider: primary.provider,
+        reason: 'no_embed_available',
+      },
+    });
+    setFallbackLogged(true);
+  }, [inline, primary, embedUrl, fallbackLogged, telemetry?.roundId, telemetry?.questionIdx, telemetry?.questionId]);
+
+  const handleEmbedError = React.useCallback(() => {
+    if (errorLogged || !primary) return;
+    setErrorLogged(true);
+    recordMetricsEvent('embed_error', {
+      roundId: telemetry?.roundId,
+      questionIdx: telemetry?.questionIdx,
+      attrs: {
+        questionId: telemetry?.questionId,
+        provider: primary.provider,
+        reason: 'load_error',
+      },
+    });
+  }, [errorLogged, primary, telemetry?.roundId, telemetry?.questionIdx, telemetry?.questionId]);
+
+  const handleExternalClick = React.useCallback(() => {
+    if (!primary) return;
+    recordMetricsEvent('reveal_open_external', {
+      roundId: telemetry?.roundId,
+      questionIdx: telemetry?.questionIdx,
+      attrs: {
+        questionId: telemetry?.questionId,
+        provider: primary.provider,
+      },
+    });
+  }, [primary, telemetry?.roundId, telemetry?.questionIdx, telemetry?.questionId]);
 
   return (
     <div className="mt-6 bg-white rounded-2xl shadow p-6">
@@ -92,6 +155,7 @@ export default function RevealCard({ reveal, result }: { reveal?: Reveal; result
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
             loading="lazy"
+            onError={handleEmbedError}
           />
         </div>
       ) : null}
@@ -108,6 +172,7 @@ export default function RevealCard({ reveal, result }: { reveal?: Reveal; result
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block px-4 py-2 rounded-xl bg-black text-white"
+          onClick={handleExternalClick}
         >
           Open in {primary.provider}
         </a>

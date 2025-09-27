@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { getInlinePlayback, setInlinePlayback } from '@/src/lib/inlinePlayback';
+import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
 
 export default function InlinePlaybackToggle() {
   const [on, setOn] = React.useState(false);
@@ -13,6 +14,9 @@ export default function InlinePlaybackToggle() {
     const v = !on;
     setOn(v);
     setInlinePlayback(v);
+    recordMetricsEvent('settings_inline_toggle', {
+      attrs: { enabled: v },
+    });
   }
 
   return (
