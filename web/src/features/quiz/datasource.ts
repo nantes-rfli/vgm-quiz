@@ -1,7 +1,7 @@
 // Path: web/src/features/quiz/datasource.ts
 'use client';
 
-import type { RoundsStartResponse, RoundsNextResponse, MetricsRequest } from './api/types';
+import type { RoundsStartResponse, RoundsNextResponse } from './api/types';
 
 async function json<T>(res: Response): Promise<T> {
   const text = await res.text();
@@ -26,19 +26,4 @@ export async function next(payload: { token: string; answer: { questionId: strin
   });
   if (!res.ok) throw new Error(`next failed: ${res.status}`);
   return json<RoundsNextResponse>(res);
-}
-
-// Fire-and-forget metrics
-export function sendMetrics(payload: MetricsRequest): void {
-  try {
-    // no await
-    fetch('/v1/metrics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      keepalive: true,
-    }).catch(() => {});
-  } catch {
-    // ignore
-  }
 }

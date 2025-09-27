@@ -39,12 +39,3 @@ export interface RoundsNextResponse {
   question?: Question; // omitted when finished === true
   reveal?: Reveal;
 }
-
-export interface MetricsRequest {
-  token: string;
-  questionId: string;
-  choiceId: string;
-  latencyMs?: number;
-  answeredAt?: string; // ISO8601
-  extras?: { device?: string; userAgent?: string };
-}

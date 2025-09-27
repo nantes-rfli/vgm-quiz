@@ -18,15 +18,10 @@ import {
   type ScoreBreakdown,
   type Outcome,
 } from '@/src/lib/resultStorage';
-import type {
-  Question,
-  RoundsStartResponse,
-  RoundsNextResponse,
-  MetricsRequest,
-  Reveal,
-} from '@/src/features/quiz/api/types';
-import { start, next, sendMetrics } from '@/src/features/quiz/datasource';
+import type { Question, RoundsStartResponse, RoundsNextResponse, Reveal } from '@/src/features/quiz/api/types';
+import { start, next } from '@/src/features/quiz/datasource';
 import { waitMockReady } from '@/src/lib/waitMockReady';
+import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
 
 /**
  * Play page with reveal phase (FE-04 Sub DoD) — refactored with useReducer
@@ -190,21 +185,6 @@ function enrichReveal(prev: Reveal | undefined, fromNext?: Reveal, fromQuestion?
   };
 }
 
-type MetricsInput = Pick<State, 'token' | 'question' | 'selectedId' | 'beganAt'>;
-
-function buildMetricsPayload(input: MetricsInput): MetricsRequest | undefined {
-  const { token, question, selectedId, beganAt } = input;
-  if (!token || !question || !selectedId) return undefined;
-  return {
-    token,
-    questionId: question.id,
-    choiceId: selectedId,
-    answeredAt: new Date().toISOString(),
-    latencyMs: beganAt ? Math.round(performance.now() - beganAt) : undefined,
-    extras: { userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined },
-  };
-}
-
 function toRemainingSeconds(ms: number): number {
   return Math.max(0, Math.floor(ms / 1000));
 }
@@ -355,21 +335,38 @@ export default function PlayPage() {
     await bootAndStart();
   }, [bootAndStart, safeDispatch]);
 
+  const onSelectChoice = React.useCallback(
+    (id: string) => {
+      if (!question) {
+        safeDispatch({ type: 'SELECT', id });
+        return;
+      }
+
+      const choice = question.choices.find((c) => c.id === id);
+      recordMetricsEvent('answer_select', {
+        roundId: token,
+        questionIdx: progress?.index,
+        attrs: {
+          questionId: question.id,
+          choiceId: id,
+          choiceLabel: choice?.label,
+        },
+      });
+      safeDispatch({ type: 'SELECT', id });
+    },
+    [question, token, progress?.index, safeDispatch]
+  );
+
   const processAnswer = React.useCallback(
     async (mode: { kind: 'answer' | 'timeout' | 'skip'; choiceId?: string }) => {
       if (phase === 'reveal' || !token || !question) return;
       if (mode.kind === 'answer' && !mode.choiceId) return;
 
       const remainingForCalc = Math.max(0, remainingMs);
+      const elapsedMs = beganAt ? Math.round(performance.now() - beganAt) : undefined;
 
       // Switch to reveal phase immediately (freeze UI) and show current reveal
       safeDispatch({ type: 'ENTER_REVEAL', reveal: question.reveal });
-
-      // Metrics（回答時のみ）
-      if (mode.kind === 'answer' && mode.choiceId) {
-        const payload = buildMetricsPayload({ token, question, selectedId: mode.choiceId, beganAt });
-        if (payload) sendMetrics(payload);
-      }
 
       const effectiveChoiceId =
         mode.kind === 'answer'
@@ -394,7 +391,7 @@ export default function PlayPage() {
                 : 'wrong';
 
         const points = outcome === 'correct' ? computePoints(remainingForCalc) : 0;
-        const record = toQuestionRecord({
+        const questionRecord = toQuestionRecord({
           question,
           reveal: enriched,
           outcome,
@@ -403,14 +400,29 @@ export default function PlayPage() {
           points,
         });
 
-        const updatedHistory = [...history, record];
+        const updatedHistory = [...history, questionRecord];
         const updatedTally = rollupTally(tally, outcome, points);
+
+        recordMetricsEvent('answer_result', {
+          roundId: token,
+          questionIdx: progress?.index,
+          attrs: {
+            questionId: question.id,
+            outcome,
+            points,
+            remainingSeconds: Math.floor(remainingForCalc / 1000),
+            choiceId: questionRecord.choiceId,
+            correctChoiceId: questionRecord.correctChoiceId,
+            elapsedMs,
+          },
+        });
 
         safeDispatch({ type: 'APPLY_RESULT', payload: { tally: updatedTally, history: updatedHistory } });
 
         if (res.finished === true) {
           const finishedAt = new Date().toISOString();
           const totalQuestions = progress?.total ?? updatedHistory.length;
+          const durationMs = startedAt ? Date.parse(finishedAt) - Date.parse(startedAt) : undefined;
           saveResult(
             composeSummary({
               tally: updatedTally,
@@ -420,6 +432,19 @@ export default function PlayPage() {
               finishedAt,
             })
           );
+
+          recordMetricsEvent('quiz_complete', {
+            roundId: token,
+            attrs: {
+              total: totalQuestions,
+              points: updatedTally.points,
+              correct: updatedTally.correct,
+              wrong: updatedTally.wrong,
+              timeout: updatedTally.timeout,
+              skip: updatedTally.skip,
+              durationMs,
+            },
+          });
         }
 
         safeDispatch({ type: 'QUEUE_NEXT', next: res, reveal: enriched });
@@ -428,7 +453,7 @@ export default function PlayPage() {
         safeDispatch({ type: 'ERROR', error: message || 'Failed to load next.' });
       }
     },
-    [phase, token, question, remainingMs, safeDispatch, beganAt, currentReveal, history, tally, progress?.total, startedAt]
+    [phase, token, question, remainingMs, safeDispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt]
   );
 
   const submitAnswer = React.useCallback(async () => {
@@ -548,11 +573,11 @@ export default function PlayPage() {
 
             {s.phase === 'reveal' ? (
               <div>
-                <RevealCard
-                  reveal={s.currentReveal}
-                  result={
-                    latestRecord
-                      ? {
+              <RevealCard
+                reveal={s.currentReveal}
+                result={
+                  latestRecord
+                    ? {
                           outcome: latestRecord.outcome,
                           points: latestRecord.points,
                           remainingMs: latestRecord.remainingMs,
@@ -560,8 +585,13 @@ export default function PlayPage() {
                           correctLabel: latestRecord.correctLabel,
                         }
                       : undefined
-                  }
-                />
+                }
+                telemetry={{
+                  roundId: token,
+                  questionIdx: progress?.index,
+                  questionId: latestRecord?.questionId ?? question?.id,
+                }}
+              />
                 <div className="mt-4 text-right">
                   <button type="button" onClick={onNextFromReveal} className="px-4 py-2 rounded-xl bg-black text-white">
                     Next
@@ -576,7 +606,7 @@ export default function PlayPage() {
                 choices={s.question.choices}
                 selectedId={s.selectedId}
                 disabled={s.loading}
-                onSelect={(id) => safeDispatch({ type: 'SELECT', id })}
+                onSelect={onSelectChoice}
                 onSubmit={submitAnswer}
               />
             ) : null}
