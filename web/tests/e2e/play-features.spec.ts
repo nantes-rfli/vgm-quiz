@@ -1,7 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import { ANSWERS } from '../../mocks/fixtures/rounds/answers';
 
-const QUESTION_IDS = Object.keys(ANSWERS).sort();
+const QUESTION_IDS = Object.keys(ANSWERS).sort((a, b) =>
+  a.localeCompare(b, undefined, { numeric: true })
+);
 
 function waitForQuestion(page: Page, index: number) {
   const questionPrompt = page.getByTestId('question-prompt');
@@ -80,6 +82,7 @@ test.describe('Play page features', () => {
 
   test('handles question timeout and missing reveal links', async ({ page }) => {
     let linklessInjected = false;
+    let needsRevealBlank = false;
     await page.route('**/v1/rounds/next', async (route) => {
       const response = await route.fetch();
       const headers: Record<string, string> = {};
@@ -94,6 +97,7 @@ test.describe('Play page features', () => {
           };
           if (data?.question?.id === QUESTION_IDS[1]) {
             linklessInjected = true;
+            needsRevealBlank = true;
             if (data.question.reveal) {
               data.question.reveal.links = [];
               bodyText = JSON.stringify(data);
@@ -101,6 +105,17 @@ test.describe('Play page features', () => {
           }
         } catch {
           // fall through with original body
+        }
+      } else if (needsRevealBlank) {
+        try {
+          const data = JSON.parse(bodyText) as { reveal?: { links?: Array<unknown> } };
+          if (data?.reveal) {
+            data.reveal.links = [];
+            bodyText = JSON.stringify(data);
+            needsRevealBlank = false;
+          }
+        } catch {
+          // fall through
         }
       }
       await route.fulfill({ status: response.status(), headers, body: bodyText });
