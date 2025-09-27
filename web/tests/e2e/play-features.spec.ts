@@ -102,8 +102,8 @@ test.describe('Play page features', () => {
               });
             }
           }
-        } catch (err) {
-          console.warn('[test] fetch override error', err);
+        } catch {
+          // fall through and use original response
         }
         return response;
       };
@@ -115,9 +115,6 @@ test.describe('Play page features', () => {
     await page.waitForTimeout(16_000);
     await expect(page.getByText('Timeout')).toBeVisible();
     await expect(page.getByText('? 1', { exact: true })).toBeVisible();
-    const revealLinks = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('a')).map((a) => ({ text: a.textContent, href: a.getAttribute('href') }))
-    );
     await expect(page.getByText(/No links available/i)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('link', { name: /Open in/i })).toHaveCount(0);
 
@@ -141,5 +138,81 @@ test.describe('Play page features', () => {
     const timeoutCard = page.locator('li', { hasText: '#1 — このBGMの作曲者は？' }).first();
     await expect(timeoutCard.getByText('Timeout')).toBeVisible();
     await expect(timeoutCard.getByText('Your answer: —')).toBeVisible();
+  });
+
+  test('records metrics events for toggle and reveal interactions', async ({ page, context }) => {
+    await context.route('https://www.youtube.com/**', (route) => route.abort());
+
+    await page.addInitScript(() => {
+      const batches: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }> = [];
+      const originalFetch = window.fetch;
+
+      window.__METRICS_LOG__ = batches;
+
+      window.fetch = async (...args) => {
+        const request = typeof args[0] === 'string' ? new Request(args[0], args[1]) : args[0];
+        if (request.url.includes('/v1/metrics')) {
+          try {
+            const clone = request.clone();
+            const text = await clone.text();
+            batches.push(JSON.parse(text));
+          } catch {
+            batches.push({});
+          }
+          // Forward the request using the cloned Request to preserve body
+          return originalFetch(request);
+        }
+        return originalFetch(args[0], args[1]);
+      };
+
+      // Prevent target="_blank" navigation from leaving the page
+      window.addEventListener(
+        'click',
+        (event) => {
+          const target = event.target as HTMLElement | null;
+          if (target?.closest('a[target="_blank"]')) {
+            event.preventDefault();
+          }
+        },
+        true
+      );
+    });
+
+    await page.goto('/play');
+    await waitForQuestion(page, 0);
+
+    const toggle = page.getByRole('button', { name: 'Inline playback' });
+    await toggle.click();
+
+    const correctChoice = ANSWERS[QUESTION_IDS[0]];
+    await page.getByTestId(`choice-${correctChoice}`).click();
+    const submitButton = page.getByRole('button', { name: 'Answer (Enter)' });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+
+    const revealLink = page.getByRole('link', { name: /Open in/i });
+    await revealLink.click();
+
+    await page.waitForFunction(() => {
+      const batches = (window as unknown as { __METRICS_LOG__?: Array<{ events?: Array<{ name: string }> }> })
+        .__METRICS_LOG__;
+      if (!batches) return false;
+      return batches.flatMap((batch) => batch.events ?? []).length >= 3;
+    }, { timeout: 15_000 });
+
+    const metricEvents = await page.evaluate(() => {
+      const batches = (window as unknown as { __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }> })
+        .__METRICS_LOG__;
+      if (!batches) return [];
+      return batches.flatMap((batch) => batch.events ?? []);
+    });
+
+    const names = new Set(metricEvents.map((event) => event.name));
+    expect(names).toContain('settings_inline_toggle');
+    expect(names).toContain('answer_result');
+    expect(names).toContain('reveal_open_external');
+
+    const answerResult = metricEvents.find((event) => event.name === 'answer_result');
+    expect(answerResult?.attrs).toMatchObject({ outcome: 'correct', questionId: QUESTION_IDS[0] });
   });
 });
