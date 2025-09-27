@@ -81,29 +81,32 @@ test.describe('Play page features', () => {
   });
 
   test('handles question timeout and missing reveal links', async ({ page }) => {
-    await page.route('**/v1/rounds/start', async (route) => {
-      const response = await route.fetch();
-      const originalBody = await response.text();
-
-      try {
-        const data = JSON.parse(originalBody) as {
-          question?: { reveal?: { links?: Array<unknown> } };
-        };
-        if (data?.question?.reveal?.links) {
-          data.question.reveal.links = [];
+    await page.addInitScript(() => {
+      const originalFetch = window.fetch;
+      window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+        try {
+          const request = args[0];
+          const url = typeof request === 'string' ? request : request.url;
+          if (url.includes('/v1/rounds/start')) {
+            const clone = response.clone();
+            const data = await clone.json();
+            if (data?.question?.reveal?.links?.length) {
+              data.question.reveal.links = [];
+              const headers = new Headers(response.headers);
+              headers.set('content-type', 'application/json');
+              return new Response(JSON.stringify(data), {
+                status: response.status,
+                statusText: response.statusText,
+                headers,
+              });
+            }
+          }
+        } catch (err) {
+          console.warn('[test] fetch override error', err);
         }
-        await route.fulfill({
-          status: response.status(),
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-      } catch {
-        await route.fulfill({
-          status: response.status(),
-          headers: Object.fromEntries(response.headers()),
-          body: originalBody,
-        });
-      }
+        return response;
+      };
     });
 
     await page.goto('/play');
@@ -112,6 +115,9 @@ test.describe('Play page features', () => {
     await page.waitForTimeout(16_000);
     await expect(page.getByText('Timeout')).toBeVisible();
     await expect(page.getByText('? 1', { exact: true })).toBeVisible();
+    const revealLinks = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('a')).map((a) => ({ text: a.textContent, href: a.getAttribute('href') }))
+    );
     await expect(page.getByText(/No links available/i)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('link', { name: /Open in/i })).toHaveCount(0);
 
