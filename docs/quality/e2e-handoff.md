@@ -37,7 +37,7 @@ npm run test:e2e:ui   # UI モードでデバッグ
 
 ## 5. TODO / 次のステップ
 1. `feature/e2e-playwright` で PR 作成 → main へマージ。
-2. CI パイプラインへのスモークテスト導入。
+2. CI パイプラインへのスモークテスト導入 — `.github/workflows/e2e-smoke.yml` で Playwright を実行（push/pr と手動トリガー対応）。
 3. シナリオB のうち高優先度のケースを実装（Reveal リンク確認、設定トグル保持チェックなど）。
 4. Next.js DevTools 警告への対応（今後の Next.js メジャーで `allowedDevOrigins` を設定）。
 
