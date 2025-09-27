@@ -5,7 +5,7 @@
 type Props = { index?: number; total?: number };
 
 export default function Progress({ index, total }: Props) {
-  if (!index || !total) return null;
+  if (index == null || total == null) return null;
   return (
     <div className="text-sm text-gray-600 mb-2 text-center">
       Question {index} / {total}

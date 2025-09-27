@@ -25,7 +25,9 @@ export default function QuestionCard({
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-white rounded-2xl shadow p-6 mb-4">
-        <h2 className="text-xl font-semibold mb-4">{prompt}</h2>
+        <h2 className="text-xl font-semibold mb-4" data-testid="question-prompt">
+          {prompt}
+        </h2>
         <ul className="space-y-2">
           {choices.map((c, idx) => {
             const isSelected = selectedId === c.id;
