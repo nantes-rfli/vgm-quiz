@@ -593,7 +593,12 @@ export default function PlayPage() {
                 }}
               />
                 <div className="mt-4 text-right">
-                  <button type="button" onClick={onNextFromReveal} className="px-4 py-2 rounded-xl bg-black text-white">
+                  <button
+                    type="button"
+                    onClick={onNextFromReveal}
+                    data-testid="reveal-next"
+                    className="px-4 py-2 rounded-xl bg-black text-white"
+                  >
                     Next
                   </button>
                 </div>

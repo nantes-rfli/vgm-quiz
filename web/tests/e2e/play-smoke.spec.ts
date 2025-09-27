@@ -20,7 +20,7 @@ test.describe('Smoke: complete quiz and reach result', () => {
 
       // Reveal phase should appear before continuing
       await expect(page.getByRole('heading', { name: 'Listen / Watch' })).toBeVisible();
-      await page.getByRole('button', { name: 'Next' }).click();
+      await page.getByTestId('reveal-next').click();
     }
 
     await page.waitForURL('**/result');
