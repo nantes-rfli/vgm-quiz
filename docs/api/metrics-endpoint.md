@@ -45,6 +45,19 @@
 - `events[].question_idx` (number, 任意)
 - `events[].attrs` (object, 任意): 追加属性（PIIを含めないこと）。
 
+#### FE 実装で送信している属性（2025-09 時点）
+| name | attrs |
+| --- | --- |
+| `answer_select` | `questionId`, `choiceId`, `choiceLabel` |
+| `answer_result` | `questionId`, `outcome`, `points`, `remainingSeconds`, `choiceId`, `correctChoiceId`, `elapsedMs` |
+| `quiz_complete` | `total`, `points`, `correct`, `wrong`, `timeout`, `skip`, `durationMs` |
+| `reveal_open_external` | `questionId`, `provider` |
+| `embed_error` | `questionId`, `provider`, `reason` |
+| `embed_fallback_to_link` | `questionId`, `provider`, `reason` |
+| `settings_inline_toggle` | `enabled` |
+
+> クライアントは `round_id` にラウンドトークン、`question_idx` に 1 始まりの設問番号を設定する。
+
 ### バリデーション規則（最小）
 - `events` は **1..100**。総ボディ <= 256 KB。
 - `name` は許可語彙のみ。未知の名前は `validation_error`。
@@ -72,4 +85,3 @@
 - バッチサイズは **<= 20** を推奨（モバイル回線での再送コスト最適化）。
 - ネットワーク失敗時は**指数バックオフ**+ジッタ。`429` は `Retry-After` に従う。
 - `Idempotency-Key` を**再送時に固定**し、ボディも変えない。
-
