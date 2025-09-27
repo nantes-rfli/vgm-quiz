@@ -81,42 +81,23 @@ test.describe('Play page features', () => {
   });
 
   test('handles question timeout and missing reveal links', async ({ page }) => {
-    let linklessInjected = false;
-    let needsRevealBlank = false;
-    await page.route('**/v1/rounds/next', async (route) => {
+    await page.route('**/v1/rounds/start', async (route) => {
       const response = await route.fetch();
       const headers: Record<string, string> = {};
       response.headers().forEach((value, key) => {
         headers[key] = value;
       });
       let bodyText = await response.text();
-      if (!linklessInjected) {
-        try {
-          const data = JSON.parse(bodyText) as {
-            question?: { id?: string; reveal?: { links?: Array<unknown> } };
-          };
-          if (data?.question?.id === QUESTION_IDS[1]) {
-            linklessInjected = true;
-            needsRevealBlank = true;
-            if (data.question.reveal) {
-              data.question.reveal.links = [];
-              bodyText = JSON.stringify(data);
-            }
-          }
-        } catch {
-          // fall through with original body
+      try {
+        const data = JSON.parse(bodyText) as {
+          question?: { reveal?: { links?: Array<unknown> } };
+        };
+        if (data?.question?.reveal) {
+          data.question.reveal.links = [];
+          bodyText = JSON.stringify(data);
         }
-      } else if (needsRevealBlank) {
-        try {
-          const data = JSON.parse(bodyText) as { reveal?: { links?: Array<unknown> } };
-          if (data?.reveal) {
-            data.reveal.links = [];
-            bodyText = JSON.stringify(data);
-            needsRevealBlank = false;
-          }
-        } catch {
-          // fall through
-        }
+      } catch {
+        // fall through with original body
       }
       await route.fulfill({ status: response.status(), headers, body: bodyText });
     });
@@ -127,24 +108,14 @@ test.describe('Play page features', () => {
     await page.waitForTimeout(16_000);
     await expect(page.getByText('Timeout')).toBeVisible();
     await expect(page.getByText('? 1', { exact: true })).toBeVisible();
-
-    await page.getByTestId('reveal-next').click();
-
-    await waitForQuestion(page, 1);
-    const secondQuestionChoice = ANSWERS[QUESTION_IDS[1]];
-    await page.getByTestId(`choice-${secondQuestionChoice}`).click();
-    const submitSecond = page.getByRole('button', { name: 'Answer (Enter)' });
-    await expect(submitSecond).toBeEnabled();
-    await submitSecond.click();
-
-    await expect(page.getByRole('heading', { name: 'Listen / Watch' })).toBeVisible();
     await expect(page.getByText(/No links available/i)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('link', { name: /Open in/i })).toHaveCount(0);
+
     await page.getByTestId('reveal-next').click();
 
-    for (const [index, questionId] of QUESTION_IDS.entries()) {
-      if (index < 2) continue;
-      await waitForQuestion(page, index);
+    for (const [loopIndex, questionId] of QUESTION_IDS.entries()) {
+      if (loopIndex === 0) continue;
+      await waitForQuestion(page, loopIndex);
       const choiceId = ANSWERS[questionId];
       await page.getByTestId(`choice-${choiceId}`).click();
       const submitButton = page.getByRole('button', { name: 'Answer (Enter)' });
