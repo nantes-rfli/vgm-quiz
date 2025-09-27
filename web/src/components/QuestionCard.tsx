@@ -35,6 +35,7 @@ export default function QuestionCard({
                   type="button"
                   disabled={disabled}
                   onClick={() => onSelect(c.id)}
+                  data-testid={`choice-${c.id}`}
                   className={[
                     'w-full text-left px-4 py-3 rounded-xl border transition',
                     isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300',
