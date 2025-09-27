@@ -30,7 +30,7 @@ npm run test:e2e:ui   # UI モードでデバッグ
 | ランク | シナリオ | 目的 / 内容 | 次のアクション |
 | --- | --- | --- | --- |
 | A (スモーク) | `/play` → `/result` 完走 | 真っ先に main を守る基本フロー。既に `play-smoke.spec.ts` で実装済み。 | CI に組み込み。テストデータをフィクスチャから取得する形で継続。 |
-| B (バランス) | 正誤混在、Reveal リンク、設定トグル | ユーザー体験に近い機能カバレッジ。各ケースで `data-testid` を追加しやすい。 | `play-features.spec.ts` でトグル保持と Reveal リンク確認を実装。残タスクはミックススコアの追加検証など。 |
+| B (バランス) | 正誤混在、Reveal リンク、設定トグル | ユーザー体験に近い機能カバレッジ。各ケースで `data-testid` を追加しやすい。 | `play-features.spec.ts` でトグル保持・Reveal リンク属性・タイムアウト記録・リンク欠落フォールバックを実装済み。 |
 | C (耐久 / ネットワーク) | `/v1/metrics` 失敗→再送、オフライン→復帰 | 異常系検証。Playwright の `route` モックや `context.setOffline` を活用する。 | リリース前チェックや夜間ジョブとして別 pipeline に分離。 |
 
 詳細は `docs/quality/e2e-scenarios.md` を参照。各シナリオに必要なテストデータや実装メモを記載済み。
@@ -38,7 +38,7 @@ npm run test:e2e:ui   # UI モードでデバッグ
 ## 5. TODO / 次のステップ
 1. `feature/e2e-playwright` で PR 作成 → main へマージ。
 2. CI パイプラインへのスモークテスト導入 — `.github/workflows/e2e-smoke.yml` で Playwright を実行（push/pr と手動トリガー対応）。
-3. シナリオB の残タスク（例: 設定永続の境界ケース、異常系リンク検証など）を追加実装。
+3. シナリオB の残タスク（例: 異常系リンク検証、メトリクス送信の確認など）を追加実装。
 4. Next.js DevTools 警告への対応（今後の Next.js メジャーで `allowedDevOrigins` を設定）。
 
 ## 6. 補足
