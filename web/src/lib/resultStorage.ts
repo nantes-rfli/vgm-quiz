@@ -1,9 +1,30 @@
-export type Score = { correct: number; wrong: number; unknown: number };
+export type Outcome = 'correct' | 'wrong' | 'timeout' | 'skip';
+
+export type QuestionRecord = {
+  questionId: string;
+  prompt: string;
+  choiceId?: string;
+  choiceLabel?: string;
+  correctChoiceId?: string;
+  correctLabel?: string;
+  outcome: Outcome;
+  remainingMs: number;
+  points: number;
+};
+
+export type ScoreBreakdown = {
+  correct: number;
+  wrong: number;
+  timeout: number;
+  skip: number;
+  points: number;
+};
 
 export type ResultSummary = {
   answeredCount: number;
   total: number;
-  score?: Score;
+  score: ScoreBreakdown;
+  questions: QuestionRecord[];
   startedAt?: string;  // ISO8601
   finishedAt?: string; // ISO8601
   durationMs?: number; // derived
@@ -14,6 +35,21 @@ export const REVEAL_KEY = 'vgm2.result.reveal';
 export const REVEALS_KEY = 'vgm2.result.reveals';
 
 const FALLBACK_KEYS = ['vgm2.result', 'result.summary', 'resultSummary'];
+
+const EMPTY_SCORE: ScoreBreakdown = { correct: 0, wrong: 0, timeout: 0, skip: 0, points: 0 };
+
+function normalizeSummary(summary: Partial<ResultSummary> | undefined): ResultSummary | undefined {
+  if (!summary) return undefined;
+  return {
+    answeredCount: summary.answeredCount ?? 0,
+    total: summary.total ?? 0,
+    score: summary.score ?? { ...EMPTY_SCORE },
+    questions: Array.isArray(summary.questions) ? summary.questions : [],
+    startedAt: summary.startedAt,
+    finishedAt: summary.finishedAt,
+    durationMs: summary.durationMs,
+  };
+}
 
 function parseJson<T>(json: string): T | undefined {
   try { return JSON.parse(json) as T; } catch { return undefined; }
@@ -32,12 +68,12 @@ function withDerived(summary: ResultSummary | undefined): ResultSummary | undefi
 export function loadResult(): ResultSummary | undefined {
   if (typeof window === 'undefined') return undefined;
   const raw = window.sessionStorage.getItem(RESULT_KEY);
-  if (raw) return withDerived(parseJson<ResultSummary>(raw));
+  if (raw) return withDerived(normalizeSummary(parseJson<ResultSummary>(raw)));
   for (const k of FALLBACK_KEYS) {
     const alt = window.sessionStorage.getItem(k);
     if (alt) {
       const parsed = parseJson<ResultSummary>(alt);
-      if (parsed) return withDerived(parsed);
+      if (parsed) return withDerived(normalizeSummary(parsed));
     }
   }
   return undefined;

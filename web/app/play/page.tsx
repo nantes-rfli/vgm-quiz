@@ -8,7 +8,16 @@ import QuestionCard from '@/src/components/QuestionCard';
 import RevealCard from '@/src/components/RevealCard';
 import ScoreBadge from '@/src/components/ScoreBadge';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
-import { saveResult, appendReveal, clearReveals } from '@/src/lib/resultStorage';
+import Timer from '@/src/components/Timer';
+import {
+  saveResult,
+  appendReveal,
+  clearReveals,
+  type ResultSummary,
+  type QuestionRecord,
+  type ScoreBreakdown,
+  type Outcome,
+} from '@/src/lib/resultStorage';
 import type {
   Question,
   RoundsStartResponse,
@@ -29,6 +38,10 @@ import { waitMockReady } from '@/src/lib/waitMockReady';
 
 type ProgressInfo = { index: number; total: number };
 
+const QUESTION_TIME_LIMIT_MS = 15_000;
+const TIMEOUT_CHOICE_ID = '__timeout__';
+const SKIP_CHOICE_ID = '__skip__';
+
 type State = {
   token?: string;
   question?: Question;
@@ -38,11 +51,14 @@ type State = {
   selectedId?: string;
   beganAt?: number; // ms timestamp for current question
   startedAt?: string; // ISO string for run start
-  answeredCount: number;
   started: boolean;
   phase: 'question' | 'reveal';
   queuedNext?: RoundsNextResponse;
   currentReveal?: Reveal;
+  deadline?: number;
+  remainingMs: number;
+  tally: ScoreBreakdown;
+  history: QuestionRecord[];
 };
 
 const AUTO_START = process.env.NEXT_PUBLIC_PLAY_AUTOSTART !== '0';
@@ -69,13 +85,19 @@ type Action =
   | { type: 'SELECT'; id: string }
   | { type: 'ENTER_REVEAL'; reveal?: Reveal }
   | { type: 'QUEUE_NEXT'; next: RoundsNextResponse; reveal?: Reveal }
-  | { type: 'ADVANCE'; next: RoundsNextResponse };
+  | { type: 'ADVANCE'; next: RoundsNextResponse }
+  | { type: 'TICK'; remainingMs: number }
+  | { type: 'APPLY_RESULT'; payload: { tally: ScoreBreakdown; history: QuestionRecord[] } };
+
+const EMPTY_TALLY: ScoreBreakdown = { correct: 0, wrong: 0, timeout: 0, skip: 0, points: 0 };
 
 const initialState: State = {
   loading: AUTO_START,
-  answeredCount: 0,
   started: AUTO_START,
   phase: 'question',
+  remainingMs: QUESTION_TIME_LIMIT_MS,
+  tally: { ...EMPTY_TALLY },
+  history: [],
 };
 
 function reducer(state: State, action: Action): State {
@@ -94,11 +116,14 @@ function reducer(state: State, action: Action): State {
         selectedId: undefined,
         beganAt,
         startedAt,
-        answeredCount: 0,
         started: true,
         phase: 'question',
         queuedNext: undefined,
         currentReveal,
+        deadline: beganAt + QUESTION_TIME_LIMIT_MS,
+        remainingMs: QUESTION_TIME_LIMIT_MS,
+        tally: { ...EMPTY_TALLY },
+        history: [],
       };
     }
 
@@ -129,12 +154,19 @@ function reducer(state: State, action: Action): State {
         progress: nextProgress,
         selectedId: undefined,
         beganAt: performance.now(),
-        answeredCount: state.answeredCount + 1,
         phase: 'question',
         queuedNext: undefined,
         currentReveal: undefined,
+        deadline: performance.now() + QUESTION_TIME_LIMIT_MS,
+        remainingMs: QUESTION_TIME_LIMIT_MS,
       };
     }
+
+    case 'TICK':
+      return { ...state, remainingMs: Math.max(0, Math.round(action.remainingMs)) };
+
+    case 'APPLY_RESULT':
+      return { ...state, tally: action.payload.tally, history: action.payload.history };
 
     default:
       return state;
@@ -173,6 +205,66 @@ function buildMetricsPayload(input: MetricsInput): MetricsRequest | undefined {
   };
 }
 
+function toRemainingSeconds(ms: number): number {
+  return Math.max(0, Math.floor(ms / 1000));
+}
+
+function computePoints(remainingMs: number): number {
+  return 100 + toRemainingSeconds(remainingMs) * 5;
+}
+
+function rollupTally(prev: ScoreBreakdown, outcome: Outcome, pointsDelta: number): ScoreBreakdown {
+  return {
+    correct: prev.correct + (outcome === 'correct' ? 1 : 0),
+    wrong: prev.wrong + (outcome === 'wrong' ? 1 : 0),
+    timeout: prev.timeout + (outcome === 'timeout' ? 1 : 0),
+    skip: prev.skip + (outcome === 'skip' ? 1 : 0),
+    points: prev.points + pointsDelta,
+  };
+}
+
+function toQuestionRecord(params: {
+  question: Question;
+  reveal?: Reveal;
+  outcome: Outcome;
+  remainingMs: number;
+  choiceId?: string;
+  points: number;
+}): QuestionRecord {
+  const { question, reveal, outcome, remainingMs, choiceId, points } = params;
+  const choiceLabel = choiceId ? question.choices.find((c) => c.id === choiceId)?.label : undefined;
+  const correctChoiceId = reveal?.correctChoiceId;
+  const correctLabel = correctChoiceId ? question.choices.find((c) => c.id === correctChoiceId)?.label : undefined;
+  return {
+    questionId: question.id,
+    prompt: question.prompt,
+    choiceId,
+    choiceLabel,
+    correctChoiceId,
+    correctLabel,
+    outcome,
+    remainingMs,
+    points,
+  };
+}
+
+function composeSummary(input: {
+  tally: ScoreBreakdown;
+  history: QuestionRecord[];
+  total: number;
+  startedAt?: string;
+  finishedAt: string;
+}): ResultSummary {
+  return {
+    answeredCount: input.history.length,
+    total: input.total,
+    score: input.tally,
+    questions: input.history,
+    startedAt: input.startedAt,
+    finishedAt: input.finishedAt,
+  };
+}
+
 // ————————————————————————————————————————————————————————
 // Component
 // ————————————————————————————————————————————————————————
@@ -190,11 +282,15 @@ export default function PlayPage() {
     question,
     selectedId,
     currentReveal,
-    answeredCount,
     progress,
     startedAt,
     beganAt,
     queuedNext,
+    deadline,
+    remainingMs,
+    tally,
+    history,
+    loading,
   } = s;
 
   const safeDispatch = React.useCallback((a: Action) => {
@@ -257,46 +353,86 @@ export default function PlayPage() {
     await bootAndStart();
   }, [bootAndStart, safeDispatch]);
 
-  const submitAnswer = React.useCallback(async () => {
-    if (phase === 'reveal' || !token || !question || !selectedId) return;
+  const processAnswer = React.useCallback(
+    async (mode: { kind: 'answer' | 'timeout' | 'skip'; choiceId?: string }) => {
+      if (phase === 'reveal' || !token || !question) return;
+      if (mode.kind === 'answer' && !mode.choiceId) return;
 
-    // Switch to reveal phase immediately (freeze UI) and show current reveal
-    safeDispatch({ type: 'ENTER_REVEAL', reveal: question.reveal });
+      const remainingForCalc = Math.max(0, remainingMs);
 
-    // Metrics (fire-and-forget)
-    const payload = buildMetricsPayload({ token, question, selectedId, beganAt });
-    if (payload) sendMetrics(payload);
+      // Switch to reveal phase immediately (freeze UI) and show current reveal
+      safeDispatch({ type: 'ENTER_REVEAL', reveal: question.reveal });
 
-    // Preload next in background
-    try {
-      const res: RoundsNextResponse = await next({ token, answer: { questionId: question.id, choiceId: selectedId } });
-
-      const enriched = enrichReveal(currentReveal, res.reveal, question.reveal);
-      try { if (enriched) appendReveal(enriched); } catch {}
-
-      if (res.finished === true) {
-        // Persist summary immediately
-        try {
-          const answeredCountNext = answeredCount + 1;
-          const summary = {
-            answeredCount: answeredCountNext,
-            total: progress?.total ?? answeredCountNext,
-            startedAt,
-            finishedAt: new Date().toISOString(),
-          };
-          saveResult(summary);
-        } catch { /* ignore */ }
-
-        safeDispatch({ type: 'QUEUE_NEXT', next: res, reveal: enriched });
-        return;
+      // Metrics（回答時のみ）
+      if (mode.kind === 'answer' && mode.choiceId) {
+        const payload = buildMetricsPayload({ token, question, selectedId: mode.choiceId, beganAt });
+        if (payload) sendMetrics(payload);
       }
 
-      safeDispatch({ type: 'QUEUE_NEXT', next: res, reveal: enriched });
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      safeDispatch({ type: 'ERROR', error: message || 'Failed to load next.' });
-    }
-  }, [phase, token, question, selectedId, currentReveal, answeredCount, progress?.total, startedAt, beganAt, safeDispatch]);
+      const effectiveChoiceId =
+        mode.kind === 'answer'
+          ? mode.choiceId!
+          : mode.kind === 'timeout'
+            ? TIMEOUT_CHOICE_ID
+            : SKIP_CHOICE_ID;
+
+      try {
+        const res: RoundsNextResponse = await next({ token, answer: { questionId: question.id, choiceId: effectiveChoiceId } });
+
+        const enriched = enrichReveal(currentReveal, res.reveal, question.reveal);
+        try { if (enriched) appendReveal(enriched); } catch {}
+
+        const outcome: Outcome =
+          mode.kind === 'timeout'
+            ? 'timeout'
+            : mode.kind === 'skip'
+              ? 'skip'
+              : enriched?.correct === true
+                ? 'correct'
+                : 'wrong';
+
+        const points = outcome === 'correct' ? computePoints(remainingForCalc) : 0;
+        const record = toQuestionRecord({
+          question,
+          reveal: enriched,
+          outcome,
+          remainingMs: remainingForCalc,
+          choiceId: mode.kind === 'answer' ? mode.choiceId : undefined,
+          points,
+        });
+
+        const updatedHistory = [...history, record];
+        const updatedTally = rollupTally(tally, outcome, points);
+
+        safeDispatch({ type: 'APPLY_RESULT', payload: { tally: updatedTally, history: updatedHistory } });
+
+        if (res.finished === true) {
+          const finishedAt = new Date().toISOString();
+          const totalQuestions = progress?.total ?? updatedHistory.length;
+          saveResult(
+            composeSummary({
+              tally: updatedTally,
+              history: updatedHistory,
+              total: totalQuestions,
+              startedAt,
+              finishedAt,
+            })
+          );
+        }
+
+        safeDispatch({ type: 'QUEUE_NEXT', next: res, reveal: enriched });
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        safeDispatch({ type: 'ERROR', error: message || 'Failed to load next.' });
+      }
+    },
+    [phase, token, question, remainingMs, safeDispatch, beganAt, currentReveal, history, tally, progress?.total, startedAt]
+  );
+
+  const submitAnswer = React.useCallback(async () => {
+    if (phase === 'reveal' || !selectedId) return;
+    await processAnswer({ kind: 'answer', choiceId: selectedId });
+  }, [phase, selectedId, processAnswer]);
 
   const onNextFromReveal = React.useCallback(() => {
     const qn = queuedNext;
@@ -309,11 +445,36 @@ export default function PlayPage() {
     safeDispatch({ type: 'ADVANCE', next: qn });
   }, [queuedNext, router, safeDispatch]);
 
+  React.useEffect(() => {
+    if (phase !== 'question' || !deadline) return;
+    const id = window.setInterval(() => {
+      const remaining = deadline - performance.now();
+      safeDispatch({ type: 'TICK', remainingMs: remaining });
+      if (remaining <= 0) {
+        window.clearInterval(id);
+      }
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [phase, deadline, safeDispatch]);
+
+  const timeoutTriggeredRef = React.useRef(false);
+  React.useEffect(() => {
+    timeoutTriggeredRef.current = false;
+  }, [question?.id]);
+
+  React.useEffect(() => {
+    if (phase !== 'question' || !question) return;
+    if (remainingMs > 0) return;
+    if (timeoutTriggeredRef.current) return;
+    timeoutTriggeredRef.current = true;
+    void processAnswer({ kind: 'timeout' });
+  }, [phase, question, remainingMs, processAnswer]);
+
   // Keyboard controls
   React.useEffect(() => {
     function onKeyDown(ev: KeyboardEvent) {
       // During reveal phase: only Enter=Next
-      if (s.phase === 'reveal') {
+      if (phase === 'reveal') {
         if (ev.key === 'Enter') {
           ev.preventDefault();
           onNextFromReveal();
@@ -321,11 +482,11 @@ export default function PlayPage() {
         return;
       }
 
-      if (s.loading || !s.question) return;
+      if (loading || !question) return;
 
       if (/^[1-9]$/.test(ev.key)) {
         const idx = parseInt(ev.key, 10) - 1;
-        const c = s.question.choices[idx];
+        const c = question.choices[idx];
         if (c) {
           ev.preventDefault();
           safeDispatch({ type: 'SELECT', id: c.id });
@@ -335,9 +496,9 @@ export default function PlayPage() {
 
       if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
         ev.preventDefault();
-        const { choices } = s.question;
+        const { choices } = question;
         if (!choices.length) return;
-        const curIdx = choices.findIndex((c) => c.id === s.selectedId);
+        const curIdx = choices.findIndex((c) => c.id === selectedId);
         const dir = ev.key === 'ArrowUp' ? -1 : 1;
         const nextIdx = ((curIdx >= 0 ? curIdx : -1) + dir + choices.length) % choices.length;
         safeDispatch({ type: 'SELECT', id: choices[nextIdx].id });
@@ -346,19 +507,26 @@ export default function PlayPage() {
 
       if (ev.key === 'Enter') {
         ev.preventDefault();
-        if (s.selectedId) void submitAnswer();
+        if (selectedId) void submitAnswer();
       }
     }
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [s.phase, s.loading, s.question, s.selectedId, submitAnswer, onNextFromReveal, safeDispatch]);
+  }, [phase, loading, question, selectedId, submitAnswer, onNextFromReveal, safeDispatch]);
 
   return (
     <main className="p-6">
       <div className="max-w-2xl mx-auto">
         <div className="mb-4 flex items-center justify-between">
-          <ScoreBadge correct={0} wrong={0} unknown={s.answeredCount} total={s.progress?.total} />
+          <ScoreBadge
+            correct={tally.correct}
+            wrong={tally.wrong}
+            timeout={tally.timeout}
+            skip={tally.skip}
+            points={tally.points}
+            total={progress?.total}
+          />
           <InlinePlaybackToggle />
         </div>
 
@@ -373,6 +541,7 @@ export default function PlayPage() {
         ) : (
           <>
             <Progress index={s.progress?.index} total={s.progress?.total} />
+            {phase === 'question' ? <Timer remainingMs={remainingMs} totalMs={QUESTION_TIME_LIMIT_MS} /> : null}
             {s.error ? <ErrorBanner message={s.error} /> : null}
 
             {s.phase === 'reveal' ? (
