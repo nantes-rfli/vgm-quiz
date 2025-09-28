@@ -1,7 +1,7 @@
 # Frontend Overview
 
 - Status: Draft
-- Last Updated: 2025-09-27
+- Last Updated: 2025-09-28
 
 ## この文書の目的
 フロントエンド層の全体像と、詳細ドキュメントの索引をまとめる。実装に合わせた技術選定・構成・運用上のルールを 1 ページで把握できるようにする。
@@ -22,7 +22,7 @@
 | --- | --- | --- |
 | [`play-flow.md`](./play-flow.md) | `/play` の状態遷移・タイマー・結果保存・Result 画面との連携 | FE-06 実装内容の整理 |
 | [`metrics-client.md`](./metrics-client.md) | メトリクスのバッチ送信、イベント語彙、リトライ方針 | FE-07 実装内容の整理 |
-| [`testing-notes.md`](./testing-notes.md) | （未作成）E2E や UI テスト方針の予定地 | 需要が出た際に追加 |
+| [`testing-notes.md`](./testing-notes.md) | フロントエンド開発者向けのテスト実施メモとローカル検証の注意点 | Draft |
 
 > **ルール**: 1トピック=1ページを維持し、詳細は各ドキュメントへ分割する。構成変更時は本 README の表を更新する。
 
@@ -39,4 +39,3 @@
 - SSR/SEO 要件の整理（MVP では CSR 前提）
 - E2E テスト基盤の決定（Playwright/Cypress 等）
 - 実 BE 接続時のエラー UX / オフライン時挙動の仕様化
-
