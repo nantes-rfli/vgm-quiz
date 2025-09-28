@@ -1,0 +1,584 @@
+{
+  "version": 1,
+  "mode": "vgm_v1-ja",
+  "locale": "ja-JP",
+  "defaultTotal": 10,
+  "updatedAt": "2025-09-28T00:00:00.000Z",
+  "questions": [
+    {
+      "id": "vgm-0001",
+      "prompt": "この代表的なメインテーマの作曲者は誰ですか？（ゼルダの伝説 シリーズ）",
+      "choices": [
+        { "id": "a", "label": "近藤浩治" },
+        { "id": "b", "label": "下村陽子" },
+        { "id": "c", "label": "光田康典" },
+        { "id": "d", "label": "植松伸夫" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Nintendo - The Legend of Zelda Main Theme",
+            "url": "https://www.youtube.com/watch?v=Gy1byhkK3Tk"
+          },
+          {
+            "provider": "spotify",
+            "label": "The Legend of Zelda 30th Anniversary",
+            "url": "https://open.spotify.com/track/5O0dQHZqF77vMfybp2A0Wz"
+          }
+        ],
+        "meta": {
+          "workTitle": "The Legend of Zelda Main Theme",
+          "trackTitle": "Main Theme",
+          "composer": "Koji Kondo"
+        }
+      },
+      "artwork": {
+        "url": "https://images.nintendo.com/zelda/main-theme.jpg",
+        "width": 1024,
+        "height": 1024,
+        "alt": "ゼルダの伝説のキーアート"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "zelda",
+        "era": "80s",
+        "difficulty": "normal",
+        "lengthSec": 124,
+        "startSec": 0
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0002",
+      "prompt": "次の曲『ビッグブルー』を作曲したのは誰ですか？（F-ZERO）",
+      "choices": [
+        { "id": "a", "label": "竹間淳" },
+        { "id": "b", "label": "近藤浩治" },
+        { "id": "c", "label": "光田康典" },
+        { "id": "d", "label": "山本健誌" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "F-ZERO - Big Blue",
+            "url": "https://www.youtube.com/watch?v=6Q2Jv4k2E4w"
+          },
+          {
+            "provider": "other",
+            "label": "Smash Bros. Ultimate Sound Test",
+            "url": "https://www.smashbros.com/en_US/sound/index.html"
+          }
+        ],
+        "meta": {
+          "workTitle": "F-ZERO",
+          "trackTitle": "Big Blue",
+          "composer": "Junichi Taki"
+        }
+      },
+      "artwork": {
+        "url": "https://assets.nintendo.com/f-zero/big-blue.jpg",
+        "width": 1280,
+        "height": 720,
+        "alt": "F-ZEROのコース Big Blue"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "fzero",
+        "era": "90s",
+        "difficulty": "hard",
+        "lengthSec": 146,
+        "startSec": 12
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0003",
+      "prompt": "『クロノ・トリガー』のフィールド曲『風の憧憬』の作曲者は？",
+      "choices": [
+        { "id": "a", "label": "下村陽子" },
+        { "id": "b", "label": "光田康典" },
+        { "id": "c", "label": "浜渦正志" },
+        { "id": "d", "label": "古代祐三" }
+      ],
+      "correctChoiceId": "b",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Chrono Trigger - Wind Scene",
+            "url": "https://www.youtube.com/watch?v=0t2tjNqGyJI"
+          },
+          {
+            "provider": "spotify",
+            "label": "Chrono Trigger Original Soundtrack",
+            "url": "https://open.spotify.com/track/0pGgAbKLFXrrHWlPwsGd5g"
+          }
+        ],
+        "meta": {
+          "workTitle": "Chrono Trigger",
+          "trackTitle": "風の憧憬",
+          "composer": "Yasunori Mitsuda"
+        }
+      },
+      "artwork": {
+        "url": "https://images.square-enix.com/chrono-trigger/art.jpg",
+        "width": 1000,
+        "height": 1000,
+        "alt": "クロノ・トリガーのキービジュアル"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "chrono",
+        "era": "90s",
+        "difficulty": "normal",
+        "lengthSec": 180,
+        "startSec": 30
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0004",
+      "prompt": "『ファイナルファンタジー』のプレリュードを手掛けた名コンポーザーは？",
+      "choices": [
+        { "id": "a", "label": "植松伸夫" },
+        { "id": "b", "label": "水田直志" },
+        { "id": "c", "label": "下村陽子" },
+        { "id": "d", "label": "祖堅正慶" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Final Fantasy - Prelude",
+            "url": "https://www.youtube.com/watch?v=79bEIPQfFvI"
+          },
+          {
+            "provider": "spotify",
+            "label": "FINAL FANTASY Series 35th Anniversary",
+            "url": "https://open.spotify.com/track/5y0ffwFo7P3cu6Uytzszbm"
+          }
+        ],
+        "meta": {
+          "workTitle": "Final Fantasy",
+          "trackTitle": "Prelude",
+          "composer": "Nobuo Uematsu"
+        }
+      },
+      "artwork": {
+        "url": "https://assets.square-enix.com/final-fantasy/prelude.jpg",
+        "width": 1024,
+        "height": 1024,
+        "alt": "ファイナルファンタジーのロゴ"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "final-fantasy",
+        "era": "80s",
+        "difficulty": "easy",
+        "lengthSec": 90,
+        "startSec": 0
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0005",
+      "prompt": "『ロックマン2』Dr.Wily Stage 1の作曲者は誰？",
+      "choices": [
+        { "id": "a", "label": "立石孝" },
+        { "id": "b", "label": "光吉猛修" },
+        { "id": "c", "label": "岩代太郎" },
+        { "id": "d", "label": "福田淳" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Mega Man 2 - Dr. Wily Stage 1",
+            "url": "https://www.youtube.com/watch?v=4uq6Ax-zzkQ"
+          },
+          {
+            "provider": "spotify",
+            "label": "Mega Man 2 Original Soundtrack",
+            "url": "https://open.spotify.com/track/7j8hL6vhfVqlhK2XxPxq7y"
+          }
+        ],
+        "meta": {
+          "workTitle": "Mega Man 2",
+          "trackTitle": "Dr. Wily Stage 1",
+          "composer": "Takashi Tateishi"
+        }
+      },
+      "artwork": {
+        "url": "https://cdn.capcom.com/mega-man/mega-man2-cover.jpg",
+        "width": 900,
+        "height": 900,
+        "alt": "ロックマン2のパッケージアート"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "megaman",
+        "era": "80s",
+        "difficulty": "hard",
+        "lengthSec": 132,
+        "startSec": 8
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0006",
+      "prompt": "『ペルソナ5』のバトル曲『Life Will Change』を作曲した人物は？",
+      "choices": [
+        { "id": "a", "label": "土屋昇平" },
+        { "id": "b", "label": "目黒将司" },
+        { "id": "c", "label": "喜多健太郎" },
+        { "id": "d", "label": "光田康典" }
+      ],
+      "correctChoiceId": "b",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Persona 5 - Life Will Change",
+            "url": "https://www.youtube.com/watch?v=y6GXiMI5n7o"
+          },
+          {
+            "provider": "spotify",
+            "label": "Persona 5 Original Soundtrack",
+            "url": "https://open.spotify.com/track/11zREtXU3LjXLp8dkUBaRd"
+          }
+        ],
+        "meta": {
+          "workTitle": "Persona 5",
+          "trackTitle": "Life Will Change",
+          "composer": "Shoji Meguro"
+        }
+      },
+      "artwork": {
+        "url": "https://atlus.com/persona5/keyart.jpg",
+        "width": 1200,
+        "height": 675,
+        "alt": "ペルソナ5のキービジュアル"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "persona",
+        "era": "10s",
+        "difficulty": "normal",
+        "lengthSec": 220,
+        "startSec": 40
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0007",
+      "prompt": "『キングダム ハーツ』メインテーマ『Dearly Beloved』を手掛けたのは？",
+      "choices": [
+        { "id": "a", "label": "下村陽子" },
+        { "id": "b", "label": "光田康典" },
+        { "id": "c", "label": "小林啓樹" },
+        { "id": "d", "label": "杉森雅和" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Kingdom Hearts - Dearly Beloved",
+            "url": "https://www.youtube.com/watch?v=c9h8K4E4nPs"
+          },
+          {
+            "provider": "spotify",
+            "label": "Kingdom Hearts Original Soundtrack",
+            "url": "https://open.spotify.com/track/1vX8jK3iAFn0JtKBTlqlxT"
+          }
+        ],
+        "meta": {
+          "workTitle": "Kingdom Hearts",
+          "trackTitle": "Dearly Beloved",
+          "composer": "Yoko Shimomura"
+        }
+      },
+      "artwork": {
+        "url": "https://static.square-enix-games.com/kh/keyart.jpg",
+        "width": 1024,
+        "height": 1024,
+        "alt": "キングダム ハーツのメインビジュアル"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "kingdom-hearts",
+        "era": "00s",
+        "difficulty": "easy",
+        "lengthSec": 138,
+        "startSec": 0
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0008",
+      "prompt": "『NieR:Automata』エンディング曲『Weight of the World』の作曲者は？",
+      "choices": [
+        { "id": "a", "label": "岡部啓一" },
+        { "id": "b", "label": "齊藤陽介" },
+        { "id": "c", "label": "浜渦正志" },
+        { "id": "d", "label": "伊藤賢治" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "NieR:Automata - Weight of the World",
+            "url": "https://www.youtube.com/watch?v=J1PKtZrF4Q4"
+          },
+          {
+            "provider": "spotify",
+            "label": "NieR:Automata Original Soundtrack",
+            "url": "https://open.spotify.com/track/1h3UxFazc2DSES0xlmwkp3"
+          }
+        ],
+        "meta": {
+          "workTitle": "NieR:Automata",
+          "trackTitle": "Weight of the World",
+          "composer": "Keiichi Okabe"
+        }
+      },
+      "artwork": {
+        "url": "https://cdn.square-enix.com/nierautomata/keyart.jpg",
+        "width": 1200,
+        "height": 675,
+        "alt": "NieR:Automataのキービジュアル"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "nier",
+        "era": "10s",
+        "difficulty": "normal",
+        "lengthSec": 270,
+        "startSec": 60
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0009",
+      "prompt": "『ポケットモンスター 赤・緑』のジムリーダー戦BGMの作曲者は？",
+      "choices": [
+        { "id": "a", "label": "増田順一" },
+        { "id": "b", "label": "一之瀬剛" },
+        { "id": "c", "label": "佐藤仁美" },
+        { "id": "d", "label": "大森滋" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Pokemon Red/Green - Gym Leader Battle",
+            "url": "https://www.youtube.com/watch?v=pjiW2JxLZsM"
+          },
+          {
+            "provider": "spotify",
+            "label": "Pokemon Red & Green Original Soundtrack",
+            "url": "https://open.spotify.com/track/3B6v39l0cJZ9YngSnJUgoy"
+          }
+        ],
+        "meta": {
+          "workTitle": "Pokemon Red & Green",
+          "trackTitle": "Gym Leader Battle",
+          "composer": "Junichi Masuda"
+        }
+      },
+      "artwork": {
+        "url": "https://assets.pokemon.com/assets/cms2/img/video-games/video-games/pokemon_red_green.jpg",
+        "width": 1024,
+        "height": 576,
+        "alt": "ポケットモンスター赤・緑のパッケージ"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "pokemon",
+        "era": "90s",
+        "difficulty": "normal",
+        "lengthSec": 105,
+        "startSec": 10
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0010",
+      "prompt": "『メタルギア ソリッド』エンディング曲『The Best is Yet to Come』の作曲者は？",
+      "choices": [
+        { "id": "a", "label": "リカ・村中" },
+        { "id": "b", "label": "ハリー・グレッグソン＝ウィリアムズ" },
+        { "id": "c", "label": "光田康典" },
+        { "id": "d", "label": "木村由姫" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Metal Gear Solid - The Best is Yet to Come",
+            "url": "https://www.youtube.com/watch?v=Ff4fRgnuFgQ"
+          },
+          {
+            "provider": "spotify",
+            "label": "Metal Gear Solid Original Soundtrack",
+            "url": "https://open.spotify.com/track/1cJyoSgATJE0E7E5Wdl66T"
+          }
+        ],
+        "meta": {
+          "workTitle": "Metal Gear Solid",
+          "trackTitle": "The Best is Yet to Come",
+          "composer": "Rika Muranaka"
+        }
+      },
+      "artwork": {
+        "url": "https://cdn.konami.com/mg/mgs/keyart.jpg",
+        "width": 1000,
+        "height": 1000,
+        "alt": "メタルギア ソリッドのアートワーク"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "metal-gear",
+        "era": "90s",
+        "difficulty": "hard",
+        "lengthSec": 258,
+        "startSec": 0
+      },
+      "backup": false
+    },
+    {
+      "id": "vgm-0011",
+      "prompt": "『モンスターハンター』シリーズのメインテーマ『英雄の証』の作曲者は？",
+      "choices": [
+        { "id": "a", "label": "甲田雅人" },
+        { "id": "b", "label": "友部博教" },
+        { "id": "c", "label": "船橋淳" },
+        { "id": "d", "label": "市原重樹" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Monster Hunter - Proof of a Hero",
+            "url": "https://www.youtube.com/watch?v=DVW3v0w2UeI"
+          }
+        ],
+        "meta": {
+          "workTitle": "Monster Hunter",
+          "trackTitle": "Proof of a Hero",
+          "composer": "Masato Kouda"
+        }
+      },
+      "artwork": {
+        "url": "https://static.capcom.com/mh/keyart.jpg",
+        "width": 1200,
+        "height": 675,
+        "alt": "モンスターハンターのキービジュアル"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "monster-hunter",
+        "era": "00s",
+        "difficulty": "normal",
+        "lengthSec": 210,
+        "startSec": 15
+      },
+      "backup": true
+    },
+    {
+      "id": "vgm-0012",
+      "prompt": "『ストリートファイターII』の『ガイルのテーマ』を作った作曲家は？",
+      "choices": [
+        { "id": "a", "label": "下村陽子" },
+        { "id": "b", "label": "岩田匡敬" },
+        { "id": "c", "label": "光吉猛修" },
+        { "id": "d", "label": "伊藤賢治" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "Street Fighter II - Guile Stage",
+            "url": "https://www.youtube.com/watch?v=2nCzQmHTLyE"
+          }
+        ],
+        "meta": {
+          "workTitle": "Street Fighter II",
+          "trackTitle": "Guile Stage",
+          "composer": "Yoko Shimomura"
+        }
+      },
+      "artwork": {
+        "url": "https://static.capcom.com/sf2/keyart.jpg",
+        "width": 1200,
+        "height": 675,
+        "alt": "ストリートファイターIIのガイル"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "street-fighter",
+        "era": "90s",
+        "difficulty": "normal",
+        "lengthSec": 148,
+        "startSec": 5
+      },
+      "backup": true
+    },
+    {
+      "id": "vgm-0013",
+      "prompt": "インディーゲーム『UNDERTALE』の『MEGALOVANIA』を作曲したのは？",
+      "choices": [
+        { "id": "a", "label": "トビー・フォックス" },
+        { "id": "b", "label": "ローラ・シギハラ" },
+        { "id": "c", "label": "ダレン・コーベル" },
+        { "id": "d", "label": "近藤浩治" }
+      ],
+      "correctChoiceId": "a",
+      "reveal": {
+        "links": [
+          {
+            "provider": "youtube",
+            "label": "UNDERTALE - MEGALOVANIA",
+            "url": "https://www.youtube.com/watch?v=ZcoqR9Bwx1Y"
+          },
+          {
+            "provider": "spotify",
+            "label": "UNDERTALE Soundtrack",
+            "url": "https://open.spotify.com/track/4VqPOruhp5EdPBeR92t6lQ"
+          }
+        ],
+        "meta": {
+          "workTitle": "UNDERTALE",
+          "trackTitle": "MEGALOVANIA",
+          "composer": "Toby Fox"
+        }
+      },
+      "artwork": {
+        "url": "https://static.tobyfox.net/undertale/keyart.png",
+        "width": 1024,
+        "height": 1024,
+        "alt": "UNDERTALEのタイトルロゴ"
+      },
+      "meta": {
+        "kind": "title_to_composer",
+        "series": "undertale",
+        "era": "10s",
+        "difficulty": "easy",
+        "lengthSec": 230,
+        "startSec": 30
+      },
+      "backup": true
+    }
+  ]
+}
