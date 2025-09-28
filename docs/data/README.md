@@ -10,3 +10,4 @@
 
 ## 目次
 - `model.md` — データモデル（エンティティ定義・スキーマ例・バリデーション）
+- `../data/questions.v1.json` — VGM Quiz Vol.1（JA）向けの初期問題セット
