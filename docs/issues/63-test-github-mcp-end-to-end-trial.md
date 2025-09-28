@@ -1,10 +1,10 @@
 ---
 number: 63
-state: open
+state: closed
 title: "TEST: GitHub MCP end-to-end trial"
 labels: ["area:ops", "type:test", "priority:P3"]
 assignees: []
-updated_at: "2025-09-28T03:21:54Z"
+updated_at: "2025-09-28T03:23:52Z"
 ---
 This is a test issue created via the Codex CLI to verify MCP flows.
 
