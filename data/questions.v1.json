@@ -14,7 +14,6 @@
         { "id": "c", "label": "光田康典" },
         { "id": "d", "label": "植松伸夫" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -59,7 +58,6 @@
         { "id": "c", "label": "光田康典" },
         { "id": "d", "label": "大久保博" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -99,7 +97,6 @@
         { "id": "c", "label": "浜渦正志" },
         { "id": "d", "label": "古代祐三" }
       ],
-      "correctChoiceId": "b",
       "reveal": {
         "links": [
           {
@@ -144,7 +141,6 @@
         { "id": "c", "label": "下村陽子" },
         { "id": "d", "label": "祖堅正慶" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -189,7 +185,6 @@
         { "id": "c", "label": "岩代太郎" },
         { "id": "d", "label": "福田淳" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -234,7 +229,6 @@
         { "id": "c", "label": "喜多健太郎" },
         { "id": "d", "label": "光田康典" }
       ],
-      "correctChoiceId": "b",
       "reveal": {
         "links": [
           {
@@ -279,7 +273,6 @@
         { "id": "c", "label": "小林啓樹" },
         { "id": "d", "label": "杉森雅和" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -324,7 +317,6 @@
         { "id": "c", "label": "浜渦正志" },
         { "id": "d", "label": "伊藤賢治" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -369,7 +361,6 @@
         { "id": "c", "label": "佐藤仁美" },
         { "id": "d", "label": "大森滋" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -414,7 +405,6 @@
         { "id": "c", "label": "光田康典" },
         { "id": "d", "label": "木村由姫" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -459,7 +449,6 @@
         { "id": "c", "label": "船橋淳" },
         { "id": "d", "label": "市原重樹" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -499,7 +488,6 @@
         { "id": "c", "label": "光吉猛修" },
         { "id": "d", "label": "伊藤賢治" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
@@ -539,7 +527,6 @@
         { "id": "c", "label": "ダレン・コーベル" },
         { "id": "d", "label": "近藤浩治" }
       ],
-      "correctChoiceId": "a",
       "reveal": {
         "links": [
           {
