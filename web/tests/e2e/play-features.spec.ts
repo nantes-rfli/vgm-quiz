@@ -1,6 +1,16 @@
 import { test, expect, type Page } from '@playwright/test';
 import { ANSWERS } from '../../mocks/fixtures/rounds/answers';
 
+type MetricsEvent = { name: string; attrs?: Record<string, unknown> };
+type MetricsBatch = { events?: MetricsEvent[] };
+type InstrumentedWindow = Window & {
+  __ORIGINAL_FETCH__?: typeof fetch;
+  __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
+  __METRICS_LOG__?: MetricsBatch[];
+  __METRICS_ATTEMPTS__?: number;
+  __OVERRIDE_READY__?: boolean;
+};
+
 const QUESTION_IDS = Object.keys(ANSWERS).sort((a, b) =>
   a.localeCompare(b, undefined, { numeric: true })
 );
@@ -82,7 +92,7 @@ test.describe('Play page features', () => {
 
   test('handles question timeout and missing reveal links', async ({ page }) => {
     await page.addInitScript(() => {
-      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      const anyWindow = window as unknown as InstrumentedWindow;
       if (!anyWindow.__ORIGINAL_FETCH__) {
         anyWindow.__ORIGINAL_FETCH__ = window.fetch;
       }
@@ -90,8 +100,13 @@ test.describe('Play page features', () => {
       window.fetch = async (...args) => {
         const response = await originalFetch(...args);
         try {
-          const request = args[0];
-          const url = typeof request === 'string' ? request : request.url;
+          const requestInput = args[0];
+          const url =
+            typeof requestInput === 'string'
+              ? requestInput
+              : requestInput instanceof URL
+                ? requestInput.toString()
+                : requestInput.url;
           if (url.includes('/v1/rounds/start')) {
             const clone = response.clone();
             const data = await clone.json();
@@ -144,7 +159,7 @@ test.describe('Play page features', () => {
     await expect(timeoutCard.getByText('Your answer: —')).toBeVisible();
 
     await page.evaluate(() => {
-      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      const anyWindow = window as unknown as InstrumentedWindow;
       if (anyWindow.__ORIGINAL_FETCH__) {
         window.fetch = anyWindow.__ORIGINAL_FETCH__;
         delete anyWindow.__ORIGINAL_FETCH__;
@@ -154,7 +169,7 @@ test.describe('Play page features', () => {
 
   test('handles unsupported reveal providers', async ({ page }) => {
     await page.addInitScript(() => {
-      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      const anyWindow = window as unknown as InstrumentedWindow;
       if (!anyWindow.__ORIGINAL_FETCH__) {
         anyWindow.__ORIGINAL_FETCH__ = window.fetch;
       }
@@ -162,8 +177,13 @@ test.describe('Play page features', () => {
       window.fetch = async (...args) => {
         const response = await originalFetch(...args);
         try {
-          const request = args[0];
-          const url = typeof request === 'string' ? request : request.url;
+          const requestInput = args[0];
+          const url =
+            typeof requestInput === 'string'
+              ? requestInput
+              : requestInput instanceof URL
+                ? requestInput.toString()
+                : requestInput.url;
           if (url.includes('/v1/rounds/start')) {
             const data = await response.clone().json();
             if (data?.question?.reveal) {
@@ -202,7 +222,7 @@ test.describe('Play page features', () => {
     await expect(page.locator('iframe[title="Player"]')).toHaveCount(0);
 
     await page.evaluate(() => {
-      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      const anyWindow = window as unknown as InstrumentedWindow;
       if (anyWindow.__ORIGINAL_FETCH__) {
         window.fetch = anyWindow.__ORIGINAL_FETCH__;
         delete anyWindow.__ORIGINAL_FETCH__;
@@ -214,17 +234,18 @@ test.describe('Play page features', () => {
     await context.route('https://www.youtube.com/**', (route) => route.abort());
 
     await page.addInitScript(() => {
-      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      const anyWindow = window as unknown as InstrumentedWindow;
       if (!anyWindow.__ORIGINAL_FETCH__) {
         anyWindow.__ORIGINAL_FETCH__ = window.fetch;
       }
-      const batches: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }> = [];
+      const batches: MetricsBatch[] = [];
       const originalFetch = window.fetch;
 
-      window.__METRICS_LOG__ = batches;
+      (window as InstrumentedWindow).__METRICS_LOG__ = batches;
 
       window.fetch = async (...args) => {
-        const request = typeof args[0] === 'string' ? new Request(args[0], args[1]) : args[0];
+        const request =
+          typeof args[0] === 'string' || args[0] instanceof URL ? new Request(args[0], args[1]) : args[0];
         if (request.url.includes('/v1/metrics')) {
           try {
             const clone = request.clone();
@@ -268,15 +289,13 @@ test.describe('Play page features', () => {
     await revealLink.click();
 
     await page.waitForFunction(() => {
-      const batches = (window as unknown as { __METRICS_LOG__?: Array<{ events?: Array<{ name: string }> }> })
-        .__METRICS_LOG__;
+      const batches = (window as unknown as InstrumentedWindow).__METRICS_LOG__;
       if (!batches) return false;
       return batches.flatMap((batch) => batch.events ?? []).length >= 3;
     }, { timeout: 15_000 });
 
     const metricEvents = await page.evaluate(() => {
-      const batches = (window as unknown as { __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }> })
-        .__METRICS_LOG__;
+      const batches = (window as unknown as InstrumentedWindow).__METRICS_LOG__;
       if (!batches) return [];
       return batches.flatMap((batch) => batch.events ?? []);
     });
@@ -290,7 +309,7 @@ test.describe('Play page features', () => {
     expect(answerResult?.attrs).toMatchObject({ outcome: 'correct', questionId: QUESTION_IDS[0] });
 
     await page.evaluate(() => {
-      const anyWindow = window as unknown as { __ORIGINAL_FETCH__?: typeof fetch };
+      const anyWindow = window as unknown as InstrumentedWindow;
       if (anyWindow.__ORIGINAL_FETCH__) {
         window.fetch = anyWindow.__ORIGINAL_FETCH__;
         delete anyWindow.__ORIGINAL_FETCH__;
@@ -300,13 +319,7 @@ test.describe('Play page features', () => {
 
   test('retries metrics flush after 429 responses', async ({ page }) => {
     await page.addInitScript(() => {
-      const anyWindow = window as unknown as {
-        __OVERRIDE_READY__?: boolean;
-        __ORIGINAL_FETCH__?: typeof fetch;
-        __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
-        __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }>;
-        __METRICS_ATTEMPTS__?: number;
-      };
+      const anyWindow = window as unknown as InstrumentedWindow;
 
       const applyOverride = () => {
         if (anyWindow.__OVERRIDE_READY__) return;
@@ -329,7 +342,8 @@ test.describe('Play page features', () => {
           originalSetTimeout(handler, timeout && timeout > 50 ? 50 : timeout ?? 0, ...rest)) as typeof window.setTimeout;
 
         window.fetch = async (...args) => {
-          const request = typeof args[0] === 'string' ? new Request(args[0], args[1]) : args[0];
+          const request =
+            typeof args[0] === 'string' || args[0] instanceof URL ? new Request(args[0], args[1]) : args[0];
           if (request.url.includes('/v1/metrics')) {
             try {
               const text = await request.clone().text();
@@ -371,12 +385,7 @@ test.describe('Play page features', () => {
     }, { timeout: 15_000 });
 
     const result = await page.evaluate(() => {
-      const anyWindow = window as unknown as {
-        __METRICS_ATTEMPTS__?: number;
-        __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }>;
-        __ORIGINAL_FETCH__?: typeof fetch;
-        __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
-      };
+      const anyWindow = window as unknown as InstrumentedWindow;
       const output = {
         attempts: anyWindow.__METRICS_ATTEMPTS__ ?? 0,
         events: (anyWindow.__METRICS_LOG__ ?? []).flatMap((batch) => batch.events ?? []),
@@ -430,7 +439,8 @@ test.describe('Play page features', () => {
           originalSetTimeout(handler, timeout && timeout > 50 ? 50 : timeout ?? 0, ...rest)) as typeof window.setTimeout;
 
         window.fetch = async (...args) => {
-          const request = typeof args[0] === 'string' ? new Request(args[0], args[1]) : args[0];
+          const request =
+            typeof args[0] === 'string' || args[0] instanceof URL ? new Request(args[0], args[1]) : args[0];
           if (request.url.includes('/v1/metrics')) {
             let payload: unknown = {};
             try {
@@ -470,12 +480,12 @@ test.describe('Play page features', () => {
     await submitButton.click();
 
     await page.waitForFunction(() => {
-      const anyWindow = window as unknown as { __METRICS_ATTEMPTS__?: number };
+      const anyWindow = window as unknown as InstrumentedWindow;
       return (anyWindow.__METRICS_ATTEMPTS__ ?? 0) >= 3;
     }, { timeout: 15_000 });
 
     await page.waitForFunction(() => {
-      const anyWindow = window as unknown as { __METRICS_LOG__?: Array<{ events?: Array<{ name: string }> }> };
+      const anyWindow = window as unknown as InstrumentedWindow;
       const events = anyWindow.__METRICS_LOG__?.flatMap((batch) => batch.events ?? []) ?? [];
       return events.length >= 1;
     }, { timeout: 15_000 });
@@ -486,13 +496,7 @@ test.describe('Play page features', () => {
     }).toBeNull();
 
     const result = await page.evaluate(() => {
-      const anyWindow = window as unknown as {
-        __METRICS_ATTEMPTS__?: number;
-        __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }>;
-        __ORIGINAL_FETCH__?: typeof fetch;
-        __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
-        __OVERRIDE_READY__?: boolean;
-      };
+      const anyWindow = window as unknown as InstrumentedWindow;
       const output = {
         attempts: anyWindow.__METRICS_ATTEMPTS__ ?? 0,
         events: (anyWindow.__METRICS_LOG__ ?? []).flatMap((batch) => batch.events ?? []),
