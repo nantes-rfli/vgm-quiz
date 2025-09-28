@@ -11,3 +11,6 @@ UIフィルタの選択肢・既定値を生成。
 
 ### DoD
 - 最小のmodes/facetsを定義
+
+### Status
+- 2025-09-28: `data/questions.v1.json` の初版を投入済み（シリーズ/ era / difficulty のヒント付き）。Manifest 用のモード・ファセット抽出ロジックを検討し、必要な分類キーを確定する。
