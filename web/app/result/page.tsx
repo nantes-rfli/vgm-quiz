@@ -3,6 +3,7 @@
 import React from 'react';
 import ScoreBadge from '@/src/components/ScoreBadge';
 import { loadResult, loadReveals, type ResultSummary, type Outcome } from '@/src/lib/resultStorage';
+import { mark, measure } from '@/src/lib/perfMarks';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
 import type { Reveal } from '@/src/features/quiz/api/types';
 
@@ -51,6 +52,17 @@ export default function ResultPage() {
     setReady(true);
   }, []);
 
+  React.useEffect(() => {
+    if (!ready || !summary) return;
+    mark('quiz:result-ready', { answered: summary.answeredCount });
+    measure('quiz:first-question-to-result', 'quiz:first-question-visible', 'quiz:result-ready', {
+      answered: summary.answeredCount,
+    });
+    measure('quiz:finish-to-result', 'quiz:play-finished', 'quiz:result-ready', {
+      answered: summary.answeredCount,
+    });
+  }, [ready, summary]);
+
   if (!ready) {
     return (
       <main className="p-6">
@@ -83,11 +95,11 @@ export default function ResultPage() {
     <main className="p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">Result</h1>
+          <h1 id="result-summary-heading" className="text-2xl font-semibold">Result</h1>
           <InlinePlaybackToggle />
         </div>
 
-        <div className="bg-white rounded-2xl shadow p-6">
+        <section className="bg-white rounded-2xl shadow p-6" aria-labelledby="result-summary-heading">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <ScoreBadge
               correct={summary.score.correct}
@@ -97,14 +109,34 @@ export default function ResultPage() {
               points={summary.score.points}
               total={summary.total}
             />
-            <div className="text-xs text-gray-500 space-y-1 text-right">
-              <div>Answered: <strong>{summary.answeredCount}</strong> / {summary.total}</div>
-              {durationSec ? <div>Duration: {durationSec}s</div> : null}
-              {started ? <div>Started: {started.toLocaleString()}</div> : null}
-              {finished ? <div>Finished: {finished.toLocaleString()}</div> : null}
-            </div>
+            <dl className="text-xs text-gray-700 space-y-1 text-right">
+              <div>
+                <dt className="sr-only">Answered questions</dt>
+                <dd>
+                  Answered: <strong>{summary.answeredCount}</strong> / {summary.total}
+                </dd>
+              </div>
+              {durationSec ? (
+                <div>
+                  <dt className="sr-only">Duration</dt>
+                  <dd>Duration: {durationSec}s</dd>
+                </div>
+              ) : null}
+              {started ? (
+                <div>
+                  <dt className="sr-only">Started at</dt>
+                  <dd>Started: {started.toLocaleString()}</dd>
+                </div>
+              ) : null}
+              {finished ? (
+                <div>
+                  <dt className="sr-only">Finished at</dt>
+                  <dd>Finished: {finished.toLocaleString()}</dd>
+                </div>
+              ) : null}
+            </dl>
           </div>
-        </div>
+        </section>
 
         <div className="mt-4 text-right">
           <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-black text-white">Play again</a>
@@ -148,11 +180,26 @@ export default function ResultPage() {
 
                       {reveal ? (
                         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
-                          <div className="text-xs text-gray-500 space-y-1">
-                            {meta?.workTitle ? <div>Work: {meta.workTitle}</div> : null}
-                            {meta?.trackTitle ? <div>Track: {meta.trackTitle}</div> : null}
-                            {meta?.composer ? <div>Composer: {meta.composer}</div> : null}
-                          </div>
+                          <dl className="text-xs text-gray-700 space-y-1">
+                            {meta?.workTitle ? (
+                              <div>
+                                <dt className="font-medium text-gray-600">Work</dt>
+                                <dd>{meta.workTitle}</dd>
+                              </div>
+                            ) : null}
+                            {meta?.trackTitle ? (
+                              <div>
+                                <dt className="font-medium text-gray-600">Track</dt>
+                                <dd>{meta.trackTitle}</dd>
+                              </div>
+                            ) : null}
+                            {meta?.composer ? (
+                              <div>
+                                <dt className="font-medium text-gray-600">Composer</dt>
+                                <dd>{meta.composer}</dd>
+                              </div>
+                            ) : null}
+                          </dl>
                           {link ? (
                             <a
                               href={link.url}

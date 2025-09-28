@@ -1,7 +1,7 @@
 # Frontend Testing Notes
 
 - Status: Draft
-- Last Updated: 2025-09-28
+- Last Updated: 2025-09-28 (web vitals instrumentation)
 
 ## この文書の目的
 フロントエンド開発者が、実装変更時にどのテストを実行し、どの観点を確認すべきかを素早く把握するためのメモです。`docs/quality/e2e-plan.md` で定義している公式な E2E 運用と補完関係にあり、より実務的な注意点や手動検証手順をまとめます。
@@ -79,12 +79,27 @@
 
 ---
 
+## 6. パフォーマンス計測メモ
+
+| 項目 | 手順 | 備考 |
+| --- | --- | --- |
+| Core Web Vitals | `app/reportWebVitals.ts` が `window.__VITALS__` にメトリクスを蓄積。DevTools Console で `window.__VITALS__` を確認。 | 開発時は `console.info('[vitals]', ...)` で即時ログ。 |
+| カスタムマーク | `/play` `/result` フローで `performance.mark` と `performance.measure` を発行。`window.__PERF_EVENTS__` に履歴が格納されるのでコンソールで確認。 | 例: `quiz:navigation-to-first-question`, `quiz:first-question-to-result`, `quiz:finish-to-result` |
+| Playwright 取得 | `page.evaluate(() => window.__PERF_EVENTS__)` で計測結果を収集可能。必要に応じて `test-results/` へ保存して差分比較。 |
+| 手動測定 | Chrome Performance パネルで `quiz:*` マーカーをフィルタ、`performance.getEntriesByName('quiz:first-question-to-result')` でも継続時間を確認。 | 初回ロード（モック MSW 起動込み）でのベースラインを残しておくと便利。 |
+
+※ Lighthouse CI ワークフロー (#76) 追加後は、PR ごとの自動メトリクス確認も行える予定。
+
+---
+
 ## 参考リンク
 
 - `docs/quality/e2e-plan.md` — E2E テストの公式運用手順
 - `docs/quality/e2e-scenarios.md` — シナリオ一覧と網羅状況
 - `docs/frontend/play-flow.md` — `/play` の状態遷移と副作用
 - `docs/frontend/metrics-client.md` — メトリクス送信の仕組み
+- `docs/quality/a11y-play-result.md` — アクセシビリティ監査ログ
+- `docs/product/embed-policy.md` — 埋め込み/リンクのガイドライン
 - `docs/product/embed-policy.md` — 埋め込み/リンクのガイドライン
 
 > 更新の際は最終更新日 (`Last Updated`) を忘れずに書き換えてください。

@@ -22,6 +22,8 @@ import type { Question, RoundsStartResponse, RoundsNextResponse, Reveal } from '
 import { start, next } from '@/src/features/quiz/datasource';
 import { waitMockReady } from '@/src/lib/waitMockReady';
 import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
+import { enrichReveal, toQuestionRecord } from '@/src/features/quiz/lib/reveal';
+import { mark, measure } from '@/src/lib/perfMarks';
 
 /**
  * Play page with reveal phase (FE-04 Sub DoD) — refactored with useReducer
@@ -172,19 +174,6 @@ function reducer(state: State, action: Action): State {
 // Helpers
 // ————————————————————————————————————————————————————————
 
-function enrichReveal(prev: Reveal | undefined, fromNext?: Reveal, fromQuestion?: Reveal): Reveal | undefined {
-  const fallback = prev ?? fromQuestion;
-  if (!fromNext) return fallback;
-  if (!fallback) return fromNext;
-
-  return {
-    ...fallback,
-    ...fromNext,
-    links: fromNext.links && fromNext.links.length > 0 ? fromNext.links : fallback.links,
-    meta: fromNext.meta ?? fallback.meta,
-  };
-}
-
 function toRemainingSeconds(ms: number): number {
   return Math.max(0, Math.floor(ms / 1000));
 }
@@ -200,31 +189,6 @@ function rollupTally(prev: ScoreBreakdown, outcome: Outcome, pointsDelta: number
     timeout: prev.timeout + (outcome === 'timeout' ? 1 : 0),
     skip: prev.skip + (outcome === 'skip' ? 1 : 0),
     points: prev.points + pointsDelta,
-  };
-}
-
-function toQuestionRecord(params: {
-  question: Question;
-  reveal?: Reveal;
-  outcome: Outcome;
-  remainingMs: number;
-  choiceId?: string;
-  points: number;
-}): QuestionRecord {
-  const { question, reveal, outcome, remainingMs, choiceId, points } = params;
-  const choiceLabel = choiceId ? question.choices.find((c) => c.id === choiceId)?.label : undefined;
-  const correctChoiceId = reveal?.correctChoiceId;
-  const correctLabel = correctChoiceId ? question.choices.find((c) => c.id === correctChoiceId)?.label : undefined;
-  return {
-    questionId: question.id,
-    prompt: question.prompt,
-    choiceId,
-    choiceLabel,
-    correctChoiceId,
-    correctLabel,
-    outcome,
-    remainingMs,
-    points,
   };
 }
 
@@ -282,6 +246,7 @@ export default function PlayPage() {
   const bootAndStart = React.useCallback(async () => {
     try {
       await waitMockReady({ timeoutMs: 2000 });
+      mark('quiz:bootstrap-ready');
 
       let res: RoundsStartResponse | undefined;
       try {
@@ -317,6 +282,8 @@ export default function PlayPage() {
           currentReveal: res.question?.reveal,
         },
       });
+      mark('quiz:first-question-visible', { questionId: res.question?.id });
+      measure('quiz:navigation-to-first-question', 'navigationStart', 'quiz:first-question-visible');
     } catch (e: unknown) {
       if (!isMountedRef.current) return;
       const message = e instanceof Error ? e.message : String(e);
@@ -367,6 +334,7 @@ export default function PlayPage() {
 
       // Switch to reveal phase immediately (freeze UI) and show current reveal
       safeDispatch({ type: 'ENTER_REVEAL', reveal: question.reveal });
+      mark('quiz:reveal-visible', { questionId: question.id });
 
       const effectiveChoiceId =
         mode.kind === 'answer'
@@ -466,11 +434,13 @@ export default function PlayPage() {
     if (!qn) return;
     if (qn.finished === true) {
       // End of round
+      mark('quiz:play-finished', { totalQuestions: progress?.total });
+      measure('quiz:first-question-to-finish', 'quiz:first-question-visible', 'quiz:play-finished');
       router.push('/result');
       return;
     }
     safeDispatch({ type: 'ADVANCE', next: qn });
-  }, [queuedNext, router, safeDispatch]);
+  }, [queuedNext, router, safeDispatch, progress]);
 
   React.useEffect(() => {
     if (phase !== 'question' || !deadline) return;

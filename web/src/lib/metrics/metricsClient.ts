@@ -84,10 +84,10 @@ class MetricsClient {
     this.enqueue(event);
   }
 
-  flush(): void {
+  async flush(): Promise<void> {
     if (typeof window === 'undefined') return;
     if (!this.started) this.start();
-    void this.flushInternal();
+    await this.flushInternal();
   }
 
   flushWithBeacon(): void {
@@ -243,8 +243,8 @@ export function recordMetricsEvent(name: MetricsEventName, options?: RecordOptio
   metricsClient.record(name, options);
 }
 
-export function flushMetrics(): void {
-  metricsClient.flush();
+export function flushMetrics(): Promise<void> {
+  return metricsClient.flush();
 }
 
 if (typeof window !== 'undefined') {
