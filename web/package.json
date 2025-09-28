@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "validate:fixtures": "tsx scripts/validate-fixtures.ts",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:a11y": "playwright test tests/e2e/accessibility.spec.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -23,6 +24,7 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.55.1",
     "@tailwindcss/postcss": "^4",

@@ -18,14 +18,14 @@ export default function Timer({ remainingMs, totalMs }: Props) {
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between text-sm font-mono">
-        <span className={danger ? 'text-red-600 font-semibold' : 'text-gray-700'}>
+        <span className={danger ? 'text-rose-700 font-semibold' : 'text-gray-800'}>
           {seconds}s
         </span>
-        <span className="text-xs text-gray-400">Time remaining</span>
+        <span className="text-xs text-gray-600">Time remaining</span>
       </div>
       <div className="mt-1 h-2 rounded-full bg-gray-200">
         <div
-          className={`${danger ? 'bg-red-500' : 'bg-black'} h-2 rounded-full transition-[width] duration-100`}
+          className={`${danger ? 'bg-rose-600' : 'bg-gray-900'} h-2 rounded-full transition-[width] duration-100`}
           style={{ width: `${ratio * 100}%` }}
         />
       </div>
