@@ -24,13 +24,13 @@ function outcomeLabel(outcome: Outcome): string {
 function outcomeClass(outcome: Outcome): string {
   switch (outcome) {
     case 'correct':
-      return 'text-green-600';
+      return 'text-emerald-700';
     case 'wrong':
-      return 'text-red-600';
+      return 'text-rose-700';
     case 'timeout':
-      return 'text-orange-500';
+      return 'text-orange-600';
     case 'skip':
-      return 'text-gray-500';
+      return 'text-slate-600';
     default:
       return 'text-gray-500';
   }
@@ -142,7 +142,7 @@ export default function ResultPage() {
                           </div>
                         </div>
                         {record.points > 0 ? (
-                          <span className="text-sm font-semibold text-green-600">+{record.points}</span>
+                          <span className="text-sm font-semibold text-emerald-700">+{record.points}</span>
                         ) : null}
                       </div>
 
@@ -163,7 +163,7 @@ export default function ResultPage() {
                               Open in {link.provider}
                             </a>
                           ) : (
-                            <span className="text-xs text-gray-400">No link</span>
+                            <span className="text-xs text-gray-600">No link</span>
                           )}
                         </div>
                       ) : null}

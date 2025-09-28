@@ -13,16 +13,16 @@ export default function ScoreBadge({ correct, wrong, timeout = 0, skip = 0, poin
   const unknown = timeout + skip;
   const answered = correct + wrong + unknown;
   return (
-    <div className="inline-flex items-center gap-3 text-sm rounded-full bg-gray-100 px-3 py-1">
-      <span className="font-medium">Score</span>
-      <span className="px-2 py-0.5 rounded-full bg-gray-800 text-white">{points}</span>
-      <span className="px-2 py-0.5 rounded-full bg-green-600 text-white">✓ {correct}</span>
-      <span className="px-2 py-0.5 rounded-full bg-red-600 text-white">✕ {wrong}</span>
+    <div className="inline-flex items-center gap-3 text-sm rounded-xl border border-gray-200 bg-white px-3 py-1 text-gray-700">
+      <span className="font-semibold">Score</span>
+      <span className="px-2 py-0.5 rounded-full bg-gray-900 text-white">{points}</span>
+      <span className="px-2 py-0.5 rounded-full bg-emerald-700 text-white">✓ {correct}</span>
+      <span className="px-2 py-0.5 rounded-full bg-rose-700 text-white">✕ {wrong}</span>
       {unknown > 0 ? (
-        <span className="px-2 py-0.5 rounded-full bg-gray-500 text-white">? {unknown}</span>
+        <span className="px-2 py-0.5 rounded-full bg-slate-700 text-white">? {unknown}</span>
       ) : null}
-      {typeof total === 'number' ? <span className="text-gray-500">/ {total}</span> : null}
-      <span className="text-gray-400">({answered} answered)</span>
+      {typeof total === 'number' ? <span className="text-gray-700">/ {total}</span> : null}
+      <span className="text-gray-600">({answered} answered)</span>
     </div>
   );
 }
