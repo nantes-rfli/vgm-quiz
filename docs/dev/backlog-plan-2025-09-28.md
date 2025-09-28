@@ -15,9 +15,16 @@
 1. ✅ ルート `README.md` と `web/README.md` をプロジェクト仕様に更新。（#67 で実施済み）
 2. ✅ `docs/frontend/testing-notes.md` を新規追加し、関連ドキュメントへの導線と UI テストメモを整理。（#69 で実施済み）
 3. ✅ `data/questions.v1.json` を投入し、#31/#30 にステータスメモを追記。
-4. ⏳ `Question` 型と JSON Schema/フィクスチャの整合を取るタスクを実施し、#65 のランタイム型ガード導入準備を整える。
+4. ✅ `Question` 型と JSON Schema/フィクスチャの整合を取るタスクを実施し、#65 のランタイム型ガード導入準備を整える。（型整合 PR #70 済み）
 5. ✅ CI（#36）とアクセシビリティ監査（#64）を順に着手。→ #36 完了（Quality Gates導入済み / PR #71）、#64 監査結果を `docs/quality/a11y-play-result.md` に記録済み（改善候補はIssue #39に追記）。
-6. ⏳ Issue メンテナンス（#34/#11 クローズ、#37 などの優先度変更）を適宜実施。
+6. ✅ Issue メンテナンス（#34/#11 クローズ、#37 などの優先度変更）を適宜実施済み。
+
+## 次のアクション候補（2025-09-28 更新）
+
+1. ⏳ #74 **FE: Enhance accessibility semantics for timer and result summary** — タイマーの `aria-live` や結果サマリのセマンティクス改善。
+2. ⏳ #77 **FE: Add contract tests for metrics and reveal payloads** — ランタイム型ガードに加え、payload のユニットテストを整備。
+3. ⏳ #75 **Ops: Instrument web vitals and custom performance marks** — Web Vitals 取得とパフォーマンスマーク設置、ドキュメント更新。
+4. ⏳ #76 **CI: Add Lighthouse smoke to catch performance regressions** — Lighthouse CI を導入し、PR ごとのスコアを監視。
 
 ---
 
