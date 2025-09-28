@@ -29,16 +29,16 @@
           }
         ],
         "meta": {
-          "workTitle": "The Legend of Zelda Main Theme",
+          "workTitle": "The Legend of Zelda",
           "trackTitle": "Main Theme",
           "composer": "Koji Kondo"
         }
       },
       "artwork": {
-        "url": "https://images.nintendo.com/zelda/main-theme.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/0/0d/The_Legend_of_Zelda_Box_Art.jpg",
         "width": 1024,
         "height": 1024,
-        "alt": "ゼルダの伝説のキーアート"
+        "alt": "ファミコン版『ゼルダの伝説』のパッケージアート"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -52,12 +52,12 @@
     },
     {
       "id": "vgm-0002",
-      "prompt": "次の曲『ビッグブルー』を作曲したのは誰ですか？（F-ZERO）",
+      "prompt": "『F-ZERO』のコース曲「Big Blue」を作曲したのは誰ですか？",
       "choices": [
-        { "id": "a", "label": "竹間淳" },
+        { "id": "a", "label": "神吉由美子" },
         { "id": "b", "label": "近藤浩治" },
         { "id": "c", "label": "光田康典" },
-        { "id": "d", "label": "山本健誌" }
+        { "id": "d", "label": "大久保博" }
       ],
       "correctChoiceId": "a",
       "reveal": {
@@ -66,24 +66,19 @@
             "provider": "youtube",
             "label": "F-ZERO - Big Blue",
             "url": "https://www.youtube.com/watch?v=6Q2Jv4k2E4w"
-          },
-          {
-            "provider": "other",
-            "label": "Smash Bros. Ultimate Sound Test",
-            "url": "https://www.smashbros.com/en_US/sound/index.html"
           }
         ],
         "meta": {
           "workTitle": "F-ZERO",
           "trackTitle": "Big Blue",
-          "composer": "Junichi Taki"
+          "composer": "Yumiko Kanki"
         }
       },
       "artwork": {
-        "url": "https://assets.nintendo.com/f-zero/big-blue.jpg",
-        "width": 1280,
-        "height": 720,
-        "alt": "F-ZEROのコース Big Blue"
+        "url": "https://upload.wikimedia.org/wikipedia/en/f/f1/F-zero_box.jpg",
+        "width": 1024,
+        "height": 1024,
+        "alt": "スーパーファミコン版『F-ZERO』のパッケージ"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -125,10 +120,10 @@
         }
       },
       "artwork": {
-        "url": "https://images.square-enix.com/chrono-trigger/art.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/6/6f/Chrono_Trigger.jpg",
         "width": 1000,
         "height": 1000,
-        "alt": "クロノ・トリガーのキービジュアル"
+        "alt": "『クロノ・トリガー』の北米版パッケージ"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -170,10 +165,10 @@
         }
       },
       "artwork": {
-        "url": "https://assets.square-enix.com/final-fantasy/prelude.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/1/1d/Final_Fantasy_Box.jpg",
         "width": 1024,
         "height": 1024,
-        "alt": "ファイナルファンタジーのロゴ"
+        "alt": "初代『ファイナルファンタジー』のパッケージ"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -215,10 +210,10 @@
         }
       },
       "artwork": {
-        "url": "https://cdn.capcom.com/mega-man/mega-man2-cover.jpg",
-        "width": 900,
-        "height": 900,
-        "alt": "ロックマン2のパッケージアート"
+        "url": "https://upload.wikimedia.org/wikipedia/en/3/3a/Megaman2_box.jpg",
+        "width": 1024,
+        "height": 1024,
+        "alt": "『ロックマン2』のパッケージ"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -260,10 +255,10 @@
         }
       },
       "artwork": {
-        "url": "https://atlus.com/persona5/keyart.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/8/8d/Persona_5_cover_art.jpg",
         "width": 1200,
         "height": 675,
-        "alt": "ペルソナ5のキービジュアル"
+        "alt": "『ペルソナ5』のパッケージアート"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -305,10 +300,10 @@
         }
       },
       "artwork": {
-        "url": "https://static.square-enix-games.com/kh/keyart.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/d/d2/KingdomHeartsCover.png",
         "width": 1024,
         "height": 1024,
-        "alt": "キングダム ハーツのメインビジュアル"
+        "alt": "『キングダム ハーツ』のパッケージアート"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -350,10 +345,10 @@
         }
       },
       "artwork": {
-        "url": "https://cdn.square-enix.com/nierautomata/keyart.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/a/a7/Nier_Automata_cover_art.jpg",
         "width": 1200,
         "height": 675,
-        "alt": "NieR:Automataのキービジュアル"
+        "alt": "『NieR:Automata』のキービジュアル"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -395,10 +390,10 @@
         }
       },
       "artwork": {
-        "url": "https://assets.pokemon.com/assets/cms2/img/video-games/video-games/pokemon_red_green.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/3/39/Pokemon_Red_Box.jpg",
         "width": 1024,
         "height": 576,
-        "alt": "ポケットモンスター赤・緑のパッケージ"
+        "alt": "『ポケットモンスター 赤』のパッケージ"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -440,10 +435,10 @@
         }
       },
       "artwork": {
-        "url": "https://cdn.konami.com/mg/mgs/keyart.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/en/3/33/Metal_Gear_Solid_cover_art.png",
         "width": 1000,
         "height": 1000,
-        "alt": "メタルギア ソリッドのアートワーク"
+        "alt": "『メタルギア ソリッド』のパッケージアート"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -480,10 +475,10 @@
         }
       },
       "artwork": {
-        "url": "https://static.capcom.com/mh/keyart.jpg",
-        "width": 1200,
-        "height": 675,
-        "alt": "モンスターハンターのキービジュアル"
+        "url": "https://upload.wikimedia.org/wikipedia/en/1/16/Monster_Hunter_Boxart.jpg",
+        "width": 1024,
+        "height": 1024,
+        "alt": "『モンスターハンター』初代のパッケージ"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -520,10 +515,10 @@
         }
       },
       "artwork": {
-        "url": "https://static.capcom.com/sf2/keyart.jpg",
-        "width": 1200,
-        "height": 675,
-        "alt": "ストリートファイターIIのガイル"
+        "url": "https://upload.wikimedia.org/wikipedia/en/5/5c/SF2_Cover.jpg",
+        "width": 1024,
+        "height": 1024,
+        "alt": "『ストリートファイターII』のパッケージ"
       },
       "meta": {
         "kind": "title_to_composer",
@@ -565,10 +560,10 @@
         }
       },
       "artwork": {
-        "url": "https://static.tobyfox.net/undertale/keyart.png",
+        "url": "https://upload.wikimedia.org/wikipedia/en/3/3f/Undertale_Cover_Art.jpg",
         "width": 1024,
         "height": 1024,
-        "alt": "UNDERTALEのタイトルロゴ"
+        "alt": "『UNDERTALE』のロゴ"
       },
       "meta": {
         "kind": "title_to_composer",
