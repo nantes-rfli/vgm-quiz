@@ -13,6 +13,8 @@
 ## 2. 進め方（推奨ワークフロー）
 1. **PR 作成・レビュー** — `feature/e2e-playwright` を main へマージしてベースラインを整える。
 2. **CI 組み込み** — GitHub Actions 等で `npm ci` → `npx playwright install --with-deps` → `npm run test:e2e` を実行。失敗時はレポートをアーティファクト保存。
+   - `E2E Smoke`（PR/ main push）に加え、`E2E Smoke Nightly` を cron で 1日1回実行。
+   - 機能系 (`E2E Feature Tests`) と耐久系 (`E2E Durability Tests`) を個別ワークフローで分割し、必要に応じて手動/定期実行。
 3. **シナリオ拡張** — 下記 4章の優先順位に沿ってテストケースを追加。
 4. **実行環境整備** — Nightly やタグ付き実行など、負荷の高いシナリオ（耐久・ネットワーク系）は別ジョブ化を検討。
 5. **ドキュメント更新** — 新規シナリオ追加時は `docs/quality/e2e-scenarios.md` を随時更新する。

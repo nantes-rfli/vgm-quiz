@@ -398,4 +398,120 @@ test.describe('Play page features', () => {
     expect(result.attempts).toBeGreaterThanOrEqual(2);
     expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
   });
+
+  test('resends metrics after network failures', async ({ page }) => {
+    await page.addInitScript(() => {
+      const anyWindow = window as unknown as {
+        __OVERRIDE_READY__?: boolean;
+        __ORIGINAL_FETCH__?: typeof fetch;
+        __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
+        __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }>;
+        __METRICS_ATTEMPTS__?: number;
+      };
+
+      const applyOverride = () => {
+        if (anyWindow.__OVERRIDE_READY__) return;
+        anyWindow.__OVERRIDE_READY__ = true;
+
+        if (!anyWindow.__ORIGINAL_FETCH__) {
+          anyWindow.__ORIGINAL_FETCH__ = window.fetch;
+        }
+        if (!anyWindow.__ORIGINAL_SET_TIMEOUT__) {
+          anyWindow.__ORIGINAL_SET_TIMEOUT__ = window.setTimeout;
+        }
+
+        const originalFetch = window.fetch;
+        const originalSetTimeout = window.setTimeout;
+
+        anyWindow.__METRICS_LOG__ = [];
+        anyWindow.__METRICS_ATTEMPTS__ = 0;
+
+        window.setTimeout = ((handler: TimerHandler, timeout?: number, ...rest: unknown[]) =>
+          originalSetTimeout(handler, timeout && timeout > 50 ? 50 : timeout ?? 0, ...rest)) as typeof window.setTimeout;
+
+        window.fetch = async (...args) => {
+          const request = typeof args[0] === 'string' ? new Request(args[0], args[1]) : args[0];
+          if (request.url.includes('/v1/metrics')) {
+            let payload: unknown = {};
+            try {
+              const text = await request.clone().text();
+              payload = JSON.parse(text);
+            } catch {
+              payload = {};
+            }
+            anyWindow.__METRICS_LOG__!.push(payload as { events?: Array<{ name: string; attrs?: Record<string, unknown> }> });
+
+            const attempt = (anyWindow.__METRICS_ATTEMPTS__ = (anyWindow.__METRICS_ATTEMPTS__ ?? 0) + 1);
+            if (attempt <= 2) {
+              throw new TypeError('Network disconnected');
+            }
+            return new Response('', { status: 202, statusText: 'Accepted' });
+          }
+          return originalFetch(args[0], args[1]);
+        };
+      };
+
+      if (navigator.serviceWorker?.controller) {
+        applyOverride();
+      } else {
+        navigator.serviceWorker?.ready.then(applyOverride);
+      }
+    });
+
+    await page.goto('/play');
+    await waitForQuestion(page, 0);
+
+    const toggle = page.getByRole('button', { name: 'Inline playback' });
+    await toggle.click();
+    const correctChoice = ANSWERS[QUESTION_IDS[0]];
+    await page.getByTestId(`choice-${correctChoice}`).click();
+    const submitButton = page.getByRole('button', { name: 'Answer (Enter)' });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+
+    await page.waitForFunction(() => {
+      const anyWindow = window as unknown as { __METRICS_ATTEMPTS__?: number };
+      return (anyWindow.__METRICS_ATTEMPTS__ ?? 0) >= 3;
+    }, { timeout: 15_000 });
+
+    await page.waitForFunction(() => {
+      const anyWindow = window as unknown as { __METRICS_LOG__?: Array<{ events?: Array<{ name: string }> }> };
+      const events = anyWindow.__METRICS_LOG__?.flatMap((batch) => batch.events ?? []) ?? [];
+      return events.length >= 1;
+    }, { timeout: 15_000 });
+
+    await expect.poll(async () => {
+      const raw = await page.evaluate(() => localStorage.getItem('vgm2.metrics.queue'));
+      return raw;
+    }).toBeNull();
+
+    const result = await page.evaluate(() => {
+      const anyWindow = window as unknown as {
+        __METRICS_ATTEMPTS__?: number;
+        __METRICS_LOG__?: Array<{ events?: Array<{ name: string; attrs?: Record<string, unknown> }> }>;
+        __ORIGINAL_FETCH__?: typeof fetch;
+        __ORIGINAL_SET_TIMEOUT__?: typeof window.setTimeout;
+        __OVERRIDE_READY__?: boolean;
+      };
+      const output = {
+        attempts: anyWindow.__METRICS_ATTEMPTS__ ?? 0,
+        events: (anyWindow.__METRICS_LOG__ ?? []).flatMap((batch) => batch.events ?? []),
+      };
+      if (anyWindow.__ORIGINAL_FETCH__) {
+        window.fetch = anyWindow.__ORIGINAL_FETCH__;
+        delete anyWindow.__ORIGINAL_FETCH__;
+      }
+      if (anyWindow.__ORIGINAL_SET_TIMEOUT__) {
+        window.setTimeout = anyWindow.__ORIGINAL_SET_TIMEOUT__;
+        delete anyWindow.__ORIGINAL_SET_TIMEOUT__;
+      }
+      delete anyWindow.__METRICS_LOG__;
+      delete anyWindow.__METRICS_ATTEMPTS__;
+      delete anyWindow.__OVERRIDE_READY__;
+      return output;
+    });
+
+    expect(result.attempts).toBeGreaterThanOrEqual(3);
+    expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
+  });
 });

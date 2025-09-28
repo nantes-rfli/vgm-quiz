@@ -1,0 +1,49 @@
+name: E2E Smoke Nightly
+
+on:
+  schedule:
+    - cron: '0 18 * * *' # 03:00 JST
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: Playwright smoke (nightly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run smoke tests
+        env:
+          NEXT_DISABLE_DEVTOOLS: '1'
+          NEXT_TELEMETRY_DISABLED: '1'
+          CI: '1'
+          NEXT_PUBLIC_API_MOCK: '1'
+          NEXT_PUBLIC_PLAY_AUTOSTART: '1'
+        run: npm run test:e2e -- --grep "Smoke:" --reporter=line --output=test-results/smoke-nightly
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-nightly-results
+          path: web/test-results/smoke-nightly
+          if-no-files-found: ignore
+          retention-days: 7

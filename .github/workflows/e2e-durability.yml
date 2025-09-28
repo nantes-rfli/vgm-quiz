@@ -1,0 +1,49 @@
+name: E2E Durability Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 21 * * *' # 06:00 JST
+
+jobs:
+  durability:
+    name: Playwright durability suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run durability tests
+        env:
+          NEXT_DISABLE_DEVTOOLS: '1'
+          NEXT_TELEMETRY_DISABLED: '1'
+          CI: '1'
+          NEXT_PUBLIC_API_MOCK: '1'
+          NEXT_PUBLIC_PLAY_AUTOSTART: '1'
+        run: npm run test:e2e -- --grep "handles question timeout" --grep "unsupported" --grep "metrics"
+
+      - name: Upload durability artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: durability-results
+          path: web/test-results
+          if-no-files-found: ignore
+          retention-days: 7

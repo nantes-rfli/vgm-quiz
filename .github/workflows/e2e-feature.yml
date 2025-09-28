@@ -1,0 +1,42 @@
+name: E2E Feature Tests
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/e2e-feature.yml'
+  workflow_dispatch:
+
+jobs:
+  feature:
+    name: E2E Feature Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright feature tests
+        env:
+          NEXT_DISABLE_DEVTOOLS: '1'
+          NEXT_TELEMETRY_DISABLED: '1'
+          CI: '1'
+          NEXT_PUBLIC_API_MOCK: '1'
+          NEXT_PUBLIC_PLAY_AUTOSTART: '1'
+        run: npm run test:e2e -- --grep "Play page features"
