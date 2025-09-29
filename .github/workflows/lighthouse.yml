@@ -44,6 +44,9 @@ jobs:
         run: npm run test:lhci
         continue-on-error: false
 
+      - name: Check for generated reports
+        run: ls -lR web/.lighthouseci
+
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
         with:
