@@ -41,11 +41,10 @@ jobs:
         env:
           NEXT_DISABLE_DEVTOOLS: '1'
           NEXT_TELEMETRY_DISABLED: '1'
-        run: npm run test:lhci
+        run: |
+          npx lhci collect --config=./lighthouserc.json
+          npx lhci assert --config=./lighthouserc.json
         continue-on-error: false
-
-      - name: Check for generated reports
-        run: ls -lR web/.lighthouseci
 
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
