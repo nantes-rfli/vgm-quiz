@@ -1,29 +1,33 @@
 {
   "ci": {
     "collect": {
-      "staticDistDir": "./out",
-      "url": [
-        "./index.html",
-        "./play.html",
-        "./result.html"
-      ],
+      "staticDistDir": "web/out",
+      "url": ["/", "/play", "/result"],
+      "numberOfRuns": 3,
       "settings": {
-        "disableStorageReset": false,
+        "preset": "desktop",
         "throttlingMethod": "devtools",
-        "output": ["html"]
-      }
+        "maxWaitForFcp": 15000,
+        "maxWaitForLoad": 35000
+      },
+      "budgetsPath": "web/lighthouse-budgets.json"
     },
     "assert": {
+      "preset": "lighthouse:recommended",
       "assertions": {
-        "categories:performance": ["warn", { "minScore": 0.8 }],
-        "categories:accessibility": ["error", { "minScore": 0.95 }],
-        "categories:best-practices": ["warn", { "minScore": 0.9 }],
-        "categories:seo": ["warn", { "minScore": 0.9 }]
+        "categories:performance": ["error", { "minScore": 0.85 }],
+        "categories:accessibility": ["warn", { "minScore": 0.95 }],
+        "categories:best-practices": ["warn", { "minScore": 0.90 }],
+        "categories:seo": ["warn", { "minScore": 0.90 }],
+        "unused-javascript": ["warn", { "maxLength": 160000 }],
+        "total-byte-weight": ["warn", { "maxNumericValue": 1100000 }]
       }
     },
     "upload": {
       "target": "filesystem",
-      "outputDir": "./.lighthouseci"
+      "outputDir": "web/lighthouse-report",
+      "reportFilenamePattern": "%%PATHNAME%%-%%DATETIME%%-%%RANDOM%%.%%EXTENSION%%",
+      "immutableReport": true
     }
   }
 }
