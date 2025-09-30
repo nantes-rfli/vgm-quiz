@@ -1,7 +1,7 @@
 {
   "ci": {
     "collect": {
-      "staticDistDir": "web/out",
+      "staticDistDir": "out",
       "url": ["/", "/play", "/result"],
       "numberOfRuns": 3,
       "settings": {
@@ -10,7 +10,7 @@
         "maxWaitForFcp": 15000,
         "maxWaitForLoad": 35000
       },
-      "budgetsPath": "web/lighthouse-budgets.json"
+      "budgetsPath": "lighthouse-budgets.json"
     },
     "assert": {
       "preset": "lighthouse:recommended",
@@ -25,7 +25,7 @@
     },
     "upload": {
       "target": "filesystem",
-      "outputDir": "web/lighthouse-report",
+      "outputDir": "lighthouse-report",
       "reportFilenamePattern": "%%PATHNAME%%-%%DATETIME%%-%%RANDOM%%.%%EXTENSION%%",
       "immutableReport": true
     }
