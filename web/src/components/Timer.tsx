@@ -1,18 +1,16 @@
 'use client';
 
+import { msToSeconds } from '@/src/lib/timeUtils';
+
 type Props = {
   remainingMs: number;
   totalMs: number;
 };
 
-function formatSeconds(ms: number): number {
-  return Math.max(0, Math.ceil(ms / 1000));
-}
-
 export default function Timer({ remainingMs, totalMs }: Props) {
   const clamped = Math.max(0, Math.min(remainingMs, totalMs));
   const ratio = totalMs === 0 ? 0 : clamped / totalMs;
-  const seconds = formatSeconds(clamped);
+  const seconds = msToSeconds(clamped, true);
   const danger = seconds <= 5;
   const liveText = `Time remaining ${seconds} seconds`;
 

@@ -2,44 +2,12 @@
 
 import React from 'react';
 import ScoreBadge from '@/src/components/ScoreBadge';
-import { loadResult, loadReveals, type ResultSummary, type Outcome } from '@/src/lib/resultStorage';
+import { loadResult, loadReveals, type ResultSummary } from '@/src/lib/resultStorage';
 import { mark, measure } from '@/src/lib/perfMarks';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
 import type { Reveal } from '@/src/features/quiz/api/types';
-
-function outcomeLabel(outcome: Outcome): string {
-  switch (outcome) {
-    case 'correct':
-      return 'Correct';
-    case 'wrong':
-      return 'Wrong';
-    case 'timeout':
-      return 'Timeout';
-    case 'skip':
-      return 'Skipped';
-    default:
-      return outcome;
-  }
-}
-
-function outcomeClass(outcome: Outcome): string {
-  switch (outcome) {
-    case 'correct':
-      return 'text-emerald-700';
-    case 'wrong':
-      return 'text-rose-700';
-    case 'timeout':
-      return 'text-orange-600';
-    case 'skip':
-      return 'text-slate-600';
-    default:
-      return 'text-gray-500';
-  }
-}
-
-function toSeconds(ms: number): number {
-  return Math.max(0, Math.floor(ms / 1000));
-}
+import { msToSeconds } from '@/src/lib/timeUtils';
+import { getOutcomeDisplay } from '@/src/lib/outcomeUtils';
 
 export default function ResultPage() {
   const [ready, setReady] = React.useState(false);
@@ -151,6 +119,7 @@ export default function ResultPage() {
               {combined.map(({ record, reveal }, idx) => {
                 const link = Array.isArray(reveal?.links) && reveal.links.length > 0 ? reveal.links[0] : undefined;
                 const meta = reveal?.meta;
+                const outcome = getOutcomeDisplay(record.outcome);
                 return (
                   <li key={record.questionId} className="p-4 rounded-xl bg-white shadow">
                     <div className="flex flex-col gap-3">
@@ -158,10 +127,10 @@ export default function ResultPage() {
                         <div>
                           <div className="text-sm font-semibold text-gray-800">#{idx + 1} — {record.prompt}</div>
                           <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
-                            <span className={`${outcomeClass(record.outcome)} font-semibold`}>
-                              {outcomeLabel(record.outcome)}
+                            <span className={`${outcome.className} font-semibold`}>
+                              {outcome.label}
                             </span>
-                            <span>Remaining {toSeconds(record.remainingMs)}s</span>
+                            <span>Remaining {msToSeconds(record.remainingMs)}s</span>
                             <span>Points {record.points}</span>
                           </div>
                           <div className="mt-2 space-y-1 text-xs text-gray-500">

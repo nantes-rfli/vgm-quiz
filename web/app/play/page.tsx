@@ -18,6 +18,7 @@ import {
   type ScoreBreakdown,
   type Outcome,
 } from '@/src/lib/resultStorage';
+import { msToSeconds } from '@/src/lib/timeUtils';
 import type { Question, RoundsStartResponse, RoundsNextResponse, Reveal } from '@/src/features/quiz/api/types';
 import { start, next } from '@/src/features/quiz/datasource';
 import { waitMockReady } from '@/src/lib/waitMockReady';
@@ -174,12 +175,8 @@ function reducer(state: State, action: Action): State {
 // Helpers
 // ————————————————————————————————————————————————————————
 
-function toRemainingSeconds(ms: number): number {
-  return Math.max(0, Math.floor(ms / 1000));
-}
-
 function computePoints(remainingMs: number): number {
-  return 100 + toRemainingSeconds(remainingMs) * 5;
+  return 100 + msToSeconds(remainingMs) * 5;
 }
 
 function rollupTally(prev: ScoreBreakdown, outcome: Outcome, pointsDelta: number): ScoreBreakdown {

@@ -4,6 +4,8 @@ import type { Reveal, RevealLink } from '@/src/features/quiz/api/types';
 import type { Outcome } from '@/src/lib/resultStorage';
 import { getInlinePlayback } from '@/src/lib/inlinePlayback';
 import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
+import { msToSeconds } from '@/src/lib/timeUtils';
+import { getOutcomeDisplay } from '@/src/lib/outcomeUtils';
 
 function toYouTubeEmbed(url: string): string | null {
   try {
@@ -39,25 +41,6 @@ type ResultInfo = {
   correctLabel?: string;
 };
 
-function outcomeText(outcome: Outcome): { label: string; className: string } {
-  switch (outcome) {
-    case 'correct':
-      return { label: 'Correct', className: 'text-green-600' };
-    case 'wrong':
-      return { label: 'Wrong', className: 'text-red-600' };
-    case 'timeout':
-      return { label: 'Timeout', className: 'text-orange-500' };
-    case 'skip':
-      return { label: 'Skipped', className: 'text-gray-500' };
-    default:
-      return { label: outcome, className: 'text-gray-500' };
-  }
-}
-
-function toSeconds(ms: number): number {
-  return Math.max(0, Math.floor(ms / 1000));
-}
-
 type RevealTelemetry = {
   roundId?: string;
   questionIdx?: number;
@@ -71,7 +54,7 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
   const embedUrl = primary?.provider === 'youtube' ? toYouTubeEmbed(primary.url) : null;
 
   const meta = reveal?.meta;
-  const outcome = result ? outcomeText(result.outcome) : undefined;
+  const outcome = result ? getOutcomeDisplay(result.outcome) : undefined;
   const [fallbackLogged, setFallbackLogged] = React.useState(false);
   const [errorLogged, setErrorLogged] = React.useState(false);
 
@@ -136,7 +119,7 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
           <div className={`text-sm font-semibold ${outcome?.className ?? 'text-gray-600'}`}>{outcome?.label}</div>
           <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600">
             <span>Points {result.points}</span>
-            <span>Remaining {toSeconds(result.remainingMs)}s</span>
+            <span>Remaining {msToSeconds(result.remainingMs)}s</span>
           </div>
           <div className="mt-2 space-y-1 text-xs text-gray-600">
             <div>Your answer: {result.choiceLabel ?? '—'}</div>
