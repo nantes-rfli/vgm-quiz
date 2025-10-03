@@ -10,7 +10,6 @@ import {
   REVEAL_KEY,
   REVEALS_KEY,
   type ResultSummary,
-  type ScoreBreakdown,
 } from '@/src/lib/resultStorage';
 
 describe('resultStorage', () => {
