@@ -9,7 +9,12 @@ async function json<T>(res: Response): Promise<T> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return undefined as any as T;
   }
-  return JSON.parse(text) as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    throw new Error(`Invalid JSON response: ${message}`);
+  }
 }
 
 export async function start(): Promise<RoundsStartResponse> {
