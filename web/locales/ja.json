@@ -48,13 +48,22 @@
     "noLink": "リンクなし"
   },
   "settings": {
+    "title": "設定",
     "inlinePlayback": "インライン再生",
+    "inlinePlaybackDesc": "結果画面でYouTubeを埋め込み再生します",
     "theme": "テーマ",
     "themeLight": "ライト",
     "themeDark": "ダーク",
     "themeAuto": "自動 ({resolved})",
     "locale": "言語",
-    "currentTheme": "現在のテーマ: {theme}。クリックで変更"
+    "localeJa": "日本語",
+    "localeEn": "English",
+    "currentTheme": "現在のテーマ: {theme}。クリックで変更",
+    "storageUsage": "ストレージ使用状況",
+    "resetSettings": "設定をリセット",
+    "resetConfirm": "すべての設定とデータがリセットされます。よろしいですか？",
+    "resetSuccess": "設定がリセットされました",
+    "backToHome": "ホームに戻る"
   },
   "outcome": {
     "correct": "正解",
