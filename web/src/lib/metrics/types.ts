@@ -5,7 +5,9 @@ export type MetricsEventName =
   | 'reveal_open_external'
   | 'embed_error'
   | 'embed_fallback_to_link'
-  | 'settings_inline_toggle';
+  | 'settings_inline_toggle'
+  | 'settings_theme_toggle'
+  | 'settings_locale_toggle';
 
 export interface MetricsEvent {
   id: string;

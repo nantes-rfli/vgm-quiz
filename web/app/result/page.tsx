@@ -1,15 +1,19 @@
 'use client';
 
 import React from 'react';
+import { useI18n } from '@/src/lib/i18n';
 import ScoreBadge from '@/src/components/ScoreBadge';
 import { loadResult, loadReveals, type ResultSummary } from '@/src/lib/resultStorage';
 import { mark, measure } from '@/src/lib/perfMarks';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
+import ThemeToggle from '@/src/components/ThemeToggle';
+import LocaleSwitcher from '@/src/components/LocaleSwitcher';
 import type { Reveal } from '@/src/features/quiz/api/types';
 import { msToSeconds } from '@/src/lib/timeUtils';
 import { getOutcomeDisplay } from '@/src/lib/outcomeUtils';
 
 export default function ResultPage() {
+  const { t } = useI18n();
   const [ready, setReady] = React.useState(false);
   const [summary, setSummary] = React.useState<ResultSummary | null>(null);
   const [reveals, setReveals] = React.useState<Reveal[]>([]);
@@ -34,7 +38,7 @@ export default function ResultPage() {
   if (!ready) {
     return (
       <main className="p-6">
-        <div className="max-w-2xl mx-auto text-gray-600">Loading result...</div>
+        <div className="max-w-2xl mx-auto text-muted-foreground">{t('result.loading')}</div>
       </main>
     );
   }
@@ -43,11 +47,11 @@ export default function ResultPage() {
     return (
       <main className="p-6">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-900 p-4 rounded-xl">
-            No result found. Try a new round.
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 text-yellow-900 dark:text-yellow-200 p-4 rounded-xl">
+            {t('result.noResult')}
           </div>
           <div className="mt-4 text-right">
-            <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-black text-white">Play again</a>
+            <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition">{t('result.playAgain')}</a>
           </div>
         </div>
       </main>
@@ -63,11 +67,15 @@ export default function ResultPage() {
     <main className="p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <h1 id="result-summary-heading" className="text-2xl font-semibold">Result</h1>
-          <InlinePlaybackToggle />
+          <h1 id="result-summary-heading" className="text-2xl font-semibold">{t('result.title')}</h1>
+          <div className="flex items-center gap-4">
+            <LocaleSwitcher />
+            <ThemeToggle />
+            <InlinePlaybackToggle />
+          </div>
         </div>
 
-        <section className="bg-white rounded-2xl shadow p-6" aria-labelledby="result-summary-heading">
+        <section className="bg-card rounded-2xl shadow p-6 border border-border" aria-labelledby="result-summary-heading">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <ScoreBadge
               correct={summary.score.correct}
@@ -77,29 +85,29 @@ export default function ResultPage() {
               points={summary.score.points}
               total={summary.total}
             />
-            <dl className="text-xs text-gray-700 space-y-1 text-right">
+            <dl className="text-xs text-card-foreground space-y-1 text-right">
               <div>
                 <dt className="sr-only">Answered questions</dt>
                 <dd>
-                  Answered: <strong>{summary.answeredCount}</strong> / {summary.total}
+                  {t('result.answered', { count: String(summary.answeredCount), total: String(summary.total) })}
                 </dd>
               </div>
               {durationSec ? (
                 <div>
                   <dt className="sr-only">Duration</dt>
-                  <dd>Duration: {durationSec}s</dd>
+                  <dd>{t('result.duration', { seconds: String(durationSec) })}</dd>
                 </div>
               ) : null}
               {started ? (
                 <div>
                   <dt className="sr-only">Started at</dt>
-                  <dd>Started: {started.toLocaleString()}</dd>
+                  <dd>{t('result.started', { time: started.toLocaleString() })}</dd>
                 </div>
               ) : null}
               {finished ? (
                 <div>
                   <dt className="sr-only">Finished at</dt>
-                  <dd>Finished: {finished.toLocaleString()}</dd>
+                  <dd>{t('result.finished', { time: finished.toLocaleString() })}</dd>
                 </div>
               ) : null}
             </dl>
@@ -107,13 +115,13 @@ export default function ResultPage() {
         </section>
 
         <div className="mt-4 text-right">
-          <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-black text-white">Play again</a>
+          <a href="/play" className="inline-block px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition">{t('result.playAgain')}</a>
         </div>
 
         <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-3">Question breakdown</h2>
+          <h2 className="text-lg font-semibold mb-3">{t('result.questionBreakdown')}</h2>
           {combined.length === 0 ? (
-            <div className="text-sm text-gray-600">No question history recorded.</div>
+            <div className="text-sm text-muted-foreground">{t('result.noQuestions')}</div>
           ) : (
             <ul className="space-y-3">
               {combined.map(({ record, reveal }, idx) => {
@@ -125,20 +133,20 @@ export default function ResultPage() {
                     <div className="flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div className="text-sm font-semibold text-gray-800">#{idx + 1} — {record.prompt}</div>
+                          <div className="text-sm font-semibold text-gray-800">{t('result.questionNumber', { number: String(idx + 1) })} — {record.prompt}</div>
                           <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
                             <span className={`${outcome.className} font-semibold`}>
-                              {outcome.label}
+                              {t(outcome.key)}
                             </span>
-                            <span>Remaining {msToSeconds(record.remainingMs)}s</span>
-                            <span>Points {record.points}</span>
+                            <span>{t('result.remainingSeconds', { seconds: String(msToSeconds(record.remainingMs)) })}</span>
+                            <span>{t('result.pointsEarned', { points: String(record.points) })}</span>
                           </div>
                           <div className="mt-2 space-y-1 text-xs text-gray-500">
                             <div>
-                              Your answer: {record.choiceLabel ?? '—'}
+                              {t('result.yourAnswerLabel', { answer: record.choiceLabel ?? '—' })}
                             </div>
                             {record.correctLabel ? (
-                              <div>Correct: {record.correctLabel}</div>
+                              <div>{t('result.correctAnswerLabel', { answer: record.correctLabel })}</div>
                             ) : null}
                           </div>
                         </div>
@@ -152,19 +160,19 @@ export default function ResultPage() {
                           <dl className="text-xs text-gray-700 space-y-1">
                             {meta?.workTitle ? (
                               <div>
-                                <dt className="font-medium text-gray-600">Work</dt>
+                                <dt className="font-medium text-gray-600">{t('result.workLabel')}</dt>
                                 <dd>{meta.workTitle}</dd>
                               </div>
                             ) : null}
                             {meta?.trackTitle ? (
                               <div>
-                                <dt className="font-medium text-gray-600">Track</dt>
+                                <dt className="font-medium text-gray-600">{t('result.trackLabel')}</dt>
                                 <dd>{meta.trackTitle}</dd>
                               </div>
                             ) : null}
                             {meta?.composer ? (
                               <div>
-                                <dt className="font-medium text-gray-600">Composer</dt>
+                                <dt className="font-medium text-gray-600">{t('result.composerLabel')}</dt>
                                 <dd>{meta.composer}</dd>
                               </div>
                             ) : null}
@@ -176,10 +184,10 @@ export default function ResultPage() {
                               rel="noopener noreferrer"
                               className="inline-block px-4 py-2 rounded-xl bg-black text-white"
                             >
-                              Open in {link.provider}
+                              {t('result.openInProvider', { provider: link.provider })}
                             </a>
                           ) : (
-                            <span className="text-xs text-gray-600">No link</span>
+                            <span className="text-xs text-gray-600">{t('result.noLink')}</span>
                           )}
                         </div>
                       ) : null}
