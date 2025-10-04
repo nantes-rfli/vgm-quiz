@@ -48,13 +48,22 @@
     "noLink": "No link"
   },
   "settings": {
+    "title": "Settings",
     "inlinePlayback": "Inline playback",
+    "inlinePlaybackDesc": "Embed YouTube player in result screen",
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeAuto": "Auto ({resolved})",
     "locale": "Language",
-    "currentTheme": "Current theme: {theme}. Click to change"
+    "localeJa": "日本語",
+    "localeEn": "English",
+    "currentTheme": "Current theme: {theme}. Click to change",
+    "storageUsage": "Storage usage",
+    "resetSettings": "Reset settings",
+    "resetConfirm": "All settings and data will be reset. Are you sure?",
+    "resetSuccess": "Settings have been reset",
+    "backToHome": "Back to home"
   },
   "outcome": {
     "correct": "Correct",
