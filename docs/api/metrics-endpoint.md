@@ -1,6 +1,6 @@
 # Metrics Ingest API — 最小仕様
 - Status: Approved
-- Last Updated: 2025-09-22
+- Last Updated: 2025-10-04
 
 本書はクライアントからの計測イベント投入 I/F（MVP）を定義します。**サーバは受領・整形・蓄積のみ**を行い、同期集計は行いません。エラー語彙は別紙「API Error Model — 最小仕様」を参照。
 
@@ -38,14 +38,14 @@
 - `client.app_version` (string, 任意): `SemVer` 推奨。
 - `client.tz` (string, 任意): `+09:00` 形式。
 - `events[].id` (string, 必須): UUIDv4。冪等判定キー。
-- `events[].name` (string, 必須): **許可語彙（MVP）**  
-  `answer_select`, `answer_result`, `quiz_complete`, `reveal_open_external`, `embed_error`, `embed_fallback_to_link`, `settings_inline_toggle`, `artwork_open`
+- `events[].name` (string, 必須): **許可語彙（MVP）**
+  `answer_select`, `answer_result`, `quiz_complete`, `reveal_open_external`, `embed_error`, `embed_fallback_to_link`, `settings_inline_toggle`, `settings_theme_toggle`, `settings_locale_toggle`, `artwork_open`
 - `events[].ts` (ISO8601, 必須): UTC。サーバは ±24h まで許容。
 - `events[].round_id` (string, 任意): ラウンド識別。可能な限り付与。
 - `events[].question_idx` (number, 任意)
 - `events[].attrs` (object, 任意): 追加属性（PIIを含めないこと）。
 
-#### FE 実装で送信している属性（2025-09 時点）
+#### FE 実装で送信している属性（2025-10 時点）
 | name | attrs |
 | --- | --- |
 | `answer_select` | `questionId`, `choiceId`, `choiceLabel` |
@@ -55,6 +55,8 @@
 | `embed_error` | `questionId`, `provider`, `reason` |
 | `embed_fallback_to_link` | `questionId`, `provider`, `reason` |
 | `settings_inline_toggle` | `enabled` |
+| `settings_theme_toggle` | `from`, `to` (theme values: `light`, `dark`, `system`) |
+| `settings_locale_toggle` | `from`, `to` (locale values: `ja`, `en`) |
 
 > クライアントは `round_id` にラウンドトークン、`question_idx` に 1 始まりの設問番号を設定する。
 
