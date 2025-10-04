@@ -1,0 +1,65 @@
+{
+  "play": {
+    "answerButton": "回答 (Enter)",
+    "nextButton": "次へ (Enter)",
+    "timeRemaining": "残り時間",
+    "question": "問題 {index} / {total}",
+    "loading": "読み込み中..."
+  },
+  "reveal": {
+    "listenWatch": "視聴する",
+    "work": "作品",
+    "track": "曲名",
+    "composer": "作曲者",
+    "openIn": "{provider}で開く",
+    "noLinks": "リンクがありません",
+    "points": "{points}点",
+    "remaining": "残り{seconds}秒",
+    "yourAnswer": "あなたの回答: {answer}",
+    "correctAnswer": "正解: {answer}"
+  },
+  "result": {
+    "title": "結果",
+    "playAgain": "もう一度プレイ",
+    "noResult": "結果が見つかりません。新しいラウンドを開始してください。",
+    "loading": "結果を読み込み中...",
+    "score": "スコア",
+    "totalScore": "合計スコア {points}",
+    "correctAnswers": "正解 {count}",
+    "wrongAnswers": "不正解 {count}",
+    "notAnswered": "未回答 {count}",
+    "totalQuestions": "全{total}問",
+    "answeredQuestions": "({count}問回答済み)",
+    "answered": "回答済み: {count} / {total}",
+    "duration": "所要時間: {seconds}秒",
+    "started": "開始: {time}",
+    "finished": "終了: {time}",
+    "questionBreakdown": "各問題の結果",
+    "noQuestions": "問題の詳細がありません",
+    "questionNumber": "#{number}",
+    "remainingSeconds": "残り{seconds}秒",
+    "pointsEarned": "{points}点",
+    "yourAnswerLabel": "あなたの回答: {answer}",
+    "correctAnswerLabel": "正解: {answer}",
+    "workLabel": "作品",
+    "trackLabel": "曲名",
+    "composerLabel": "作曲者",
+    "openInProvider": "{provider}で開く",
+    "noLink": "リンクなし"
+  },
+  "settings": {
+    "inlinePlayback": "インライン再生",
+    "theme": "テーマ",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
+    "themeAuto": "自動 ({resolved})",
+    "locale": "言語",
+    "currentTheme": "現在のテーマ: {theme}。クリックで変更"
+  },
+  "outcome": {
+    "correct": "正解",
+    "wrong": "不正解",
+    "timeout": "時間切れ",
+    "skip": "スキップ"
+  }
+}

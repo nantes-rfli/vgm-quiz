@@ -1,5 +1,7 @@
 // Show reveal links with optional inline embed (YouTube supported)
+'use client';
 import React from 'react';
+import { useI18n } from '@/src/lib/i18n';
 import type { Reveal, RevealLink } from '@/src/features/quiz/api/types';
 import type { Outcome } from '@/src/lib/resultStorage';
 import { getInlinePlayback } from '@/src/lib/inlinePlayback';
@@ -48,6 +50,7 @@ type RevealTelemetry = {
 };
 
 export default function RevealCard({ reveal, result, telemetry }: { reveal?: Reveal; result?: ResultInfo; telemetry?: RevealTelemetry }) {
+  const { t } = useI18n();
   const [inline] = React.useState<boolean>(getInlinePlayback());
   const primary = pickPrimaryLink(reveal);
 
@@ -113,22 +116,22 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
   }, [primary, telemetry?.roundId, telemetry?.questionIdx, telemetry?.questionId]);
 
   return (
-    <div className="mt-6 bg-white rounded-2xl shadow p-6">
+    <div className="mt-6 bg-card rounded-2xl shadow p-6 border border-border">
       {result ? (
-        <div className="mb-4 rounded-xl bg-gray-50 border border-gray-200 p-4">
-          <div className={`text-sm font-semibold ${outcome?.className ?? 'text-gray-600'}`}>{outcome?.label}</div>
-          <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600">
-            <span>Points {result.points}</span>
-            <span>Remaining {msToSeconds(result.remainingMs)}s</span>
+        <div className="mb-4 rounded-xl bg-muted border border-border p-4">
+          <div className={`text-sm font-semibold ${outcome?.className ?? 'text-muted-foreground'}`}>{outcome?.key ? t(outcome.key) : ''}</div>
+          <div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
+            <span>{t('reveal.points', { points: result.points })}</span>
+            <span>{t('reveal.remaining', { seconds: msToSeconds(result.remainingMs) })}</span>
           </div>
-          <div className="mt-2 space-y-1 text-xs text-gray-600">
-            <div>Your answer: {result.choiceLabel ?? '—'}</div>
-            {result.correctLabel ? <div>Correct answer: {result.correctLabel}</div> : null}
+          <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+            <div>{t('reveal.yourAnswer', { answer: result.choiceLabel ?? '—' })}</div>
+            {result.correctLabel ? <div>{t('reveal.correctAnswer', { answer: result.correctLabel })}</div> : null}
           </div>
         </div>
       ) : null}
 
-      <h2 className="text-lg font-semibold mb-3">Listen / Watch</h2>
+      <h2 className="text-lg font-semibold mb-3 text-card-foreground">{t('reveal.listenWatch')}</h2>
       {inline && embedUrl ? (
         <div className="aspect-video w-full mb-3">
           <iframe
@@ -143,10 +146,10 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
         </div>
       ) : null}
       {meta ? (
-        <div className="mb-3 text-sm text-gray-700">
-          {meta.workTitle ? <div><span className="font-medium">Work:</span> {meta.workTitle}</div> : null}
-          {meta.trackTitle ? <div><span className="font-medium">Track:</span> {meta.trackTitle}</div> : null}
-          {meta.composer ? <div><span className="font-medium">Composer:</span> {meta.composer}</div> : null}
+        <div className="mb-3 text-sm text-card-foreground">
+          {meta.workTitle ? <div><span className="font-medium">{t('reveal.work')}:</span> {meta.workTitle}</div> : null}
+          {meta.trackTitle ? <div><span className="font-medium">{t('reveal.track')}:</span> {meta.trackTitle}</div> : null}
+          {meta.composer ? <div><span className="font-medium">{t('reveal.composer')}:</span> {meta.composer}</div> : null}
         </div>
       ) : null}
       {primary ? (
@@ -154,13 +157,13 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
           href={primary.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block px-4 py-2 rounded-xl bg-black text-white"
+          className="inline-block px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition"
           onClick={handleExternalClick}
         >
-          Open in {primary.provider}
+          {t('reveal.openIn', { provider: primary.provider })}
         </a>
       ) : (
-        <span className="text-sm text-gray-500">No links available</span>
+        <span className="text-sm text-muted-foreground">{t('reveal.noLinks')}</span>
       )}
     </div>
   );

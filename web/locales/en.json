@@ -1,0 +1,65 @@
+{
+  "play": {
+    "answerButton": "Answer (Enter)",
+    "nextButton": "Next (Enter)",
+    "timeRemaining": "Time remaining",
+    "question": "Question {index} / {total}",
+    "loading": "Loading..."
+  },
+  "reveal": {
+    "listenWatch": "Listen / Watch",
+    "work": "Work",
+    "track": "Track",
+    "composer": "Composer",
+    "openIn": "Open in {provider}",
+    "noLinks": "No links available",
+    "points": "Points {points}",
+    "remaining": "Remaining {seconds}s",
+    "yourAnswer": "Your answer: {answer}",
+    "correctAnswer": "Correct answer: {answer}"
+  },
+  "result": {
+    "title": "Result",
+    "playAgain": "Play again",
+    "noResult": "No result found. Try a new round.",
+    "loading": "Loading result...",
+    "score": "Score",
+    "totalScore": "Total score {points}",
+    "correctAnswers": "Correct answers {count}",
+    "wrongAnswers": "Wrong answers {count}",
+    "notAnswered": "Not answered {count}",
+    "totalQuestions": "Total questions {total}",
+    "answeredQuestions": "({count} answered)",
+    "answered": "Answered: {count} / {total}",
+    "duration": "Duration: {seconds}s",
+    "started": "Started: {time}",
+    "finished": "Finished: {time}",
+    "questionBreakdown": "Question breakdown",
+    "noQuestions": "No question details available",
+    "questionNumber": "#{number}",
+    "remainingSeconds": "Remaining {seconds}s",
+    "pointsEarned": "Points {points}",
+    "yourAnswerLabel": "Your answer: {answer}",
+    "correctAnswerLabel": "Correct: {answer}",
+    "workLabel": "Work",
+    "trackLabel": "Track",
+    "composerLabel": "Composer",
+    "openInProvider": "Open in {provider}",
+    "noLink": "No link"
+  },
+  "settings": {
+    "inlinePlayback": "Inline playback",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeAuto": "Auto ({resolved})",
+    "locale": "Language",
+    "currentTheme": "Current theme: {theme}. Click to change"
+  },
+  "outcome": {
+    "correct": "Correct",
+    "wrong": "Wrong",
+    "timeout": "Timeout",
+    "skip": "Skip"
+  }
+}

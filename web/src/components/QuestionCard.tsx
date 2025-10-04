@@ -3,6 +3,7 @@
 'use client';
 
 import React from 'react';
+import { useI18n } from '@/src/lib/i18n';
 import type { Choice } from '@/src/features/quiz/api/types';
 
 export type QuestionCardProps = {
@@ -22,10 +23,12 @@ export default function QuestionCard({
   onSelect,
   onSubmit
 }: QuestionCardProps) {
+  const { t } = useI18n();
+
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="bg-white rounded-2xl shadow p-6 mb-4">
-        <h2 className="text-xl font-semibold mb-4" data-testid="question-prompt">
+      <div className="bg-card rounded-2xl shadow p-6 mb-4 border border-border">
+        <h2 className="text-xl font-semibold mb-4 text-card-foreground" data-testid="question-prompt">
           {prompt}
         </h2>
         <ul className="space-y-2">
@@ -40,7 +43,7 @@ export default function QuestionCard({
                   data-testid={`choice-${c.id}`}
                   className={[
                     'w-full text-left px-4 py-3 rounded-xl border transition',
-                    isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300',
+                    isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400' : 'border-border hover:border-muted-foreground',
                     disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
                   ].join(' ')}
                 >
@@ -56,9 +59,9 @@ export default function QuestionCard({
             type="button"
             disabled={disabled || !selectedId}
             onClick={onSubmit}
-            className="px-4 py-2 rounded-xl bg-black text-white disabled:bg-gray-400"
+            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
           >
-            Answer (Enter)
+            {t('play.answerButton')}
           </button>
         </div>
       </div>

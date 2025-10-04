@@ -6,7 +6,7 @@ describe('getOutcomeDisplay', () => {
   it('returns correct display for "correct" outcome', () => {
     const result = getOutcomeDisplay('correct');
     expect(result).toEqual({
-      label: 'Correct',
+      key: 'outcome.correct',
       className: 'text-emerald-700',
     });
   });
@@ -14,7 +14,7 @@ describe('getOutcomeDisplay', () => {
   it('returns correct display for "wrong" outcome', () => {
     const result = getOutcomeDisplay('wrong');
     expect(result).toEqual({
-      label: 'Wrong',
+      key: 'outcome.wrong',
       className: 'text-rose-700',
     });
   });
@@ -22,7 +22,7 @@ describe('getOutcomeDisplay', () => {
   it('returns correct display for "timeout" outcome', () => {
     const result = getOutcomeDisplay('timeout');
     expect(result).toEqual({
-      label: 'Timeout',
+      key: 'outcome.timeout',
       className: 'text-orange-600',
     });
   });
@@ -30,7 +30,7 @@ describe('getOutcomeDisplay', () => {
   it('returns correct display for "skip" outcome', () => {
     const result = getOutcomeDisplay('skip');
     expect(result).toEqual({
-      label: 'Skipped',
+      key: 'outcome.skip',
       className: 'text-slate-600',
     });
   });
@@ -40,21 +40,21 @@ describe('getOutcomeDisplay', () => {
     const unknownOutcome = 'unknown' as Outcome;
     const result = getOutcomeDisplay(unknownOutcome);
     expect(result).toEqual({
-      label: 'unknown',
+      key: 'unknown',
       className: 'text-gray-500',
     });
   });
 
   describe('consistency across outcomes', () => {
-    it('always returns an object with label and className', () => {
+    it('always returns an object with key and className', () => {
       const outcomes: Outcome[] = ['correct', 'wrong', 'timeout', 'skip'];
       outcomes.forEach((outcome) => {
         const result = getOutcomeDisplay(outcome);
-        expect(result).toHaveProperty('label');
+        expect(result).toHaveProperty('key');
         expect(result).toHaveProperty('className');
-        expect(typeof result.label).toBe('string');
+        expect(typeof result.key).toBe('string');
         expect(typeof result.className).toBe('string');
-        expect(result.label.length).toBeGreaterThan(0);
+        expect(result.key.length).toBeGreaterThan(0);
         expect(result.className.length).toBeGreaterThan(0);
       });
     });
