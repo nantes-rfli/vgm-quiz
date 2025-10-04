@@ -34,7 +34,7 @@ test.describe('Accessibility smoke', () => {
     // Filter out known incomplete results due to Tailwind v4 oklab color format
     // axe-core v4.10 cannot parse oklab() colors yet
     const unexpectedIncomplete = results.incomplete.filter(
-      (issue) => !(issue.id === 'color-contrast' && issue.message?.includes('Unable to parse color "oklab'))
+      (issue) => !(issue.id === 'color-contrast' && (issue as { message?: string }).message?.includes('Unable to parse color "oklab'))
     );
     expect.soft(unexpectedIncomplete, 'axe should finish scanning').toHaveLength(0);
     expect(results.violations, `Found accessibility issues on /play: ${JSON.stringify(results.violations, null, 2)}`).toHaveLength(0);
@@ -63,7 +63,7 @@ test.describe('Accessibility smoke', () => {
     // Filter out known incomplete results due to Tailwind v4 oklab color format
     // axe-core v4.10 cannot parse oklab() colors yet
     const unexpectedIncomplete = results.incomplete.filter(
-      (issue) => !(issue.id === 'color-contrast' && issue.message?.includes('Unable to parse color "oklab'))
+      (issue) => !(issue.id === 'color-contrast' && (issue as { message?: string }).message?.includes('Unable to parse color "oklab'))
     );
     expect.soft(unexpectedIncomplete, 'axe should finish scanning').toHaveLength(0);
     expect(results.violations, `Found accessibility issues on /result: ${JSON.stringify(results.violations, null, 2)}`).toHaveLength(0);
