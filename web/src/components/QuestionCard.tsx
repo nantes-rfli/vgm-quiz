@@ -28,16 +28,18 @@ export default function QuestionCard({
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-card rounded-2xl shadow p-6 mb-4 border border-border">
-        <h2 className="text-xl font-semibold mb-4 text-card-foreground" data-testid="question-prompt">
+        <h2 className="text-xl font-semibold mb-4 text-card-foreground" data-testid="question-prompt" id="question-prompt">
           {prompt}
         </h2>
-        <ul className="space-y-2">
+        <div role="radiogroup" aria-labelledby="question-prompt" className="space-y-2">
           {choices.map((c, idx) => {
             const isSelected = selectedId === c.id;
             return (
-              <li key={c.id}>
+              <div key={c.id}>
                 <button
                   type="button"
+                  role="radio"
+                  aria-checked={isSelected}
                   disabled={disabled}
                   onClick={() => onSelect(c.id)}
                   data-testid={`choice-${c.id}`}
@@ -50,10 +52,10 @@ export default function QuestionCard({
                   <span className="inline-block w-6 mr-2 tabular-nums">{idx + 1}.</span>
                   <span>{c.label}</span>
                 </button>
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
         <div className="mt-4">
           <button
             type="button"

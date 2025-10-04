@@ -15,9 +15,10 @@ export default function Timer({ remainingMs, totalMs }: Props) {
   const seconds = msToSeconds(clamped, true);
   const danger = seconds <= 5;
   const liveText = `${t('play.timeRemaining')} ${seconds} seconds`;
+  const ariaLive = danger ? 'assertive' : 'polite';
 
   return (
-    <div className="mb-3" role="timer" aria-live="polite" aria-atomic="false">
+    <div className="mb-3" role="timer" aria-live={ariaLive} aria-atomic="false">
       <div className="flex items-center justify-between text-sm font-mono">
         <span aria-hidden className={danger ? 'text-rose-700 dark:text-rose-400 font-semibold' : 'text-foreground'}>
           {seconds}s
