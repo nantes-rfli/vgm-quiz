@@ -15,8 +15,14 @@ export default function ScoreBadge({ correct, wrong, timeout = 0, skip = 0, poin
   const { t } = useI18n();
   const unknown = timeout + skip;
   const answered = correct + wrong + unknown;
+
+  // Comprehensive aria-label for screen readers
+  const summaryLabel = total
+    ? `Total score ${points} points, ${correct} correct out of ${total}`
+    : `Total score ${points} points, ${correct} correct, ${wrong} wrong`;
+
   return (
-    <dl className="inline-flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-1 text-sm text-card-foreground">
+    <dl className="inline-flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-1 text-sm text-card-foreground" aria-label={summaryLabel}>
       <div className="flex items-center gap-2">
         <dt className="font-semibold">{t('result.score')}</dt>
         <dd className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground" aria-label={t('result.totalScore', { points: String(points) })}>
