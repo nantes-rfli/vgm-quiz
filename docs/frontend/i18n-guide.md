@@ -1,40 +1,40 @@
-# Internationalization (i18n) Guide
+# 国際化 (i18n) ガイド
 
-## Overview
+## 概要
 
-VGM Quiz supports Japanese (ja) and English (en) localization with automatic language detection based on browser preferences.
+VGM Quiz は日本語 (ja) と英語 (en) のローカライゼーションに対応しており、ブラウザの設定に基づいて自動的に言語を検出します。
 
-## Architecture
+## アーキテクチャ
 
-### Supported Locales
+### サポートされるロケール
 
-- **Japanese** (`ja`) — Primary locale
-- **English** (`en`) — Default fallback
+- **日本語** (`ja`) — プライマリロケール
+- **英語** (`en`) — デフォルトのフォールバック
 
-### Storage
+### ストレージ
 
-- **Key**: `vgm2.settings.locale`
-- **Location**: `localStorage`
-- **Values**: `"ja"`, `"en"`
-- **Detection priority**:
-  1. User's explicit choice (stored in localStorage)
-  2. Browser language (`navigator.language`)
-  3. Default fallback (`en`)
+- **キー**: `vgm2.settings.locale`
+- **保存先**: `localStorage`
+- **値**: `"ja"`, `"en"`
+- **検出の優先順位**:
+  1. ユーザーの明示的な選択（localStorageに保存）
+  2. ブラウザ言語（`navigator.language`）
+  3. デフォルトのフォールバック（`en`）
 
-### Implementation Files
+### 実装ファイル
 
-- [web/src/lib/locale.ts](../../web/src/lib/locale.ts) — Locale type definitions and detection logic
-- [web/src/lib/i18n.tsx](../../web/src/lib/i18n.tsx) — i18n context provider and `useI18n` hook
-- [web/locales/ja.json](../../web/locales/ja.json) — Japanese translations
-- [web/locales/en.json](../../web/locales/en.json) — English translations
-- [web/src/components/HtmlLangSync.tsx](../../web/src/components/HtmlLangSync.tsx) — Syncs `<html lang>` attribute with current locale
-- [web/src/components/LocaleSwitcher.tsx](../../web/src/components/LocaleSwitcher.tsx) — Language switcher UI component
+- [web/src/lib/locale.ts](../../web/src/lib/locale.ts) — ロケールの型定義と検出ロジック
+- [web/src/lib/i18n.tsx](../../web/src/lib/i18n.tsx) — i18nコンテキストプロバイダーと `useI18n` フック
+- [web/locales/ja.json](../../web/locales/ja.json) — 日本語翻訳
+- [web/locales/en.json](../../web/locales/en.json) — 英語翻訳
+- [web/src/components/HtmlLangSync.tsx](../../web/src/components/HtmlLangSync.tsx) — `<html lang>` 属性を現在のロケールに同期
+- [web/src/components/LocaleSwitcher.tsx](../../web/src/components/LocaleSwitcher.tsx) — 言語切り替えUIコンポーネント
 
-## Translation Files
+## 翻訳ファイル
 
-### Structure
+### 構造
 
-Translation keys are organized by feature/page:
+翻訳キーは機能/ページごとに整理されています：
 
 ```json
 {
@@ -62,28 +62,28 @@ Translation keys are organized by feature/page:
 }
 ```
 
-### Parameter Interpolation
+### パラメータ補間
 
-Use curly braces for dynamic values:
+動的な値には波括弧を使用します：
 
 ```json
 {
-  "greeting": "Hello, {name}!",
-  "score": "You earned {points} points"
+  "greeting": "こんにちは、{name}さん！",
+  "score": "{points}点を獲得しました"
 }
 ```
 
-In components:
+コンポーネント内での使用：
 
 ```tsx
 const { t } = useI18n()
-t('greeting', { name: 'Alice' })  // "Hello, Alice!"
-t('score', { points: '450' })      // "You earned 450 points"
+t('greeting', { name: 'Alice' })  // "こんにちは、Aliceさん！"
+t('score', { points: '450' })      // "450点を獲得しました"
 ```
 
-## Usage
+## 使い方
 
-### In Components
+### コンポーネント内での使用
 
 ```tsx
 import { useI18n } from '@/src/lib/i18n'
@@ -95,41 +95,41 @@ function MyComponent() {
     <div>
       <p>{t('play.answerButton')}</p>
       <button onClick={() => setLocale(locale === 'ja' ? 'en' : 'ja')}>
-        Switch language
+        言語を切り替え
       </button>
     </div>
   )
 }
 ```
 
-### Locale Switcher Component
+### LocaleSwitcherコンポーネント
 
-The [LocaleSwitcher](../../web/src/components/LocaleSwitcher.tsx) component provides a single-button toggle:
+[LocaleSwitcher](../../web/src/components/LocaleSwitcher.tsx) コンポーネントは、1つのボタンで言語をトグルします：
 
-- Click → toggles between Japanese (日本語) and English
-- Records `settings_locale_toggle` metrics event
+- クリック → 日本語 ⇄ English を切り替え
+- `settings_locale_toggle` メトリクスイベントを記録
 
-### Settings Page
+### 設定ページ
 
-The [/settings](../../web/app/settings/page.tsx) page provides explicit locale selection with two buttons (日本語/English).
+[/settings](../../web/app/settings/page.tsx) ページでは、2つのボタン（日本語/English）で明示的にロケールを選択できます。
 
-## HTML Lang Attribute Sync
+## HTML Lang属性の同期
 
-The `<html lang>` attribute automatically updates to match the current locale:
+`<html lang>` 属性は現在のロケールに合わせて自動的に更新されます：
 
-- Japanese → `<html lang="ja">`
-- English → `<html lang="en">`
+- 日本語 → `<html lang="ja">`
+- 英語 → `<html lang="en">`
 
-This is handled by [HtmlLangSync](../../web/src/components/HtmlLangSync.tsx) component, which runs a side effect to update the attribute on locale changes.
+これは [HtmlLangSync](../../web/src/components/HtmlLangSync.tsx) コンポーネントが処理し、ロケール変更時に副作用として属性を更新します。
 
-## Adding New Translations
+## 新しい翻訳の追加
 
-1. **Add key to both locale files** (`ja.json` and `en.json`)
-2. **Use dot notation** for nested keys: `"section.subsection.key"`
-3. **Keep structure identical** across locales
-4. **Test with both locales** to ensure no missing keys
+1. **両方のロケールファイルにキーを追加** (`ja.json` と `en.json`)
+2. **ドット記法を使用** ネストされたキーには `"section.subsection.key"` 形式を使用
+3. **ロケール間で構造を同一に保つ**
+4. **両方のロケールでテスト** キーの欠落がないことを確認
 
-Example:
+例：
 
 ```json
 // web/locales/ja.json
@@ -149,37 +149,37 @@ Example:
 }
 ```
 
-## Metrics
+## メトリクス
 
-Locale changes emit the following event:
+ロケール変更時に以下のイベントが送信されます：
 
 ```ts
 recordMetricsEvent('settings_locale_toggle', {
   attrs: {
-    from: 'ja',  // previous locale
-    to: 'en',    // new locale
+    from: 'ja',  // 変更前のロケール
+    to: 'en',    // 変更後のロケール
   },
 })
 ```
 
-## Testing
+## テスト
 
-- **E2E**: Language switching tested in [accessibility.spec.ts](../../web/tests/e2e/accessibility.spec.ts)
-- **Type Safety**: All translation keys are type-safe through TypeScript inference
-- **Missing Keys**: Return the key itself as fallback (e.g., `"section.missing"` if not found)
+- **E2E**: [accessibility.spec.ts](../../web/tests/e2e/accessibility.spec.ts) で言語切り替えをテスト
+- **型安全性**: すべての翻訳キーはTypeScriptの型推論によって型安全
+- **キーの欠落**: フォールバックとしてキー自体を返す（例: 見つからない場合は `"section.missing"`）
 
-## Known Limitations
+## 既知の制限事項
 
-- **Content Translation Only**: Game metadata (composer names, track titles) are not translated in MVP
-  - Future: API could provide `meta_ja` and `meta_en` fields
-- **No Pluralization**: English plural forms not handled (e.g., "1 items" vs "2 items")
-  - Workaround: Use neutral phrasing or include count in string
-- **No RTL Support**: Right-to-left languages not currently supported
-- **Static Locale List**: Adding new languages requires code changes
+- **コンテンツ翻訳のみ**: ゲームメタデータ（作曲者名、曲名）はMVPでは翻訳されません
+  - 将来: APIが `meta_ja` と `meta_en` フィールドを提供する可能性
+- **複数形非対応**: 英語の複数形（"1 items" vs "2 items"）は処理されません
+  - 回避策: 中立的な表現を使用するか、数値を文字列に含める
+- **RTL非対応**: 右から左に書く言語は現在サポートされていません
+- **静的なロケールリスト**: 新しい言語を追加するにはコード変更が必要
 
-## Future Enhancements
+## 今後の拡張
 
-- Server-side locale detection for SEO (when migrating from static export)
-- Pluralization library (e.g., `i18next`, `formatjs`)
-- Metadata translation support in API responses
-- User preference synced across devices (requires authentication)
+- SEO向けのサーバーサイドロケール検出（静的エクスポートから移行時）
+- 複数形ライブラリの導入（例: `i18next`, `formatjs`）
+- API レスポンスでのメタデータ翻訳サポート
+- デバイス間でのユーザー設定同期（認証が必要）

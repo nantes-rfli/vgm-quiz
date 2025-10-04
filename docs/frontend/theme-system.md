@@ -1,14 +1,14 @@
-# Theme System
+# テーマシステム
 
-## Overview
+## 概要
 
-VGM Quiz implements a theme system supporting Light, Dark, and Auto (system preference) modes using [`next-themes`](https://github.com/pacocoursey/next-themes).
+VGM Quiz は [`next-themes`](https://github.com/pacocoursey/next-themes) を使用して、Light、Dark、Auto（システム設定に追従）の3つのテーマモードをサポートしています。
 
-## Architecture
+## アーキテクチャ
 
-### Provider Setup
+### プロバイダーの設定
 
-The theme system is initialized at the root level in [app/layout.tsx](../../web/app/layout.tsx):
+テーマシステムは [app/layout.tsx](../../web/app/layout.tsx) のルートレベルで初期化されます：
 
 ```tsx
 <ThemeProvider>
@@ -18,23 +18,23 @@ The theme system is initialized at the root level in [app/layout.tsx](../../web/
 </ThemeProvider>
 ```
 
-### Storage
+### ストレージ
 
-- **Key**: `vgm2.settings.theme`
-- **Location**: `localStorage`
-- **Values**: `"light"`, `"dark"`, `"system"`
-- **Default**: `"system"` (follows OS/browser preference)
+- **キー**: `vgm2.settings.theme`
+- **保存先**: `localStorage`
+- **値**: `"light"`, `"dark"`, `"system"`
+- **デフォルト**: `"system"` (OS/ブラウザの設定に追従)
 
-### Implementation Files
+### 実装ファイル
 
-- [web/src/lib/theme.ts](../../web/src/lib/theme.ts) — Theme type definitions and storage utilities
-- [web/src/components/ThemeProvider.tsx](../../web/src/components/ThemeProvider.tsx) — `next-themes` wrapper
-- [web/src/components/ThemeToggle.tsx](../../web/src/components/ThemeToggle.tsx) — Theme switcher UI component
-- [web/app/globals.css](../../web/app/globals.css) — CSS custom properties for light/dark themes
+- [web/src/lib/theme.ts](../../web/src/lib/theme.ts) — テーマの型定義とストレージユーティリティ
+- [web/src/components/ThemeProvider.tsx](../../web/src/components/ThemeProvider.tsx) — `next-themes` のラッパー
+- [web/src/components/ThemeToggle.tsx](../../web/src/components/ThemeToggle.tsx) — テーマ切り替えUIコンポーネント
+- [web/app/globals.css](../../web/app/globals.css) — ライト/ダークテーマ用のCSSカスタムプロパティ
 
-## CSS Variables
+## CSS変数
 
-Theme colors are defined using CSS custom properties in `globals.css`:
+テーマカラーは `globals.css` でCSSカスタムプロパティとして定義されています：
 
 ```css
 @layer base {
@@ -54,11 +54,11 @@ Theme colors are defined using CSS custom properties in `globals.css`:
 }
 ```
 
-All UI components use semantic tokens (e.g., `bg-background`, `text-foreground`) instead of hardcoded color classes.
+すべてのUIコンポーネントは、ハードコードされた色クラスの代わりにセマンティックトークン（例: `bg-background`, `text-foreground`）を使用します。
 
-## Usage
+## 使い方
 
-### In Components
+### コンポーネント内での使用
 
 ```tsx
 import { useTheme } from 'next-themes'
@@ -74,45 +74,45 @@ function MyComponent() {
 }
 ```
 
-### Theme Toggle Component
+### ThemeToggleコンポーネント
 
-The [ThemeToggle](../../web/src/components/ThemeToggle.tsx) component provides a single-button cycle through themes:
+[ThemeToggle](../../web/src/components/ThemeToggle.tsx) コンポーネントは、1つのボタンでテーマを順次切り替えます：
 
-- Click → cycles: Light → Dark → Auto → Light...
-- Displays current resolved theme with icon
-- Records `settings_theme_toggle` metrics event
+- クリック → Light → Dark → Auto → Light... の順に切り替わる
+- 現在解決されているテーマをアイコン付きで表示
+- `settings_theme_toggle` メトリクスイベントを記録
 
-### Settings Page
+### 設定ページ
 
-The [/settings](../../web/app/settings/page.tsx) page provides explicit theme selection with three buttons (Light/Dark/Auto).
+[/settings](../../web/app/settings/page.tsx) ページでは、3つのボタン（Light/Dark/Auto）で明示的にテーマを選択できます。
 
-## Accessibility
+## アクセシビリティ
 
-- **ARIA**: Theme toggle button includes `aria-label` describing current state and action
-- **Focus**: Visible focus indicators compatible with both light and dark themes
-- **Contrast**: All theme combinations meet WCAG AA contrast ratios (tested with axe-core)
-- **Transitions**: Disabled during theme switch to prevent flash (`disableTransitionOnChange`)
+- **ARIA**: テーマ切り替えボタンには、現在の状態とアクションを説明する `aria-label` が含まれています
+- **フォーカス**: ライト・ダークの両テーマで表示される、視認可能なフォーカスインジケーター
+- **コントラスト**: すべてのテーマの組み合わせがWCAG AAのコントラスト比を満たしています（axe-coreでテスト済み）
+- **トランジション**: テーマ切り替え時のフラッシュを防ぐため、トランジションを無効化（`disableTransitionOnChange`）
 
-## Metrics
+## メトリクス
 
-Theme changes emit the following event:
+テーマ変更時に以下のイベントが送信されます：
 
 ```ts
 recordMetricsEvent('settings_theme_toggle', {
   attrs: {
-    from: 'light', // previous theme
-    to: 'dark',    // new theme
+    from: 'light', // 変更前のテーマ
+    to: 'dark',    // 変更後のテーマ
   },
 })
 ```
 
-## Testing
+## テスト
 
-- **E2E**: [accessibility.spec.ts](../../web/tests/e2e/accessibility.spec.ts) validates WCAG compliance in both light and dark modes
-- **Unit**: Theme utilities in `theme.ts` handle edge cases (SSR, storage errors)
+- **E2E**: [accessibility.spec.ts](../../web/tests/e2e/accessibility.spec.ts) でライト・ダークモード両方のWCAG準拠を検証
+- **ユニット**: `theme.ts` のテーマユーティリティはエッジケース（SSR、ストレージエラー）を処理
 
-## Known Limitations
+## 既知の制限事項
 
-- Theme preference is stored locally only (not synced across devices)
-- System theme detection relies on `prefers-color-scheme` media query (IE11 not supported)
-- Flash of unstyled content (FOUC) prevented by `suppressHydrationWarning` on `<html>` tag
+- テーマの設定はローカルのみ保存（デバイス間で同期されない）
+- システムテーマ検出は `prefers-color-scheme` メディアクエリに依存（IE11は非対応）
+- `<html>` タグの `suppressHydrationWarning` でFOUC（スタイル未適用のフラッシュ）を防止
