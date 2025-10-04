@@ -4,6 +4,7 @@ import "./globals.css";
 import MswBoot from "./_msw";
 import { ThemeProvider } from "@/src/components/ThemeProvider";
 import { I18nProvider } from "@/src/lib/i18n";
+import { HtmlLangSync } from "@/src/components/HtmlLangSync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <I18nProvider>
           <ThemeProvider>
+            <HtmlLangSync />
             <MswBoot />
             {children}
           </ThemeProvider>

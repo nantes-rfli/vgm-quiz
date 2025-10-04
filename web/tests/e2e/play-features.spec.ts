@@ -285,7 +285,8 @@ test.describe('Play page features', () => {
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
-    const revealLink = page.getByRole('link', { name: /Open in/i });
+    // Click the external link (text may vary based on locale)
+    const revealLink = page.locator('a[target="_blank"][rel="noopener noreferrer"]').first();
     await revealLink.click();
 
     await page.waitForFunction(() => {
