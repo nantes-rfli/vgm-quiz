@@ -33,9 +33,14 @@ test.describe('Accessibility smoke', () => {
 
     // Filter out known incomplete results due to Tailwind v4 oklab color format
     // axe-core v4.10 cannot parse oklab() colors yet
-    const unexpectedIncomplete = results.incomplete.filter(
-      (issue) => !(issue.id === 'color-contrast' && (issue as { message?: string }).message?.includes('Unable to parse color "oklab'))
-    );
+    const unexpectedIncomplete = results.incomplete.filter((issue) => {
+      if (issue.id !== 'color-contrast') return true;
+      // Check if any node contains the oklab parsing error message
+      const hasOklabError = issue.nodes?.some((node) =>
+        node.any?.some((check) => check.message?.includes('Unable to parse color "oklab'))
+      );
+      return !hasOklabError;
+    });
     expect.soft(unexpectedIncomplete, 'axe should finish scanning').toHaveLength(0);
     expect(results.violations, `Found accessibility issues on /play: ${JSON.stringify(results.violations, null, 2)}`).toHaveLength(0);
   });
@@ -62,9 +67,14 @@ test.describe('Accessibility smoke', () => {
 
     // Filter out known incomplete results due to Tailwind v4 oklab color format
     // axe-core v4.10 cannot parse oklab() colors yet
-    const unexpectedIncomplete = results.incomplete.filter(
-      (issue) => !(issue.id === 'color-contrast' && (issue as { message?: string }).message?.includes('Unable to parse color "oklab'))
-    );
+    const unexpectedIncomplete = results.incomplete.filter((issue) => {
+      if (issue.id !== 'color-contrast') return true;
+      // Check if any node contains the oklab parsing error message
+      const hasOklabError = issue.nodes?.some((node) =>
+        node.any?.some((check) => check.message?.includes('Unable to parse color "oklab'))
+      );
+      return !hasOklabError;
+    });
     expect.soft(unexpectedIncomplete, 'axe should finish scanning').toHaveLength(0);
     expect(results.violations, `Found accessibility issues on /result: ${JSON.stringify(results.violations, null, 2)}`).toHaveLength(0);
   });
