@@ -129,50 +129,63 @@ export default function ResultPage() {
                 const meta = reveal?.meta;
                 const outcome = getOutcomeDisplay(record.outcome);
                 return (
-                  <li key={record.questionId} className="p-4 rounded-xl bg-white shadow">
+                  <li key={record.questionId} className="p-4 rounded-xl bg-white dark:bg-card shadow border border-border">
                     <div className="flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-semibold text-gray-800">{t('result.questionNumber', { number: String(idx + 1) })} — {record.prompt}</div>
-                          <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
-                            <span className={`${outcome.className} font-semibold`}>
-                              {t(outcome.key)}
-                            </span>
-                            <span>{t('result.remainingSeconds', { seconds: String(msToSeconds(record.remainingMs)) })}</span>
-                            <span>{t('result.pointsEarned', { points: String(record.points) })}</span>
-                          </div>
-                          <div className="mt-2 space-y-1 text-xs text-gray-500">
-                            <div>
-                              {t('result.yourAnswerLabel', { answer: record.choiceLabel ?? '—' })}
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-foreground">{t('result.questionNumber', { number: String(idx + 1) })} — {record.prompt}</div>
+                          <dl className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
+                            <div className="flex gap-2">
+                              <dt className="sr-only">Outcome</dt>
+                              <dd className={`${outcome.className} font-semibold`}>
+                                {t(outcome.key)}
+                              </dd>
+                            </div>
+                            <div className="flex gap-2">
+                              <dt className="sr-only">Time remaining</dt>
+                              <dd>{t('result.remainingSeconds', { seconds: String(msToSeconds(record.remainingMs)) })}</dd>
+                            </div>
+                            <div className="flex gap-2">
+                              <dt className="sr-only">Points earned</dt>
+                              <dd>{t('result.pointsEarned', { points: String(record.points) })}</dd>
+                            </div>
+                          </dl>
+                          <dl className="mt-2 space-y-1 text-xs text-muted-foreground">
+                            <div className="flex gap-2">
+                              <dt className="font-medium">Your answer:</dt>
+                              <dd>{record.choiceLabel ?? '—'}</dd>
                             </div>
                             {record.correctLabel ? (
-                              <div>{t('result.correctAnswerLabel', { answer: record.correctLabel })}</div>
+                              <div className="flex gap-2">
+                                <dt className="font-medium">Correct:</dt>
+                                <dd>{record.correctLabel}</dd>
+                              </div>
                             ) : null}
-                          </div>
+                          </dl>
                         </div>
                         {record.points > 0 ? (
-                          <span className="text-sm font-semibold text-emerald-700">+{record.points}</span>
+                          <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-500">+{record.points}</span>
                         ) : null}
                       </div>
 
                       {reveal ? (
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
-                          <dl className="text-xs text-gray-700 space-y-1">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border dark:border-border pt-3">
+                          <dl className="text-xs text-foreground space-y-1">
                             {meta?.workTitle ? (
-                              <div>
-                                <dt className="font-medium text-gray-600">{t('result.workLabel')}</dt>
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-muted-foreground">{t('result.workLabel')}:</dt>
                                 <dd>{meta.workTitle}</dd>
                               </div>
                             ) : null}
                             {meta?.trackTitle ? (
-                              <div>
-                                <dt className="font-medium text-gray-600">{t('result.trackLabel')}</dt>
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-muted-foreground">{t('result.trackLabel')}:</dt>
                                 <dd>{meta.trackTitle}</dd>
                               </div>
                             ) : null}
                             {meta?.composer ? (
-                              <div>
-                                <dt className="font-medium text-gray-600">{t('result.composerLabel')}</dt>
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-muted-foreground">{t('result.composerLabel')}:</dt>
                                 <dd>{meta.composer}</dd>
                               </div>
                             ) : null}
@@ -182,12 +195,13 @@ export default function ResultPage() {
                               href={link.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-block px-4 py-2 rounded-xl bg-black text-white"
+                              className="inline-block px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                              aria-label={t('result.openInProvider', { provider: link.provider })}
                             >
                               {t('result.openInProvider', { provider: link.provider })}
                             </a>
                           ) : (
-                            <span className="text-xs text-gray-600">{t('result.noLink')}</span>
+                            <span className="text-xs text-muted-foreground">{t('result.noLink')}</span>
                           )}
                         </div>
                       ) : null}

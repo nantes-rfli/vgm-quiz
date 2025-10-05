@@ -156,7 +156,10 @@ test.describe('Play page features', () => {
 
     const timeoutCard = page.locator('li', { hasText: '#1 — このBGMの作曲者は？' }).first();
     await expect(timeoutCard.getByText('Timeout')).toBeVisible();
-    await expect(timeoutCard.getByText('Your answer: —')).toBeVisible();
+    // After Phase 4 a11y improvements, answer is in <dl> structure
+    const answerDl = timeoutCard.locator('dl').filter({ hasText: 'Your answer:' });
+    await expect(answerDl.getByText('Your answer:')).toBeVisible();
+    await expect(answerDl.locator('dd', { hasText: '—' })).toBeVisible();
 
     await page.evaluate(() => {
       const anyWindow = window as unknown as InstrumentedWindow;

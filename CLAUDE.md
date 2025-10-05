@@ -113,13 +113,53 @@ Docs are updated in the same PR as code changes (Docs-as-Code). Issue-specific d
 
 ## Workflow
 
-1. Check Issue and read related docs
-2. Create feature branch
-3. Make code/doc changes
-4. Run `npm run lint`, `npm run typecheck`, `npm run test:e2e`
-5. Commit with concise imperative subject (e.g., `fix: harden score calculation`)
-6. PR description should include: change summary, test results, affected docs
-7. Request review from domain lead
+This is a solo project. When implementing features or fixes, follow this workflow:
+
+### Branch Strategy
+1. Start from latest main: `git checkout main && git pull`
+2. Create feature branch with prefix:
+   - `feat/` — new features (e.g., `feat/audio-preload`)
+   - `fix/` — bug fixes (e.g., `fix/timer-race-condition`)
+   - `refactor/` — code refactoring
+   - `docs/` — documentation updates
+   - `test/` — test additions/fixes
+   - `ci/` — CI/CD changes
+
+### Development Flow
+1. Check related docs in `docs/` directory
+2. Create feature branch: `git checkout -b feat/feature-name`
+3. Make code/doc changes (commit freely during development)
+4. **Before pushing**, run quality checks from `web/` directory:
+   ```bash
+   npm run lint && npm run typecheck && npm run test:e2e
+   ```
+5. Push branch: `git push -u origin feat/feature-name`
+6. Create PR via GitHub UI (or `gh pr create` if using GitHub CLI)
+7. Squash merge via GitHub UI
+8. Clean up after merge:
+   ```bash
+   git checkout main
+   git pull
+   git fetch --prune
+   git branch -D feat/feature-name
+   ```
+
+### Commit Message Format
+Use imperative mood (command form) for commit subjects:
+- ✅ `feat: add audio preload`
+- ✅ `fix: harden score calculation`
+- ✅ `docs: update API spec`
+- ❌ `added audio preload`
+- ❌ `fixing score calculation`
+
+Individual commits can be casual; final PR title should follow this format (will be squashed).
+
+### PR Requirements
+Include in PR description:
+- Change summary (what and why)
+- Test results (output from lint/typecheck/test commands)
+- Updated documentation (if any)
+- Screenshots (for UI changes)
 
 ## License
 
