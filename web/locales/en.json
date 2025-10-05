@@ -3,6 +3,7 @@
     "answerButton": "Answer (Enter)",
     "nextButton": "Next (Enter)",
     "timeRemaining": "Time remaining",
+    "seconds": "seconds",
     "question": "Question {index} / {total}",
     "loading": "Loading..."
   },
