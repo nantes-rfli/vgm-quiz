@@ -22,19 +22,27 @@ export function generateChoices(
   }
 
   // Shuffle and pick 3 wrong answers
-  const shuffled = shuffleArray(wrongGames, questionId)
-  const selectedWrong = shuffled.slice(0, 3)
+  const shuffledWrongGames = shuffleArray(wrongGames, questionId)
+  const selectedWrong = shuffledWrongGames.slice(0, 3)
 
-  // Create choices
-  const choices: Choice[] = [
-    { id: 'a', text: correctGame, correct: true },
-    { id: 'b', text: selectedWrong[0], correct: false },
-    { id: 'c', text: selectedWrong[1], correct: false },
-    { id: 'd', text: selectedWrong[2], correct: false },
+  // Create choices without IDs first
+  const choicesWithoutIds = [
+    { text: correctGame, correct: true },
+    { text: selectedWrong[0], correct: false },
+    { text: selectedWrong[1], correct: false },
+    { text: selectedWrong[2], correct: false },
   ]
 
   // Shuffle choices (deterministic based on questionId)
-  return shuffleArray(choices, questionId)
+  const shuffledChoices = shuffleArray(choicesWithoutIds, questionId)
+
+  // Assign IDs after shuffling to prevent always having 'a' as correct
+  const choiceIds = ['a', 'b', 'c', 'd'] as const
+  return shuffledChoices.map((choice, index) => ({
+    id: choiceIds[index],
+    text: choice.text,
+    correct: choice.correct,
+  }))
 }
 
 /**
