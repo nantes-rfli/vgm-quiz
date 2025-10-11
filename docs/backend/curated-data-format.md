@@ -39,7 +39,7 @@ interface Track {
 |-------|----------|------|-------------|
 | `id` | ✅ | string | Unique, alphanumeric |
 | `title` | ✅ | string | Min 1 char |
-| `game` | ✅ | string | Min 1 char |
+| `game` | ✅ | string | Min 1 char, **must be unique** |
 | `series` | ❌ | string | - |
 | `composer` | ❌ | string | - |
 | `platform` | ❌ | string | - |
@@ -48,6 +48,20 @@ interface Track {
 | `spotify_url` | ❌ | string | Valid URL |
 
 > `id` は Phase 1 の `tracks_normalized.external_id` にマッピングされ、再取り込み時の重複排除に利用します。
+
+### 重要な制約
+
+**最低4つのユニークなゲームタイトルが必要**
+
+Phase 1 では、4択問題を生成するために**最低4つの異なるゲームタイトル**が必要です。
+
+- 同じゲームから複数の楽曲を含める場合でも、選択肢生成のために他に3つ以上の異なるゲームタイトルが必要
+- 例: "Final Fantasy VII" の楽曲を2曲含める場合、他に最低3つの異なるゲーム（例: "Chrono Trigger", "Secret of Mana", "Super Mario 64"）が必要
+- ユニークなゲームタイトルが4つ未満の場合、Publishステージでエラーが発生します
+
+**推奨**:
+- 最低: 4つのユニークなゲームタイトル（問題数は任意）
+- 推奨: 10問生成する場合、10個のユニークなゲームタイトル（各ゲーム1曲ずつ）
 
 ## Example
 

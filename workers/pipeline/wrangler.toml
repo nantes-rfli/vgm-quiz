@@ -1,0 +1,16 @@
+name = "vgm-quiz-pipeline"
+main = "src/index.ts"
+compatibility_date = "2025-10-10"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vgm-quiz-db"
+database_id = "718334d1-16a3-44be-8f3d-10b8cd7f9288"
+migrations_dir = "../migrations"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "vgm-quiz-storage"

@@ -141,3 +141,6 @@ vite.config.ts.timestamp-*
 
 # Local agent reference
 AGENTS.md
+
+# Wrangler build artifacts
+.wrangler/
