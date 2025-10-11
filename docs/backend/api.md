@@ -292,17 +292,46 @@ export async function handleRoundsNext(
 
   // 1. Decode token
   const token = await decodeContinuationToken(continuationToken)
+  if (!token) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid token', message: 'Continuation token is invalid or expired' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
   const { date, currentIndex } = token
 
   // 2. Get question set
   const daily = await fetchDailyQuestions(env, date)
+  if (!daily) {
+    return new Response(
+      JSON.stringify({ error: 'Not found', message: `Question set for ${date} no longer available` }),
+      { status: 404, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // 3. Validate currentIndex
+  if (currentIndex < 0 || currentIndex >= daily.questions.length) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid state', message: 'Question index out of bounds' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
   const currentQuestion = daily.questions[currentIndex]
 
-  // 3. Check answer
+  // 4. Check answer
   const correctChoice = currentQuestion.choices.find((c) => c.correct)
+  if (!correctChoice) {
+    return new Response(
+      JSON.stringify({ error: 'Internal error', message: 'Question has no correct answer' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
   const isCorrect = answer === correctChoice.id
 
-  // 4. Prepare response
+  // 5. Prepare response
   const response: any = {
     result: {
       correct: isCorrect,
@@ -311,7 +340,7 @@ export async function handleRoundsNext(
     },
   }
 
-  // 5. Check if finished
+  // 6. Check if finished
   const nextIndex = currentIndex + 1
   if (nextIndex >= daily.questions.length) {
     response.finished = true

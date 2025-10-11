@@ -25,7 +25,7 @@ wrangler --version
 ### Option B: Project Local Install
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz/workers
+cd workers
 npm install -D wrangler
 
 # Use via npx
@@ -70,7 +70,7 @@ wrangler whoami
 ### Create Database
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz/workers
+cd workers
 wrangler d1 create vgm-quiz-db
 ```
 
@@ -173,7 +173,7 @@ wrangler r2 bucket list
 `docs/backend/schema/d1-initial.sql` をベースに **`workers/migrations/0001_initial.sql`** を作成:
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz/workers
+cd workers
 mkdir -p migrations
 cp ../docs/backend/schema/d1-initial.sql migrations/0001_initial.sql
 ```
@@ -181,7 +181,7 @@ cp ../docs/backend/schema/d1-initial.sql migrations/0001_initial.sql
 ### Apply Migration (Local)
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz/workers
+cd workers
 wrangler d1 migrations apply vgm-quiz-db --local
 ```
 
@@ -231,7 +231,7 @@ wrangler d1 execute vgm-quiz-db --local --command "SELECT name FROM sqlite_maste
 ### Start Dev Server (API)
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz/workers
+cd workers
 wrangler dev --config api/wrangler.toml
 ```
 
@@ -250,7 +250,7 @@ wrangler dev --config api/wrangler.toml
 別のターミナルで:
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz/workers
+cd workers
 wrangler dev --config pipeline/wrangler.toml --port 8788
 ```
 
@@ -274,7 +274,7 @@ curl http://localhost:8787/health
 ### Deploy API Worker
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz/workers
+cd workers
 wrangler deploy --config api/wrangler.toml
 ```
 
