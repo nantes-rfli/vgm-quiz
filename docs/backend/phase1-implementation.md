@@ -139,7 +139,8 @@ CREATE TABLE exports (
 ### Step 1: Project Setup
 
 ```bash
-cd /Users/nanto/Development/vgm-quiz
+# Navigate to project root
+cd vgm-quiz
 
 # Create workers directory
 mkdir -p workers/{api/src,pipeline/src,shared/{types,lib},migrations,data,tests}
