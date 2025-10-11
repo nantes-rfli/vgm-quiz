@@ -1,0 +1,115 @@
+{
+  "version": "1.0.0",
+  "tracks": [
+    {
+      "id": "001",
+      "title": "Green Hill Zone",
+      "game": "Sonic the Hedgehog",
+      "series": "Sonic",
+      "composer": "Masato Nakamura",
+      "platform": "Genesis",
+      "year": 1991,
+      "youtube_url": "https://youtube.com/watch?v=SF9ZLNxHaBY",
+      "spotify_url": "https://open.spotify.com/track/2MZSXhq4XDJWu6coGoXX18"
+    },
+    {
+      "id": "002",
+      "title": "Gusty Garden Galaxy",
+      "game": "Super Mario Galaxy",
+      "series": "Super Mario",
+      "composer": "Mahito Yokota",
+      "platform": "Wii",
+      "year": 2007,
+      "youtube_url": "https://youtube.com/watch?v=bcZhJDUFb58",
+      "spotify_url": "https://open.spotify.com/track/1rHXQ8VF9pG4jP9VZkFqVd"
+    },
+    {
+      "id": "003",
+      "title": "Gerudo Valley",
+      "game": "The Legend of Zelda: Ocarina of Time",
+      "series": "The Legend of Zelda",
+      "composer": "Koji Kondo",
+      "platform": "Nintendo 64",
+      "year": 1998,
+      "youtube_url": "https://youtube.com/watch?v=Hy0aEj85ifY",
+      "spotify_url": "https://open.spotify.com/track/5a5KbMCLqIBZ7L5lq9PFkR"
+    },
+    {
+      "id": "004",
+      "title": "One-Winged Angel",
+      "game": "Final Fantasy VII",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "PlayStation",
+      "year": 1997,
+      "youtube_url": "https://youtube.com/watch?v=qDD-iYkHBhc",
+      "spotify_url": "https://open.spotify.com/track/0tyMZdSGKLTKX3m3pGWZ5T"
+    },
+    {
+      "id": "005",
+      "title": "Corridors of Time",
+      "game": "Chrono Trigger",
+      "series": "Chrono",
+      "composer": "Yasunori Mitsuda",
+      "platform": "Super Nintendo",
+      "year": 1995,
+      "youtube_url": "https://youtube.com/watch?v=ESqZb7hY1S0",
+      "spotify_url": "https://open.spotify.com/track/3VV5Wq3vlNBZ6Hn5HCVBvp"
+    },
+    {
+      "id": "006",
+      "title": "The Man with the Machine Gun",
+      "game": "Final Fantasy VIII",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "PlayStation",
+      "year": 1999,
+      "youtube_url": "https://youtube.com/watch?v=3jho-peCAKs",
+      "spotify_url": "https://open.spotify.com/track/4vbL8UCJoFKxJqPDYIFvXv"
+    },
+    {
+      "id": "007",
+      "title": "Baba Yetu",
+      "game": "Civilization IV",
+      "series": "Civilization",
+      "composer": "Christopher Tin",
+      "platform": "PC",
+      "year": 2005,
+      "youtube_url": "https://youtube.com/watch?v=IJiHDmyhE1A",
+      "spotify_url": "https://open.spotify.com/track/1Gbkp61WxLjUECVAg3R0H2"
+    },
+    {
+      "id": "008",
+      "title": "Megalovania",
+      "game": "Undertale",
+      "series": "Undertale",
+      "composer": "Toby Fox",
+      "platform": "PC",
+      "year": 2015,
+      "youtube_url": "https://youtube.com/watch?v=wDgQdr8ZkTw",
+      "spotify_url": "https://open.spotify.com/track/4bPPWrUSNJRLVczPe8OdBp"
+    },
+    {
+      "id": "009",
+      "title": "Counterattack",
+      "game": "Xenoblade Chronicles",
+      "series": "Xenoblade",
+      "composer": "Yoko Shimomura",
+      "platform": "Wii",
+      "year": 2010,
+      "youtube_url": "https://youtube.com/watch?v=9t89dq5K9rY",
+      "spotify_url": "https://open.spotify.com/track/7ixKnFTfZb4J2bhHQf5OUg"
+    },
+    {
+      "id": "010",
+      "title": "Dearly Beloved",
+      "game": "Kingdom Hearts",
+      "series": "Kingdom Hearts",
+      "composer": "Yoko Shimomura",
+      "platform": "PlayStation 2",
+      "year": 2002,
+      "youtube_url": "https://youtube.com/watch?v=gUQuBBBzx-I",
+      "spotify_url": "https://open.spotify.com/track/0zx6oGNEKbOyL4J4sS39Yf"
+    }
+  ]
+}
