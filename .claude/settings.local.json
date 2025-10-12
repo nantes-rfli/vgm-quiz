@@ -6,9 +6,18 @@
       "Bash(npm run test:e2e:*)",
       "Bash(npm run lint)",
       "Bash(cat:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Read(//Users/nanto/Development/**)",
+      "Bash(npm run dev:api:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright",
+    "context7"
+  ]
 }
