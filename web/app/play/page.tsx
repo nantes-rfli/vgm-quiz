@@ -9,10 +9,14 @@ import RevealCard from '@/src/components/RevealCard';
 import ScoreBadge from '@/src/components/ScoreBadge';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
 import Timer from '@/src/components/Timer';
+import Toast from '@/src/components/Toast';
 import {
   clearReveals,
 } from '@/src/lib/resultStorage';
+import { useI18n } from '@/src/lib/i18n';
 import type { Phase1StartResponse } from '@/src/features/quiz/api/types';
+import type { ApiError } from '@/src/features/quiz/api/errors';
+import { ensureApiError, mapApiErrorToMessage } from '@/src/features/quiz/api/errors';
 import { start } from '@/src/features/quiz/datasource';
 import { waitMockReady } from '@/src/lib/waitMockReady';
 import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
@@ -33,14 +37,81 @@ import { useAnswerProcessor } from '@/src/features/quiz/useAnswerProcessor';
  * - Smaller, testable helpers
  */
 
+type ToastState = {
+  id: number;
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  variant: 'info' | 'error';
+  duration: number;
+};
+
 const AUTO_START = process.env.NEXT_PUBLIC_PLAY_AUTOSTART !== '0';
 const IS_MOCK = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_MOCK === '1';
 
 export default function PlayPage() {
   const router = useRouter();
+  const { t } = useI18n();
 
   const isMountedRef = React.useRef(true);
   React.useEffect(() => () => { isMountedRef.current = false; }, []);
+
+  const [toast, setToast] = React.useState<ToastState | null>(null);
+  const pendingRetryRef = React.useRef<(() => void) | null>(null);
+
+  const showToast = React.useCallback(
+    (
+      message: string,
+      options?: { actionLabel?: string; onAction?: () => void; variant?: 'info' | 'error'; duration?: number }
+    ) => {
+      setToast({
+        id: Date.now(),
+        message,
+        actionLabel: options?.actionLabel,
+        onAction: options?.onAction,
+        variant: options?.variant ?? 'error',
+        duration: options?.duration ?? 5000,
+      });
+    },
+    []
+  );
+
+  const closeToast = React.useCallback(() => {
+    setToast(null);
+  }, []);
+
+  const scheduleRetry = React.useCallback(
+    (error: ApiError, retryFn: () => void) => {
+      const message = mapApiErrorToMessage(error);
+      const wrappedRetry = () => {
+        pendingRetryRef.current = null;
+        retryFn();
+      };
+      showToast(message, {
+        actionLabel: t('toast.retry'),
+        onAction: wrappedRetry,
+        variant: 'error',
+      });
+      if (error.kind === 'offline') {
+        pendingRetryRef.current = wrappedRetry;
+      }
+    },
+    [showToast, t]
+  );
+
+  React.useEffect(() => {
+    function handleOnline() {
+      if (pendingRetryRef.current) {
+        const retry = pendingRetryRef.current;
+        pendingRetryRef.current = null;
+        closeToast();
+        retry();
+      }
+    }
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [closeToast]);
 
   const [s, dispatch] = React.useReducer(playReducer, createInitialState(AUTO_START));
   const {
@@ -75,13 +146,13 @@ export default function PlayPage() {
       try {
         res = await start();
       } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : String(e);
-        if (IS_MOCK && /404/.test(message)) {
+        const apiError = ensureApiError(e);
+        if (IS_MOCK && apiError.status === 404) {
           // mock server cold-start shim
           await new Promise((r) => setTimeout(r, 180));
           res = await start();
         } else {
-          throw e;
+          throw apiError;
         }
       }
 
@@ -132,12 +203,18 @@ export default function PlayPage() {
       });
       mark('quiz:first-question-visible', { questionId: question.id });
       measure('quiz:navigation-to-first-question', 'navigationStart', 'quiz:first-question-visible');
+      pendingRetryRef.current = null;
+      closeToast();
     } catch (e: unknown) {
       if (!isMountedRef.current) return;
-      const message = e instanceof Error ? e.message : String(e);
-      safeDispatch({ type: 'ERROR', error: message || 'Failed to start.' });
+      const apiError = ensureApiError(e);
+      safeDispatch({ type: 'ERROR', error: mapApiErrorToMessage(apiError) });
+      scheduleRetry(apiError, () => {
+        safeDispatch({ type: 'BOOTING' });
+        void bootAndStart();
+      });
     }
-  }, [safeDispatch]);
+  }, [safeDispatch, closeToast, scheduleRetry]);
 
   // bootstrap (autostart mode)
   React.useEffect(() => {
@@ -146,9 +223,10 @@ export default function PlayPage() {
   }, [bootAndStart]);
 
   const onClickStart = React.useCallback(async () => {
+    closeToast();
     safeDispatch({ type: 'BOOTING' });
     await bootAndStart();
-  }, [bootAndStart, safeDispatch]);
+  }, [bootAndStart, closeToast, safeDispatch]);
 
   const processAnswer = useAnswerProcessor({
     phase,
@@ -162,6 +240,7 @@ export default function PlayPage() {
     progress,
     startedAt,
     dispatch: safeDispatch,
+    onError: scheduleRetry,
   });
 
   const onSelectChoice = React.useCallback(
@@ -275,81 +354,96 @@ export default function PlayPage() {
   }, [phase, loading, question, selectedId, submitAnswer, onNextFromReveal, safeDispatch]);
 
   return (
-    <main className="p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-4 flex items-center justify-between">
-          <ScoreBadge
-            correct={tally.correct}
-            wrong={tally.wrong}
-            timeout={tally.timeout}
-            skip={tally.skip}
-            points={tally.points}
-            total={progress?.total}
-          />
-          <InlinePlaybackToggle />
-        </div>
-
-        {!s.started ? (
-          <div className="bg-white rounded-2xl shadow p-6 text-center">
-            <h1 className="text-2xl font-semibold mb-4">Ready?</h1>
-            {s.error ? <div className="mb-3 text-red-700">{s.error}</div> : null}
-            <button type="button" onClick={onClickStart} className="px-4 py-2 rounded-xl bg-black text-white">
-              Start
-            </button>
+    <>
+      <main className="p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-4 flex items-center justify-between">
+            <ScoreBadge
+              correct={tally.correct}
+              wrong={tally.wrong}
+              timeout={tally.timeout}
+              skip={tally.skip}
+              points={tally.points}
+              total={progress?.total}
+            />
+            <InlinePlaybackToggle />
           </div>
-        ) : (
-          <>
-            <Progress index={s.progress?.index} total={s.progress?.total} />
-            {phase === 'question' ? <Timer remainingMs={remainingMs} totalMs={QUESTION_TIME_LIMIT_MS} /> : null}
-            {s.error ? <ErrorBanner message={s.error} /> : null}
 
-            {s.phase === 'reveal' ? (
-              <div>
-              <RevealCard
-                reveal={s.currentReveal}
-                result={
-                  latestRecord
-                    ? {
-                          outcome: latestRecord.outcome,
-                          points: latestRecord.points,
-                          remainingMs: latestRecord.remainingMs,
-                          choiceLabel: latestRecord.choiceLabel,
-                          correctLabel: latestRecord.correctLabel,
-                        }
-                      : undefined
-                }
-                telemetry={{
-                  roundId: token,
-                  questionIdx: progress?.index,
-                  questionId: latestRecord?.questionId ?? question?.id,
-                }}
-              />
-                <div className="mt-4 text-right">
-                  <button
-                    type="button"
-                    onClick={onNextFromReveal}
-                    data-testid="reveal-next"
-                    className="px-4 py-2 rounded-xl bg-black text-white"
-                  >
-                    Next
-                  </button>
+          {!s.started ? (
+            <div className="bg-white rounded-2xl shadow p-6 text-center">
+              <h1 className="text-2xl font-semibold mb-4">Ready?</h1>
+              {s.error ? <div className="mb-3 text-red-700">{s.error}</div> : null}
+              <button type="button" onClick={onClickStart} className="px-4 py-2 rounded-xl bg-black text-white">
+                Start
+              </button>
+            </div>
+          ) : (
+            <>
+              <Progress index={s.progress?.index} total={s.progress?.total} />
+              {phase === 'question' ? <Timer remainingMs={remainingMs} totalMs={QUESTION_TIME_LIMIT_MS} /> : null}
+              {s.error ? <ErrorBanner message={s.error} /> : null}
+
+              {s.phase === 'reveal' ? (
+                <div>
+                  <RevealCard
+                    reveal={s.currentReveal}
+                    result={
+                      latestRecord
+                        ? {
+                            outcome: latestRecord.outcome,
+                            points: latestRecord.points,
+                            remainingMs: latestRecord.remainingMs,
+                            choiceLabel: latestRecord.choiceLabel,
+                            correctLabel: latestRecord.correctLabel,
+                          }
+                        : undefined
+                    }
+                    telemetry={{
+                      roundId: token,
+                      questionIdx: progress?.index,
+                      questionId: latestRecord?.questionId ?? question?.id,
+                    }}
+                  />
+                  <div className="mt-4 text-right">
+                    <button
+                      type="button"
+                      onClick={onNextFromReveal}
+                      data-testid="reveal-next"
+                      className="px-4 py-2 rounded-xl bg-black text-white"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : !s.question && s.loading ? (
-              <div className="text-gray-600">Loading...</div>
-            ) : s.question ? (
+              ) : !s.question && s.loading ? (
+                <div className="text-gray-600">Loading...</div>
+              ) : s.question ? (
               <QuestionCard
+                key={s.question.id}
+                questionId={s.question.id}
                 prompt={s.question.prompt}
                 choices={s.question.choices}
                 selectedId={s.selectedId}
                 disabled={s.loading}
                 onSelect={onSelectChoice}
-                onSubmit={submitAnswer}
-              />
-            ) : null}
-          </>
-        )}
-      </div>
-    </main>
+                  onSubmit={submitAnswer}
+                />
+              ) : null}
+            </>
+          )}
+        </div>
+      </main>
+      {toast ? (
+        <Toast
+          message={toast.message}
+          actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          onClose={closeToast}
+          duration={toast.duration}
+          variant={toast.variant}
+          closeLabel={t('toast.close')}
+        />
+      ) : null}
+    </>
   );
 }

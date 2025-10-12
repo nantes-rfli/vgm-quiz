@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { next } from './datasource';
 import type { Question, Phase1NextResponse } from './api/types';
+import { ApiError, ensureApiError, mapApiErrorToMessage } from './api/errors';
 import { enrichReveal, toQuestionRecord } from './lib/reveal';
 import { appendReveal } from '@/src/lib/resultStorage';
 import { saveResult } from '@/src/lib/resultStorage';
@@ -26,6 +27,7 @@ type ProcessAnswerParams = {
   progress?: ProgressInfo;
   startedAt?: string;
   dispatch: (action: PlayAction) => void;
+  onError?: (error: ApiError, retry: () => void) => void;
 };
 
 /**
@@ -45,10 +47,11 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
     progress,
     startedAt,
     dispatch,
+    onError,
   } = params;
 
   return useCallback(
-    async (mode: AnswerMode) => {
+    async function process(mode: AnswerMode): Promise<void> {
       if (phase === 'reveal' || !continuationToken || !question) return;
       if (mode.kind === 'answer' && !mode.choiceId) return;
 
@@ -192,10 +195,15 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dispatch({ type: 'QUEUE_NEXT', next: convertedRes as any, reveal: enriched });
       } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : String(e);
-        dispatch({ type: 'ERROR', error: message || 'Failed to load next.' });
+        const apiError = ensureApiError(e, 'Failed to load next.');
+        const message = mapApiErrorToMessage(apiError);
+        dispatch({ type: 'ERROR', error: message });
+        const retry = () => {
+          void process(mode);
+        };
+        onError?.(apiError, retry);
       }
     },
-    [phase, continuationToken, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt]
+    [phase, continuationToken, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt, onError]
   );
 }

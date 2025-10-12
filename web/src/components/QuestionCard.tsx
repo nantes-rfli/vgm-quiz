@@ -7,6 +7,7 @@ import { useI18n } from '@/src/lib/i18n';
 import type { Choice } from '@/src/features/quiz/api/types';
 
 export type QuestionCardProps = {
+  questionId?: string;
   prompt: string;
   choices: Choice[];
   selectedId?: string;
@@ -16,6 +17,7 @@ export type QuestionCardProps = {
 };
 
 export default function QuestionCard({
+  questionId,
   prompt,
   choices,
   selectedId,
@@ -28,7 +30,12 @@ export default function QuestionCard({
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-card rounded-2xl shadow p-6 mb-4 border border-border">
-        <h2 className="text-xl font-semibold mb-4 text-card-foreground" data-testid="question-prompt" id="question-prompt">
+        <h2
+          className="text-xl font-semibold mb-4 text-card-foreground"
+          data-testid="question-prompt"
+          data-question-id={questionId}
+          id="question-prompt"
+        >
           {prompt}
         </h2>
         <div role="radiogroup" aria-labelledby="question-prompt" className="space-y-2">

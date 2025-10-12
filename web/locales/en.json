@@ -71,5 +71,9 @@
     "wrong": "Wrong",
     "timeout": "Timeout",
     "skip": "Skip"
+  },
+  "toast": {
+    "retry": "Retry",
+    "close": "Close"
   }
 }
