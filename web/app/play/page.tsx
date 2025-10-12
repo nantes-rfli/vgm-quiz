@@ -12,7 +12,7 @@ import Timer from '@/src/components/Timer';
 import {
   clearReveals,
 } from '@/src/lib/resultStorage';
-import type { RoundsStartResponse } from '@/src/features/quiz/api/types';
+import type { Phase1StartResponse } from '@/src/features/quiz/api/types';
 import { start } from '@/src/features/quiz/datasource';
 import { waitMockReady } from '@/src/lib/waitMockReady';
 import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
@@ -71,7 +71,7 @@ export default function PlayPage() {
       await waitMockReady({ timeoutMs: 2000 });
       mark('quiz:bootstrap-ready');
 
-      let res: RoundsStartResponse | undefined;
+      let res: Phase1StartResponse | undefined;
       try {
         res = await start();
       } catch (e: unknown) {
@@ -94,18 +94,43 @@ export default function PlayPage() {
 
       try { clearReveals(); } catch {}
 
+      // Phase 1: convert response to Question format
+      const question = {
+        id: res.question.id,
+        prompt: res.question.title, // Phase1 uses 'title', we use 'prompt'
+        choices: res.choices.map((c) => ({
+          id: c.id,
+          label: c.text, // Phase1 uses 'text', we use 'label'
+        })),
+      };
+
+      // Phase 1: decode continuationToken to get actual progress
+      let progress = { index: 1, total: 10 }; // fallback
+      try {
+        const { decodeBase64url } = await import('@/src/lib/base64url');
+        const tokenData = decodeBase64url<{ currentIndex: number; totalQuestions: number }>(
+          res.continuationToken
+        );
+        progress = {
+          index: tokenData.currentIndex + 1, // currentIndex is 0-based, index is 1-based
+          total: tokenData.totalQuestions,
+        };
+      } catch {
+        // fallback to hardcoded values if decode fails
+      }
+
       safeDispatch({
         type: 'STARTED',
         payload: {
-          token: res.round.token,
-          question: res.question,
-          progress: res.round.progress,
+          token: res.continuationToken, // Phase 1: continuationToken stored as token
+          question,
+          progress,
           beganAt: performance.now(),
           startedAt: new Date().toISOString(),
-          currentReveal: res.question?.reveal,
+          currentReveal: undefined, // Phase 1: no initial reveal
         },
       });
-      mark('quiz:first-question-visible', { questionId: res.question?.id });
+      mark('quiz:first-question-visible', { questionId: question.id });
       measure('quiz:navigation-to-first-question', 'navigationStart', 'quiz:first-question-visible');
     } catch (e: unknown) {
       if (!isMountedRef.current) return;
@@ -127,7 +152,7 @@ export default function PlayPage() {
 
   const processAnswer = useAnswerProcessor({
     phase,
-    token,
+    continuationToken: token, // Phase 1: rename for clarity
     question,
     remainingMs,
     beganAt,
