@@ -1,5 +1,6 @@
 import type { Env } from '../../shared/types/env'
 import { handleDailyRequest } from './routes/daily'
+import { handleMetricsRequest } from './routes/metrics'
 import { handleRoundsNext, handleRoundsStart } from './routes/rounds'
 
 export default {
@@ -10,7 +11,7 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Idempotency-Key',
     }
 
     // Handle OPTIONS (CORS preflight)
@@ -35,6 +36,11 @@ export default {
       // POST /v1/rounds/next
       if (url.pathname === '/v1/rounds/next' && request.method === 'POST') {
         return await handleRoundsNext(request, env)
+      }
+
+      // POST /v1/metrics
+      if (url.pathname === '/v1/metrics' && request.method === 'POST') {
+        return await handleMetricsRequest(request, env)
       }
 
       // Health check
