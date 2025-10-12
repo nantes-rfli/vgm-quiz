@@ -9,19 +9,20 @@ test.describe('Smoke: complete quiz and reach result', () => {
     const questionPrompt = page.getByTestId('question-prompt');
     const retryButton = page.getByRole('button', { name: /Retry/i });
 
-    const waitForQuestion = async (timeout: number) => {
+    const waitForQuestion = async (timeout: number, questionId: string) => {
       const deadline = Date.now() + timeout;
       while (Date.now() < deadline) {
         try {
           await questionPrompt.waitFor({ state: 'visible', timeout: 500 });
-          return;
+          const attr = await questionPrompt.getAttribute('data-question-id');
+          if (attr === questionId) return;
         } catch {
           if (await retryButton.isVisible({ timeout: 100 }).catch(() => false)) {
             await retryButton.click();
           }
         }
       }
-      await expect(questionPrompt).toBeVisible({ timeout: 1000 });
+      await expect(questionPrompt).toHaveAttribute('data-question-id', questionId, { timeout: 1000 });
     };
 
     for (const [index, questionId] of QUESTION_IDS.entries()) {
@@ -29,7 +30,7 @@ test.describe('Smoke: complete quiz and reach result', () => {
       const waitTimeout = index === 0 ? 60_000 : 15_000;
 
       // Wait until the current question prompt is displayed before interacting
-      await waitForQuestion(waitTimeout);
+      await waitForQuestion(waitTimeout, questionId);
       await expect(page.getByTestId(`choice-${choiceId}`)).toBeVisible({ timeout: waitTimeout });
 
       // Answer the question with the known correct choice from fixtures

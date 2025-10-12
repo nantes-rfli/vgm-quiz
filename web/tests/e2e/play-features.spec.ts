@@ -18,21 +18,25 @@ const QUESTION_IDS = Object.keys(ANSWERS).sort((a, b) =>
 async function waitForQuestion(page: Page, index: number) {
   const questionPrompt = page.getByTestId('question-prompt');
   const retryButton = page.getByRole('button', { name: /Retry/i });
+  const expectedId = QUESTION_IDS[index];
   const timeout = index === 0 ? 60_000 : 15_000;
   const deadline = Date.now() + timeout;
 
   while (Date.now() < deadline) {
     try {
       await questionPrompt.waitFor({ state: 'visible', timeout: 500 });
-      return;
+      const attr = await questionPrompt.getAttribute('data-question-id');
+      if (attr === expectedId) return;
     } catch {
-      if (await retryButton.isVisible({ timeout: 100 }).catch(() => false)) {
-        await retryButton.click();
-      }
+      // ignore
+    }
+
+    if (await retryButton.isVisible({ timeout: 100 }).catch(() => false)) {
+      await retryButton.click();
     }
   }
 
-  await expect(questionPrompt).toBeVisible({ timeout: 1000 });
+  await expect(questionPrompt).toHaveAttribute('data-question-id', expectedId, { timeout: 1000 });
 }
 
 test.describe('Play page features', () => {

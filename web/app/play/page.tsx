@@ -418,12 +418,14 @@ export default function PlayPage() {
               ) : !s.question && s.loading ? (
                 <div className="text-gray-600">Loading...</div>
               ) : s.question ? (
-                <QuestionCard
-                  prompt={s.question.prompt}
-                  choices={s.question.choices}
-                  selectedId={s.selectedId}
-                  disabled={s.loading}
-                  onSelect={onSelectChoice}
+              <QuestionCard
+                key={s.question.id}
+                questionId={s.question.id}
+                prompt={s.question.prompt}
+                choices={s.question.choices}
+                selectedId={s.selectedId}
+                disabled={s.loading}
+                onSelect={onSelectChoice}
                   onSubmit={submitAnswer}
                 />
               ) : null}
