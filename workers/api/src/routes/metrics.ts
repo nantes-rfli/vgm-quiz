@@ -185,27 +185,28 @@ async function cleanupDeduplication(db: D1Database): Promise<void> {
 }
 
 /**
- * Check if event is duplicate
- */
-async function isDuplicate(db: D1Database, clientId: string, eventId: string): Promise<boolean> {
-  const result = await db
-    .prepare('SELECT 1 FROM metrics_deduplication WHERE client_id = ? AND event_id = ?')
-    .bind(clientId, eventId)
-    .first()
-  return result !== null
-}
-
-/**
- * Insert event into database
+ * Insert event into database with atomic deduplication
+ * Returns true if inserted, false if duplicate
  */
 async function insertEvent(
   db: D1Database,
   batch: MetricsBatch,
   event: MetricsEvent,
-): Promise<void> {
-  const attrsJson = event.attrs ? JSON.stringify(event.attrs) : null
+): Promise<boolean> {
+  // First, try to insert into deduplication table with INSERT OR IGNORE
+  // This is atomic - only one concurrent request can succeed
+  const dedupResult = await db
+    .prepare('INSERT OR IGNORE INTO metrics_deduplication (client_id, event_id) VALUES (?, ?)')
+    .bind(batch.client.client_id, event.id)
+    .run()
 
-  // Insert into metrics_events
+  // If no row was inserted (changes === 0), this is a duplicate
+  if (!dedupResult.meta.changes || dedupResult.meta.changes === 0) {
+    return false
+  }
+
+  // This is a new event - insert into metrics_events
+  const attrsJson = event.attrs ? JSON.stringify(event.attrs) : null
   await db
     .prepare(`
       INSERT INTO metrics_events (
@@ -225,11 +226,7 @@ async function insertEvent(
     )
     .run()
 
-  // Insert into deduplication table
-  await db
-    .prepare('INSERT INTO metrics_deduplication (client_id, event_id) VALUES (?, ?)')
-    .bind(batch.client.client_id, event.id)
-    .run()
+  return true
 }
 
 /**
@@ -317,16 +314,13 @@ export async function handleMetricsRequest(request: Request, env: Env): Promise<
 
     for (const event of batch.events) {
       try {
-        // Check for duplicates
-        const duplicate = await isDuplicate(env.DB, batch.client.client_id, event.id)
-        if (duplicate) {
+        // Try to insert event (atomic deduplication check + insert)
+        const wasInserted = await insertEvent(env.DB, batch, event)
+        if (wasInserted) {
+          inserted++
+        } else {
           deduplicated++
-          continue
         }
-
-        // Insert event
-        await insertEvent(env.DB, batch, event)
-        inserted++
       } catch (error) {
         console.error(`Failed to insert event ${event.id}:`, error)
         // Continue processing other events
