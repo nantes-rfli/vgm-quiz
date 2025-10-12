@@ -91,6 +91,7 @@ test.describe('Play page features', () => {
   });
 
   test('handles question timeout and missing reveal links', async ({ page }) => {
+    // Phase 1: Intercept /v1/rounds/next to remove youtube_url/spotify_url from first question's reveal
     await page.addInitScript(() => {
       const anyWindow = window as unknown as InstrumentedWindow;
       if (!anyWindow.__ORIGINAL_FETCH__) {
@@ -107,11 +108,14 @@ test.describe('Play page features', () => {
               : requestInput instanceof URL
                 ? requestInput.toString()
                 : requestInput.url;
-          if (url.includes('/v1/rounds/start')) {
+          // Phase 1: reveal comes from /v1/rounds/next, not /v1/rounds/start
+          if (url.includes('/v1/rounds/next')) {
             const clone = response.clone();
             const data = await clone.json();
-            if (data?.question?.reveal?.links?.length) {
-              data.question.reveal.links = [];
+            // Remove youtube_url and spotify_url from first question's reveal
+            if (data?.result?.reveal) {
+              delete data.result.reveal.youtube_url;
+              delete data.result.reveal.spotify_url;
               const headers = new Headers(response.headers);
               headers.set('content-type', 'application/json');
               return new Response(JSON.stringify(data), {
@@ -131,9 +135,12 @@ test.describe('Play page features', () => {
     await page.goto('/play');
     await waitForQuestion(page, 0);
 
+    // Wait for timeout (15 seconds + buffer)
     await page.waitForTimeout(16_000);
     await expect(page.getByText('Timeout')).toBeVisible();
     await expect(page.getByText('? 1', { exact: true })).toBeVisible();
+
+    // Phase 1: Check that links are not displayed when youtube_url/spotify_url are missing
     await expect(page.getByText(/No links available/i)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('link', { name: /Open in/i })).toHaveCount(0);
 
@@ -171,6 +178,7 @@ test.describe('Play page features', () => {
   });
 
   test('handles unsupported reveal providers', async ({ page }) => {
+    // Phase 1: Intercept /v1/rounds/next to add unsupported provider URL
     await page.addInitScript(() => {
       const anyWindow = window as unknown as InstrumentedWindow;
       if (!anyWindow.__ORIGINAL_FETCH__) {
@@ -187,12 +195,16 @@ test.describe('Play page features', () => {
               : requestInput instanceof URL
                 ? requestInput.toString()
                 : requestInput.url;
-          if (url.includes('/v1/rounds/start')) {
+          // Phase 1: reveal comes from /v1/rounds/next
+          if (url.includes('/v1/rounds/next')) {
             const data = await response.clone().json();
-            if (data?.question?.reveal) {
-              data.question.reveal.links = [
-                { provider: 'unknown', url: 'notaurl' } as { provider: string; url: string },
-              ];
+            if (data?.result?.reveal) {
+              // Remove all known providers and add only other_url
+              delete data.result.reveal.youtube_url;
+              delete data.result.reveal.spotify_url;
+              delete data.result.reveal.apple_music_url;
+              // Add an unsupported provider URL (Phase 1 uses other_url for unknown providers)
+              data.result.reveal.other_url = 'https://example.com/unknown';
               const headers = new Headers(response.headers);
               headers.set('content-type', 'application/json');
               return new Response(JSON.stringify(data), {
@@ -219,9 +231,10 @@ test.describe('Play page features', () => {
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
-    const fallbackLink = page.getByRole('link', { name: /Open in unknown/i });
+    // Phase 1: Check for "other" provider link
+    const fallbackLink = page.getByRole('link', { name: /Open in other/i });
     await expect(fallbackLink).toBeVisible();
-    await expect(fallbackLink).toHaveAttribute('href', 'notaurl');
+    await expect(fallbackLink).toHaveAttribute('href', 'https://example.com/unknown');
     await expect(page.locator('iframe[title="Player"]')).toHaveCount(0);
 
     await page.evaluate(() => {
@@ -387,6 +400,12 @@ test.describe('Play page features', () => {
       const anyWindow = window as unknown as { __METRICS_ATTEMPTS__?: number };
       return (anyWindow.__METRICS_ATTEMPTS__ ?? 0) >= 2;
     }, { timeout: 15_000 });
+
+    await page.waitForFunction(() => {
+      const anyWindow = window as unknown as InstrumentedWindow;
+      const events = anyWindow.__METRICS_LOG__?.flatMap((batch) => batch.events ?? []) ?? [];
+      return events.some((event) => event.name === 'answer_result');
+    }, { timeout: 10_000 });
 
     const result = await page.evaluate(() => {
       const anyWindow = window as unknown as InstrumentedWindow;

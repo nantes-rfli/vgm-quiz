@@ -85,6 +85,8 @@ export interface Phase1Reveal {
   series?: string;
   youtube_url?: string;
   spotify_url?: string;
+  apple_music_url?: string;
+  other_url?: string; // For unsupported/fallback providers
 }
 
 export interface Phase1StartResponse {

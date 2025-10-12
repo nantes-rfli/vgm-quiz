@@ -82,6 +82,12 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         if (result.reveal.spotify_url) {
           links.push({ provider: 'spotify', url: result.reveal.spotify_url });
         }
+        if (result.reveal.apple_music_url) {
+          links.push({ provider: 'appleMusic', url: result.reveal.apple_music_url });
+        }
+        if (result.reveal.other_url) {
+          links.push({ provider: 'other', url: result.reveal.other_url });
+        }
 
         const phase1Reveal = {
           correct: result.correct,
