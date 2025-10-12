@@ -1,4 +1,4 @@
-import type { Question, RoundsNextResponse, Reveal } from './api/types';
+import type { Question, RoundsNextResponse, Phase1NextResponse, Reveal } from './api/types';
 import type { QuestionRecord, ScoreBreakdown } from '@/src/lib/resultStorage';
 
 export type ProgressInfo = { index: number; total: number };
@@ -18,7 +18,7 @@ export type PlayState = {
   startedAt?: string; // ISO string for run start
   started: boolean;
   phase: 'question' | 'reveal';
-  queuedNext?: RoundsNextResponse;
+  queuedNext?: RoundsNextResponse | Phase1NextResponse; // Phase 1: support both formats
   currentReveal?: Reveal;
   deadline?: number;
   remainingMs: number;
@@ -42,8 +42,8 @@ export type PlayAction =
   | { type: 'ERROR'; error: string }
   | { type: 'SELECT'; id: string }
   | { type: 'ENTER_REVEAL'; reveal?: Reveal }
-  | { type: 'QUEUE_NEXT'; next: RoundsNextResponse; reveal?: Reveal }
-  | { type: 'ADVANCE'; next: RoundsNextResponse }
+  | { type: 'QUEUE_NEXT'; next: RoundsNextResponse | Phase1NextResponse; reveal?: Reveal } // Phase 1: support both
+  | { type: 'ADVANCE'; next: RoundsNextResponse | Phase1NextResponse } // Phase 1: support both
   | { type: 'TICK'; remainingMs: number }
   | { type: 'APPLY_RESULT'; payload: { tally: ScoreBreakdown; history: QuestionRecord[] } };
 
@@ -103,14 +103,29 @@ export function playReducer(state: PlayState, action: PlayAction): PlayState {
     case 'ADVANCE': {
       const qn = action.next;
       // NOTE: caller must handle finished-case navigation before dispatching ADVANCE
-      const nextProgress: ProgressInfo | undefined =
-        qn.round?.progress ?? (state.progress ? { index: state.progress.index + 1, total: state.progress.total } : undefined);
+
+      // Phase 1: check if response has 'round' property (Phase 2) or 'continuationToken' (Phase 1)
+      const isPhase1 = 'continuationToken' in qn;
+
+      const nextProgress: ProgressInfo | undefined = isPhase1
+        ? (state.progress ? { index: state.progress.index + 1, total: state.progress.total } : undefined)
+        : (qn as RoundsNextResponse).round?.progress ?? (state.progress ? { index: state.progress.index + 1, total: state.progress.total } : undefined);
+
+      const nextToken = isPhase1
+        ? (qn as Phase1NextResponse).continuationToken ?? state.token
+        : (qn as RoundsNextResponse).round?.token ?? state.token;
+
+      // Phase 1: question has been converted to Question format by useAnswerProcessor
+      // Safe to use qn.question directly
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const nextQuestion = (qn as any).question as Question | undefined;
+
       return {
         ...state,
         loading: false,
         error: undefined,
-        token: qn.round?.token ?? state.token,
-        question: qn.question!,
+        token: nextToken,
+        question: nextQuestion!,
         progress: nextProgress,
         selectedId: undefined,
         beganAt: performance.now(),

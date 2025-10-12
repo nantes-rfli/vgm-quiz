@@ -6,9 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 VGM Quiz is a game music quiz application built with Next.js App Router. The monorepo contains:
 - `web/` — Next.js frontend (React 19, TypeScript 5, Tailwind v4)
+- `workers/` — Cloudflare Workers backend (D1 database, R2 storage)
 - `docs/` — Product requirements, design specs, and operational documentation
 
-MVP phase uses static deployment with Mock Service Worker (MSW) for API responses. All backend interactions are stubbed.
+Phase 1 (MVP) uses Cloudflare Workers for backend with manual curated data. Set `NEXT_PUBLIC_API_MOCK=0` to connect to real backend (default is MSW mocks).
 
 ## Development Commands
 
@@ -28,7 +29,59 @@ npm run test:a11y              # Run accessibility tests only
 
 First-time setup: `cd web && npm install`. If using Playwright for the first time, run `npx playwright install`.
 
+Workers backend commands (from `workers/` directory):
+
+```bash
+npm run dev:api                # Start API Worker locally (http://localhost:8787)
+npm run dev:pipeline           # Start Pipeline Worker locally (http://localhost:8788)
+npm run deploy:api             # Deploy API Worker to production
+npm run deploy:pipeline        # Deploy Pipeline Worker to production
+npm run typecheck              # TypeScript type checking
+npm run lint                   # Biome lint checks
+wrangler d1 migrations apply vgm-quiz-db --remote  # Apply DB migrations to production
+```
+
+First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.md](docs/backend/setup.md) for D1/R2 configuration.
+
 ## Architecture
+
+### Backend (Cloudflare Workers)
+
+**Phase 1 (Current)**: Manual curated data with two-worker architecture
+
+**Pipeline Worker** (`vgm-quiz-pipeline.nantos.workers.dev`)
+- **Discovery stage**: Ingests tracks from [workers/data/curated.json](workers/data/curated.json) into D1 (`tracks_normalized` table)
+- **Publish stage**: Generates daily question sets (10 questions, 4-choice format) and exports to R2
+- Manual trigger via POST endpoints (`/trigger/discovery`, `/trigger/publish?date=YYYY-MM-DD`)
+
+**API Worker** (`vgm-quiz-api.nantos.workers.dev`)
+- `GET /daily?date=YYYY-MM-DD` - Fetch daily question set metadata
+- `GET /v1/rounds/start` - Start quiz round, returns first question + continuation token
+- `POST /v1/rounds/next` - Submit answer, get next question or finish
+- Token-based state management (no server-side sessions)
+
+**Database (D1)**
+- `sources` - Track data sources
+- `tracks_normalized` - Master track catalog with external_id (UPSERT key)
+- `pool` - Tracks eligible for question generation
+- `picks` - Daily selected track IDs
+- `exports` - Generated question set metadata (date, hash, R2 key)
+
+**Storage (R2)**
+- `exports/YYYY-MM-DD.json` - Daily question sets with SHA-256 integrity hash
+- Single source of truth for frontend consumption
+
+**Key Implementation Details**
+- **Choice generation** ([workers/shared/lib/choices.ts](workers/shared/lib/choices.ts)): Requires minimum 4 unique game titles. Shuffles choices deterministically per questionId, then assigns IDs ('a'-'d') to prevent always having 'a' as correct answer.
+- **Hash integrity**: Export hash computed from content excluding hash field itself to avoid circular dependency.
+- **Deterministic shuffling**: Uses seeded random based on questionId for consistent choice ordering.
+
+**Future Phases** (not yet implemented):
+- Phase 2: Spotify API automation for Discovery/Harvest
+- Phase 3: YouTube integration, audio download, ML quality scoring
+- Phase 4+: Behavioral scoring, automatic scheduling with Cron Triggers
+
+
 
 ### State Management
 - **Play page** ([web/app/play/page.tsx](web/app/play/page.tsx)) uses `useReducer` with centralized state transitions via [playReducer.ts](web/src/features/quiz/playReducer.ts)
@@ -71,6 +124,7 @@ First-time setup: `cd web && npm install`. If using Playwright for the first tim
 
 ## Code Style
 
+**Frontend** (`web/`)
 - TypeScript with React 19 functional components
 - 2-space indentation, semicolons disabled
 - Kebab-case for files/directories (`quiz-results.tsx`)
@@ -78,6 +132,14 @@ First-time setup: `cd web && npm install`. If using Playwright for the first tim
 - Hooks prefixed with `use`
 - Tailwind utilities composed via `class-variance-authority` (cva)
 - ESLint config in `eslint.config.mjs`
+
+**Backend** (`workers/`)
+- TypeScript with ESNext target
+- 2-space indentation, semicolons as needed (Biome default)
+- Kebab-case for files/directories (`daily.ts`)
+- Single quotes for strings
+- Biome for linting/formatting (`biome.json`)
+- Path alias: `@/shared/*` maps to `shared/*`
 
 ## Important Patterns
 
@@ -107,6 +169,11 @@ Key docs in `docs/`:
 - [docs/frontend/README.md](docs/frontend/README.md) — Frontend overview
 - [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Play page state flow
 - [docs/frontend/metrics-client.md](docs/frontend/metrics-client.md) — Metrics implementation
+- [docs/backend/README.md](docs/backend/README.md) — Backend overview
+- [docs/backend/architecture.md](docs/backend/architecture.md) — Backend architecture
+- [docs/backend/phase1-implementation.md](docs/backend/phase1-implementation.md) — Phase 1 implementation
+- [docs/backend/database.md](docs/backend/database.md) — Database schema
+- [docs/backend/curated-data-format.md](docs/backend/curated-data-format.md) — Curated data format (minimum 4 unique games required)
 - [docs/quality/e2e-plan.md](docs/quality/e2e-plan.md) — E2E test plan
 
 Docs are updated in the same PR as code changes (Docs-as-Code). Issue-specific docs live in `docs/issues/<number>-*.md`.
@@ -129,10 +196,18 @@ This is a solo project. When implementing features or fixes, follow this workflo
 1. Check related docs in `docs/` directory
 2. Create feature branch: `git checkout -b feat/feature-name`
 3. Make code/doc changes (commit freely during development)
-4. **Before pushing**, run quality checks from `web/` directory:
+4. **Before pushing**, run quality checks:
+
+   Frontend changes (from `web/` directory):
    ```bash
    npm run lint && npm run typecheck && npm run test:e2e
    ```
+
+   Backend changes (from `workers/` directory):
+   ```bash
+   npm run lint && npm run typecheck
+   ```
+
 5. Push branch: `git push -u origin feat/feature-name`
 6. Create PR via GitHub UI (or `gh pr create` if using GitHub CLI)
 7. Squash merge via GitHub UI

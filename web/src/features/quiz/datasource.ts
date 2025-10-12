@@ -1,7 +1,10 @@
 // Path: web/src/features/quiz/datasource.ts
 'use client';
 
-import type { RoundsStartResponse, RoundsNextResponse } from './api/types';
+import type { Phase1StartResponse, Phase1NextResponse } from './api/types';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const IS_MOCK = process.env.NEXT_PUBLIC_API_MOCK !== '0';
 
 async function json<T>(res: Response): Promise<T> {
   const text = await res.text();
@@ -17,18 +20,23 @@ async function json<T>(res: Response): Promise<T> {
   }
 }
 
-export async function start(): Promise<RoundsStartResponse> {
-  const res = await fetch('/v1/rounds/start', { method: 'POST' });
+export async function start(): Promise<Phase1StartResponse> {
+  const url = IS_MOCK ? '/v1/rounds/start' : `${API_BASE_URL}/v1/rounds/start`;
+  const res = await fetch(url, { method: 'GET' }); // Phase 1: GET
   if (!res.ok) throw new Error(`start failed: ${res.status}`);
-  return json<RoundsStartResponse>(res);
+  return json<Phase1StartResponse>(res);
 }
 
-export async function next(payload: { token: string; answer: { questionId: string; choiceId: string } }): Promise<RoundsNextResponse> {
-  const res = await fetch('/v1/rounds/next', {
+export async function next(payload: {
+  continuationToken: string;
+  answer: string;
+}): Promise<Phase1NextResponse> {
+  const url = IS_MOCK ? '/v1/rounds/next' : `${API_BASE_URL}/v1/rounds/next`;
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`next failed: ${res.status}`);
-  return json<RoundsNextResponse>(res);
+  return json<Phase1NextResponse>(res);
 }

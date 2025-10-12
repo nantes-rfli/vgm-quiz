@@ -59,3 +59,48 @@ export interface RoundsNextResponse {
   question?: Question; // omitted when finished === true
   reveal?: Reveal;
 }
+
+// ============================================================================
+// Phase 1 API Types (Current Backend Implementation)
+// ============================================================================
+// These types match the actual Phase 1 Workers implementation
+// See: workers/api/src/routes/rounds.ts
+
+export interface Phase1Question {
+  id: string;
+  title: string;
+}
+
+export interface Phase1Choice {
+  id: string;
+  text: string;
+}
+
+export interface Phase1Reveal {
+  title: string;
+  game: string;
+  composer?: string;
+  year?: number;
+  platform?: string;
+  series?: string;
+  youtube_url?: string;
+  spotify_url?: string;
+}
+
+export interface Phase1StartResponse {
+  question: Phase1Question;
+  choices: Phase1Choice[];
+  continuationToken: string;
+}
+
+export interface Phase1NextResponse {
+  result: {
+    correct: boolean;
+    correctAnswer: string;
+    reveal: Phase1Reveal;
+  };
+  question?: Phase1Question;
+  choices?: Phase1Choice[];
+  continuationToken?: string;
+  finished: boolean;
+}

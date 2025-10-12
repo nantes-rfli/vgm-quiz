@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { next } from './datasource';
-import type { Question, RoundsNextResponse } from './api/types';
+import type { Question, Phase1NextResponse } from './api/types';
 import { enrichReveal, toQuestionRecord } from './lib/reveal';
 import { appendReveal } from '@/src/lib/resultStorage';
 import { saveResult } from '@/src/lib/resultStorage';
@@ -16,7 +16,7 @@ type AnswerMode = { kind: 'answer' | 'timeout' | 'skip'; choiceId?: string };
 
 type ProcessAnswerParams = {
   phase: 'question' | 'reveal';
-  token?: string;
+  continuationToken?: string; // Phase 1: token → continuationToken
   question?: Question;
   remainingMs: number;
   beganAt?: number;
@@ -35,7 +35,7 @@ type ProcessAnswerParams = {
 export function useAnswerProcessor(params: ProcessAnswerParams) {
   const {
     phase,
-    token,
+    continuationToken,
     question,
     remainingMs,
     beganAt,
@@ -49,7 +49,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
 
   return useCallback(
     async (mode: AnswerMode) => {
-      if (phase === 'reveal' || !token || !question) return;
+      if (phase === 'reveal' || !continuationToken || !question) return;
       if (mode.kind === 'answer' && !mode.choiceId) return;
 
       const remainingForCalc = Math.max(0, remainingMs);
@@ -67,9 +67,34 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
             : SKIP_CHOICE_ID;
 
       try {
-        const res: RoundsNextResponse = await next({ token, answer: { questionId: question.id, choiceId: effectiveChoiceId } });
+        // Phase 1: answer is just the choice ID (string)
+        const res: Phase1NextResponse = await next({ continuationToken, answer: effectiveChoiceId });
 
-        const enriched = enrichReveal(currentReveal, res.reveal, question.reveal);
+        // Phase 1: result is directly in response, not nested in reveal
+        const { result } = res;
+
+        // Build reveal object from Phase1 format, including links
+        const links: Array<{ provider: 'youtube' | 'spotify' | 'appleMusic' | 'other'; url: string }> = [];
+
+        if (result.reveal.youtube_url) {
+          links.push({ provider: 'youtube', url: result.reveal.youtube_url });
+        }
+        if (result.reveal.spotify_url) {
+          links.push({ provider: 'spotify', url: result.reveal.spotify_url });
+        }
+
+        const phase1Reveal = {
+          correct: result.correct,
+          correctChoiceId: result.correctAnswer,
+          meta: {
+            trackTitle: result.reveal.title,
+            workTitle: result.reveal.game,
+            composer: result.reveal.composer,
+          },
+          links: links.length > 0 ? links : undefined,
+        };
+
+        const enriched = enrichReveal(currentReveal, phase1Reveal, question.reveal);
         try { if (enriched) appendReveal(enriched); } catch {}
 
         const outcome: Outcome =
@@ -77,7 +102,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
             ? 'timeout'
             : mode.kind === 'skip'
               ? 'skip'
-              : enriched?.correct === true
+              : result.correct === true
                 ? 'correct'
                 : 'wrong';
 
@@ -95,7 +120,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         const updatedTally = rollupTally(tally, outcome, points);
 
         recordMetricsEvent('answer_result', {
-          roundId: token,
+          roundId: continuationToken,
           questionIdx: progress?.index,
           attrs: {
             questionId: question.id,
@@ -125,7 +150,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
           );
 
           recordMetricsEvent('quiz_complete', {
-            roundId: token,
+            roundId: continuationToken,
             attrs: {
               total: totalQuestions,
               points: updatedTally.points,
@@ -138,12 +163,33 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
           });
         }
 
-        dispatch({ type: 'QUEUE_NEXT', next: res, reveal: enriched });
+        // Phase 1: convert Phase1NextResponse question format (title/text) to internal format (prompt/label)
+        const convertedRes = res.question
+          ? {
+              ...res,
+              question: {
+                id: res.question.id,
+                prompt: res.question.title,
+                choices: (res.choices ?? []).map(c => ({
+                  id: c.id,
+                  label: c.text,
+                })),
+                // MSW fixtures have these fields; real Phase1 API won't, but we'll handle that in Phase2
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                reveal: (res.question as any).reveal,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                artwork: (res.question as any).artwork,
+              },
+            }
+          : res;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dispatch({ type: 'QUEUE_NEXT', next: convertedRes as any, reveal: enriched });
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : String(e);
         dispatch({ type: 'ERROR', error: message || 'Failed to load next.' });
       }
     },
-    [phase, token, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt]
+    [phase, continuationToken, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt]
   );
 }
