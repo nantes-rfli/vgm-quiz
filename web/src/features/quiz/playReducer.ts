@@ -87,8 +87,20 @@ export function playReducer(state: PlayState, action: PlayAction): PlayState {
       };
     }
 
-    case 'ERROR':
-      return { ...state, loading: false, error: action.error };
+    case 'ERROR': {
+      const hasQuestion = Boolean(state.question);
+      const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      const nextDeadline = hasQuestion && state.remainingMs > 0 ? now + state.remainingMs : undefined;
+
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+        phase: hasQuestion ? 'question' : state.phase,
+        queuedNext: undefined,
+        deadline: nextDeadline ?? state.deadline,
+      };
+    }
 
     case 'SELECT':
       return { ...state, selectedId: action.id };

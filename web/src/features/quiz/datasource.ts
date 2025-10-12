@@ -2,41 +2,122 @@
 'use client';
 
 import type { Phase1StartResponse, Phase1NextResponse } from './api/types';
+import { ApiError, ensureApiError, delay, isNavigatorOffline } from './api/errors';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 const IS_MOCK = process.env.NEXT_PUBLIC_API_MOCK !== '0';
+const DEFAULT_RETRIES = IS_MOCK ? 0 : 3;
 
-async function json<T>(res: Response): Promise<T> {
-  const text = await res.text();
-  if (!text) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return undefined as any as T;
+type RequestOptions = {
+  method: 'GET' | 'POST';
+  body?: unknown;
+  retries?: number;
+};
+
+async function fetchJson<T>(path: string, options: RequestOptions): Promise<T> {
+  const { method, body, retries = DEFAULT_RETRIES } = options;
+  const url = IS_MOCK ? path : `${API_BASE_URL}${path}`;
+
+  let attempt = 0;
+  let lastError: ApiError | undefined;
+
+  while (attempt <= retries) {
+    try {
+      if (!IS_MOCK && isNavigatorOffline()) {
+        throw new ApiError('offline', 'Offline detected before request', { retryable: false });
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+
+      if (!response.ok) {
+        let payload: unknown;
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          payload = await response.json().catch(() => undefined);
+        }
+
+        const errorCode =
+          typeof payload === 'object' && payload !== null
+            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ((payload as any).error?.code ?? (payload as any).code)
+            : undefined;
+        const errorMessage =
+          typeof payload === 'object' && payload !== null
+            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ((payload as any).error?.message ?? (payload as any).message)
+            : undefined;
+
+        const status = response.status;
+        const isRateLimited = status === 429;
+        const isServerError = status >= 500;
+        const isRetryableStatus = isRateLimited || status === 503 || isServerError;
+        const kind: ApiError['kind'] = isRateLimited || isServerError ? 'server' : status >= 400 ? 'client' : 'unknown';
+
+        const fallbackMessage = isRateLimited
+          ? 'Too many requests'
+          : status === 503
+            ? 'Service unavailable'
+            : `Request failed with status ${status}`;
+
+        throw new ApiError(kind, errorMessage || fallbackMessage, {
+          status,
+          code: errorCode,
+          cause: payload,
+          retryable: isRetryableStatus,
+        });
+      }
+
+      const text = await response.text();
+      if (!text) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return undefined as any as T;
+      }
+
+      try {
+        return JSON.parse(text) as T;
+      } catch (error) {
+        throw new ApiError('decode', 'Failed to parse server response', { cause: error });
+      }
+    } catch (error) {
+      let apiError: ApiError;
+      if (error instanceof ApiError) {
+        apiError = error;
+      } else if (error instanceof TypeError) {
+        apiError = new ApiError('network', error.message || 'Network request failed', { cause: error });
+      } else {
+        apiError = ensureApiError(error, 'Request failed');
+      }
+
+      if (apiError.kind === 'offline') {
+        throw apiError;
+      }
+
+      if (apiError.retryable && attempt < retries) {
+        lastError = apiError;
+        const delayMs = 1000 * 2 ** attempt;
+        attempt += 1;
+        await delay(delayMs);
+        continue;
+      }
+
+      throw apiError;
+    }
   }
-  try {
-    return JSON.parse(text) as T;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    throw new Error(`Invalid JSON response: ${message}`);
-  }
+
+  throw lastError ?? new ApiError('unknown', 'Request failed after multiple attempts');
 }
 
 export async function start(): Promise<Phase1StartResponse> {
-  const url = IS_MOCK ? '/v1/rounds/start' : `${API_BASE_URL}/v1/rounds/start`;
-  const res = await fetch(url, { method: 'GET' }); // Phase 1: GET
-  if (!res.ok) throw new Error(`start failed: ${res.status}`);
-  return json<Phase1StartResponse>(res);
+  return fetchJson<Phase1StartResponse>('/v1/rounds/start', { method: 'GET' });
 }
 
 export async function next(payload: {
   continuationToken: string;
   answer: string;
 }): Promise<Phase1NextResponse> {
-  const url = IS_MOCK ? '/v1/rounds/next' : `${API_BASE_URL}/v1/rounds/next`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(`next failed: ${res.status}`);
-  return json<Phase1NextResponse>(res);
+  return fetchJson<Phase1NextResponse>('/v1/rounds/next', { method: 'POST', body: payload });
 }
