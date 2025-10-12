@@ -26,8 +26,9 @@
 | --- | --- | --- |
 | [`play-flow.md`](./play-flow.md) | `/play` の状態遷移・タイマー・結果保存・Result 画面との連携 | FE-06 実装内容の整理 |
 | [`metrics-client.md`](./metrics-client.md) | メトリクスのバッチ送信、イベント語彙、リトライ方針 | FE-07 実装内容の整理 |
-| [`theme-system.md`](./theme-system.md) | テーマシステム（Light/Dark/Auto）の実装と使い方 | Phase 1 |
-| [`i18n-guide.md`](./i18n-guide.md) | 多言語対応（日本語・英語）の実装ガイド | Phase 2 |
+| [`error-handling.md`](./error-handling.md) | エラーハンドリング戦略（リトライロジック、トースト通知、オフライン検出） | 2025-10 |
+| [`theme-system.md`](./theme-system.md) | テーマシステム（Light/Dark/Auto）の実装と使い方 | MVP Phase 1 |
+| [`i18n-guide.md`](./i18n-guide.md) | 多言語対応（日本語・英語）の実装ガイド | MVP Phase 2 |
 | [`testing-notes.md`](./testing-notes.md) | フロントエンド開発者向けのテスト実施メモとローカル検証の注意点 | Draft |
 
 > **ルール**: 1トピック=1ページを維持し、詳細は各ドキュメントへ分割する。構成変更時は本 README の表を更新する。
@@ -49,7 +50,25 @@
 - ✅ メタデータ最適化（OGP、Twitter Card、Phase 4）
 - ✅ E2E テスト基盤（Playwright + axe-core）
 
-## 5. 今後の TODO
+## 5. 最近の実装
+
+### E2E テスト (2025-10-12)
+- Backend API 仕様への対応完了 ([E2E Testing Plan](../quality/e2e-plan.md) 参照)
+- MSW handlers の API レスポンス形式への変換
+- `continuationToken` ベースの状態管理
+
+### メトリクス収集 (2025-10-12)
+- POST `/v1/metrics` エンドポイント実装 ([Database Schema](../backend/database.md) 参照)
+- D1 スキーマ: `metrics_events`, `metrics_deduplication`
+- 詳細: [metrics-client.md](./metrics-client.md)
+
+### エラーハンドリング (2025-10-12)
+- API リトライロジック (指数バックオフ、最大3回)
+- トースト通知 (エラーメッセージ、再試行ボタン、自動消滅)
+- オフライン検出とオンライン復帰時の自動リトライ
+- 詳細: [error-handling.md](./error-handling.md)
+
+## 6. 今後の TODO
 - SSR/SEO 要件の整理（MVP では CSR 前提）
-- 実 BE 接続時のエラー UX / オフライン時挙動の仕様化
+- E2E テストでのエラーシナリオ自動化
 - ゲームメタデータの多言語対応（API側の対応が必要）

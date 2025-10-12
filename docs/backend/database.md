@@ -1,7 +1,7 @@
 # Database Schema – vgm-quiz Backend
 
-- **Status**: Draft
-- **Last Updated**: 2025-10-10
+- **Status**: Active
+- **Last Updated**: 2025-10-12
 
 ## Overview
 
@@ -211,17 +211,86 @@ CREATE INDEX idx_audits_stage_hash ON audits(stage, input_hash);
 CREATE INDEX idx_audits_ok ON audits(ok, started_at);
 ```
 
+### 12. metrics_events
+
+```sql
+CREATE TABLE metrics_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id TEXT NOT NULL,           -- クライアント生成のユニークID (UUID)
+  client_id TEXT NOT NULL,          -- 匿名クライアントID (UUID, localStorage永続化)
+  event_name TEXT NOT NULL,         -- イベント名 (許可リストで制限)
+  event_ts TIMESTAMP NOT NULL,      -- イベント発生時刻 (ISO8601)
+  round_id TEXT,                    -- ラウンドID (continuationToken)
+  question_idx INTEGER,             -- 問題番号 (1-based)
+  attrs TEXT,                       -- JSON文字列 (追加属性)
+  app_version TEXT,                 -- アプリバージョン
+  tz TEXT,                          -- タイムゾーン
+  received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_metrics_client_event ON metrics_events(client_id, event_id);
+CREATE INDEX idx_metrics_received_at ON metrics_events(received_at);
+CREATE INDEX idx_metrics_event_name ON metrics_events(event_name);
+```
+
+**目的**: ユーザー行動分析とプロダクト改善のためのメトリクス収集
+
+**許可イベント名** (MVP):
+- `answer_select`, `answer_result`, `quiz_complete`
+- `reveal_open_external`, `embed_error`, `embed_fallback_to_link`
+- `settings_inline_toggle`, `settings_theme_toggle`, `settings_locale_toggle`
+- `artwork_open`
+
+**PII / 匿名化方針**:
+- `client_id`: フロントエンドで UUID 生成、localStorage に永続化
+- IP アドレス: 保存しない
+- User-Agent: 保存しない (必要であれば `app_version` で代用)
+
+**リテンション期間**: 90日間 (古いレコードは Cron Trigger で定期削除予定)
+
+### 13. metrics_deduplication
+
+```sql
+CREATE TABLE metrics_deduplication (
+  client_id TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (client_id, event_id)
+);
+
+CREATE INDEX idx_metrics_dedup_received_at ON metrics_deduplication(received_at);
+```
+
+**目的**: 24時間ウィンドウ内での重複送信を防ぐ (ネットワークリトライ時)
+
+**重複排除ロジック**:
+1. `INSERT OR IGNORE` でアトミックに重複チェック
+2. `meta.changes === 0` なら重複として扱う (D1 StatementResult)
+3. 24時間後に自動クリーンアップ (定期ジョブ)
+
+**活用例**:
+```sql
+-- 問題別正答率
+SELECT
+  JSON_EXTRACT(attrs, '$.questionId') AS question_id,
+  COUNT(*) AS total,
+  SUM(CASE WHEN JSON_EXTRACT(attrs, '$.outcome') = 'correct' THEN 1 ELSE 0 END) AS correct,
+  ROUND(SUM(CASE WHEN JSON_EXTRACT(attrs, '$.outcome') = 'correct' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS accuracy
+FROM metrics_events
+WHERE event_name = 'answer_result'
+GROUP BY question_id
+ORDER BY accuracy ASC;
+```
+
 ## Migrations
 
 ### Migration File Structure
 
 ```
 workers/migrations/
-├── 0001_initial.sql        # sources, discovery_items, tracks_normalized
-├── 0002_clusters.sql       # clusters, scores
-├── 0003_pool.sql           # pool, picks, exports
-├── 0004_audits.sql         # audits
-└── 0005_audio_features.sql # audio_features (Phase 2)
+├── 0001_initial.sql        # sources, discovery_items, tracks_normalized, pool, picks, exports
+├── 0002_metrics.sql        # metrics_events, metrics_deduplication (実装済み)
+└── (future)                # audio_features, clusters, scores (Phase 2+)
 ```
 
 ### Example Migration (0001_initial.sql)
