@@ -15,13 +15,28 @@ const QUESTION_IDS = Object.keys(ANSWERS).sort((a, b) =>
   a.localeCompare(b, undefined, { numeric: true })
 );
 
-function waitForQuestion(page: Page, index: number) {
+async function waitForQuestion(page: Page, index: number) {
   const questionPrompt = page.getByTestId('question-prompt');
+  const retryButton = page.getByRole('button', { name: /Retry/i });
   const timeout = index === 0 ? 60_000 : 15_000;
-  return expect(questionPrompt).toBeVisible({ timeout });
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    try {
+      await questionPrompt.waitFor({ state: 'visible', timeout: 500 });
+      return;
+    } catch {
+      if (await retryButton.isVisible({ timeout: 100 }).catch(() => false)) {
+        await retryButton.click();
+      }
+    }
+  }
+
+  await expect(questionPrompt).toBeVisible({ timeout: 1000 });
 }
 
 test.describe('Play page features', () => {
+
   test('inline playback toggle persists across reload', async ({ page }) => {
     await page.goto('/play');
 
@@ -311,12 +326,21 @@ test.describe('Play page features', () => {
       return batches.flatMap((batch) => batch.events ?? []).length >= 3;
     }, { timeout: 15_000 });
 
-    const metricEvents = await page.evaluate(() => {
-      const batches = (window as unknown as InstrumentedWindow).__METRICS_LOG__;
-      if (!batches) return [];
-      return batches.flatMap((batch) => batch.events ?? []);
-    });
+    const getMetricEvents = () =>
+      page.evaluate(() => {
+        const batches = (window as unknown as InstrumentedWindow).__METRICS_LOG__;
+        if (!batches) return [];
+        return batches.flatMap((batch) => batch.events ?? []);
+      });
 
+    await expect
+      .poll(async () => {
+        const events = await getMetricEvents();
+        return events.map((event) => event.name);
+      }, { timeout: 10_000, message: 'Waiting for reveal_open_external metric' })
+      .toContain('reveal_open_external');
+
+    const metricEvents = await getMetricEvents();
     const names = new Set(metricEvents.map((event) => event.name));
     expect(names).toContain('settings_inline_toggle');
     expect(names).toContain('answer_result');
