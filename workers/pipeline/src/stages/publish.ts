@@ -6,6 +6,7 @@ import type { DailyExport, Question } from '../../../shared/types/export'
 
 interface PublishResult {
   success: boolean
+  skipped?: boolean // True if question set already exists (idempotency guard)
   date: string
   questionsGenerated: number
   r2Key?: string
@@ -58,10 +59,10 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
       }
 
       return {
-        success: false,
+        success: true,
+        skipped: true,
         date,
         questionsGenerated: 0,
-        error: 'Question set already exists',
       }
     }
 

@@ -27,7 +27,11 @@ export default {
       const publishResult = await handlePublish(env, null) // null = today's date
 
       if (publishResult.success) {
-        console.log('[Cron] SUCCESS: Pipeline completed successfully')
+        if (publishResult.skipped) {
+          console.log('[Cron] SUCCESS: Pipeline completed (question set already exists, skipped)')
+        } else {
+          console.log('[Cron] SUCCESS: Pipeline completed successfully')
+        }
       } else {
         console.error(`[Cron] FAILURE: Publish stage failed - ${publishResult.error}`)
       }
