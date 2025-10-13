@@ -429,4 +429,4 @@ npm install --save-dev @cloudflare/workers-types@latest
 
 → **実装開始準備完了!**
 
-次は [phase1-implementation.md](phase1-implementation.md) の Step 6 (Core Implementation) に進みます。
+次は [phase1-implementation.md](../dev/phase1-implementation.md) の Step 6 (Core Implementation) に進みます。

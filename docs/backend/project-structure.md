@@ -403,4 +403,4 @@ npm run deploy:pipeline
 
 1. ✅ ディレクトリ構造を理解
 2. ✅ ファイル配置ルールを把握
-3. → 実装開始 ([phase1-implementation.md](phase1-implementation.md))
+3. → 実装開始 ([phase1-implementation.md](../dev/phase1-implementation.md))
