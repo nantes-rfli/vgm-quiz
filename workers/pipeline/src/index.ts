@@ -3,6 +3,39 @@ import { handleDiscovery } from './stages/discovery'
 import { handlePublish } from './stages/publish'
 
 export default {
+  /**
+   * Scheduled event handler (Cron Triggers)
+   * Runs daily at 00:00 JST (15:00 UTC)
+   */
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    console.log('[Cron] START: Daily pipeline execution')
+    console.log(`[Cron] Scheduled time: ${new Date(event.scheduledTime).toISOString()}`)
+    console.log(`[Cron] Cron expression: ${event.cron}`)
+
+    try {
+      // Run discovery first to sync latest curated.json
+      console.log('[Cron] Running discovery stage...')
+      const discoveryResult = await handleDiscovery(env)
+
+      if (!discoveryResult.success) {
+        console.error('[Cron] Discovery stage failed, aborting pipeline')
+        return
+      }
+
+      // Run publish to generate today's question set
+      console.log('[Cron] Running publish stage...')
+      const publishResult = await handlePublish(env, null) // null = today's date
+
+      if (publishResult.success) {
+        console.log('[Cron] SUCCESS: Pipeline completed successfully')
+      } else {
+        console.error(`[Cron] FAILURE: Publish stage failed - ${publishResult.error}`)
+      }
+    } catch (error) {
+      console.error('[Cron] ERROR: Pipeline execution failed', error)
+    }
+  },
+
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
 

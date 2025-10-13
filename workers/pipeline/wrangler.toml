@@ -14,3 +14,6 @@ migrations_dir = "../migrations"
 [[r2_buckets]]
 binding = "STORAGE"
 bucket_name = "vgm-quiz-storage"
+
+[triggers]
+crons = ["0 15 * * *"]  # Daily at 15:00 UTC = 00:00 JST (next day)
