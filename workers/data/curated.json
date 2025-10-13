@@ -110,6 +110,116 @@
       "year": 2002,
       "youtube_url": "https://youtube.com/watch?v=gUQuBBBzx-I",
       "spotify_url": "https://open.spotify.com/track/0zx6oGNEKbOyL4J4sS39Yf"
+    },
+    {
+      "id": "011",
+      "title": "Halo Theme (Mjolnir Mix)",
+      "game": "Halo: Combat Evolved",
+      "series": "Halo",
+      "composer": "Martin O'Donnell",
+      "platform": "Xbox",
+      "year": 2001,
+      "youtube_url": "https://youtube.com/watch?v=0jXTBAGv9ZQ",
+      "spotify_url": "https://open.spotify.com/track/6n4bH0F7ggZ3kMKQvZLLOe"
+    },
+    {
+      "id": "012",
+      "title": "Tetris Theme (Korobeiniki)",
+      "game": "Tetris",
+      "series": "Tetris",
+      "composer": "Hirokazu Tanaka",
+      "platform": "Game Boy",
+      "year": 1989,
+      "youtube_url": "https://youtube.com/watch?v=NmCCQxVBfyM",
+      "spotify_url": "https://open.spotify.com/track/5J4lKPB7hsKdLlX9SpCJjm"
+    },
+    {
+      "id": "013",
+      "title": "Pokémon Center Theme",
+      "game": "Pokémon Red/Blue",
+      "series": "Pokémon",
+      "composer": "Junichi Masuda",
+      "platform": "Game Boy",
+      "year": 1996,
+      "youtube_url": "https://youtube.com/watch?v=71-ViI_TLmQ",
+      "spotify_url": "https://open.spotify.com/track/2ZiB6UjcXmbduiRWZ3rQMC"
+    },
+    {
+      "id": "014",
+      "title": "Guile's Theme",
+      "game": "Street Fighter II",
+      "series": "Street Fighter",
+      "composer": "Yoko Shimomura",
+      "platform": "Arcade",
+      "year": 1991,
+      "youtube_url": "https://youtube.com/watch?v=Iof5pRAIZmw",
+      "spotify_url": "https://open.spotify.com/track/4kLStzeMgqpuQJbZDPO0fP"
+    },
+    {
+      "id": "015",
+      "title": "Dragonborn (Skyrim Theme)",
+      "game": "The Elder Scrolls V: Skyrim",
+      "series": "The Elder Scrolls",
+      "composer": "Jeremy Soule",
+      "platform": "Multi-platform",
+      "year": 2011,
+      "youtube_url": "https://youtube.com/watch?v=AVy7YPNP_zI",
+      "spotify_url": "https://open.spotify.com/track/3RqxPSzFq4ZS7eEiR9R7nB"
+    },
+    {
+      "id": "016",
+      "title": "Still Alive",
+      "game": "Portal",
+      "series": "Portal",
+      "composer": "Jonathan Coulton",
+      "platform": "Multi-platform",
+      "year": 2007,
+      "youtube_url": "https://youtube.com/watch?v=Y6ljFaKRTrI",
+      "spotify_url": "https://open.spotify.com/track/1kBRZKOQWtfBgogPWZFSWh"
+    },
+    {
+      "id": "017",
+      "title": "The Opened Way",
+      "game": "Shadow of the Colossus",
+      "series": "Shadow of the Colossus",
+      "composer": "Kow Otani",
+      "platform": "PlayStation 2",
+      "year": 2005,
+      "youtube_url": "https://youtube.com/watch?v=dVNcmGjNW6c",
+      "spotify_url": "https://open.spotify.com/track/4YzQfYp9hqfUKLbkqjXEEh"
+    },
+    {
+      "id": "018",
+      "title": "Brinstar",
+      "game": "Metroid",
+      "series": "Metroid",
+      "composer": "Hirokazu Tanaka",
+      "platform": "NES",
+      "year": 1986,
+      "youtube_url": "https://youtube.com/watch?v=E5-EcKB-jmk",
+      "spotify_url": "https://open.spotify.com/track/6VcKP8XHPCKOdL2HGfWdm7"
+    },
+    {
+      "id": "019",
+      "title": "Last Surprise",
+      "game": "Persona 5",
+      "series": "Persona",
+      "composer": "Shoji Meguro",
+      "platform": "PlayStation 4",
+      "year": 2016,
+      "youtube_url": "https://youtube.com/watch?v=eFVj0Z6ahcI",
+      "spotify_url": "https://open.spotify.com/track/1K0z0MRtW4TYxfLBSgVqC7"
+    },
+    {
+      "id": "020",
+      "title": "Weight of the World",
+      "game": "NieR:Automata",
+      "series": "NieR",
+      "composer": "Keiichi Okabe",
+      "platform": "Multi-platform",
+      "year": 2017,
+      "youtube_url": "https://youtube.com/watch?v=YMKskuvJTcs",
+      "spotify_url": "https://open.spotify.com/track/65l53RAb6kFOWGVoXP8Ry6"
     }
   ]
 }
