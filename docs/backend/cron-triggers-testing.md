@@ -325,5 +325,5 @@ wait
 ## Related Documentation
 
 - [R2 Cache Strategy](r2-cache-strategy.md)
-- [Phase 1 Implementation](phase1-implementation.md)
+- [Phase 1 Implementation](../dev/phase1-implementation.md)
 - [Backend Architecture](architecture.md)

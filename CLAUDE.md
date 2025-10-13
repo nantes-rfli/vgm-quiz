@@ -171,7 +171,7 @@ Key docs in `docs/`:
 - [docs/frontend/metrics-client.md](docs/frontend/metrics-client.md) — Metrics implementation
 - [docs/backend/README.md](docs/backend/README.md) — Backend overview
 - [docs/backend/architecture.md](docs/backend/architecture.md) — Backend architecture
-- [docs/backend/phase1-implementation.md](docs/backend/phase1-implementation.md) — Phase 1 implementation
+- [docs/dev/phase1-implementation.md](docs/dev/phase1-implementation.md) — Phase 1 implementation
 - [docs/backend/database.md](docs/backend/database.md) — Database schema
 - [docs/backend/curated-data-format.md](docs/backend/curated-data-format.md) — Curated data format (minimum 4 unique games required)
 - [docs/quality/e2e-plan.md](docs/quality/e2e-plan.md) — E2E test plan

@@ -1123,7 +1123,7 @@ Phase 1 統合完了後の次のステップ:
 
 - [API Specification (Phase 2 理想仕様)](../api/api-spec.md)
 - [Backend Architecture](../backend/architecture.md)
-- [Phase 1 Implementation Plan](../backend/phase1-implementation.md)
+- [Phase 1 Implementation Plan](../dev/phase1-implementation.md)
 - [Frontend Overview](../frontend/README.md)
 - [Cloudflare Pages Docs](https://developers.cloudflare.com/pages/)
 - [Next.js on Pages](https://developers.cloudflare.com/pages/framework-guides/nextjs/)

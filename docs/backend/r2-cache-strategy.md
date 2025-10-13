@@ -215,6 +215,6 @@ wrangler r2 object head vgm-quiz-storage/exports/2025-10-13.json
 ## Related Documentation
 
 - [Backend Architecture](architecture.md)
-- [Phase 1 Implementation](phase1-implementation.md)
+- [Phase 1 Implementation](../dev/phase1-implementation.md)
 - [Database Schema](database.md)
 - [Curated Data Format](curated-data-format.md)
