@@ -6,6 +6,7 @@ import type { DailyExport, Question } from '../../../shared/types/export'
 
 interface PublishResult {
   success: boolean
+  skipped?: boolean // True if question set already exists (idempotency guard)
   date: string
   questionsGenerated: number
   r2Key?: string
@@ -28,23 +29,40 @@ interface TrackRow {
 
 /**
  * Publish stage: Select questions, generate choices, export to R2
+ *
+ * Idempotency:
+ * - If question set for date already exists, skip generation and return early
+ * - Uses INSERT OR REPLACE for D1 tables to handle concurrent execution
+ * - R2 PUT operation naturally overwrites existing files (idempotent)
  */
 export async function handlePublish(env: Env, dateParam: string | null): Promise<PublishResult> {
   const date = dateParam || getTodayJST()
 
-  console.log(`Publish: Generating question set for ${date}`)
+  console.log(`[Publish] START: Generating question set for date=${date}`)
 
   try {
-    // 1. Check if already published
-    const existing = await env.DB.prepare('SELECT id FROM picks WHERE date = ?').bind(date).first()
+    // 1. Check if already published (idempotency guard)
+    const existing = await env.DB.prepare('SELECT id, items FROM picks WHERE date = ?').bind(date).first<{
+      id: number
+      items: string
+    }>()
 
     if (existing) {
-      console.log(`Question set for ${date} already exists, skipping`)
+      console.log(`[Publish] SKIP: Question set for ${date} already exists (pick_id=${existing.id})`)
+
+      // Verify R2 consistency
+      const r2Key = `exports/${date}.json`
+      const r2Object = await env.STORAGE.head(r2Key)
+
+      if (!r2Object) {
+        console.warn(`[Publish] WARNING: D1 entry exists but R2 file missing for ${date}`)
+      }
+
       return {
-        success: false,
+        success: true,
+        skipped: true,
         date,
         questionsGenerated: 0,
-        error: 'Question set already exists',
       }
     }
 
@@ -117,8 +135,8 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
       },
     }
 
-    // 8. Save to picks table
-    await env.DB.prepare('INSERT INTO picks (date, items, status) VALUES (?, ?, ?)')
+    // 8. Save to picks table (INSERT OR REPLACE for idempotency)
+    await env.DB.prepare('INSERT OR REPLACE INTO picks (date, items, status) VALUES (?, ?, ?)')
       .bind(date, JSON.stringify(exportData), 'published')
       .run()
 
@@ -134,7 +152,7 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
         .run()
     }
 
-    // 10. Export to R2
+    // 10. Export to R2 (PUT operation is naturally idempotent - overwrites existing)
     const r2Key = `exports/${date}.json`
     await env.STORAGE.put(r2Key, JSON.stringify(exportData, null, 2), {
       httpMetadata: {
@@ -142,12 +160,15 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
       },
     })
 
-    // 11. Save export metadata
-    await env.DB.prepare('INSERT INTO exports (date, r2_key, version, hash) VALUES (?, ?, ?, ?)')
+    console.log(`[Publish] R2: Exported to ${r2Key}`)
+
+    // 11. Save export metadata (INSERT OR REPLACE for idempotency)
+    await env.DB.prepare('INSERT OR REPLACE INTO exports (date, r2_key, version, hash) VALUES (?, ?, ?, ?)')
       .bind(date, r2Key, '1.0.0', hash)
       .run()
 
-    console.log(`Publish complete: ${questions.length} questions exported to ${r2Key}`)
+    console.log(`[Publish] SUCCESS: ${questions.length} questions generated for ${date}`)
+    console.log(`[Publish] Hash: ${hash}`)
 
     return {
       success: true,
@@ -157,7 +178,7 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
       hash,
     }
   } catch (error) {
-    console.error('Publish error:', error)
+    console.error(`[Publish] ERROR: Failed for date=${date}`, error)
     return {
       success: false,
       date,

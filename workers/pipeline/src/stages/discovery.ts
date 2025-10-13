@@ -18,7 +18,7 @@ export async function handleDiscovery(env: Env): Promise<DiscoveryResult> {
   let inserted = 0
   let updated = 0
 
-  console.log(`Discovery: Processing ${data.tracks.length} tracks`)
+  console.log(`[Discovery] START: Processing ${data.tracks.length} tracks from curated.json`)
 
   for (const track of data.tracks) {
     try {
@@ -40,13 +40,15 @@ export async function handleDiscovery(env: Env): Promise<DiscoveryResult> {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
       errors.push(`Track ${track.id}: ${message}`)
-      console.error(`Failed to upsert track ${track.id}:`, error)
+      console.error(`[Discovery] ERROR: Failed to upsert track ${track.id}:`, error)
     }
   }
 
-  console.log(
-    `Discovery complete: ${inserted} inserted, ${updated} updated, ${errors.length} errors`,
-  )
+  if (errors.length > 0) {
+    console.error(`[Discovery] FAILURE: ${errors.length} errors occurred`)
+  } else {
+    console.log(`[Discovery] SUCCESS: ${inserted} inserted, ${updated} updated`)
+  }
 
   return {
     success: errors.length === 0,
