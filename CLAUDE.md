@@ -51,6 +51,7 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 
 **Pipeline Worker** (`vgm-quiz-pipeline.nantos.workers.dev`)
 - **Discovery stage**: Ingests tracks from [workers/data/curated.json](workers/data/curated.json) into D1 (`tracks_normalized` table)
+  - Phase 2A: curated.json extended with `difficulty`, `genres`, `seriesTags`, `era` fields for filtering
 - **Publish stage**: Generates daily question sets (10 questions, 4-choice format) and exports to R2
 - Manual trigger via POST endpoints (`/trigger/discovery`, `/trigger/publish?date=YYYY-MM-DD`)
 
@@ -75,6 +76,11 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 - **Choice generation** ([workers/shared/lib/choices.ts](workers/shared/lib/choices.ts)): Requires minimum 4 unique game titles. Shuffles choices deterministically per questionId, then assigns IDs ('a'-'d') to prevent always having 'a' as correct answer.
 - **Hash integrity**: Export hash computed from content excluding hash field itself to avoid circular dependency.
 - **Deterministic shuffling**: Uses seeded random based on questionId for consistent choice ordering.
+- **Metadata schema** ([workers/shared/types/track.ts](workers/shared/types/track.ts)): Phase 2A adds optional facet fields:
+  - `difficulty`: Recognition difficulty (easy/normal/hard)
+  - `genres`: Genre tags (e.g., ["rpg", "jrpg", "platformer"])
+  - `seriesTags`: Series abbreviations (e.g., ["ff", "zelda", "mario"])
+  - `era`: Decade classification (80s-20s)
 
 **Future Phases** (not yet implemented):
 - Phase 2: Spotify API automation for Discovery/Harvest

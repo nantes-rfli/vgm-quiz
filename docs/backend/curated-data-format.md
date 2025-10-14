@@ -20,6 +20,9 @@ interface CuratedData {
   tracks: Track[]           // Array of curated tracks
 }
 
+type Difficulty = 'easy' | 'normal' | 'hard'
+type Era = '80s' | '90s' | '00s' | '10s' | '20s'
+
 interface Track {
   id: string                // Unique ID (e.g., "001", "002")
   title: string             // Track title
@@ -30,6 +33,11 @@ interface Track {
   year?: number             // Release year
   youtube_url?: string      // YouTube video URL
   spotify_url?: string      // Spotify track URL
+  // Phase 2A: Extended metadata for filtering
+  difficulty?: Difficulty   // Recognition difficulty (easy/normal/hard)
+  genres?: string[]         // Genre tags (e.g., ["action", "rpg", "platformer"])
+  seriesTags?: string[]     // Series abbreviations (e.g., ["ff", "dq", "zelda", "mario"])
+  era?: Era                 // Decade classification (80s-20s)
 }
 ```
 
@@ -46,8 +54,32 @@ interface Track {
 | `year` | ❌ | number | 1980-2030 |
 | `youtube_url` | ❌ | string | Valid URL |
 | `spotify_url` | ❌ | string | Valid URL |
+| `difficulty` | ❌ | string | One of: easy, normal, hard |
+| `genres` | ❌ | string[] | Array of genre tags (e.g., ["rpg", "jrpg"]) |
+| `seriesTags` | ❌ | string[] | Array of series abbreviations (e.g., ["ff", "zelda"]) |
+| `era` | ❌ | string | One of: 80s, 90s, 00s, 10s, 20s |
 
 > `id` は Phase 1 の `tracks_normalized.external_id` にマッピングされ、再取り込み時の重複排除に利用します。
+
+#### Phase 2A Extended Fields
+
+**difficulty** - Recognition difficulty level for quiz questions:
+- `easy`: Iconic tracks with widespread recognition (e.g., "One-Winged Angel", "Tetris Theme")
+- `normal`: Well-known tracks within their genre/series community
+- `hard`: Niche tracks or lesser-known titles
+
+**genres** - Game genre classifications (1-3 tags recommended):
+- Common tags: `rpg`, `jrpg`, `action`, `platformer`, `action-rpg`, `puzzle`, `fps`, `shooter`, `fighting`, `strategy`, `simulation`, `adventure`, `action-adventure`, `indie`, `arcade`
+
+**seriesTags** - Series abbreviations for quick filtering:
+- Examples: `ff` (Final Fantasy), `dq` (Dragon Quest), `zelda`, `mario`, `sonic`, `pokemon`, `persona`, `kh` (Kingdom Hearts)
+
+**era** - Decade classification based on release year:
+- `80s`: 1980-1989
+- `90s`: 1990-1999
+- `00s`: 2000-2009
+- `10s`: 2010-2019
+- `20s`: 2020-2029
 
 ### 重要な制約
 
@@ -65,7 +97,7 @@ Phase 1 では、4択問題を生成するために**最低4つの異なるゲ�
 
 ## Example
 
-### Minimal (10 tracks)
+### Minimal (10 tracks) with Phase 2A Extended Metadata
 
 ```json
 {
@@ -80,7 +112,11 @@ Phase 1 では、4択問題を生成するために**最低4つの異なるゲ�
       "platform": "Genesis",
       "year": 1991,
       "youtube_url": "https://youtube.com/watch?v=SF9ZLNxHaBY",
-      "spotify_url": "https://open.spotify.com/track/2MZSXhq4XDJWu6coGoXX18"
+      "spotify_url": "https://open.spotify.com/track/2MZSXhq4XDJWu6coGoXX18",
+      "difficulty": "easy",
+      "genres": ["platformer", "action"],
+      "seriesTags": ["sonic"],
+      "era": "90s"
     },
     {
       "id": "002",
@@ -90,7 +126,11 @@ Phase 1 では、4択問題を生成するために**最低4つの異なるゲ�
       "composer": "Koji Kondo",
       "platform": "NES",
       "year": 1985,
-      "youtube_url": "https://youtube.com/watch?v=NTa6Xbzfq1U"
+      "youtube_url": "https://youtube.com/watch?v=NTa6Xbzfq1U",
+      "difficulty": "easy",
+      "genres": ["platformer"],
+      "seriesTags": ["mario"],
+      "era": "80s"
     },
     {
       "id": "003",
@@ -99,7 +139,11 @@ Phase 1 では、4択問題を生成するために**最低4つの異なるゲ�
       "series": "Zelda",
       "composer": "Koji Kondo",
       "platform": "NES",
-      "year": 1986
+      "year": 1986,
+      "difficulty": "easy",
+      "genres": ["action-adventure"],
+      "seriesTags": ["zelda"],
+      "era": "80s"
     },
     {
       "id": "004",
@@ -110,7 +154,11 @@ Phase 1 では、4択問題を生成するために**最低4つの異なるゲ�
       "platform": "PlayStation",
       "year": 1997,
       "youtube_url": "https://youtube.com/watch?v=t7wJ8pE2qKU",
-      "spotify_url": "https://open.spotify.com/track/0yDKn48Z6TRJdOKKvhqUhE"
+      "spotify_url": "https://open.spotify.com/track/0yDKn48Z6TRJdOKKvhqUhE",
+      "difficulty": "easy",
+      "genres": ["rpg", "jrpg"],
+      "seriesTags": ["ff"],
+      "era": "90s"
     },
     {
       "id": "005",

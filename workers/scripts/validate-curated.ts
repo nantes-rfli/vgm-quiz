@@ -48,7 +48,9 @@ async function validateCurated(filePath: string): Promise<void> {
 
   // Ensure minimum 4 unique games for 4-choice questions
   if (uniqueGames.size < 4) {
-    console.error('❌ Insufficient unique games: Need at least 4 unique game titles for 4-choice questions')
+    console.error(
+      '❌ Insufficient unique games: Need at least 4 unique game titles for 4-choice questions',
+    )
     process.exit(1)
   }
 
