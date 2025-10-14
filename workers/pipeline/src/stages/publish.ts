@@ -42,13 +42,17 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
 
   try {
     // 1. Check if already published (idempotency guard)
-    const existing = await env.DB.prepare('SELECT id, items FROM picks WHERE date = ?').bind(date).first<{
-      id: number
-      items: string
-    }>()
+    const existing = await env.DB.prepare('SELECT id, items FROM picks WHERE date = ?')
+      .bind(date)
+      .first<{
+        id: number
+        items: string
+      }>()
 
     if (existing) {
-      console.log(`[Publish] SKIP: Question set for ${date} already exists (pick_id=${existing.id})`)
+      console.log(
+        `[Publish] SKIP: Question set for ${date} already exists (pick_id=${existing.id})`,
+      )
 
       // Verify R2 consistency
       const r2Key = `exports/${date}.json`
@@ -163,7 +167,9 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
     console.log(`[Publish] R2: Exported to ${r2Key}`)
 
     // 11. Save export metadata (INSERT OR REPLACE for idempotency)
-    await env.DB.prepare('INSERT OR REPLACE INTO exports (date, r2_key, version, hash) VALUES (?, ?, ?, ?)')
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO exports (date, r2_key, version, hash) VALUES (?, ?, ?, ?)',
+    )
       .bind(date, r2Key, '1.0.0', hash)
       .run()
 

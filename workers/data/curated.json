@@ -10,7 +10,11 @@
       "platform": "Genesis",
       "year": 1991,
       "youtube_url": "https://youtube.com/watch?v=SF9ZLNxHaBY",
-      "spotify_url": "https://open.spotify.com/track/2MZSXhq4XDJWu6coGoXX18"
+      "spotify_url": "https://open.spotify.com/track/2MZSXhq4XDJWu6coGoXX18",
+      "difficulty": "easy",
+      "genres": ["platformer", "action"],
+      "seriesTags": ["sonic"],
+      "era": "90s"
     },
     {
       "id": "002",
@@ -21,7 +25,11 @@
       "platform": "Wii",
       "year": 2007,
       "youtube_url": "https://youtube.com/watch?v=bcZhJDUFb58",
-      "spotify_url": "https://open.spotify.com/track/1rHXQ8VF9pG4jP9VZkFqVd"
+      "spotify_url": "https://open.spotify.com/track/1rHXQ8VF9pG4jP9VZkFqVd",
+      "difficulty": "easy",
+      "genres": ["platformer", "adventure"],
+      "seriesTags": ["mario"],
+      "era": "00s"
     },
     {
       "id": "003",
@@ -32,7 +40,11 @@
       "platform": "Nintendo 64",
       "year": 1998,
       "youtube_url": "https://youtube.com/watch?v=Hy0aEj85ifY",
-      "spotify_url": "https://open.spotify.com/track/5a5KbMCLqIBZ7L5lq9PFkR"
+      "spotify_url": "https://open.spotify.com/track/5a5KbMCLqIBZ7L5lq9PFkR",
+      "difficulty": "easy",
+      "genres": ["action-adventure", "rpg"],
+      "seriesTags": ["zelda"],
+      "era": "90s"
     },
     {
       "id": "004",
@@ -43,7 +55,11 @@
       "platform": "PlayStation",
       "year": 1997,
       "youtube_url": "https://youtube.com/watch?v=qDD-iYkHBhc",
-      "spotify_url": "https://open.spotify.com/track/0tyMZdSGKLTKX3m3pGWZ5T"
+      "spotify_url": "https://open.spotify.com/track/0tyMZdSGKLTKX3m3pGWZ5T",
+      "difficulty": "easy",
+      "genres": ["rpg", "jrpg"],
+      "seriesTags": ["ff"],
+      "era": "90s"
     },
     {
       "id": "005",
@@ -54,7 +70,11 @@
       "platform": "Super Nintendo",
       "year": 1995,
       "youtube_url": "https://youtube.com/watch?v=ESqZb7hY1S0",
-      "spotify_url": "https://open.spotify.com/track/3VV5Wq3vlNBZ6Hn5HCVBvp"
+      "spotify_url": "https://open.spotify.com/track/3VV5Wq3vlNBZ6Hn5HCVBvp",
+      "difficulty": "normal",
+      "genres": ["rpg", "jrpg"],
+      "seriesTags": ["chrono"],
+      "era": "90s"
     },
     {
       "id": "006",
@@ -65,7 +85,11 @@
       "platform": "PlayStation",
       "year": 1999,
       "youtube_url": "https://youtube.com/watch?v=3jho-peCAKs",
-      "spotify_url": "https://open.spotify.com/track/4vbL8UCJoFKxJqPDYIFvXv"
+      "spotify_url": "https://open.spotify.com/track/4vbL8UCJoFKxJqPDYIFvXv",
+      "difficulty": "normal",
+      "genres": ["rpg", "jrpg"],
+      "seriesTags": ["ff"],
+      "era": "90s"
     },
     {
       "id": "007",
@@ -76,7 +100,11 @@
       "platform": "PC",
       "year": 2005,
       "youtube_url": "https://youtube.com/watch?v=IJiHDmyhE1A",
-      "spotify_url": "https://open.spotify.com/track/1Gbkp61WxLjUECVAg3R0H2"
+      "spotify_url": "https://open.spotify.com/track/1Gbkp61WxLjUECVAg3R0H2",
+      "difficulty": "hard",
+      "genres": ["strategy", "simulation"],
+      "seriesTags": ["civ"],
+      "era": "00s"
     },
     {
       "id": "008",
@@ -87,7 +115,11 @@
       "platform": "PC",
       "year": 2015,
       "youtube_url": "https://youtube.com/watch?v=wDgQdr8ZkTw",
-      "spotify_url": "https://open.spotify.com/track/4bPPWrUSNJRLVczPe8OdBp"
+      "spotify_url": "https://open.spotify.com/track/4bPPWrUSNJRLVczPe8OdBp",
+      "difficulty": "easy",
+      "genres": ["rpg", "indie"],
+      "seriesTags": ["undertale"],
+      "era": "10s"
     },
     {
       "id": "009",
@@ -98,7 +130,11 @@
       "platform": "Wii",
       "year": 2010,
       "youtube_url": "https://youtube.com/watch?v=9t89dq5K9rY",
-      "spotify_url": "https://open.spotify.com/track/7ixKnFTfZb4J2bhHQf5OUg"
+      "spotify_url": "https://open.spotify.com/track/7ixKnFTfZb4J2bhHQf5OUg",
+      "difficulty": "normal",
+      "genres": ["rpg", "jrpg", "action-rpg"],
+      "seriesTags": ["xenoblade"],
+      "era": "10s"
     },
     {
       "id": "010",
@@ -109,7 +145,11 @@
       "platform": "PlayStation 2",
       "year": 2002,
       "youtube_url": "https://youtube.com/watch?v=gUQuBBBzx-I",
-      "spotify_url": "https://open.spotify.com/track/0zx6oGNEKbOyL4J4sS39Yf"
+      "spotify_url": "https://open.spotify.com/track/0zx6oGNEKbOyL4J4sS39Yf",
+      "difficulty": "normal",
+      "genres": ["action-rpg", "jrpg"],
+      "seriesTags": ["kh"],
+      "era": "00s"
     },
     {
       "id": "011",
@@ -120,7 +160,11 @@
       "platform": "Xbox",
       "year": 2001,
       "youtube_url": "https://youtube.com/watch?v=0jXTBAGv9ZQ",
-      "spotify_url": "https://open.spotify.com/track/6n4bH0F7ggZ3kMKQvZLLOe"
+      "spotify_url": "https://open.spotify.com/track/6n4bH0F7ggZ3kMKQvZLLOe",
+      "difficulty": "easy",
+      "genres": ["fps", "shooter"],
+      "seriesTags": ["halo"],
+      "era": "00s"
     },
     {
       "id": "012",
@@ -131,7 +175,11 @@
       "platform": "Game Boy",
       "year": 1989,
       "youtube_url": "https://youtube.com/watch?v=NmCCQxVBfyM",
-      "spotify_url": "https://open.spotify.com/track/5J4lKPB7hsKdLlX9SpCJjm"
+      "spotify_url": "https://open.spotify.com/track/5J4lKPB7hsKdLlX9SpCJjm",
+      "difficulty": "easy",
+      "genres": ["puzzle"],
+      "seriesTags": ["tetris"],
+      "era": "80s"
     },
     {
       "id": "013",
@@ -142,7 +190,11 @@
       "platform": "Game Boy",
       "year": 1996,
       "youtube_url": "https://youtube.com/watch?v=71-ViI_TLmQ",
-      "spotify_url": "https://open.spotify.com/track/2ZiB6UjcXmbduiRWZ3rQMC"
+      "spotify_url": "https://open.spotify.com/track/2ZiB6UjcXmbduiRWZ3rQMC",
+      "difficulty": "easy",
+      "genres": ["rpg", "jrpg"],
+      "seriesTags": ["pokemon"],
+      "era": "90s"
     },
     {
       "id": "014",
@@ -153,7 +205,11 @@
       "platform": "Arcade",
       "year": 1991,
       "youtube_url": "https://youtube.com/watch?v=Iof5pRAIZmw",
-      "spotify_url": "https://open.spotify.com/track/4kLStzeMgqpuQJbZDPO0fP"
+      "spotify_url": "https://open.spotify.com/track/4kLStzeMgqpuQJbZDPO0fP",
+      "difficulty": "easy",
+      "genres": ["fighting", "arcade"],
+      "seriesTags": ["sf"],
+      "era": "90s"
     },
     {
       "id": "015",
@@ -164,7 +220,11 @@
       "platform": "Multi-platform",
       "year": 2011,
       "youtube_url": "https://youtube.com/watch?v=AVy7YPNP_zI",
-      "spotify_url": "https://open.spotify.com/track/3RqxPSzFq4ZS7eEiR9R7nB"
+      "spotify_url": "https://open.spotify.com/track/3RqxPSzFq4ZS7eEiR9R7nB",
+      "difficulty": "easy",
+      "genres": ["rpg", "action-rpg"],
+      "seriesTags": ["tes"],
+      "era": "10s"
     },
     {
       "id": "016",
@@ -175,7 +235,11 @@
       "platform": "Multi-platform",
       "year": 2007,
       "youtube_url": "https://youtube.com/watch?v=Y6ljFaKRTrI",
-      "spotify_url": "https://open.spotify.com/track/1kBRZKOQWtfBgogPWZFSWh"
+      "spotify_url": "https://open.spotify.com/track/1kBRZKOQWtfBgogPWZFSWh",
+      "difficulty": "normal",
+      "genres": ["puzzle", "fps"],
+      "seriesTags": ["portal"],
+      "era": "00s"
     },
     {
       "id": "017",
@@ -186,7 +250,11 @@
       "platform": "PlayStation 2",
       "year": 2005,
       "youtube_url": "https://youtube.com/watch?v=dVNcmGjNW6c",
-      "spotify_url": "https://open.spotify.com/track/4YzQfYp9hqfUKLbkqjXEEh"
+      "spotify_url": "https://open.spotify.com/track/4YzQfYp9hqfUKLbkqjXEEh",
+      "difficulty": "normal",
+      "genres": ["action-adventure"],
+      "seriesTags": ["sotc"],
+      "era": "00s"
     },
     {
       "id": "018",
@@ -197,7 +265,11 @@
       "platform": "NES",
       "year": 1986,
       "youtube_url": "https://youtube.com/watch?v=E5-EcKB-jmk",
-      "spotify_url": "https://open.spotify.com/track/6VcKP8XHPCKOdL2HGfWdm7"
+      "spotify_url": "https://open.spotify.com/track/6VcKP8XHPCKOdL2HGfWdm7",
+      "difficulty": "normal",
+      "genres": ["action-adventure", "platformer"],
+      "seriesTags": ["metroid"],
+      "era": "80s"
     },
     {
       "id": "019",
@@ -208,7 +280,11 @@
       "platform": "PlayStation 4",
       "year": 2016,
       "youtube_url": "https://youtube.com/watch?v=eFVj0Z6ahcI",
-      "spotify_url": "https://open.spotify.com/track/1K0z0MRtW4TYxfLBSgVqC7"
+      "spotify_url": "https://open.spotify.com/track/1K0z0MRtW4TYxfLBSgVqC7",
+      "difficulty": "normal",
+      "genres": ["rpg", "jrpg"],
+      "seriesTags": ["persona"],
+      "era": "10s"
     },
     {
       "id": "020",
@@ -219,7 +295,11 @@
       "platform": "Multi-platform",
       "year": 2017,
       "youtube_url": "https://youtube.com/watch?v=YMKskuvJTcs",
-      "spotify_url": "https://open.spotify.com/track/65l53RAb6kFOWGVoXP8Ry6"
+      "spotify_url": "https://open.spotify.com/track/65l53RAb6kFOWGVoXP8Ry6",
+      "difficulty": "hard",
+      "genres": ["action-rpg", "jrpg"],
+      "seriesTags": ["nier"],
+      "era": "10s"
     }
   ]
 }
