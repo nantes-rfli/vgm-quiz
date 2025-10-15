@@ -101,6 +101,8 @@ async function upsertTrack(db: D1Database, track: Track): Promise<void> {
     throw new Error(`Failed to get track_id for ${track.id}`)
   }
 
+  const trackId = result.track_id
+
   // Insert into pool if not exists
   await db
     .prepare(
@@ -108,6 +110,32 @@ async function upsertTrack(db: D1Database, track: Track): Promise<void> {
        VALUES (?, 'available', 0)
        ON CONFLICT(track_id) DO NOTHING`,
     )
-    .bind(result.track_id)
+    .bind(trackId)
+    .run()
+
+  // Upsert facet metadata
+  const genres = track.genres ? [...new Set(track.genres.filter(Boolean))] : []
+  const seriesTags = track.seriesTags ? [...new Set(track.seriesTags.filter(Boolean))] : []
+  const updatedAt = Math.floor(Date.now() / 1000)
+
+  await db
+    .prepare(
+      `INSERT INTO track_facets (track_id, difficulty, genres, series_tags, era, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(track_id) DO UPDATE SET
+         difficulty = excluded.difficulty,
+         genres = excluded.genres,
+         series_tags = excluded.series_tags,
+         era = excluded.era,
+         updated_at = excluded.updated_at`,
+    )
+    .bind(
+      trackId,
+      track.difficulty ?? null,
+      JSON.stringify(genres),
+      JSON.stringify(seriesTags),
+      track.era ?? null,
+      updatedAt,
+    )
     .run()
 }

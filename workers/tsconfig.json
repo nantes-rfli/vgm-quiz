@@ -16,6 +16,6 @@
       "@/shared/*": ["./shared/*"]
     }
   },
-  "include": ["api/src/**/*", "pipeline/src/**/*", "shared/**/*"],
+  "include": ["api/src/**/*", "pipeline/src/**/*", "shared/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }
