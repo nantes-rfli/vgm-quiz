@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer'
-import { describe, expect, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { handleDiscovery } from '../pipeline/src/stages/discovery'
 import { handlePublish } from '../pipeline/src/stages/publish'
 import type { Env } from '../shared/types/env'
@@ -53,7 +53,7 @@ type ExportRecord = {
 type StatementParams = unknown[]
 
 interface D1Result {
-  results?: any[]
+  results?: Array<Record<string, unknown>>
   success: boolean
   error?: string
   meta: Record<string, unknown>
@@ -62,7 +62,10 @@ interface D1Result {
 class FakeStatement {
   #params: StatementParams = []
 
-  constructor(private readonly db: FakeD1Database, private readonly query: string) {}
+  constructor(
+    private readonly db: FakeD1Database,
+    private readonly query: string,
+  ) {}
 
   bind(...params: StatementParams): this {
     this.#params = params
@@ -147,7 +150,7 @@ class FakeD1Database {
 
   executeRun(query: string, params: StatementParams): D1Result {
     switch (query) {
-      case "INSERT INTO tracks_normalized (external_id, title, game, series, composer, platform, year, youtube_url, spotify_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(external_id) DO UPDATE SET title = excluded.title, game = excluded.game, series = excluded.series, composer = excluded.composer, platform = excluded.platform, year = excluded.year, youtube_url = excluded.youtube_url, spotify_url = excluded.spotify_url": {
+      case 'INSERT INTO tracks_normalized (external_id, title, game, series, composer, platform, year, youtube_url, spotify_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(external_id) DO UPDATE SET title = excluded.title, game = excluded.game, series = excluded.series, composer = excluded.composer, platform = excluded.platform, year = excluded.year, youtube_url = excluded.youtube_url, spotify_url = excluded.spotify_url': {
         this.upsertTrack(params)
         break
       }
@@ -262,17 +265,18 @@ class FakeD1Database {
   }
 
   private upsertTrack(params: StatementParams): void {
-    const [externalId, title, game, series, composer, platform, year, youtube, spotify] = params as [
-      string,
-      string,
-      string,
-      Nullable<string>,
-      Nullable<string>,
-      Nullable<string>,
-      Nullable<number>,
-      Nullable<string>,
-      Nullable<string>,
-    ]
+    const [externalId, title, game, series, composer, platform, year, youtube, spotify] =
+      params as [
+        string,
+        string,
+        string,
+        Nullable<string>,
+        Nullable<string>,
+        Nullable<string>,
+        Nullable<number>,
+        Nullable<string>,
+        Nullable<string>,
+      ]
 
     const existing = this.#tracksByExternalId.get(externalId)
 
@@ -394,7 +398,11 @@ describe('pipeline facets integration', () => {
     const exportObject = await storage.get('exports/2025-01-01.json')
     expect(exportObject).not.toBeNull()
 
-    const raw = await exportObject!.text()
+    if (!exportObject) {
+      throw new Error('Expected export object to exist for 2025-01-01')
+    }
+
+    const raw = await exportObject.text()
     const parsed = JSON.parse(raw) as { questions: Question[] }
     const target = parsed.questions.find((q) => q.title === 'Green Hill Zone')
 

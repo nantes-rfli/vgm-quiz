@@ -1,7 +1,7 @@
 # Curated Data Format – vgm-quiz Backend
 
 - **Status**: Draft
-- **Last Updated**: 2025-10-10
+- **Last Updated**: 2025-10-16
 - **Purpose**: Phase 1 手動キュレーションデータの形式定義
 
 ## File Location
@@ -28,15 +28,15 @@ interface Track {
   title: string             // Track title
   game: string              // Game title (正解の選択肢)
   series?: string           // Series name (e.g., "Final Fantasy")
-  composer?: string         // Composer name
+  composer: string          // Composer name
   platform?: string         // Platform (e.g., "SNES", "PlayStation")
-  year?: number             // Release year
-  youtube_url?: string      // YouTube video URL
-  spotify_url?: string      // Spotify track URL
+  year: number              // Release year
+  youtube_url: string       // YouTube video URL
+  spotify_url: string       // Spotify track URL
   // Phase 2A: Extended metadata for filtering
   difficulty?: Difficulty   // Recognition difficulty (easy/normal/hard)
-  genres?: string[]         // Genre tags (e.g., ["action", "rpg", "platformer"])
-  seriesTags?: string[]     // Series abbreviations (e.g., ["ff", "dq", "zelda", "mario"])
+  genres?: string[]         // Genre tags (non-empty if provided)
+  seriesTags?: string[]     // Series abbreviations (vocabulary controlled)
   era?: Era                 // Decade classification (80s-20s)
 }
 ```
@@ -49,14 +49,14 @@ interface Track {
 | `title` | ✅ | string | Min 1 char |
 | `game` | ✅ | string | Min 1 char, **must be unique** |
 | `series` | ❌ | string | - |
-| `composer` | ❌ | string | - |
+| `composer` | ✅ | string | Min 1 char |
 | `platform` | ❌ | string | - |
-| `year` | ❌ | number | 1980-2030 |
-| `youtube_url` | ❌ | string | Valid URL |
-| `spotify_url` | ❌ | string | Valid URL |
+| `year` | ✅ | number | 1980-2030 |
+| `youtube_url` | ✅ | string | Valid URL |
+| `spotify_url` | ✅ | string | Valid URL |
 | `difficulty` | ❌ | string | One of: easy, normal, hard |
-| `genres` | ❌ | string[] | Array of genre tags (e.g., ["rpg", "jrpg"]) |
-| `seriesTags` | ❌ | string[] | Array of series abbreviations (e.g., ["ff", "zelda"]) |
+| `genres` | ❌ | string[] | Non-empty array if provided; values must use the curated genre vocabulary below |
+| `seriesTags` | ❌ | string[] | Array of approved abbreviations (see vocabulary below) |
 | `era` | ❌ | string | One of: 80s, 90s, 00s, 10s, 20s |
 
 > `id` は Phase 1 の `tracks_normalized.external_id` にマッピングされ、再取り込み時の重複排除に利用します。
@@ -69,10 +69,10 @@ interface Track {
 - `hard`: Niche tracks or lesser-known titles
 
 **genres** - Game genre classifications (1-3 tags recommended):
-- Common tags: `rpg`, `jrpg`, `action`, `platformer`, `action-rpg`, `puzzle`, `fps`, `shooter`, `fighting`, `strategy`, `simulation`, `adventure`, `action-adventure`, `indie`, `arcade`
+- Allowed vocabulary: `action`, `action-adventure`, `action-rpg`, `adventure`, `arcade`, `fighting`, `fps`, `indie`, `jrpg`, `platformer`, `puzzle`, `rpg`, `shooter`, `simulation`, `strategy`
 
 **seriesTags** - Series abbreviations for quick filtering:
-- Examples: `ff` (Final Fantasy), `dq` (Dragon Quest), `zelda`, `mario`, `sonic`, `pokemon`, `persona`, `kh` (Kingdom Hearts)
+- Allowed vocabulary: `chrono`, `civ`, `ff`, `halo`, `kh`, `mario`, `metroid`, `nier`, `persona`, `pokemon`, `portal`, `sf`, `sonic`, `sotc`, `tes`, `tetris`, `undertale`, `xenoblade`, `zelda`
 
 **era** - Decade classification based on release year:
 - `80s`: 1980-1989
@@ -97,7 +97,7 @@ Phase 1 では、4択問題を生成するために**最低4つの異なるゲ�
 
 ## Example
 
-### Minimal (10 tracks) with Phase 2A Extended Metadata
+### Example Dataset (excerpt)
 
 ```json
 {
@@ -114,109 +114,54 @@ Phase 1 では、4択問題を生成するために**最低4つの異なるゲ�
       "youtube_url": "https://youtube.com/watch?v=SF9ZLNxHaBY",
       "spotify_url": "https://open.spotify.com/track/2MZSXhq4XDJWu6coGoXX18",
       "difficulty": "easy",
-      "genres": ["platformer", "action"],
-      "seriesTags": ["sonic"],
+      "genres": [
+        "platformer",
+        "action"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
       "era": "90s"
     },
     {
       "id": "002",
-      "title": "Super Mario Bros. Theme",
-      "game": "Super Mario Bros.",
-      "series": "Mario",
-      "composer": "Koji Kondo",
-      "platform": "NES",
-      "year": 1985,
-      "youtube_url": "https://youtube.com/watch?v=NTa6Xbzfq1U",
-      "difficulty": "easy",
-      "genres": ["platformer"],
-      "seriesTags": ["mario"],
-      "era": "80s"
-    },
-    {
-      "id": "003",
-      "title": "The Legend of Zelda Main Theme",
-      "game": "The Legend of Zelda",
-      "series": "Zelda",
-      "composer": "Koji Kondo",
-      "platform": "NES",
-      "year": 1986,
-      "difficulty": "easy",
-      "genres": ["action-adventure"],
-      "seriesTags": ["zelda"],
-      "era": "80s"
-    },
-    {
-      "id": "004",
-      "title": "One-Winged Angel",
-      "game": "Final Fantasy VII",
-      "series": "Final Fantasy",
-      "composer": "Nobuo Uematsu",
-      "platform": "PlayStation",
-      "year": 1997,
-      "youtube_url": "https://youtube.com/watch?v=t7wJ8pE2qKU",
-      "spotify_url": "https://open.spotify.com/track/0yDKn48Z6TRJdOKKvhqUhE",
-      "difficulty": "easy",
-      "genres": ["rpg", "jrpg"],
-      "seriesTags": ["ff"],
-      "era": "90s"
-    },
-    {
-      "id": "005",
-      "title": "Chemical Plant Zone",
-      "game": "Sonic the Hedgehog 2",
-      "series": "Sonic",
-      "composer": "Masato Nakamura",
-      "platform": "Genesis",
-      "year": 1992
-    },
-    {
-      "id": "006",
       "title": "Gusty Garden Galaxy",
       "game": "Super Mario Galaxy",
-      "series": "Mario",
+      "series": "Super Mario",
       "composer": "Mahito Yokota",
       "platform": "Wii",
       "year": 2007,
-      "youtube_url": "https://youtube.com/watch?v=VEIWhy-urqM"
+      "youtube_url": "https://youtube.com/watch?v=bcZhJDUFb58",
+      "spotify_url": "https://open.spotify.com/track/1rHXQ8VF9pG4jP9VZkFqVd",
+      "difficulty": "easy",
+      "genres": [
+        "platformer",
+        "adventure"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "00s"
     },
     {
-      "id": "007",
+      "id": "003",
       "title": "Gerudo Valley",
       "game": "The Legend of Zelda: Ocarina of Time",
-      "series": "Zelda",
+      "series": "The Legend of Zelda",
       "composer": "Koji Kondo",
-      "platform": "N64",
+      "platform": "Nintendo 64",
       "year": 1998,
-      "youtube_url": "https://youtube.com/watch?v=0hEYvdMoF2g"
-    },
-    {
-      "id": "008",
-      "title": "To Zanarkand",
-      "game": "Final Fantasy X",
-      "series": "Final Fantasy",
-      "composer": "Nobuo Uematsu",
-      "platform": "PlayStation 2",
-      "year": 2001,
-      "spotify_url": "https://open.spotify.com/track/6XZoJcAY9V1ngXVCZoNjHi"
-    },
-    {
-      "id": "009",
-      "title": "Mega Man 2 - Dr. Wily's Castle",
-      "game": "Mega Man 2",
-      "series": "Mega Man",
-      "composer": "Takashi Tateishi",
-      "platform": "NES",
-      "year": 1988,
-      "youtube_url": "https://youtube.com/watch?v=WJRoRt155mA"
-    },
-    {
-      "id": "010",
-      "title": "Bloody Tears",
-      "game": "Castlevania II: Simon's Quest",
-      "series": "Castlevania",
-      "composer": "Kenichi Matsubara",
-      "platform": "NES",
-      "year": 1987
+      "youtube_url": "https://youtube.com/watch?v=Hy0aEj85ifY",
+      "spotify_url": "https://open.spotify.com/track/5a5KbMCLqIBZ7L5lq9PFkR",
+      "difficulty": "easy",
+      "genres": [
+        "action-adventure",
+        "rpg"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
+      "era": "90s"
     }
   ]
 }
@@ -309,67 +254,33 @@ function shuffleArray<T>(items: T[]): T[] {
 
 ### `workers/scripts/validate-curated.ts`
 
-```typescript
-import { readFile } from 'fs/promises'
-import { z } from 'zod'
+The Phase 2A validator enforces the extended schema and metadata rules. Highlights:
 
-const TrackSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  game: z.string().min(1),
-  series: z.string().optional(),
-  composer: z.string().optional(),
-  platform: z.string().optional(),
-  year: z.number().min(1980).max(2030).optional(),
-  youtube_url: z.string().url().optional(),
-  spotify_url: z.string().url().optional(),
-})
-
-const CuratedDataSchema = z.object({
-  version: z.string().regex(/^\d+\.\d+\.\d+$/),
-  tracks: z.array(TrackSchema).min(10),
-})
-
-async function validateCurated(filePath: string): Promise<void> {
-  const json = JSON.parse(await readFile(filePath, 'utf-8'))
-  const result = CuratedDataSchema.safeParse(json)
-
-  if (!result.success) {
-    console.error('❌ Validation failed:')
-    console.error(result.error.format())
-    process.exit(1)
-  }
-
-  console.log('✅ Validation passed!')
-  console.log(`   Version: ${result.data.version}`)
-  console.log(`   Tracks: ${result.data.tracks.length}`)
-
-  // Check for duplicate IDs
-  const ids = result.data.tracks.map((t) => t.id)
-  const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
-  if (duplicates.length > 0) {
-    console.error('❌ Duplicate IDs found:', duplicates)
-    process.exit(1)
-  }
-
-  // Check for duplicate games (should have variety)
-  const games = result.data.tracks.map((t) => t.game)
-  const uniqueGames = new Set(games)
-  if (uniqueGames.size < games.length * 0.8) {
-    console.warn('⚠️  Low game variety (many duplicates)')
-  }
-
-  console.log(`   Unique games: ${uniqueGames.size}`)
-}
-
-validateCurated('./data/curated.json')
-```
+- Required fields (`id`, `title`, `game`, `composer`, `year`, `youtube_url`, `spotify_url`) and SemVer `version` are validated with Zod.
+- Enumerated metadata: `difficulty`, `genres`, `seriesTags`, and `era` must use the approved vocabularies.
+- Track-level checks include duplicate ID detection and friendly contextual error messages.
+- Collection-level checks ensure at least four unique `game` values, with warnings for low variety.
+- Output separates errors and warnings, exiting with status code `1` on failure.
 
 ### Usage
 
 ```bash
 cd workers
 npm run validate:curated
+```
+
+### CI Integration
+
+Pull Request チェックとして `.github/workflows/validate-data.yml` を用意しており、`workers/data/curated.json` または検証スクリプトに変更が入った場合に自動で `npm run validate:curated` を実行します。手動検証に加えて、PR 上での失敗をトリガーにデータ品質を維持できます。
+
+### Sample Output
+
+```text
+✅ VALIDATION PASSED
+
+  Version: 1.0.0
+  Tracks: 20
+  Unique games: 20
 ```
 
 ## Import into D1

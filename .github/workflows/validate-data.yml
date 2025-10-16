@@ -1,0 +1,31 @@
+name: Validate Data
+
+on:
+  pull_request:
+    paths:
+      - 'workers/data/curated.json'
+      - 'workers/scripts/validate-curated.ts'
+      - '.github/workflows/validate-data.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
+
+      - name: Install workers dependencies
+        working-directory: workers
+        run: npm ci
+
+      - name: Validate curated data
+        working-directory: workers
+        run: npm run validate:curated
