@@ -1,4 +1,11 @@
-import type { Track } from './track'
+import type { Difficulty, Era } from './track'
+
+export interface QuestionFacets {
+  difficulty?: Difficulty
+  genres?: string[]
+  seriesTags?: string[]
+  era?: Era
+}
 
 export interface Choice {
   id: string
@@ -24,6 +31,7 @@ export interface Question {
   game: string
   choices: Choice[]
   reveal: Reveal
+  facets?: QuestionFacets
   meta?: {
     difficulty?: number
     notability?: number

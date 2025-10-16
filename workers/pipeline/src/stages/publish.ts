@@ -2,7 +2,7 @@ import { generateChoices } from '../../../shared/lib/choices'
 import { getTodayJST } from '../../../shared/lib/date'
 import { sha256 } from '../../../shared/lib/hash'
 import type { Env } from '../../../shared/types/env'
-import type { DailyExport, Question } from '../../../shared/types/export'
+import type { DailyExport, Question, QuestionFacets } from '../../../shared/types/export'
 
 interface PublishResult {
   success: boolean
@@ -25,6 +25,10 @@ interface TrackRow {
   year: number | null
   youtube_url: string | null
   spotify_url: string | null
+  difficulty: string | null
+  genres: string | null
+  series_tags: string | null
+  era: string | null
 }
 
 /**
@@ -117,6 +121,7 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
     // 4. Generate questions with choices
     const questions: Question[] = tracks.map((track, index) => {
       const questionId = `q_${date}_${index + 1}`
+      const facets = buildQuestionFacets(track)
 
       return {
         id: questionId,
@@ -134,6 +139,7 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
           youtube_url: track.youtube_url || undefined,
           spotify_url: track.spotify_url || undefined,
         },
+        facets,
         meta: {
           difficulty: 50, // Phase 1: static score
           notability: 50,
@@ -234,9 +240,10 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
 async function selectTracks(db: D1Database, count: number): Promise<TrackRow[]> {
   const result = await db
     .prepare(
-      `SELECT t.*
+      `SELECT t.*, f.difficulty, f.genres, f.series_tags, f.era
        FROM tracks_normalized t
        INNER JOIN pool p ON t.track_id = p.track_id
+       LEFT JOIN track_facets f ON f.track_id = t.track_id
        WHERE p.state = 'available'
        ORDER BY RANDOM()
        LIMIT ?`,
@@ -256,4 +263,49 @@ async function getAllGameTitles(db: D1Database): Promise<string[]> {
     .all<{ game: string }>()
 
   return (result.results || []).map((r) => r.game)
+}
+
+function parseFacetArray(value: string | null): string[] {
+  if (!value) return []
+
+  try {
+    const parsed = JSON.parse(value)
+
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+
+    const filtered = parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    return Array.from(new Set(filtered))
+  } catch (error) {
+    console.warn('[Publish] WARN: Failed to parse facet array', error)
+    return []
+  }
+}
+
+function buildQuestionFacets(track: TrackRow): QuestionFacets | undefined {
+  const genres = parseFacetArray(track.genres)
+  const seriesTags = parseFacetArray(track.series_tags)
+
+  const result: QuestionFacets = {}
+
+  const difficulty = track.difficulty
+  if (difficulty === 'easy' || difficulty === 'normal' || difficulty === 'hard') {
+    result.difficulty = difficulty
+  }
+
+  if (genres.length > 0) {
+    result.genres = genres
+  }
+
+  if (seriesTags.length > 0) {
+    result.seriesTags = seriesTags
+  }
+
+  const era = track.era
+  if (era === '80s' || era === '90s' || era === '00s' || era === '10s' || era === '20s') {
+    result.era = era
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined
 }
