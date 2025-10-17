@@ -38,6 +38,7 @@ npm run deploy:api             # Deploy API Worker to production
 npm run deploy:pipeline        # Deploy Pipeline Worker to production
 npm run typecheck              # TypeScript type checking
 npm run lint                   # Biome lint checks
+npm run validate:curated       # Validate curated data file (curated.json)
 wrangler d1 migrations apply vgm-quiz-db --remote  # Apply DB migrations to production
 ```
 

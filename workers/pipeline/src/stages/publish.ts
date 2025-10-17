@@ -275,7 +275,9 @@ function parseFacetArray(value: string | null): string[] {
       return []
     }
 
-    const filtered = parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    const filtered = parsed.filter(
+      (item): item is string => typeof item === 'string' && item.trim().length > 0,
+    )
     return Array.from(new Set(filtered))
   } catch (error) {
     console.warn('[Publish] WARN: Failed to parse facet array', error)
