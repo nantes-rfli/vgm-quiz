@@ -25,6 +25,7 @@ interface TrackRow {
   year: number | null
   youtube_url: string | null
   spotify_url: string | null
+  apple_music_url: string | null
   difficulty: string | null
   genres: string | null
   series_tags: string | null
@@ -138,6 +139,7 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
           series: track.series || undefined,
           youtube_url: track.youtube_url || undefined,
           spotify_url: track.spotify_url || undefined,
+          apple_music_url: track.apple_music_url || undefined,
         },
         facets,
         meta: {

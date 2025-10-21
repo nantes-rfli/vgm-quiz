@@ -66,8 +66,8 @@ async function upsertTrack(db: D1Database, track: Track): Promise<void> {
   await db
     .prepare(
       `INSERT INTO tracks_normalized
-       (external_id, title, game, series, composer, platform, year, youtube_url, spotify_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       (external_id, title, game, series, composer, platform, year, youtube_url, spotify_url, apple_music_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(external_id) DO UPDATE SET
          title = excluded.title,
          game = excluded.game,
@@ -76,7 +76,8 @@ async function upsertTrack(db: D1Database, track: Track): Promise<void> {
          platform = excluded.platform,
          year = excluded.year,
          youtube_url = excluded.youtube_url,
-         spotify_url = excluded.spotify_url`,
+         spotify_url = excluded.spotify_url,
+         apple_music_url = excluded.apple_music_url`,
     )
     .bind(
       track.id,
@@ -88,6 +89,7 @@ async function upsertTrack(db: D1Database, track: Track): Promise<void> {
       track.year || null,
       track.youtube_url || null,
       track.spotify_url || null,
+      track.apple_music_url || null,
     )
     .run()
 

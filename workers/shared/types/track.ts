@@ -11,6 +11,7 @@ export interface Track {
   year?: number
   youtube_url?: string
   spotify_url?: string
+  apple_music_url?: string
   // Phase 2A: Extended metadata for filtering
   difficulty?: Difficulty
   genres?: string[] // e.g., ["action", "rpg", "platformer"]

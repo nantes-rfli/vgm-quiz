@@ -22,6 +22,7 @@ export interface Reveal {
   series?: string
   youtube_url?: string
   spotify_url?: string
+  apple_music_url?: string
 }
 
 export interface Question {
