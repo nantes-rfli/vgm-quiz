@@ -12,8 +12,13 @@
       "youtube_url": "https://youtube.com/watch?v=SF9ZLNxHaBY",
       "spotify_url": "https://open.spotify.com/track/2MZSXhq4XDJWu6coGoXX18",
       "difficulty": "easy",
-      "genres": ["platformer", "action"],
-      "seriesTags": ["sonic"],
+      "genres": [
+        "platformer",
+        "action"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
       "era": "90s"
     },
     {
@@ -27,8 +32,13 @@
       "youtube_url": "https://youtube.com/watch?v=bcZhJDUFb58",
       "spotify_url": "https://open.spotify.com/track/1rHXQ8VF9pG4jP9VZkFqVd",
       "difficulty": "easy",
-      "genres": ["platformer", "adventure"],
-      "seriesTags": ["mario"],
+      "genres": [
+        "platformer",
+        "adventure"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
       "era": "00s"
     },
     {
@@ -42,8 +52,12 @@
       "youtube_url": "https://youtube.com/watch?v=Hy0aEj85ifY",
       "spotify_url": "https://open.spotify.com/track/5a5KbMCLqIBZ7L5lq9PFkR",
       "difficulty": "easy",
-      "genres": ["action-adventure", "rpg"],
-      "seriesTags": ["zelda"],
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
       "era": "90s"
     },
     {
@@ -57,8 +71,13 @@
       "youtube_url": "https://youtube.com/watch?v=qDD-iYkHBhc",
       "spotify_url": "https://open.spotify.com/track/0tyMZdSGKLTKX3m3pGWZ5T",
       "difficulty": "easy",
-      "genres": ["rpg", "jrpg"],
-      "seriesTags": ["ff"],
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
       "era": "90s"
     },
     {
@@ -72,8 +91,13 @@
       "youtube_url": "https://youtube.com/watch?v=ESqZb7hY1S0",
       "spotify_url": "https://open.spotify.com/track/3VV5Wq3vlNBZ6Hn5HCVBvp",
       "difficulty": "normal",
-      "genres": ["rpg", "jrpg"],
-      "seriesTags": ["chrono"],
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "chrono"
+      ],
       "era": "90s"
     },
     {
@@ -87,8 +111,13 @@
       "youtube_url": "https://youtube.com/watch?v=3jho-peCAKs",
       "spotify_url": "https://open.spotify.com/track/4vbL8UCJoFKxJqPDYIFvXv",
       "difficulty": "normal",
-      "genres": ["rpg", "jrpg"],
-      "seriesTags": ["ff"],
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
       "era": "90s"
     },
     {
@@ -102,8 +131,13 @@
       "youtube_url": "https://youtube.com/watch?v=IJiHDmyhE1A",
       "spotify_url": "https://open.spotify.com/track/1Gbkp61WxLjUECVAg3R0H2",
       "difficulty": "hard",
-      "genres": ["strategy", "simulation"],
-      "seriesTags": ["civ"],
+      "genres": [
+        "strategy",
+        "simulation"
+      ],
+      "seriesTags": [
+        "civ"
+      ],
       "era": "00s"
     },
     {
@@ -117,8 +151,13 @@
       "youtube_url": "https://youtube.com/watch?v=wDgQdr8ZkTw",
       "spotify_url": "https://open.spotify.com/track/4bPPWrUSNJRLVczPe8OdBp",
       "difficulty": "easy",
-      "genres": ["rpg", "indie"],
-      "seriesTags": ["undertale"],
+      "genres": [
+        "rpg",
+        "indie"
+      ],
+      "seriesTags": [
+        "undertale"
+      ],
       "era": "10s"
     },
     {
@@ -132,8 +171,14 @@
       "youtube_url": "https://youtube.com/watch?v=9t89dq5K9rY",
       "spotify_url": "https://open.spotify.com/track/7ixKnFTfZb4J2bhHQf5OUg",
       "difficulty": "normal",
-      "genres": ["rpg", "jrpg", "action-rpg"],
-      "seriesTags": ["xenoblade"],
+      "genres": [
+        "rpg",
+        "jrpg",
+        "action-rpg"
+      ],
+      "seriesTags": [
+        "xenoblade"
+      ],
       "era": "10s"
     },
     {
@@ -147,8 +192,13 @@
       "youtube_url": "https://youtube.com/watch?v=gUQuBBBzx-I",
       "spotify_url": "https://open.spotify.com/track/0zx6oGNEKbOyL4J4sS39Yf",
       "difficulty": "normal",
-      "genres": ["action-rpg", "jrpg"],
-      "seriesTags": ["kh"],
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "kh"
+      ],
       "era": "00s"
     },
     {
@@ -162,8 +212,13 @@
       "youtube_url": "https://youtube.com/watch?v=0jXTBAGv9ZQ",
       "spotify_url": "https://open.spotify.com/track/6n4bH0F7ggZ3kMKQvZLLOe",
       "difficulty": "easy",
-      "genres": ["fps", "shooter"],
-      "seriesTags": ["halo"],
+      "genres": [
+        "fps",
+        "shooter"
+      ],
+      "seriesTags": [
+        "halo"
+      ],
       "era": "00s"
     },
     {
@@ -177,8 +232,12 @@
       "youtube_url": "https://youtube.com/watch?v=NmCCQxVBfyM",
       "spotify_url": "https://open.spotify.com/track/5J4lKPB7hsKdLlX9SpCJjm",
       "difficulty": "easy",
-      "genres": ["puzzle"],
-      "seriesTags": ["tetris"],
+      "genres": [
+        "puzzle"
+      ],
+      "seriesTags": [
+        "tetris"
+      ],
       "era": "80s"
     },
     {
@@ -192,8 +251,13 @@
       "youtube_url": "https://youtube.com/watch?v=71-ViI_TLmQ",
       "spotify_url": "https://open.spotify.com/track/2ZiB6UjcXmbduiRWZ3rQMC",
       "difficulty": "easy",
-      "genres": ["rpg", "jrpg"],
-      "seriesTags": ["pokemon"],
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "pokemon"
+      ],
       "era": "90s"
     },
     {
@@ -207,8 +271,13 @@
       "youtube_url": "https://youtube.com/watch?v=Iof5pRAIZmw",
       "spotify_url": "https://open.spotify.com/track/4kLStzeMgqpuQJbZDPO0fP",
       "difficulty": "easy",
-      "genres": ["fighting", "arcade"],
-      "seriesTags": ["sf"],
+      "genres": [
+        "fighting",
+        "arcade"
+      ],
+      "seriesTags": [
+        "sf"
+      ],
       "era": "90s"
     },
     {
@@ -222,8 +291,13 @@
       "youtube_url": "https://youtube.com/watch?v=AVy7YPNP_zI",
       "spotify_url": "https://open.spotify.com/track/3RqxPSzFq4ZS7eEiR9R7nB",
       "difficulty": "easy",
-      "genres": ["rpg", "action-rpg"],
-      "seriesTags": ["tes"],
+      "genres": [
+        "rpg",
+        "action-rpg"
+      ],
+      "seriesTags": [
+        "tes"
+      ],
       "era": "10s"
     },
     {
@@ -236,9 +310,14 @@
       "year": 2007,
       "youtube_url": "https://youtube.com/watch?v=Y6ljFaKRTrI",
       "spotify_url": "https://open.spotify.com/track/1kBRZKOQWtfBgogPWZFSWh",
-      "difficulty": "normal",
-      "genres": ["puzzle", "fps"],
-      "seriesTags": ["portal"],
+      "difficulty": "easy",
+      "genres": [
+        "puzzle",
+        "fps"
+      ],
+      "seriesTags": [
+        "portal"
+      ],
       "era": "00s"
     },
     {
@@ -252,8 +331,12 @@
       "youtube_url": "https://youtube.com/watch?v=dVNcmGjNW6c",
       "spotify_url": "https://open.spotify.com/track/4YzQfYp9hqfUKLbkqjXEEh",
       "difficulty": "normal",
-      "genres": ["action-adventure"],
-      "seriesTags": ["sotc"],
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "sotc"
+      ],
       "era": "00s"
     },
     {
@@ -267,8 +350,13 @@
       "youtube_url": "https://youtube.com/watch?v=E5-EcKB-jmk",
       "spotify_url": "https://open.spotify.com/track/6VcKP8XHPCKOdL2HGfWdm7",
       "difficulty": "normal",
-      "genres": ["action-adventure", "platformer"],
-      "seriesTags": ["metroid"],
+      "genres": [
+        "action-adventure",
+        "platformer"
+      ],
+      "seriesTags": [
+        "metroid"
+      ],
       "era": "80s"
     },
     {
@@ -282,8 +370,13 @@
       "youtube_url": "https://youtube.com/watch?v=eFVj0Z6ahcI",
       "spotify_url": "https://open.spotify.com/track/1K0z0MRtW4TYxfLBSgVqC7",
       "difficulty": "normal",
-      "genres": ["rpg", "jrpg"],
-      "seriesTags": ["persona"],
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "persona"
+      ],
       "era": "10s"
     },
     {
@@ -297,9 +390,1861 @@
       "youtube_url": "https://youtube.com/watch?v=YMKskuvJTcs",
       "spotify_url": "https://open.spotify.com/track/65l53RAb6kFOWGVoXP8Ry6",
       "difficulty": "hard",
-      "genres": ["action-rpg", "jrpg"],
-      "seriesTags": ["nier"],
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "nier"
+      ],
       "era": "10s"
+    },
+    {
+      "id": "021",
+      "title": "Terra's Theme",
+      "game": "Final Fantasy VI",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "Super Nintendo Entertainment System",
+      "year": 1994,
+      "youtube_url": "https://www.youtube.com/watch?v=ObccgHQdos0",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "022",
+      "title": "To Zanarkand",
+      "game": "Final Fantasy X",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "PlayStation 2",
+      "year": 2001,
+      "youtube_url": "https://www.youtube.com/watch?v=cxPvGGmWM3A",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "023",
+      "title": "Liberi Fatali",
+      "game": "Final Fantasy VIII",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "PlayStation",
+      "year": 1999,
+      "youtube_url": "https://www.youtube.com/watch?v=-5qt0NK5b9A",
+      "difficulty": "hard",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "024",
+      "title": "Blinded by Light",
+      "game": "Final Fantasy XIII",
+      "series": "Final Fantasy",
+      "composer": "Masashi Hamauzu",
+      "platform": "PlayStation 3",
+      "year": 2009,
+      "youtube_url": "https://www.youtube.com/watch?v=WyTRg-DJ99M",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "025",
+      "title": "Answers",
+      "game": "Final Fantasy XIV",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "PC",
+      "year": 2010,
+      "youtube_url": "https://www.youtube.com/watch?v=p86icWXs0CQ",
+      "difficulty": "hard",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "026",
+      "title": "Somnus",
+      "game": "Final Fantasy XV",
+      "series": "Final Fantasy",
+      "composer": "Yoko Shimomura",
+      "platform": "Multi-platform",
+      "year": 2016,
+      "youtube_url": "https://www.youtube.com/watch?v=juVZ0TN_2EA",
+      "difficulty": "normal",
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "027",
+      "title": "Overture March",
+      "game": "Dragon Quest",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Famicom",
+      "year": 1986,
+      "apple_music_url": "https://music.apple.com/us/album/overture-march/1824662425?i=1824662426",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "028",
+      "title": "Roto",
+      "game": "Dragon Quest III",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Famicom",
+      "year": 1988,
+      "apple_music_url": "https://music.apple.com/us/album/roto/1824662752?i=1824662753",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "029",
+      "title": "Overture (V)",
+      "game": "Dragon Quest V: Hand of the Heavenly Bride",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Super Famicom",
+      "year": 1992,
+      "apple_music_url": "https://music.apple.com/us/album/overture-v/1824663610?i=1824663612",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "030",
+      "title": "Travelling with Wagon",
+      "game": "Dragon Quest VIII: Journey of the Cursed King",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "PlayStation 2",
+      "year": 2004,
+      "apple_music_url": "https://music.apple.com/us/album/travelling-with-wagon/1824664390?i=1824664392",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "031",
+      "title": "Overture (XI)",
+      "game": "Dragon Quest XI: Echoes of an Elusive Age",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "PlayStation 4",
+      "year": 2017,
+      "apple_music_url": "https://music.apple.com/us/album/overture-xi/1824666024?i=1824666025",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "032",
+      "title": "Open Your Heart",
+      "game": "Sonic Adventure",
+      "series": "Sonic",
+      "composer": "Jun Senoue",
+      "platform": "Dreamcast",
+      "year": 1998,
+      "youtube_url": "https://www.youtube.com/watch?v=1cvkH6nxEqc",
+      "difficulty": "hard",
+      "genres": [
+        "action",
+        "platformer"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "033",
+      "title": "Escape From The City",
+      "game": "Sonic Adventure 2",
+      "series": "Sonic",
+      "composer": "Jun Senoue",
+      "platform": "Dreamcast",
+      "year": 2001,
+      "youtube_url": "https://www.youtube.com/watch?v=NUyE03UWv1Q",
+      "difficulty": "normal",
+      "genres": [
+        "action",
+        "platformer"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "034",
+      "title": "Chemical Plant Zone",
+      "game": "Sonic the Hedgehog 2",
+      "series": "Sonic",
+      "composer": "Masato Nakamura",
+      "platform": "Genesis",
+      "year": 1992,
+      "youtube_url": "https://www.youtube.com/watch?v=rkCqQBJ8hT4",
+      "difficulty": "normal",
+      "genres": [
+        "action",
+        "platformer"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "035",
+      "title": "Undefeatable",
+      "game": "Sonic Frontiers",
+      "series": "Sonic",
+      "composer": "Tomoya Ohtani",
+      "platform": "Multi-platform",
+      "year": 2022,
+      "spotify_url": "https://open.spotify.com/track/1JglKAR6tFxPURETdH1qLc",
+      "difficulty": "hard",
+      "genres": [
+        "action"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "20s"
+    },
+    {
+      "id": "036",
+      "title": "Overworld Theme",
+      "game": "Super Mario Bros.",
+      "series": "Super Mario",
+      "composer": "Koji Kondo",
+      "platform": "NES",
+      "year": 1985,
+      "youtube_url": "https://www.youtube.com/watch?v=zw3s--6RbYA",
+      "difficulty": "easy",
+      "genres": [
+        "platformer",
+        "adventure"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "037",
+      "title": "Overworld Theme",
+      "game": "Super Mario Bros. 2",
+      "series": "Super Mario",
+      "composer": "Koji Kondo",
+      "platform": "NES",
+      "year": 1988,
+      "youtube_url": "https://www.youtube.com/watch?v=gnAPb6kU7DQ",
+      "difficulty": "easy",
+      "genres": [
+        "platformer",
+        "adventure"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "038",
+      "title": "Out of Tartarus",
+      "game": "Hades",
+      "series": "Hades",
+      "composer": "Darren Korb",
+      "platform": "Multi-platform",
+      "year": 2020,
+      "youtube_url": "https://www.youtube.com/watch?v=SqFaCDvHxU4",
+      "difficulty": "normal",
+      "genres": [
+        "action",
+        "indie"
+      ],
+      "era": "20s"
+    },
+    {
+      "id": "039",
+      "title": "Octopath Traveler II - Main Theme",
+      "game": "Octopath Traveler II",
+      "series": "Octopath Traveler",
+      "composer": "Yasunori Nishiki",
+      "platform": "Multi-platform",
+      "year": 2023,
+      "apple_music_url": "https://music.apple.com/us/album/octopath-traveler-ii-main-theme/1671486426?i=1671486427",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "era": "20s"
+    },
+    {
+      "id": "040",
+      "title": "The Legend of Zelda Main Theme",
+      "game": "The Legend of Zelda",
+      "series": "The Legend of Zelda",
+      "composer": "Koji Kondo",
+      "platform": "NES",
+      "year": 1986,
+      "youtube_url": "https://www.youtube.com/watch?v=7jvzGrjemGg",
+      "difficulty": "normal",
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "041",
+      "title": "Emerald Hill Zone",
+      "game": "Sonic the Hedgehog 2",
+      "series": "Sonic",
+      "composer": "Masato Nakamura",
+      "platform": "Genesis",
+      "year": 1992,
+      "youtube_url": "https://www.youtube.com/watch?v=8mGT1-PSUOA",
+      "difficulty": "easy",
+      "genres": [
+        "action",
+        "platformer"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "042",
+      "title": "Dragonborn",
+      "game": "The Elder Scrolls V: Skyrim",
+      "series": "The Elder Scrolls",
+      "composer": "Jeremy Soule",
+      "platform": "Multi-platform",
+      "year": 2011,
+      "youtube_url": "https://www.youtube.com/watch?v=6fILxnBH1Tg",
+      "difficulty": "normal",
+      "genres": [
+        "rpg"
+      ],
+      "seriesTags": [
+        "tes"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "043",
+      "title": "Find the Flame",
+      "game": "Final Fantasy XVI",
+      "series": "Final Fantasy",
+      "composer": "Masayoshi Soken",
+      "platform": "PlayStation 5",
+      "year": 2023,
+      "apple_music_url": "https://music.apple.com/us/album/find-the-flame/1696572313?i=1696572901",
+      "difficulty": "hard",
+      "genres": [
+        "action-rpg",
+        "rpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "20s"
+    },
+    {
+      "id": "044",
+      "title": "A New Day with Hope",
+      "game": "Genshin Impact",
+      "series": "Genshin Impact",
+      "composer": "HOYO-MiX",
+      "platform": "Multi-platform",
+      "year": 2020,
+      "apple_music_url": "https://music.apple.com/us/album/a-new-day-with-hope/1535605650?i=1535608789",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "adventure"
+      ],
+      "era": "20s"
+    },
+    {
+      "id": "045",
+      "title": "Nascence",
+      "game": "Journey",
+      "series": "Journey",
+      "composer": "Austin Wintory",
+      "platform": "PlayStation 3",
+      "year": 2012,
+      "youtube_url": "https://www.youtube.com/watch?v=1fd5P98Apzg",
+      "apple_music_url": "https://music.apple.com/us/album/nascence/1553230092?i=1553230093",
+      "difficulty": "easy",
+      "genres": [
+        "adventure"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "046",
+      "title": "First Steps",
+      "game": "Celeste",
+      "series": "Celeste",
+      "composer": "Lena Raine",
+      "platform": "Multi-platform",
+      "year": 2018,
+      "youtube_url": "https://www.youtube.com/watch?v=N8OHSXvneOE",
+      "apple_music_url": "https://music.apple.com/us/album/first-steps/1449960195?i=1449960197",
+      "difficulty": "normal",
+      "genres": [
+        "indie",
+        "platformer"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "047",
+      "title": "Dirtmouth",
+      "game": "Hollow Knight",
+      "series": "Hollow Knight",
+      "composer": "Christopher Larkin",
+      "platform": "Multi-platform",
+      "year": 2017,
+      "youtube_url": "https://www.youtube.com/watch?v=9Vdv01LsnQM",
+      "apple_music_url": "https://music.apple.com/us/album/dirtmouth/1263341718?i=1263341720",
+      "difficulty": "easy",
+      "genres": [
+        "indie",
+        "adventure"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "048",
+      "title": "Halo Theme Mjolnir Mix",
+      "game": "Halo 2",
+      "series": "Halo",
+      "composer": "Martin O'Donnell, Michael Salvatori",
+      "platform": "Xbox",
+      "year": 2004,
+      "apple_music_url": "https://music.apple.com/us/album/halo-theme-mjolnir-mix/1682511658?i=1682511805",
+      "difficulty": "normal",
+      "genres": [
+        "fps",
+        "shooter"
+      ],
+      "seriesTags": [
+        "halo"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "049",
+      "title": "Proof of a Hero (Monster Hunter: World Ver.)",
+      "game": "Monster Hunter: World",
+      "series": "Monster Hunter",
+      "composer": "Akihiko Narita, Zhenlan Kang, Tadayoshi Makino",
+      "platform": "Multi-platform",
+      "year": 2018,
+      "apple_music_url": "https://music.apple.com/us/album/proof-of-a-hero-monster-hunter-world-version/1336356191?i=1336357865",
+      "difficulty": "hard",
+      "genres": [
+        "action",
+        "rpg"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "050",
+      "title": "Rip & Tear",
+      "game": "DOOM (2016)",
+      "series": "DOOM",
+      "composer": "Mick Gordon",
+      "platform": "Multi-platform",
+      "year": 2016,
+      "youtube_url": "https://www.youtube.com/watch?v=zZMg9ryeWOw",
+      "difficulty": "hard",
+      "genres": [
+        "shooter",
+        "action"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "051",
+      "title": "Reach Out To The Truth",
+      "game": "Persona 4",
+      "series": "Persona",
+      "composer": "Shoji Meguro",
+      "platform": "PlayStation 2",
+      "year": 2008,
+      "youtube_url": "https://www.youtube.com/watch?v=A9zlXUSuUeo",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "persona"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "052",
+      "title": "Delfino Plaza",
+      "game": "Super Mario Sunshine",
+      "series": "Super Mario",
+      "composer": "Koji Kondo, Shinobu Tanaka",
+      "platform": "GameCube",
+      "year": 2002,
+      "youtube_url": "https://www.youtube.com/watch?v=uVCAnYTkyIo",
+      "difficulty": "easy",
+      "genres": [
+        "platformer"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "053",
+      "title": "Overworld Theme",
+      "game": "New Super Mario Bros.",
+      "series": "Super Mario",
+      "composer": "Asuka Ohta, Hajime Wakai, Koji Kondo",
+      "platform": "Nintendo DS",
+      "year": 2006,
+      "youtube_url": "https://www.youtube.com/watch?v=T4Uj069pm78",
+      "difficulty": "easy",
+      "genres": [
+        "platformer"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "054",
+      "title": "Coconut Mall",
+      "game": "Mario Kart Wii",
+      "series": "Mario Kart",
+      "composer": "Asuka Ohta, Ryo Nagamatsu",
+      "platform": "Wii",
+      "year": 2008,
+      "youtube_url": "https://www.youtube.com/watch?v=eXE_baw990s",
+      "difficulty": "easy",
+      "genres": [
+        "arcade",
+        "adventure"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "055",
+      "title": "Hyrule Castle",
+      "game": "The Legend of Zelda: A Link to the Past",
+      "series": "The Legend of Zelda",
+      "composer": "Koji Kondo",
+      "platform": "Super Nintendo Entertainment System",
+      "year": 1991,
+      "youtube_url": "https://www.youtube.com/watch?v=DYzKibJ_CIY",
+      "difficulty": "normal",
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "056",
+      "title": "Mabe Village",
+      "game": "The Legend of Zelda: Link's Awakening",
+      "series": "The Legend of Zelda",
+      "composer": "Kazumi Totaka, Minako Hamano, Kozue Ishikawa",
+      "platform": "Game Boy",
+      "year": 1993,
+      "youtube_url": "https://www.youtube.com/watch?v=dHEo46ssXOI",
+      "difficulty": "easy",
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "057",
+      "title": "Mabe Village (DX)",
+      "game": "The Legend of Zelda: Link's Awakening DX",
+      "series": "The Legend of Zelda",
+      "composer": "Kazumi Totaka, Minako Hamano, Kozue Ishikawa",
+      "platform": "Game Boy Color",
+      "year": 1998,
+      "youtube_url": "https://www.youtube.com/watch?v=eyUJVo-kHQA",
+      "difficulty": "easy",
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "058",
+      "title": "Scars of Time",
+      "game": "Chrono Cross",
+      "series": "Chrono",
+      "composer": "Yasunori Mitsuda",
+      "platform": "PlayStation",
+      "year": 1999,
+      "youtube_url": "https://www.youtube.com/watch?v=40BZyMdDG4s",
+      "apple_music_url": "https://music.apple.com/us/album/chrono-cross-scars-of-time/1478581544?i=1478581545",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "chrono"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "059",
+      "title": "Age of Empires II Main Theme",
+      "game": "Age of Empires II: Definitive Edition",
+      "series": "Age of Empires",
+      "composer": "Todd Masten, Stephen Rippy, Kevin McMullan",
+      "platform": "PC",
+      "year": 2019,
+      "youtube_url": "https://www.youtube.com/watch?v=Y2o8h0LUgU0",
+      "apple_music_url": "https://music.apple.com/us/album/age-of-empires-ii-main-theme/1484435903?i=1484435907",
+      "difficulty": "hard",
+      "genres": [
+        "strategy"
+      ],
+      "era": "20s"
+    },
+    {
+      "id": "060",
+      "title": "Act On Instinct",
+      "game": "Command & Conquer",
+      "series": "Command & Conquer",
+      "composer": "Frank Klepacki",
+      "platform": "PC",
+      "year": 1995,
+      "youtube_url": "https://www.youtube.com/watch?v=tWwoyxHl7X8",
+      "apple_music_url": "https://music.apple.com/us/album/act-on-instinct/1490638553?i=1490638554",
+      "difficulty": "hard",
+      "genres": [
+        "strategy"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "061",
+      "title": "Sogno di Volare (The Dream of Flight)",
+      "game": "Civilization VI",
+      "series": "Civilization",
+      "composer": "Christopher Tin",
+      "platform": "Multi-platform",
+      "year": 2016,
+      "youtube_url": "https://www.youtube.com/watch?v=1Mlx18RxxQ8",
+      "apple_music_url": "https://music.apple.com/us/album/sogno-di-volare-the-dream-of-flight/1818566837?i=1818566845",
+      "difficulty": "hard",
+      "genres": [
+        "strategy",
+        "simulation"
+      ],
+      "seriesTags": [
+        "civ"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "062",
+      "title": "Main Theme of Final Fantasy VII",
+      "game": "Final Fantasy VII",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "PlayStation",
+      "year": 1997,
+      "youtube_url": "https://www.youtube.com/watch?v=6uq5AbZXnaQ",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "063",
+      "title": "Generals Main Theme",
+      "game": "Command & Conquer: Generals",
+      "series": "Command & Conquer",
+      "composer": "Bill Brown, Mikael Sandgren",
+      "platform": "PC",
+      "year": 2003,
+      "youtube_url": "https://www.youtube.com/watch?v=kpr7G6ToCPE",
+      "apple_music_url": "https://music.apple.com/us/album/generals-main-theme-feat-mikael-sandgren/1482664855?i=1482665088",
+      "difficulty": "hard",
+      "genres": [
+        "strategy"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "064",
+      "title": "Rush Hour",
+      "game": "SimCity 4: Rush Hour",
+      "series": "SimCity",
+      "composer": "Jerry Martin",
+      "platform": "PC",
+      "year": 2003,
+      "youtube_url": "https://www.youtube.com/watch?v=LRM61x0UU8E",
+      "apple_music_url": "https://music.apple.com/us/album/rush-hour/1497387574?i=1497387819",
+      "difficulty": "hard",
+      "genres": [
+        "simulation"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "065",
+      "title": "By the Bay",
+      "game": "SimCity 4",
+      "series": "SimCity",
+      "composer": "Jerry Martin",
+      "platform": "PC",
+      "year": 2003,
+      "youtube_url": "https://www.youtube.com/watch?v=ltGDR3f3duY",
+      "apple_music_url": "https://music.apple.com/us/album/by-the-bay/1497387574?i=1497387822",
+      "difficulty": "normal",
+      "genres": [
+        "simulation"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "066",
+      "title": "Team Fortress 2 (Main Theme)",
+      "game": "Team Fortress 2",
+      "series": "Team Fortress",
+      "composer": "Mike Morasky",
+      "platform": "PC",
+      "year": 2007,
+      "apple_music_url": "https://music.apple.com/us/album/team-fortress-2/270749981?i=270749994",
+      "difficulty": "easy",
+      "genres": [
+        "fps",
+        "shooter"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "067",
+      "title": "Triage at Dawn",
+      "game": "Half-Life 2",
+      "series": "Half-Life",
+      "composer": "Kelly Bailey",
+      "platform": "PC",
+      "year": 2004,
+      "apple_music_url": "https://music.apple.com/us/album/triage-at-dawn/1501599984?i=1501600780",
+      "difficulty": "easy",
+      "genres": [
+        "fps",
+        "shooter"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "068",
+      "title": "Tales of Symphonia",
+      "game": "Tales of Symphonia",
+      "series": "Tales of",
+      "composer": "Motoi Sakuraba, Shinji Tamura",
+      "platform": "Nintendo GameCube",
+      "year": 2003,
+      "apple_music_url": "https://music.apple.com/us/album/tales-of-symphonia/1668055223?i=1668055228",
+      "difficulty": "normal",
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "069",
+      "title": "Opening Movie",
+      "game": "Tekken 3",
+      "series": "Tekken",
+      "composer": "Nobuyoshi Sano, Keiichi Okabe, Hiroyuki Kawada",
+      "platform": "PlayStation",
+      "year": 1998,
+      "apple_music_url": "https://music.apple.com/us/album/opening-movie-playstation2-version/1724287994?i=1724287995",
+      "difficulty": "easy",
+      "genres": [
+        "fighting"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "070",
+      "title": "Professor Layton's Theme",
+      "game": "Professor Layton and the Curious Village",
+      "series": "Professor Layton",
+      "composer": "Tomohito Nishiura",
+      "platform": "Nintendo DS",
+      "year": 2007,
+      "apple_music_url": "https://music.apple.com/us/album/professor-laytons-theme/1584821634?i=1584821638",
+      "difficulty": "easy",
+      "genres": [
+        "puzzle"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "071",
+      "title": "Roxas",
+      "game": "Kingdom Hearts II",
+      "series": "Kingdom Hearts",
+      "composer": "Yoko Shimomura",
+      "platform": "PlayStation 2",
+      "year": 2005,
+      "youtube_url": "https://www.youtube.com/watch?v=E_BS8egSU3k",
+      "apple_music_url": "https://music.apple.com/us/album/roxas/1669111674?i=1669112455",
+      "difficulty": "normal",
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "kh"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "072",
+      "title": "Wilderness",
+      "game": "Diablo II",
+      "series": "Diablo",
+      "composer": "Matt Uelmen",
+      "platform": "PC",
+      "year": 2000,
+      "apple_music_url": "https://music.apple.com/us/album/wilderness/1825879064?i=1825879065",
+      "youtube_url": "https://www.youtube.com/watch?v=P9lPxsA62Us",
+      "difficulty": "hard",
+      "genres": [
+        "action-rpg"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "073",
+      "title": "Start Demo - Main Theme",
+      "game": "Bubble Bobble",
+      "series": "Bubble Bobble",
+      "composer": "Tadashi Kimijima",
+      "platform": "Arcade",
+      "year": 1986,
+      "apple_music_url": "https://music.apple.com/us/album/start-demo-main-theme/808498719?i=808498728",
+      "difficulty": "easy",
+      "genres": [
+        "puzzle",
+        "arcade"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "074",
+      "title": "Let's Go Away",
+      "game": "Daytona USA",
+      "series": "Daytona USA",
+      "composer": "Takenobu Mitsuyoshi",
+      "platform": "Arcade",
+      "year": 1994,
+      "apple_music_url": "https://music.apple.com/us/album/lets-go-away-from-video-game-daytona-usa-for-arcade/1785137565?i=1785138685",
+      "youtube_url": "https://www.youtube.com/watch?v=5ToNSY-yG_M",
+      "difficulty": "easy",
+      "genres": [
+        "arcade"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "075",
+      "title": "Nate's Theme 2.0",
+      "game": "Uncharted 2: Among Thieves",
+      "series": "Uncharted",
+      "composer": "Greg Edmonson",
+      "platform": "PlayStation 3",
+      "year": 2009,
+      "apple_music_url": "https://music.apple.com/us/album/nates-theme-2-0/1553230145?i=1553230222",
+      "youtube_url": "https://www.youtube.com/watch?v=Dnu9bi7kHLE",
+      "difficulty": "normal",
+      "genres": [
+        "action-adventure"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "076",
+      "title": "Ni no Kuni Dominion of the Dark Djinn (Main Theme)",
+      "game": "Ni no Kuni: Wrath of the White Witch",
+      "composer": "Joe Hisaishi",
+      "platform": "PlayStation 3",
+      "year": 2011,
+      "apple_music_url": "https://music.apple.com/us/album/ni-no-kuni-dominion-of-the-dark-djinn-main-theme/669578373?i=669578384",
+      "youtube_url": "https://www.youtube.com/watch?v=kY0XRCKqRc0",
+      "difficulty": "easy",
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "077",
+      "title": "Prelude",
+      "game": "Final Fantasy",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "NES",
+      "year": 1987,
+      "apple_music_url": "https://music.apple.com/us/album/prelude/362976679?i=362976724",
+      "youtube_url": "https://www.youtube.com/watch?v=KzkRfglwAeE",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "078",
+      "title": "SARAH (VF2)",
+      "game": "Virtua Fighter 2",
+      "series": "Virtua Fighter",
+      "composer": "Takayuki Nakamura",
+      "platform": "Arcade",
+      "year": 1994,
+      "apple_music_url": "https://music.apple.com/us/album/sarah-vf2/772961984?i=772962003",
+      "youtube_url": "https://www.youtube.com/watch?v=8HZlF-DE0wU",
+      "difficulty": "easy",
+      "genres": [
+        "arcade"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "079",
+      "title": "Apocalypsis Noctis",
+      "game": "Final Fantasy XV",
+      "series": "Final Fantasy",
+      "composer": "Yoko Shimomura",
+      "platform": "PlayStation 4",
+      "year": 2016,
+      "apple_music_url": "https://music.apple.com/us/album/apocalypsis-noctis/1184243617?i=1184244339",
+      "youtube_url": "https://www.youtube.com/watch?v=Xkv3HbHBdBI",
+      "difficulty": "hard",
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "080",
+      "title": "Town",
+      "game": "Dragon Quest II: Luminaries of the Legendary Line",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "NES",
+      "year": 1987,
+      "apple_music_url": "https://music.apple.com/us/album/town/1824662335?i=1824662641",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "081",
+      "title": "Octopath Traveler - Main Theme",
+      "game": "Octopath Traveler",
+      "composer": "Yasunori Nishiki",
+      "platform": "Nintendo Switch",
+      "year": 2018,
+      "apple_music_url": "https://music.apple.com/us/album/octopath-traveler-main-theme/1406665639?i=1406665938",
+      "youtube_url": "https://www.youtube.com/watch?v=sR1OHW_IReI",
+      "difficulty": "easy",
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "082",
+      "title": "Heavensward",
+      "game": "Final Fantasy XIV",
+      "series": "Final Fantasy",
+      "composer": "Masayoshi Soken",
+      "platform": "PC",
+      "year": 2015,
+      "apple_music_url": "https://music.apple.com/us/album/heavensward/1084334929?i=1084335167",
+      "youtube_url": "https://www.youtube.com/watch?v=Xy3d56W6pWc",
+      "difficulty": "hard",
+      "genres": [
+        "action-rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "083",
+      "title": "Desert Land (Ac Version)",
+      "game": "Sega Rally Championship",
+      "series": "Sega Rally",
+      "composer": "Takenobu Mitsuyoshi",
+      "platform": "Arcade",
+      "year": 1994,
+      "apple_music_url": "https://music.apple.com/us/album/desert-land-ac-version/1795833794?i=1795834173",
+      "youtube_url": "https://www.youtube.com/watch?v=jePMAqRDhCU",
+      "difficulty": "normal",
+      "genres": [
+        "arcade"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "084",
+      "title": "Dancing Mad",
+      "game": "Final Fantasy VI",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "Super Nintendo Entertainment System",
+      "year": 1994,
+      "apple_music_url": "https://music.apple.com/us/album/dancing-mad/362976679?i=362977010",
+      "difficulty": "hard",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "085",
+      "title": "You're Not Alone!",
+      "game": "Final Fantasy IX",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "PlayStation",
+      "year": 2000,
+      "apple_music_url": "https://music.apple.com/us/album/youre-not-alone/724933896?i=724934132",
+      "difficulty": "hard",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "086",
+      "title": "Battle on the Big Bridge",
+      "game": "Final Fantasy V",
+      "series": "Final Fantasy",
+      "composer": "Nobuo Uematsu",
+      "platform": "Super Famicom",
+      "year": 1992,
+      "apple_music_url": "https://music.apple.com/us/album/battle-on-the-big-bridge/712136180?i=712136424",
+      "difficulty": "hard",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "087",
+      "title": "Overture (IV)",
+      "game": "Dragon Quest IV: Chapters of the Chosen",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Famicom",
+      "year": 1990,
+      "apple_music_url": "https://music.apple.com/us/album/overture-iv/1824663056?i=1824663057",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "088",
+      "title": "Guided by the Stars",
+      "game": "Dragon Quest VI: Realms of Revelation",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Super Famicom",
+      "year": 1995,
+      "apple_music_url": "https://music.apple.com/us/album/guided-by-the-stars/1824663836?i=1824664097",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "089",
+      "title": "Overture (VII)",
+      "game": "Dragon Quest VII: Fragments of the Forgotten Past",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "PlayStation",
+      "year": 2000,
+      "apple_music_url": "https://music.apple.com/us/album/overture-vii/1824664218?i=1824664219",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "090",
+      "title": "Overture (IX)",
+      "game": "Dragon Quest IX: Sentinels of the Starry Skies",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Nintendo DS",
+      "year": 2009,
+      "apple_music_url": "https://music.apple.com/us/album/overture-ix/1824665198?i=1824665199",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "091",
+      "title": "Overworld Theme",
+      "game": "Super Mario Bros. 3",
+      "series": "Super Mario",
+      "composer": "Koji Kondo",
+      "platform": "NES",
+      "year": 1988,
+      "apple_music_url": "https://music.apple.com/us/album/ground-theme/1443163467?i=1443163477",
+      "difficulty": "easy",
+      "genres": [
+        "platformer",
+        "adventure"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "092",
+      "title": "Wily Stage 1",
+      "game": "Mega Man 2",
+      "series": "Mega Man",
+      "composer": "Takashi Tateishi",
+      "platform": "NES",
+      "year": 1988,
+      "apple_music_url": "https://music.apple.com/us/album/dr-wily-stage-1/1478611002?i=1478611007",
+      "difficulty": "normal",
+      "genres": [
+        "platformer",
+        "action"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "093",
+      "title": "Green Greens",
+      "game": "Kirby's Dream Land",
+      "series": "Kirby",
+      "composer": "Jun Ishikawa",
+      "platform": "Game Boy",
+      "year": 1992,
+      "apple_music_url": "https://music.apple.com/us/album/green-greens/1478610989?i=1478610995",
+      "difficulty": "easy",
+      "genres": [
+        "platformer",
+        "adventure"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "094",
+      "title": "Vampire Killer",
+      "game": "Castlevania",
+      "series": "Castlevania",
+      "composer": "Kinuyo Yamashita, Satoe Terashima",
+      "platform": "NES",
+      "year": 1986,
+      "apple_music_url": "https://music.apple.com/us/album/vampire-killer/1478611014?i=1478611023",
+      "difficulty": "normal",
+      "genres": [
+        "platformer",
+        "action"
+      ],
+      "era": "80s"
+    },
+    {
+      "id": "095",
+      "title": "Hero Goes Forth with a Determination",
+      "game": "Dragon Quest XI: Echoes of an Elusive Age",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "PlayStation 4",
+      "year": 2017,
+      "apple_music_url": "https://music.apple.com/us/album/hero-goes-forth-with-a-determination/1824666024?i=1824666030",
+      "difficulty": "hard",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "096",
+      "title": "Shadowbringers",
+      "game": "Final Fantasy XIV: Shadowbringers",
+      "series": "Final Fantasy",
+      "composer": "Masayoshi Soken",
+      "platform": "PC",
+      "year": 2019,
+      "apple_music_url": "https://music.apple.com/us/album/shadowbringers/1482916878?i=1482917013",
+      "youtube_url": "https://www.youtube.com/watch?v=bW7PlTCda_I",
+      "difficulty": "normal",
+      "genres": [
+        "action-rpg",
+        "rpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "10s"
+    },
+    {
+      "title": "Chateau Ladutorm",
+      "game": "Dragon Quest II: Luminaries of the Legendary Line",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Famicom",
+      "year": 1987,
+      "apple_music_url": "https://music.apple.com/us/album/chateau-ladutorm/1824662335?i=1824662638",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "80s",
+      "id": "097"
+    },
+    {
+      "title": "Beyond the Waves",
+      "game": "Dragon Quest III",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Famicom",
+      "year": 1988,
+      "apple_music_url": "https://music.apple.com/us/album/beyond-the-waves/1824662752?i=1824662757",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "80s",
+      "id": "098"
+    },
+    {
+      "title": "Wagon Wheel's March",
+      "game": "Dragon Quest IV: Chapters of the Chosen",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Famicom",
+      "year": 1990,
+      "apple_music_url": "https://music.apple.com/us/album/wagon-wheels-march/1824663056?i=1824663063",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "90s",
+      "id": "099"
+    },
+    {
+      "title": "Dream of a Vast World",
+      "game": "Dragon Quest VI: Realms of Revelation",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Super Famicom",
+      "year": 1995,
+      "apple_music_url": "https://music.apple.com/us/album/dream-of-a-vast-world/1824663836?i=1824664098",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "90s",
+      "id": "100"
+    },
+    {
+      "title": "Heavenly Flight",
+      "game": "Dragon Quest VII: Fragments of the Forgotten Past",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "PlayStation",
+      "year": 2000,
+      "apple_music_url": "https://music.apple.com/us/album/heavenly-flight/1824664218?i=1824664223",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "00s",
+      "id": "101"
+    },
+    {
+      "title": "March of the Heroes",
+      "game": "Dragon Quest VIII: Journey of the Cursed King",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "PlayStation 2",
+      "year": 2004,
+      "apple_music_url": "https://music.apple.com/us/album/march-of-the-heroes/1824664390?i=1824664393",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "00s",
+      "id": "102"
+    },
+    {
+      "title": "Overture (X)",
+      "game": "Dragon Quest X: Rise of the Five Tribes Online",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Wii",
+      "year": 2012,
+      "apple_music_url": "https://music.apple.com/us/album/overture-x/1824665591?i=1824665592",
+      "difficulty": "easy",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "10s",
+      "id": "103"
+    },
+    {
+      "title": "Toward the Horizon",
+      "game": "Dragon Quest X: Rise of the Five Tribes Online",
+      "series": "Dragon Quest",
+      "composer": "Koichi Sugiyama",
+      "platform": "Wii",
+      "year": 2012,
+      "apple_music_url": "https://music.apple.com/us/album/toward-the-horizon/1824665591?i=1824665599",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "seriesTags": [
+        "dq"
+      ],
+      "era": "10s",
+      "id": "104"
+    },
+    {
+      "title": "Stormblood",
+      "game": "Final Fantasy XIV: Stormblood",
+      "series": "Final Fantasy",
+      "composer": "Masayoshi Soken",
+      "platform": "PC",
+      "year": 2017,
+      "apple_music_url": "https://music.apple.com/us/album/stormblood/1477824080?i=1477824264",
+      "youtube_url": "https://www.youtube.com/watch?v=gHYuDNse49E",
+      "difficulty": "normal",
+      "genres": [
+        "action-rpg",
+        "rpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "10s",
+      "id": "105"
+    },
+    {
+      "title": "Endwalker",
+      "game": "Final Fantasy XIV: Endwalker",
+      "series": "Final Fantasy",
+      "composer": "Masayoshi Soken",
+      "platform": "PC",
+      "year": 2021,
+      "apple_music_url": "https://music.apple.com/us/album/endwalker-final-fantasy-xiv-endwalker/1594408925?i=1594408930",
+      "youtube_url": "https://www.youtube.com/watch?v=ascfjJXDWjo",
+      "difficulty": "normal",
+      "genres": [
+        "action-rpg",
+        "rpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "20s",
+      "id": "106"
+    },
+    {
+      "title": "Resurrections",
+      "game": "Celeste",
+      "series": "Celeste",
+      "composer": "Lena Raine",
+      "platform": "Multi-platform",
+      "year": 2018,
+      "apple_music_url": "https://music.apple.com/us/album/resurrections/1449960195?i=1449960239",
+      "youtube_url": "https://www.youtube.com/watch?v=70_fp3JI6kE",
+      "difficulty": "hard",
+      "genres": [
+        "platformer",
+        "indie"
+      ],
+      "era": "10s",
+      "id": "107"
+    },
+    {
+      "title": "The Battle of Lil' Slugger",
+      "game": "Super Meat Boy",
+      "series": "Super Meat Boy",
+      "composer": "Danny Baranowsky",
+      "platform": "Multi-platform",
+      "year": 2010,
+      "apple_music_url": "https://music.apple.com/us/album/the-battle-of-lil-slugger/1553230134?i=1553230231",
+      "youtube_url": "https://www.youtube.com/watch?v=gD7cBLEkQ7Y",
+      "difficulty": "hard",
+      "genres": [
+        "platformer",
+        "indie"
+      ],
+      "era": "10s",
+      "id": "108"
+    },
+    {
+      "title": "Main Theme",
+      "game": "The Legend of Zelda: Breath of the Wild",
+      "series": "The Legend of Zelda",
+      "composer": "Manaka Kataoka, Yasuaki Iwata",
+      "platform": "Nintendo Switch",
+      "year": 2017,
+      "apple_music_url": "https://music.apple.com/us/album/main-theme/1553230137?i=1553230234",
+      "youtube_url": "https://www.youtube.com/watch?v=1rPxiXXxftE",
+      "difficulty": "easy",
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
+      "era": "10s",
+      "id": "109"
+    },
+    {
+      "title": "Termina Field",
+      "game": "The Legend of Zelda: Majora's Mask",
+      "series": "The Legend of Zelda",
+      "composer": "Koji Kondo, Toru Minegishi",
+      "platform": "Nintendo 64",
+      "year": 2000,
+      "youtube_url": "https://www.youtube.com/watch?v=k3pMZOa7YHI",
+      "difficulty": "normal",
+      "genres": [
+        "action-adventure"
+      ],
+      "seriesTags": [
+        "zelda"
+      ],
+      "era": "00s",
+      "id": "110"
+    },
+    {
+      "title": "Splattack!",
+      "game": "Splatoon",
+      "series": "Splatoon",
+      "composer": "Toru Minegishi, Shiho Fujii, Ryo Nagamatsu",
+      "platform": "Wii U",
+      "year": 2015,
+      "youtube_url": "https://www.youtube.com/watch?v=qNSx_2wjD4o",
+      "difficulty": "easy",
+      "genres": [
+        "shooter",
+        "action"
+      ],
+      "era": "10s",
+      "id": "111"
+    },
+    {
+      "title": "Main Theme",
+      "game": "Overwatch",
+      "series": "Overwatch",
+      "composer": "Derek Duke, Adam Burgess, Craig Stuart Garfinkle",
+      "platform": "Multi-platform",
+      "year": 2016,
+      "youtube_url": "https://www.youtube.com/watch?v=oJ09xdxzIJQ",
+      "spotify_url": "https://open.spotify.com/track/0qnSLKS0VDEaqnbR7G2g1g",
+      "difficulty": "easy",
+      "genres": [
+        "shooter",
+        "action"
+      ],
+      "era": "10s",
+      "id": "112"
+    },
+    {
+      "title": "Super Mario 64 Main Theme",
+      "game": "Super Mario 64",
+      "series": "Super Mario",
+      "composer": "Koji Kondo",
+      "platform": "Nintendo 64",
+      "year": 1996,
+      "youtube_url": "https://www.youtube.com/watch?v=3rSWMFacUSg",
+      "difficulty": "easy",
+      "genres": [
+        "platformer",
+        "adventure"
+      ],
+      "seriesTags": [
+        "mario"
+      ],
+      "era": "90s",
+      "id": "113"
+    },
+    {
+      "title": "Green Hill Zone (Sonic Mania)",
+      "game": "Sonic Mania",
+      "series": "Sonic",
+      "composer": "Tee Lopes",
+      "platform": "Multi-platform",
+      "year": 2017,
+      "spotify_url": "https://open.spotify.com/track/5i0kkOOGcVUULqXvwMz2Qh",
+      "youtube_url": "https://www.youtube.com/watch?v=aVEQy_6vLI8",
+      "difficulty": "normal",
+      "genres": [
+        "platformer",
+        "action"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "10s",
+      "id": "114"
+    },
+    {
+      "title": "Hopes and Dreams",
+      "game": "Undertale",
+      "series": "Undertale",
+      "composer": "Toby Fox",
+      "platform": "PC",
+      "year": 2015,
+      "youtube_url": "https://www.youtube.com/watch?v=tz82xbLvK_k",
+      "spotify_url": "https://open.spotify.com/track/0YdmkqaVKfGBGsG2J76j66",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "indie"
+      ],
+      "seriesTags": [
+        "undertale"
+      ],
+      "era": "10s",
+      "id": "115"
+    },
+    {
+      "id": "116",
+      "title": "Blinded by Light",
+      "game": "Final Fantasy XIII",
+      "series": "Final Fantasy",
+      "composer": "Masashi Hamauzu",
+      "platform": "PlayStation 3",
+      "year": 2009,
+      "apple_music_url": "https://music.apple.com/us/album/blinded-by-light/1440777672?i=1440777918",
+      "youtube_url": "https://www.youtube.com/watch?v=xfu0XBf8kmk",
+      "difficulty": "hard",
+      "genres": [
+        "rpg",
+        "jrpg",
+        "action-rpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "117",
+      "title": "City Escape",
+      "game": "Sonic Generations",
+      "series": "Sonic the Hedgehog",
+      "composer": "Jun Senoue",
+      "platform": "PlayStation 3",
+      "year": 2011,
+      "apple_music_url": "https://music.apple.com/us/album/city-escape-classic-version/1443796661?i=1443796999",
+      "youtube_url": "https://www.youtube.com/watch?v=Z6NaZrPQGfY",
+      "difficulty": "normal",
+      "genres": [
+        "action",
+        "platformer"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "118",
+      "title": "Sonic Boom",
+      "game": "Sonic CD",
+      "series": "Sonic the Hedgehog",
+      "composer": "Spencer Nilsen",
+      "platform": "Sega CD",
+      "year": 1993,
+      "apple_music_url": "https://music.apple.com/us/album/sonic-boom/1443794833?i=1443795150",
+      "youtube_url": "https://www.youtube.com/watch?v=EYW7-hNXZlM",
+      "difficulty": "hard",
+      "genres": [
+        "action",
+        "platformer"
+      ],
+      "seriesTags": [
+        "sonic"
+      ],
+      "era": "90s"
+    },
+    {
+      "id": "119",
+      "title": "Crisis Core (Final Fantasy VII)",
+      "game": "Crisis Core: Final Fantasy VII",
+      "series": "Final Fantasy",
+      "composer": "Takeharu Ishimoto",
+      "platform": "PlayStation Portable",
+      "year": 2007,
+      "apple_music_url": "https://music.apple.com/us/album/crisis-core-final-fantasy-vii/1478611116?i=1478611118",
+      "youtube_url": "https://www.youtube.com/watch?v=MOJ91H4mraU",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg",
+        "action-rpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "00s"
+    },
+    {
+      "id": "120",
+      "title": "Home (We're Finally Landing)",
+      "game": "Journey",
+      "series": "Journey",
+      "composer": "Austin Wintory",
+      "platform": "PlayStation 3",
+      "year": 2012,
+      "apple_music_url": "https://music.apple.com/us/album/home-were-finally-landing/1440784118?i=1440784293",
+      "youtube_url": "https://www.youtube.com/watch?v=qGcXI_BaR2Y",
+      "difficulty": "easy",
+      "genres": [
+        "adventure",
+        "indie"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "121",
+      "title": "Waka Laka",
+      "game": "Final Fantasy XIV: A Realm Reborn",
+      "series": "Final Fantasy",
+      "composer": "Masayoshi Soken",
+      "platform": "PC",
+      "year": 2013,
+      "apple_music_url": "https://music.apple.com/us/album/waka-laka/1084334929?i=1084335092",
+      "youtube_url": "https://www.youtube.com/watch?v=nbPYTnHA1jc",
+      "difficulty": "easy",
+      "genres": [
+        "action-rpg",
+        "rpg"
+      ],
+      "seriesTags": [
+        "ff"
+      ],
+      "era": "10s"
+    },
+    {
+      "id": "122",
+      "title": "Radical Dreamers ~Unstolen Jewel~",
+      "game": "Chrono Cross",
+      "series": "Chrono",
+      "composer": "Yasunori Mitsuda",
+      "platform": "PlayStation",
+      "year": 1999,
+      "apple_music_url": "https://music.apple.com/us/album/radical-dreamers-unstolen-jewel/1440777696?i=1440778015",
+      "youtube_url": "https://www.youtube.com/watch?v=aBE3c9X0BoA",
+      "difficulty": "normal",
+      "genres": [
+        "rpg",
+        "jrpg"
+      ],
+      "era": "90s"
     }
   ]
 }

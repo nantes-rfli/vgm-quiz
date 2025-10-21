@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "test": "vitest run",
-    "validate:curated": "tsx scripts/validate-curated.ts"
+    "validate:curated": "tsx scripts/validate-curated.ts",
+    "validate:facet-distribution": "tsx scripts/validate-facet-distribution.ts"
   },
   "dependencies": {
     "zod": "^3.23.8"
