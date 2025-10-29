@@ -60,9 +60,7 @@ function cartesianProduct<T>(arrays: T[][]): T[][] {
 }
 
 function buildCombinationKey(keys: FacetKey[], values: string[]): string {
-  return keys
-    .map((key, index) => `${key}=${values[index]}`)
-    .join('|')
+  return keys.map((key, index) => `${key}=${values[index]}`).join('|')
 }
 
 async function main(): Promise<void> {
@@ -90,7 +88,7 @@ async function main(): Promise<void> {
             combinations.set(signature, new Set<string>())
           }
 
-          combinations.get(signature)!.add(track.game)
+          combinations.get(signature)?.add(track.game)
         }
       }
     }

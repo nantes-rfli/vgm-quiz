@@ -4,6 +4,12 @@ import { sha256 } from '../../../shared/lib/hash'
 import type { Env } from '../../../shared/types/env'
 import type { DailyExport, Question, QuestionFacets } from '../../../shared/types/export'
 
+export interface FilterOptions {
+  difficulty?: string
+  era?: string
+  series?: string[]
+}
+
 interface PublishResult {
   success: boolean
   skipped?: boolean // True if question set already exists (idempotency guard)
@@ -35,15 +41,28 @@ interface TrackRow {
 /**
  * Publish stage: Select questions, generate choices, export to R2
  *
+ * Supports dynamic sampling with facet-based filtering:
+ * - difficulty: Filter by 'easy', 'normal', 'hard'
+ * - era: Filter by '80s', '90s', '00s', '10s', '20s'
+ * - series: Filter by series tags (e.g., 'ff', 'dq', 'zelda', 'mario')
+ *
  * Idempotency:
  * - If question set for date already exists, skip generation and return early
  * - Uses INSERT OR REPLACE for D1 tables to handle concurrent execution
  * - R2 PUT operation naturally overwrites existing files (idempotent)
  */
-export async function handlePublish(env: Env, dateParam: string | null): Promise<PublishResult> {
+export async function handlePublish(
+  env: Env,
+  dateParam: string | null,
+  filters?: FilterOptions,
+): Promise<PublishResult> {
   const date = dateParam || getTodayJST()
 
-  console.log(`[Publish] START: Generating question set for date=${date}`)
+  const filterStr =
+    filters && Object.keys(filters).length > 0
+      ? ` with filters: ${JSON.stringify(filters)}`
+      : ' (no filters - daily preset)'
+  console.log(`[Publish] START: Generating question set for date=${date}${filterStr}`)
 
   try {
     // 1. Check if already published (idempotency guard)
@@ -109,11 +128,15 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
       }
     }
 
-    // 2. Select 10 random available tracks
-    const tracks = await selectTracks(env.DB, 10)
+    // 2. Select 10 random available tracks with optional filtering
+    const tracks = await selectTracks(env.DB, 10, filters)
 
     if (tracks.length < 10) {
-      throw new Error(`Not enough tracks available (need 10, got ${tracks.length})`)
+      const filterDesc =
+        filters && Object.keys(filters).length > 0
+          ? ` with filters (${JSON.stringify(filters)})`
+          : ''
+      throw new Error(`Not enough tracks available${filterDesc} (need 10, got ${tracks.length})`)
     }
 
     // 3. Get all game titles for choice generation
@@ -237,20 +260,50 @@ export async function handlePublish(env: Env, dateParam: string | null): Promise
 }
 
 /**
- * Select N random available tracks from pool
+ * Select N random available tracks from pool, optionally filtered by facets
  */
-async function selectTracks(db: D1Database, count: number): Promise<TrackRow[]> {
-  const result = await db
-    .prepare(
-      `SELECT t.*, f.difficulty, f.genres, f.series_tags, f.era
+async function selectTracks(
+  db: D1Database,
+  count: number,
+  filters?: FilterOptions,
+): Promise<TrackRow[]> {
+  // Build WHERE clause with optional facet filters
+  const whereClauses = ['p.state = ?']
+  const bindings: Array<string | number> = ['available']
+
+  if (filters?.difficulty) {
+    whereClauses.push('f.difficulty = ?')
+    bindings.push(filters.difficulty)
+  }
+
+  if (filters?.era) {
+    whereClauses.push('f.era = ?')
+    bindings.push(filters.era)
+  }
+
+  if (filters?.series && filters.series.length > 0) {
+    // For series tags (JSON array), check if the JSON string contains the series tag
+    // Using LIKE pattern matching as SQLite doesn't support json_contains directly
+    const seriesConditions = filters.series.map(() => 'f.series_tags LIKE ?').join(' OR ')
+    whereClauses.push(`(${seriesConditions})`)
+    // Use pattern: %"ff"% to match "ff" within the JSON array
+    bindings.push(...filters.series.map((s) => `%"${s}"%`))
+  }
+
+  const whereClause = whereClauses.join(' AND ')
+  const query = `SELECT t.*, f.difficulty, f.genres, f.series_tags, f.era
        FROM tracks_normalized t
        INNER JOIN pool p ON t.track_id = p.track_id
        LEFT JOIN track_facets f ON f.track_id = t.track_id
-       WHERE p.state = 'available'
+       WHERE ${whereClause}
        ORDER BY RANDOM()
-       LIMIT ?`,
-    )
-    .bind(count)
+       LIMIT ?`
+
+  bindings.push(count)
+
+  const result = await db
+    .prepare(query)
+    .bind(...bindings)
     .all<TrackRow>()
 
   return result.results || []

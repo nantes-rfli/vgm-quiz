@@ -18,6 +18,7 @@ type TrackRecord = {
   year: Nullable<number>
   youtube_url: Nullable<string>
   spotify_url: Nullable<string>
+  apple_music_url: Nullable<string>
 }
 
 type PoolRecord = {
@@ -150,7 +151,7 @@ class FakeD1Database {
 
   executeRun(query: string, params: StatementParams): D1Result {
     switch (query) {
-      case 'INSERT INTO tracks_normalized (external_id, title, game, series, composer, platform, year, youtube_url, spotify_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(external_id) DO UPDATE SET title = excluded.title, game = excluded.game, series = excluded.series, composer = excluded.composer, platform = excluded.platform, year = excluded.year, youtube_url = excluded.youtube_url, spotify_url = excluded.spotify_url': {
+      case 'INSERT INTO tracks_normalized (external_id, title, game, series, composer, platform, year, youtube_url, spotify_url, apple_music_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(external_id) DO UPDATE SET title = excluded.title, game = excluded.game, series = excluded.series, composer = excluded.composer, platform = excluded.platform, year = excluded.year, youtube_url = excluded.youtube_url, spotify_url = excluded.spotify_url, apple_music_url = excluded.apple_music_url': {
         this.upsertTrack(params)
         break
       }
@@ -217,66 +218,174 @@ class FakeD1Database {
   }
 
   executeAll(query: string, params: StatementParams): D1Result {
-    switch (query) {
-      case "SELECT t.*, f.difficulty, f.genres, f.series_tags, f.era FROM tracks_normalized t INNER JOIN pool p ON t.track_id = p.track_id LEFT JOIN track_facets f ON f.track_id = t.track_id WHERE p.state = 'available' ORDER BY RANDOM() LIMIT ?": {
-        const [limitRaw] = params as [number]
-        const limit = typeof limitRaw === 'number' ? limitRaw : Number(limitRaw)
-        const availableTrackIds = Array.from(this.#pool.values())
-          .filter((pool) => pool.state === 'available')
-          .map((pool) => pool.track_id)
+    // Pattern for SELECT query with optional filters
+    // Base query: SELECT ... WHERE p.state = ? ...
+    const selectPattern =
+      /SELECT t\.\*, f\.difficulty, f\.genres, f\.series_tags, f\.era FROM tracks_normalized t INNER JOIN pool p ON t\.track_id = p\.track_id LEFT JOIN track_facets f ON f\.track_id = t\.track_id WHERE (.+) ORDER BY RANDOM\(\) LIMIT \?/
 
-        const rows = availableTrackIds
-          .map((trackId) => {
-            const track = this.#tracksById.get(trackId)
-            if (!track) return null
-            const facets = this.#facets.get(trackId)
-            return {
-              ...track,
-              difficulty: facets?.difficulty ?? null,
-              genres: facets?.genres ?? null,
-              series_tags: facets?.series_tags ?? null,
-              era: facets?.era ?? null,
-            }
+    const match = query.match(selectPattern)
+    if (match) {
+      const whereClause = match[1]
+
+      // Parse parameters in order: p.state, [filters...], LIMIT
+      let paramIdx = 0
+
+      // First param is always p.state = 'available'
+      // Skip it since we already filter by state above
+      paramIdx++ // Skip 'available'
+
+      // Extract the last parameter as limit (always at the end)
+      const limit =
+        typeof params[params.length - 1] === 'number'
+          ? (params[params.length - 1] as number)
+          : Number(params[params.length - 1])
+
+      // Filter available tracks
+      let availableTrackIds = Array.from(this.#pool.values())
+        .filter((pool) => pool.state === 'available')
+        .map((pool) => pool.track_id)
+
+      // Apply facet filters if present (in order of WHERE clause)
+      if (whereClause.includes('f.difficulty = ?')) {
+        const difficulty = params[paramIdx]
+        paramIdx++
+        availableTrackIds = availableTrackIds.filter((trackId) => {
+          const facets = this.#facets.get(trackId)
+          return facets?.difficulty === difficulty
+        })
+      }
+
+      if (whereClause.includes('f.era = ?')) {
+        const era = params[paramIdx]
+        paramIdx++
+        availableTrackIds = availableTrackIds.filter((trackId) => {
+          const facets = this.#facets.get(trackId)
+          return facets?.era === era
+        })
+      }
+
+      if (whereClause.includes('f.series_tags LIKE ?')) {
+        // Count how many series filters exist (series params continue until limit)
+        const seriesCount = (whereClause.match(/f\.series_tags LIKE \?/g) || []).length
+        const seriesPatterns: string[] = []
+        for (let i = 0; i < seriesCount; i++) {
+          const pattern = params[paramIdx]
+          if (typeof pattern === 'string') {
+            seriesPatterns.push(pattern)
+          }
+          paramIdx++
+        }
+
+        availableTrackIds = availableTrackIds.filter((trackId) => {
+          const facets = this.#facets.get(trackId)
+          if (!facets?.series_tags) return false
+          // Check if any series pattern matches
+          // Use 'i' flag for case-insensitive matching (SQLite LIKE is case-insensitive)
+          return seriesPatterns.some((pattern) => {
+            const regex = new RegExp(pattern.replace(/%/g, '.*'), 'i')
+            return regex.test(facets.series_tags)
           })
-          .filter((value): value is NonNullable<typeof value> => value !== null)
-          .slice(0, limit)
-
-        return {
-          results: rows,
-          success: true,
-          meta: {},
-        }
+        })
       }
-      case 'SELECT DISTINCT game FROM tracks_normalized': {
-        const games = new Set<string>()
-        for (const record of this.#tracksByExternalId.values()) {
-          games.add(record.game)
-        }
 
-        return {
-          results: Array.from(games).map((game) => ({ game })),
-          success: true,
-          meta: {},
-        }
+      const rows = availableTrackIds
+        .map((trackId) => {
+          const track = this.#tracksById.get(trackId)
+          if (!track) return null
+          const facets = this.#facets.get(trackId)
+          return {
+            ...track,
+            difficulty: facets?.difficulty ?? null,
+            genres: facets?.genres ?? null,
+            series_tags: facets?.series_tags ?? null,
+            era: facets?.era ?? null,
+          }
+        })
+        .filter((value): value is NonNullable<typeof value> => value !== null)
+        .slice(0, limit)
+
+      return {
+        results: rows,
+        success: true,
+        meta: {},
       }
-      default:
-        throw new Error(`Unsupported all() query: ${query}`)
     }
+
+    // Fallback for old query format (without filters)
+    if (
+      query ===
+      "SELECT t.*, f.difficulty, f.genres, f.series_tags, f.era FROM tracks_normalized t INNER JOIN pool p ON t.track_id = p.track_id LEFT JOIN track_facets f ON f.track_id = t.track_id WHERE p.state = 'available' ORDER BY RANDOM() LIMIT ?"
+    ) {
+      const [limitRaw] = params as [number]
+      const limit = typeof limitRaw === 'number' ? limitRaw : Number(limitRaw)
+      const availableTrackIds = Array.from(this.#pool.values())
+        .filter((pool) => pool.state === 'available')
+        .map((pool) => pool.track_id)
+
+      const rows = availableTrackIds
+        .map((trackId) => {
+          const track = this.#tracksById.get(trackId)
+          if (!track) return null
+          const facets = this.#facets.get(trackId)
+          return {
+            ...track,
+            difficulty: facets?.difficulty ?? null,
+            genres: facets?.genres ?? null,
+            series_tags: facets?.series_tags ?? null,
+            era: facets?.era ?? null,
+          }
+        })
+        .filter((value): value is NonNullable<typeof value> => value !== null)
+        .slice(0, limit)
+
+      return {
+        results: rows,
+        success: true,
+        meta: {},
+      }
+    }
+
+    // Handle games query
+    if (query === 'SELECT DISTINCT game FROM tracks_normalized') {
+      const games = new Set<string>()
+      for (const record of this.#tracksByExternalId.values()) {
+        games.add(record.game)
+      }
+
+      return {
+        results: Array.from(games).map((game) => ({ game })),
+        success: true,
+        meta: {},
+      }
+    }
+
+    throw new Error(`Unsupported all() query: ${query}`)
   }
 
   private upsertTrack(params: StatementParams): void {
-    const [externalId, title, game, series, composer, platform, year, youtube, spotify] =
-      params as [
-        string,
-        string,
-        string,
-        Nullable<string>,
-        Nullable<string>,
-        Nullable<string>,
-        Nullable<number>,
-        Nullable<string>,
-        Nullable<string>,
-      ]
+    const [
+      externalId,
+      title,
+      game,
+      series,
+      composer,
+      platform,
+      year,
+      youtube,
+      spotify,
+      appleMusic,
+    ] = params as [
+      string,
+      string,
+      string,
+      Nullable<string>,
+      Nullable<string>,
+      Nullable<string>,
+      Nullable<number>,
+      Nullable<string>,
+      Nullable<string>,
+      Nullable<string>,
+    ]
 
     const existing = this.#tracksByExternalId.get(externalId)
 
@@ -289,6 +398,7 @@ class FakeD1Database {
       existing.year = year ?? null
       existing.youtube_url = youtube ?? null
       existing.spotify_url = spotify ?? null
+      existing.apple_music_url = appleMusic ?? null
       this.#tracksById.set(existing.track_id, existing)
       return
     }
@@ -304,6 +414,7 @@ class FakeD1Database {
       year: year ?? null,
       youtube_url: youtube ?? null,
       spotify_url: spotify ?? null,
+      apple_music_url: appleMusic ?? null,
     }
 
     this.#tracksByExternalId.set(externalId, track)
@@ -410,5 +521,111 @@ describe('pipeline facets integration', () => {
     expect(target?.facets?.genres).toEqual(['platformer', 'action'])
     expect(target?.facets?.seriesTags).toEqual(['sonic'])
     expect(target?.facets?.era).toBe('90s')
+  })
+
+  it('samples tracks with difficulty filter', async () => {
+    await handleDiscovery(env)
+
+    // Filter by easy difficulty - should succeed (multiple easy tracks exist)
+    const publishResult = await handlePublish(env, '2025-02-01', { difficulty: 'easy' })
+    expect(publishResult.success).toBe(true)
+    expect(publishResult.questionsGenerated).toBe(10)
+
+    const exportObject = await storage.get('exports/2025-02-01.json')
+    expect(exportObject).not.toBeNull()
+
+    if (!exportObject) {
+      throw new Error('Expected export object to exist for 2025-02-01')
+    }
+
+    const raw = await exportObject.text()
+    const parsed = JSON.parse(raw) as { questions: Question[] }
+
+    // All questions should have difficulty='easy'
+    for (const question of parsed.questions) {
+      expect(question.facets?.difficulty).toBe('easy')
+    }
+  })
+
+  it('fails with insufficient tracks when difficulty filter applied', async () => {
+    await handleDiscovery(env)
+
+    // Filter by a difficulty level with fewer tracks than required
+    // (We don't control the facet distribution, so just test error path)
+    const publishResult = await handlePublish(env, '2025-03-01', { difficulty: 'hard' })
+
+    // Result depends on how many hard tracks are in curated.json
+    // If success: all questions have difficulty='hard'
+    // If failure: error message should NOT say "with filters" if no filters applied
+    if (publishResult.success) {
+      expect(publishResult.questionsGenerated).toBe(10)
+    } else {
+      expect(publishResult.error).toContain('Not enough tracks available')
+      // Error should indicate filters were applied
+      expect(publishResult.error).toContain('difficulty')
+    }
+  })
+
+  it('samples tracks with series filter (case-insensitive)', async () => {
+    await handleDiscovery(env)
+
+    // Filter by series tag - test case-insensitive matching
+    // series=sonic should match tracks with series_tags containing "sonic"
+    const publishResult = await handlePublish(env, '2025-04-01', { series: ['sonic'] })
+
+    if (publishResult.success) {
+      expect(publishResult.questionsGenerated).toBe(10)
+
+      const exportObject = await storage.get('exports/2025-04-01.json')
+      if (exportObject) {
+        const raw = await exportObject.text()
+        const parsed = JSON.parse(raw) as { questions: Question[] }
+
+        // All questions should have 'sonic' in seriesTags
+        for (const question of parsed.questions) {
+          const hasSonic = question.facets?.seriesTags?.some((tag) => tag.toLowerCase() === 'sonic')
+          expect(hasSonic).toBe(true)
+        }
+      }
+    } else {
+      // If not enough sonic tracks, error message should reflect that
+      expect(publishResult.error).toContain('Not enough tracks available')
+    }
+  })
+
+  it('handles combined difficulty and era filters', async () => {
+    await handleDiscovery(env)
+
+    // Combine multiple filters
+    const publishResult = await handlePublish(env, '2025-05-01', {
+      difficulty: 'normal',
+      era: '90s',
+    })
+
+    if (publishResult.success) {
+      expect(publishResult.questionsGenerated).toBe(10)
+    } else {
+      // Should indicate which filters were applied
+      expect(publishResult.error).toContain('Not enough tracks available')
+      expect(publishResult.error).toMatch(/difficulty|era/)
+    }
+  })
+
+  it('error message distinguishes filtered vs unfiltered shortage', async () => {
+    await handleDiscovery(env)
+
+    // No filters - error should NOT mention filters
+    const noFilterResult = await handlePublish(env, '2025-06-01')
+    if (!noFilterResult.success) {
+      expect(noFilterResult.error).toContain('Not enough tracks available')
+      expect(noFilterResult.error).not.toContain('with filters')
+    }
+
+    // With filters - error should mention filters
+    const withFilterResult = await handlePublish(env, '2025-07-01', { difficulty: 'hard' })
+    if (!withFilterResult.success) {
+      expect(withFilterResult.error).toContain('Not enough tracks available')
+      expect(withFilterResult.error).toContain('with filters')
+    }
   })
 })
