@@ -148,6 +148,13 @@ class FakeD1Database {
         const pick = this.#picks.get(date)
         return (pick ? { id: pick.id, items: pick.items } : null) as T | null
       }
+      case 'SELECT items FROM picks WHERE date = ? AND filters_json = ?': {
+        const date = params[0] as string
+        const filterKey = params[1] as string
+        const key = `${date}|${filterKey}`
+        const pick = this.#picks.get(key)
+        return (pick ? { items: pick.items } : null) as T | null
+      }
       case 'SELECT items FROM picks WHERE date = ?': {
         const date = params[0] as string
         const pick = this.#picks.get(date)
@@ -747,5 +754,53 @@ describe('pipeline facets integration', () => {
     expect(second.success).toBe(true)
     expect(second.skipped).toBe(true) // Should be skipped
     expect(second.questionsGenerated).toBe(0)
+  })
+
+  it('fallback query retrieves only canonical records (filters_json={})', async () => {
+    await handleDiscovery(env)
+
+    // 1. Generate canonical daily preset (no filters)
+    const canonicalResult = await handlePublish(env, '2025-11-01')
+    expect(canonicalResult.success).toBe(true)
+    expect(canonicalResult.r2Key).toBe('exports/2025-11-01.json') // Canonical R2 key
+    expect(canonicalResult.hash).toBeDefined()
+
+    // 2. Generate a filtered variant for the same date
+    const filteredResult = await handlePublish(env, '2025-11-01', { difficulty: 'easy' })
+    expect(filteredResult.success).toBe(true)
+    // Filtered variant should have different R2 key
+    expect(filteredResult.r2Key).not.toBe('exports/2025-11-01.json')
+    expect(filteredResult.hash).toBeDefined()
+    // Note: Due to random sampling, filtered and canonical results may happen to have
+    // identical content and hash. We only verify R2 key difference here.
+
+    // 3. Simulate R2 missing the canonical export
+    // Remove the canonical R2 file but keep both D1 picks rows (canonical + filtered)
+    const r2Bucket = storage as unknown as InMemoryR2Bucket
+    const r2Store = r2Bucket.dump()
+    r2Store.delete('exports/2025-11-01.json') // Remove canonical from R2
+
+    // 4. Now test the API fallback - it should retrieve ONLY the canonical row from D1
+    // This mimics what fetchDailyQuestions does in workers/api/src/lib/daily.ts
+    const pick = await (env.DB as unknown as FakeD1Database).executeFirst<{ items: string }>(
+      'SELECT items FROM picks WHERE date = ? AND filters_json = ?',
+      ['2025-11-01', '{}'],
+    )
+
+    // Should successfully retrieve the canonical record (filters_json='{}')
+    expect(pick).not.toBeNull()
+    expect(pick?.items).toBeDefined()
+
+    if (pick) {
+      const parsed = JSON.parse(pick.items) as { meta: { hash: string } }
+      // Verify it's the canonical export data by comparing hash
+      // If hashes differ, confirm it's the canonical (not filtered) variant
+      expect(parsed.meta.hash).toBe(canonicalResult.hash)
+      // Only check against filtered variant hash if they happen to be different
+      // (Random sampling may produce identical content in rare cases)
+      if (filteredResult.hash && filteredResult.hash !== canonicalResult.hash) {
+        expect(parsed.meta.hash).not.toBe(filteredResult.hash)
+      }
+    }
   })
 })

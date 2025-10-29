@@ -14,9 +14,9 @@ export async function fetchDailyQuestions(env: Env, date: string): Promise<Daily
     return JSON.parse(text) as DailyExport
   }
 
-  // 2. Fallback: Try D1 picks table
-  const pick = await env.DB.prepare('SELECT items FROM picks WHERE date = ?')
-    .bind(date)
+  // 2. Fallback: Try D1 picks table (canonical only, filters_json='{}')
+  const pick = await env.DB.prepare('SELECT items FROM picks WHERE date = ? AND filters_json = ?')
+    .bind(date, '{}')
     .first<{ items: string }>()
 
   if (pick) {
