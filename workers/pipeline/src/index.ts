@@ -1,6 +1,6 @@
 import type { Env } from '../../shared/types/env'
 import { handleDiscovery } from './stages/discovery'
-import { handlePublish } from './stages/publish'
+import { type FilterOptions, handlePublish } from './stages/publish'
 
 export default {
   /**
@@ -68,7 +68,28 @@ export default {
       // Publish endpoint
       if (url.pathname === '/trigger/publish' && request.method === 'POST') {
         const dateParam = url.searchParams.get('date')
-        const result = await handlePublish(env, dateParam)
+
+        // Parse optional filter parameters
+        const filters: FilterOptions = {}
+        const difficulty = url.searchParams.get('difficulty')
+        const era = url.searchParams.get('era')
+        const seriesParam = url.searchParams.get('series')
+
+        if (difficulty) filters.difficulty = difficulty
+        if (era) filters.era = era
+        if (seriesParam) {
+          // Support comma-separated series tags: ?series=ff,dq,zelda
+          filters.series = seriesParam
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)
+        }
+
+        const result = await handlePublish(
+          env,
+          dateParam,
+          Object.keys(filters).length > 0 ? filters : undefined,
+        )
         return new Response(JSON.stringify(result), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
