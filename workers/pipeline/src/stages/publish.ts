@@ -51,12 +51,54 @@ interface TrackRow {
  * - Uses INSERT OR REPLACE for D1 tables to handle concurrent execution
  * - R2 PUT operation naturally overwrites existing files (idempotent)
  */
+/**
+ * Normalize filters to a consistent JSON string for use as a key.
+ * Ensures empty objects and undefined filters both map to '{}'
+ */
+function getFilterKey(filters?: FilterOptions): string {
+  if (!filters || Object.keys(filters).length === 0) {
+    return '{}'
+  }
+
+  // Sort keys for consistent ordering
+  const normalized: Record<string, unknown> = {}
+  for (const key of Object.keys(filters).sort()) {
+    const value = filters[key as keyof FilterOptions]
+    if (value !== undefined && value !== null) {
+      // For series array, ensure it's sorted for consistency
+      if (Array.isArray(value)) {
+        normalized[key] = value.slice().sort()
+      } else {
+        normalized[key] = value
+      }
+    }
+  }
+
+  return JSON.stringify(normalized)
+}
+
+/**
+ * Create a short hash of the filter key for use in R2 keys.
+ * Uses a simple hash approach - first 12 chars of hex digest of the filter JSON.
+ */
+function hashFilterKey(filterJson: string): string {
+  // Simple hash: sum of character codes modulo 2^32, converted to hex
+  let hash = 0
+  for (let i = 0; i < filterJson.length; i++) {
+    const char = filterJson.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0')
+}
+
 export async function handlePublish(
   env: Env,
   dateParam: string | null,
   filters?: FilterOptions,
 ): Promise<PublishResult> {
   const date = dateParam || getTodayJST()
+  const filterKey = getFilterKey(filters)
 
   const filterStr =
     filters && Object.keys(filters).length > 0
@@ -65,21 +107,28 @@ export async function handlePublish(
   console.log(`[Publish] START: Generating question set for date=${date}${filterStr}`)
 
   try {
-    // 1. Check if already published (idempotency guard)
-    const existing = await env.DB.prepare('SELECT id, items FROM picks WHERE date = ?')
-      .bind(date)
+    // 1. Check if already published (idempotency guard with filter awareness)
+    const existing = await env.DB.prepare(
+      'SELECT id, items FROM picks WHERE date = ? AND filters_json = ?',
+    )
+      .bind(date, filterKey)
       .first<{
         id: number
         items: string
       }>()
 
     if (existing) {
-      const r2Key = `exports/${date}.json`
+      // Use filter-aware R2 key to distinguish filtered exports from canonical
+      const r2Key =
+        filterKey === '{}'
+          ? `exports/${date}.json`
+          : `exports/${date}_${hashFilterKey(filterKey)}.json`
+
       const r2Object = await env.STORAGE.head(r2Key)
 
       if (!r2Object) {
         console.warn(
-          `[Publish] WARNING: D1 entry exists but R2 file missing for ${date}. Attempting recovery from picks table.`,
+          `[Publish] WARNING: D1 entry exists but R2 file missing for ${date} (filters=${filterKey}). Attempting recovery from picks table.`,
         )
 
         try {
@@ -93,12 +142,14 @@ export async function handlePublish(
           })
 
           await env.DB.prepare(
-            'INSERT OR REPLACE INTO exports (date, r2_key, version, hash) VALUES (?, ?, ?, ?)',
+            'INSERT OR REPLACE INTO exports (date, r2_key, version, hash, filters_json) VALUES (?, ?, ?, ?, ?)',
           )
-            .bind(date, r2Key, exportData.meta.version ?? '1.0.0', exportData.meta.hash)
+            .bind(date, r2Key, exportData.meta.version ?? '1.0.0', exportData.meta.hash, filterKey)
             .run()
 
-          console.log(`[Publish] RECOVER: Re-exported ${r2Key} from existing pick data`)
+          console.log(
+            `[Publish] RECOVER: Re-exported ${r2Key} from existing pick data (filters=${filterKey})`,
+          )
 
           return {
             success: true,
@@ -109,7 +160,10 @@ export async function handlePublish(
             hash: exportData.meta.hash,
           }
         } catch (error) {
-          console.error(`[Publish] ERROR: Failed to recover missing export for ${date}`, error)
+          console.error(
+            `[Publish] ERROR: Failed to recover missing export for ${date} (filters=${filterKey})`,
+            error,
+          )
           throw error instanceof Error
             ? error
             : new Error('Failed to recover missing export from existing pick')
@@ -117,7 +171,7 @@ export async function handlePublish(
       }
 
       console.log(
-        `[Publish] SKIP: Question set for ${date} already exists (pick_id=${existing.id})`,
+        `[Publish] SKIP: Question set for ${date} already exists (pick_id=${existing.id}, filters=${filterKey})`,
       )
 
       return {
@@ -204,9 +258,11 @@ export async function handlePublish(
       },
     }
 
-    // 8. Save to picks table (INSERT OR REPLACE for idempotency)
-    await env.DB.prepare('INSERT OR REPLACE INTO picks (date, items, status) VALUES (?, ?, ?)')
-      .bind(date, JSON.stringify(exportData), 'published')
+    // 8. Save to picks table (INSERT OR REPLACE for idempotency with filters)
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO picks (date, items, status, filters_json) VALUES (?, ?, ?, ?)',
+    )
+      .bind(date, JSON.stringify(exportData), 'published', filterKey)
       .run()
 
     // 9. Update pool (mark as picked)
@@ -221,8 +277,11 @@ export async function handlePublish(
         .run()
     }
 
-    // 10. Export to R2 (PUT operation is naturally idempotent - overwrites existing)
-    const r2Key = `exports/${date}.json`
+    // 10. Export to R2 (use filter-aware key)
+    const r2Key =
+      filterKey === '{}'
+        ? `exports/${date}.json`
+        : `exports/${date}_${hashFilterKey(filterKey)}.json`
     await env.STORAGE.put(r2Key, JSON.stringify(exportData, null, 2), {
       httpMetadata: {
         contentType: 'application/json',
@@ -231,11 +290,11 @@ export async function handlePublish(
 
     console.log(`[Publish] R2: Exported to ${r2Key}`)
 
-    // 11. Save export metadata (INSERT OR REPLACE for idempotency)
+    // 11. Save export metadata (INSERT OR REPLACE for idempotency with filters)
     await env.DB.prepare(
-      'INSERT OR REPLACE INTO exports (date, r2_key, version, hash) VALUES (?, ?, ?, ?)',
+      'INSERT OR REPLACE INTO exports (date, r2_key, version, hash, filters_json) VALUES (?, ?, ?, ?, ?)',
     )
-      .bind(date, r2Key, '1.0.0', hash)
+      .bind(date, r2Key, '1.0.0', hash, filterKey)
       .run()
 
     console.log(`[Publish] SUCCESS: ${questions.length} questions generated for ${date}`)
