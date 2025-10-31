@@ -5,6 +5,12 @@ compatibility_date = "2025-10-10"
 [observability]
 enabled = true
 
+[vars]
+# JWT secret for Phase 2B JWS token signing
+# During development, use any 32+ character string
+# In production, use a strong random key (e.g., from Secrets Manager)
+JWT_SECRET = "dev-secret-key-please-replace-in-production-with-strong-random-value"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "vgm-quiz-db"

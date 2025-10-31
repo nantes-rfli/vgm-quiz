@@ -93,6 +93,10 @@ export interface Phase1StartResponse {
   question: Phase1Question;
   choices: Phase1Choice[];
   continuationToken: string;
+  progress?: {
+    index: number; // 1-based question index
+    total: number; // total questions in round
+  };
 }
 
 export interface Phase1NextResponse {
@@ -104,5 +108,9 @@ export interface Phase1NextResponse {
   question?: Phase1Question;
   choices?: Phase1Choice[];
   continuationToken?: string;
+  progress?: {
+    index: number; // 1-based question index
+    total: number; // total questions in round
+  };
   finished: boolean;
 }

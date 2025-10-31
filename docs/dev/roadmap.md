@@ -1,7 +1,7 @@
 # プロダクトロードマップ — vgm-quiz
 
 - **Status**: Living Document
-- **Last Updated**: 2025-10-13
+- **Last Updated**: 2025-10-22
 - **目的**: プロジェクトの各フェーズにおける機能実装を追跡
 
 ---
@@ -52,71 +52,43 @@
 
 ## Phase 2 - ユーザーフィルタ + 動的サンプリング
 
-**ゴール**: era/difficulty/seriesフィルタとフィルタに基づく動的問題サンプリングを実現
+**ゴール**: era/difficulty/series ベースのフィルタ機能と条件付きサンプリングを提供し、Phase 1 の固定ラウンドを段階的に置き換える。
 
-**ステータス**: 計画中
+**ステータス**: Phase 2A 完了、Phase 2B 着手準備中（2025-10-22 時点）
 
-**開始予定**: Phase 1本番検証後 (1-2週間後)
+### サブフェーズ別の状況と担当Issue
 
-### 計画中の機能
+#### Phase 2A - データ整備（完了 ✅）
+- ✅ #107 DATA-03: curated.json メタデータ拡張
+- ✅ #108 BE-04: D1 スキーマに track_facets 追加
+- ✅ #109 DATA-04: メタデータ検証スクリプト更新
+- ✅ #110 DATA-05: curated.json を 100+ トラックに拡充
 
-#### Backend
-- [ ] **#27: Manifest API** (`GET /v1/manifest`) - *Phase 1から延期*
-  - 利用可能なモード (例: `vgm_v1-ja`) を公開
-  - フィルタファセット (era, difficulty, series) を公開
-  - 機能フラグ (inlinePlayback, imageProxy)
-  - クライアント: manifestを使ってフィルタUIを構築
+#### Phase 2B - Manifest & API 刷新（着手前）
+- [ ] #111 BE-05: フィルタ対応の動的サンプリング実装（Publish ステージ拡張）
+- [ ] #112 BE-06: JWS 署名付きトークンライブラリ導入
+- [ ] #117 FE-03: Manifest / Rounds API 仕様に沿った MSW + Playwright 更新
+- [ ] #28 API-02: Availability API（任意 / P3）
 
-- [ ] **#28: Availability API** (`POST /v1/availability`) - *Phase 1から延期*
-  - 指定フィルタで利用可能な問題数を返却
-  - クライアント: ラウンド開始前に「X問利用可能」を表示
-  - 優先度: P3 (任意、あると便利)
+#### Phase 2C - フロントエンド適用（準備中）
+- [ ] #113 FE-01: フィルタ選択 UI 実装
+- [ ] #114 FE-02: Manifest キャッシュとバージョン管理
+- [ ] #118 DOCS-01: Phase 2 機能向けドキュメント & i18n 更新
 
-- [ ] **動的サンプリング拡張**
-  - Publishステージをフィルタベース選定対応に拡張
-  - ファセット対応のクールダウン付きプール管理
-
-#### Data
-- [ ] **#30: Manifestデータ準備** - *Phase 1から延期*
-  - モード定義 (locale, theme)
-  - ファセット定義 (era: 80s/90s/00s/10s, difficulty: easy/normal/hard, series: ff/dq/zelda/mario)
-  - 各ファセットのデフォルト値
-
-- [ ] **curated.json拡充**
-  - 目標: 100+トラック (現在20トラック)
-  - ファセット間でバランスの取れた分布を確保
-  - フィルタ組み合わせごとに4作品最小ルールを維持
-
-#### Frontend
-- [ ] **フィルタUI実装**
-  - ゲーム開始前のフィルタ選択画面
-  - アプリ起動時にmanifestを取得
-  - フィルタを `/v1/rounds/start` に渡す
-
-- [ ] **Manifest統合**
-  - localStorageにmanifestをキャッシュ
-  - バージョン変更時に再検証
-
-#### Infrastructure
-- [ ] **#26: 画像プロキシ** (`GET /proxy/image`) - *Phase 1から延期*
-  - アートワークURL安定化のためのプロキシ
-  - フォーマット変換 (WebP)
-  - CDNキャッシュ戦略
-
-- [ ] **アートワーク対応**
-  - curated.jsonに `artwork` フィールドを追加
-  - revealカードにゲームカバーアートを表示
-  - 画像欠損/破損時のフォールバック
+#### Phase 2D - 品質と運用（準備中）
+- [ ] #115 QA-01: フィルタ別シナリオの E2E テスト拡張
+- [ ] #116 OPS-01: プリセット生成 Cron の再設計（条件付きラウンド対応）
 
 ### 成功基準
-- [ ] ユーザーが開始前にera/difficulty/seriesでフィルタ可能
-- [ ] Availability APIが現実的な問題数を表示
-- [ ] アートワークが95%以上の問題で正しく表示される
-- [ ] 画像プロキシが外部リンク失敗を50%以上削減
+- [ ] ユーザーが開始前に era / difficulty / series でフィルタ指定できる
+- [ ] Availability API で条件ごとの在庫を提示できる（任意だが推奨）
+- [ ] JWS 署名トークンと MSW / E2E モックが同期し、期待通りに検証が通る
+- [ ] 条件付き Publish / Cron が安定稼働し、手動介入なしで日次配信できる
 
 ### 依存関係
-- Phase 1本番メトリクスのベースライン確立
-- 希望するフィルタタイプに関するユーザーフィードバック
+- Phase 1 本番メトリクスのベースライン確立
+- フィルタ UX に関するユーザーフィードバック
+- workers / web 間の共有ライブラリ構成（@vgm-quiz/shared）
 
 ---
 
@@ -231,4 +203,5 @@
 
 ## 変更履歴
 
+- **2025-10-22**: Phase 2A 完了状況と Phase 2B〜2D の担当 Issue を更新、成功基準を現行バックログと整合
 - **2025-10-13**: 初回ロードマップ作成、Phase 1完了マーク、Phase 2計画開始
