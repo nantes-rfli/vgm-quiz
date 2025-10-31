@@ -1,11 +1,12 @@
 // MSW handlers for Phase 1 (Base64 tokens) and Phase 2B (JWS tokens)
 // During development, both token formats are supported for backward compatibility
 import { http, HttpResponse } from 'msw';
-import { TOTAL as ROUND_TOTAL, getQuestionByIndex } from './fixtures/rounds/index';
-import { ANSWERS } from './fixtures/rounds/answers';
+import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByFilters } from './fixtures/rounds/index';
+import { ANSWERS, FILTER_ANSWERS } from './fixtures/rounds/answers';
 import { META } from './fixtures/rounds/meta';
 import { encodeBase64url, decodeBase64url, type Phase1Token } from '@/src/lib/base64url';
 import { createJWSToken, verifyJWSToken, isJWSToken, type Phase2TokenPayload } from '@/src/lib/token-shared';
+import type { Manifest, Difficulty, Era } from '@/src/features/quiz/api/manifest';
 
 // Browser-compatible UUID generation (using crypto.getRandomValues)
 function generateUUID(): string {
@@ -37,21 +38,77 @@ function getCanonicalFiltersHash(): string {
 }
 
 export const handlers = [
-  // Phase 2B: GET /v1/rounds/start (JWS token format)
-  http.get('/v1/rounds/start', async () => {
-    try {
-      const total = ROUND_TOTAL;
+  // Phase 2B: GET /v1/manifest - Describe available modes, facets, and features
+  http.get('/v1/manifest', () => {
+    const manifest: Manifest = {
+      schema_version: 2,
+      modes: [
+        {
+          id: 'vgm_v1-ja',
+          title: 'VGM Quiz Vol.1 (JA)',
+          defaultTotal: 10,
+        },
+      ],
+      facets: {
+        difficulty: ['easy', 'normal', 'hard', 'mixed'],
+        era: ['80s', '90s', '00s', '10s', '20s', 'mixed'],
+        series: ['ff', 'dq', 'zelda', 'mario', 'sonic', 'pokemon', 'mixed'],
+      },
+      features: {
+        inlinePlaybackDefault: false,
+        imageProxyEnabled: false,
+      },
+    };
 
-      // Get first question
-      const firstQuestion = getQuestionByIndex(1);
+    return HttpResponse.json(manifest);
+  }),
+
+  // Phase 2B: GET /v1/rounds/start (JWS token format with filter support)
+  http.get('/v1/rounds/start', async ({ request }) => {
+    try {
+      // Extract filter parameters from query string
+      const url = new URL(request.url);
+      const difficulty = (url.searchParams.get('difficulty') || undefined) as Difficulty | undefined;
+      const era = (url.searchParams.get('era') || undefined) as Era | undefined;
+      const series = url.searchParams.getAll('series') || [];
+      const totalParam = url.searchParams.get('total');
+
+      // Validate total parameter: must be a positive integer <= ROUND_TOTAL
+      let total = ROUND_TOTAL;
+      if (totalParam) {
+        // Strict validation: must be string matching /^\d+$/ (digits only)
+        // This prevents "5.5", "10abc", etc. from being silently accepted
+        if (/^\d+$/.test(totalParam)) {
+          const parsedTotal = Number(totalParam);
+          // Check range: >= 1 and <= ROUND_TOTAL
+          if (parsedTotal >= 1 && parsedTotal <= ROUND_TOTAL) {
+            total = parsedTotal;
+          }
+          // Otherwise silently fall back to ROUND_TOTAL
+        }
+        // Non-integer strings are silently ignored, default to ROUND_TOTAL
+      }
+
+      // Get first question based on filters (Phase 2B)
+      // If filters specified, use filter-specific fixture; otherwise use default
+      const firstQuestion = getFirstQuestionByFilters(difficulty, era, series);
       if (!firstQuestion) {
         return new HttpResponse('No questions available', { status: 503 });
       }
 
-      // Create Phase 2B JWS token
+      // Create Phase 2B JWS token with filter info
       const roundId = generateUUID();
       const seed = generateUUID().replace(/-/g, '').substring(0, 16);
-      const filtersHash = getCanonicalFiltersHash();
+      // Store filter info in filtersHash for subsequent question retrieval
+      // Format: "difficulty=easy|era=90s|series=ff,zelda" or "canonical-daily"
+      // Using key=value format to avoid ambiguity when restoring
+      const filterParts: string[] = [];
+      if (difficulty) filterParts.push(`difficulty=${difficulty}`);
+      if (era) filterParts.push(`era=${era}`);
+      if (series && series.length > 0) filterParts.push(`series=${series.join(',')}`);
+      const filtersHash = filterParts.length > 0
+        ? filterParts.join('|')
+        : getCanonicalFiltersHash();
 
       const token = await createJWSToken(
         {
@@ -154,13 +211,46 @@ export const handlers = [
       }
 
       // Get current question for reveal
-      const currentQuestion = getQuestionByIndex(token.currentIndex + 1);
+      // Phase 2B: Only use filter-specific question for the first question (currentIndex === 0)
+      // For subsequent questions, use default fixture based on index
+      let currentQuestion;
+      if (isPhase2 && phase2Token && token.currentIndex === 0) {
+        // First question: restore filters from filtersHash and retrieve question with same filter
+        const filtersStr = phase2Token.filtersHash;
+        if (filtersStr !== 'canonical-daily' && filtersStr) {
+          // Parse key=value|key=value format
+          let difficulty: Difficulty | undefined;
+          let era: Era | undefined;
+          let series: string[] | undefined;
+
+          const filterPairs = filtersStr.split('|');
+          for (const pair of filterPairs) {
+            const [key, value] = pair.split('=');
+            if (key === 'difficulty' && value) {
+              difficulty = value as Difficulty;
+            } else if (key === 'era' && value) {
+              era = value as Era;
+            } else if (key === 'series' && value) {
+              series = value.split(',');
+            }
+          }
+
+          currentQuestion = getFirstQuestionByFilters(difficulty, era, series);
+        } else {
+          currentQuestion = getQuestionByIndex(token.currentIndex + 1);
+        }
+      } else {
+        // Phase 1 or Phase 2B (not first question): Use default fixture based on index
+        currentQuestion = getQuestionByIndex(token.currentIndex + 1);
+      }
+
       if (!currentQuestion) {
         return new HttpResponse('Question not found', { status: 404 });
       }
 
       // Check answer correctness
-      const correctChoiceId = ANSWERS[currentQuestion.id];
+      // Phase 2B: Check FILTER_ANSWERS first for filter-specific questions, then ANSWERS for defaults
+      const correctChoiceId = FILTER_ANSWERS[currentQuestion.id] || ANSWERS[currentQuestion.id];
       const correct = answer === correctChoiceId;
 
       // Prepare reveal metadata
@@ -193,7 +283,17 @@ export const handlers = [
       }
 
       // Get next question
-      const nextQuestion = getQuestionByIndex(nextIndex + 1);
+      // Phase 2B: Use same filter as start request if present
+      let nextQuestion;
+      if (isPhase2 && phase2Token) {
+        // For Phase 2B filtered rounds, continue with default fixture sequence
+        // (filter applies only to first question for MVP implementation)
+        nextQuestion = getQuestionByIndex(nextIndex + 1);
+      } else {
+        // Phase 1: Use default fixture
+        nextQuestion = getQuestionByIndex(nextIndex + 1);
+      }
+
       if (!nextQuestion) {
         return new HttpResponse('Next question not found', { status: 500 });
       }

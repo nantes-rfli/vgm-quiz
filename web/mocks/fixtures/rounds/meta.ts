@@ -63,5 +63,24 @@ export const META: Record<
     "trackTitle": "Track q_0010",
     "composer": "Composer q_0010",
     "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  // Phase 2B: Filter-specific question metadata
+  "q_easy_0001": {
+    "workTitle": "Easy Game",
+    "trackTitle": "Easy Track",
+    "composer": "Easy Composer",
+    "youtube_url": "https://www.youtube.com/watch?v=easy123"
+  },
+  "q_hard_0001": {
+    "workTitle": "Hard Game",
+    "trackTitle": "Hard Track",
+    "composer": "Hard Composer",
+    "youtube_url": "https://www.youtube.com/watch?v=hard123"
+  },
+  "q_90s_0001": {
+    "workTitle": "90s Game",
+    "trackTitle": "90s Track",
+    "composer": "90s Composer",
+    "youtube_url": "https://www.youtube.com/watch?v=90s123"
   }
 };

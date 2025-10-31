@@ -11,3 +11,10 @@ export const ANSWERS: Record<string, string> = {
   "q_0009": "a",
   "q_0010": "a"
 };
+
+// Phase 2B: Filter-specific question answers (separate from default for test isolation)
+export const FILTER_ANSWERS: Record<string, string> = {
+  "q_easy_0001": "a",
+  "q_hard_0001": "a",
+  "q_90s_0001": "a"
+};
