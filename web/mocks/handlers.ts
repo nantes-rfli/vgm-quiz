@@ -100,10 +100,14 @@ export const handlers = [
       const roundId = generateUUID();
       const seed = generateUUID().replace(/-/g, '').substring(0, 16);
       // Store filter info in filtersHash for subsequent question retrieval
-      // Format: "difficulty:era:series1:series2" or "canonical-daily"
-      const filterParts = [difficulty, era, ...series].filter(Boolean);
+      // Format: "difficulty=easy|era=90s|series=ff,zelda" or "canonical-daily"
+      // Using key=value format to avoid ambiguity when restoring
+      const filterParts: string[] = [];
+      if (difficulty) filterParts.push(`difficulty=${difficulty}`);
+      if (era) filterParts.push(`era=${era}`);
+      if (series && series.length > 0) filterParts.push(`series=${series.join(',')}`);
       const filtersHash = filterParts.length > 0
-        ? filterParts.join(':')
+        ? filterParts.join('|')
         : getCanonicalFiltersHash();
 
       const token = await createJWSToken(
@@ -207,26 +211,36 @@ export const handlers = [
       }
 
       // Get current question for reveal
-      // Phase 2B: Use same filter as start request if present
+      // Phase 2B: Only use filter-specific question for the first question (currentIndex === 0)
+      // For subsequent questions, use default fixture based on index
       let currentQuestion;
-      if (isPhase2 && phase2Token) {
-        // Restore filters from filtersHash and retrieve first question with same filter
+      if (isPhase2 && phase2Token && token.currentIndex === 0) {
+        // First question: restore filters from filtersHash and retrieve question with same filter
         const filtersStr = phase2Token.filtersHash;
         if (filtersStr !== 'canonical-daily' && filtersStr) {
-          const parts = filtersStr.split(':');
-          const difficultyStr = parts[0];
-          const eraStr = parts[1];
-          const series = parts.slice(2);
-          currentQuestion = getFirstQuestionByFilters(
-            difficultyStr && difficultyStr !== '' ? (difficultyStr as Difficulty) : undefined,
-            eraStr && eraStr !== '' ? (eraStr as Era) : undefined,
-            series.filter(s => s !== ''),
-          );
+          // Parse key=value|key=value format
+          let difficulty: Difficulty | undefined;
+          let era: Era | undefined;
+          let series: string[] | undefined;
+
+          const filterPairs = filtersStr.split('|');
+          for (const pair of filterPairs) {
+            const [key, value] = pair.split('=');
+            if (key === 'difficulty' && value) {
+              difficulty = value as Difficulty;
+            } else if (key === 'era' && value) {
+              era = value as Era;
+            } else if (key === 'series' && value) {
+              series = value.split(',');
+            }
+          }
+
+          currentQuestion = getFirstQuestionByFilters(difficulty, era, series);
         } else {
           currentQuestion = getQuestionByIndex(token.currentIndex + 1);
         }
       } else {
-        // Phase 1: Use default fixture
+        // Phase 1 or Phase 2B (not first question): Use default fixture based on index
         currentQuestion = getQuestionByIndex(token.currentIndex + 1);
       }
 
