@@ -1,9 +1,8 @@
 // MSW handlers for Phase 1 (Base64 tokens) and Phase 2B (JWS tokens)
 // During development, both token formats are supported for backward compatibility
 import { http, HttpResponse } from 'msw';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByFilters } from './fixtures/rounds/index';
-import { ANSWERS } from './fixtures/rounds/answers';
+import { ANSWERS, FILTER_ANSWERS } from './fixtures/rounds/answers';
 import { META } from './fixtures/rounds/meta';
 import { encodeBase64url, decodeBase64url, type Phase1Token } from '@/src/lib/base64url';
 import { createJWSToken, verifyJWSToken, isJWSToken, type Phase2TokenPayload } from '@/src/lib/token-shared';
@@ -90,19 +89,17 @@ export const handlers = [
         // Non-integer strings are silently ignored, default to ROUND_TOTAL
       }
 
-      // Get first question from default fixture
-      // Note: Phase 2B filters (difficulty, era, series) are accepted and stored in token
-      // but actual filtering is deferred to Phase 2C+ implementation.
-      // For now, all rounds return questions from the default fixture sequence.
-      const firstQuestion = getQuestionByIndex(1);
+      // Get first question based on filters (Phase 2B)
+      // If filters specified, use filter-specific fixture; otherwise use default
+      const firstQuestion = getFirstQuestionByFilters(difficulty, era, series);
       if (!firstQuestion) {
         return new HttpResponse('No questions available', { status: 503 });
       }
 
-      // Create Phase 2B JWS token with filter info stored (for future use)
+      // Create Phase 2B JWS token with filter info
       const roundId = generateUUID();
       const seed = generateUUID().replace(/-/g, '').substring(0, 16);
-      // Store filter info in filtersHash for future Phase 2C+ filtering implementation
+      // Store filter info in filtersHash for subsequent question retrieval
       // Format: "difficulty:era:series1:series2" or "canonical-daily"
       const filterParts = [difficulty, era, ...series].filter(Boolean);
       const filtersHash = filterParts.length > 0
@@ -210,16 +207,36 @@ export const handlers = [
       }
 
       // Get current question for reveal
-      // For both Phase 1 and Phase 2B, use the default fixture based on index
-      // (Phase 2B filters only apply to the starting round, subsequent questions follow default sequence)
-      const currentQuestion = getQuestionByIndex(token.currentIndex + 1);
+      // Phase 2B: Use same filter as start request if present
+      let currentQuestion;
+      if (isPhase2 && phase2Token) {
+        // Restore filters from filtersHash and retrieve first question with same filter
+        const filtersStr = phase2Token.filtersHash;
+        if (filtersStr !== 'canonical-daily' && filtersStr) {
+          const parts = filtersStr.split(':');
+          const difficultyStr = parts[0];
+          const eraStr = parts[1];
+          const series = parts.slice(2);
+          currentQuestion = getFirstQuestionByFilters(
+            difficultyStr && difficultyStr !== '' ? (difficultyStr as Difficulty) : undefined,
+            eraStr && eraStr !== '' ? (eraStr as Era) : undefined,
+            series.filter(s => s !== ''),
+          );
+        } else {
+          currentQuestion = getQuestionByIndex(token.currentIndex + 1);
+        }
+      } else {
+        // Phase 1: Use default fixture
+        currentQuestion = getQuestionByIndex(token.currentIndex + 1);
+      }
 
       if (!currentQuestion) {
         return new HttpResponse('Question not found', { status: 404 });
       }
 
       // Check answer correctness
-      const correctChoiceId = ANSWERS[currentQuestion.id];
+      // Phase 2B: Check FILTER_ANSWERS first for filter-specific questions, then ANSWERS for defaults
+      const correctChoiceId = FILTER_ANSWERS[currentQuestion.id] || ANSWERS[currentQuestion.id];
       const correct = answer === correctChoiceId;
 
       // Prepare reveal metadata
@@ -252,9 +269,16 @@ export const handlers = [
       }
 
       // Get next question
-      // For both Phase 1 and Phase 2B, use the default fixture based on index
-      // (Phase 2B filters only apply to the starting round, subsequent questions follow default sequence)
-      const nextQuestion = getQuestionByIndex(nextIndex + 1);
+      // Phase 2B: Use same filter as start request if present
+      let nextQuestion;
+      if (isPhase2 && phase2Token) {
+        // For Phase 2B filtered rounds, continue with default fixture sequence
+        // (filter applies only to first question for MVP implementation)
+        nextQuestion = getQuestionByIndex(nextIndex + 1);
+      } else {
+        // Phase 1: Use default fixture
+        nextQuestion = getQuestionByIndex(nextIndex + 1);
+      }
 
       if (!nextQuestion) {
         return new HttpResponse('Next question not found', { status: 500 });
