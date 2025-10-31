@@ -11,7 +11,11 @@
       "Bash(git add:*)",
       "Read(//Users/nanto/Development/**)",
       "Bash(npm run dev:api:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run test:unit:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(gh issue view:*)"
     ],
     "deny": [],
     "ask": []

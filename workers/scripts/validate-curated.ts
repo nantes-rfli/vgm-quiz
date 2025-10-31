@@ -43,30 +43,32 @@ const VALID_SERIES_TAGS = [
 ] as const
 const VALID_ERAS = ['80s', '90s', '00s', '10s', '20s'] as const
 
-const TrackSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  game: z.string().min(1),
-  series: z.string().optional(),
-  composer: z.string().min(1),
-  platform: z.string().optional(),
-  year: z.number().int().min(1980).max(2030),
-  youtube_url: z.string().url().optional(),
-  spotify_url: z.string().url().optional(),
-  apple_music_url: z.string().url().optional(),
-  difficulty: z.enum(VALID_DIFFICULTIES).optional(),
-  genres: z.array(z.enum(VALID_GENRES)).nonempty().optional(),
-  seriesTags: z.array(z.enum(VALID_SERIES_TAGS)).optional(),
-  era: z.enum(VALID_ERAS).optional(),
-}).superRefine((value, ctx) => {
-  if (!value.youtube_url && !value.spotify_url && !value.apple_music_url) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'At least one of youtube_url, spotify_url, or apple_music_url is required',
-      path: ['youtube_url'],
-    })
-  }
-})
+const TrackSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    game: z.string().min(1),
+    series: z.string().optional(),
+    composer: z.string().min(1),
+    platform: z.string().optional(),
+    year: z.number().int().min(1980).max(2030),
+    youtube_url: z.string().url().optional(),
+    spotify_url: z.string().url().optional(),
+    apple_music_url: z.string().url().optional(),
+    difficulty: z.enum(VALID_DIFFICULTIES).optional(),
+    genres: z.array(z.enum(VALID_GENRES)).nonempty().optional(),
+    seriesTags: z.array(z.enum(VALID_SERIES_TAGS)).optional(),
+    era: z.enum(VALID_ERAS).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.youtube_url && !value.spotify_url && !value.apple_music_url) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one of youtube_url, spotify_url, or apple_music_url is required',
+        path: ['youtube_url'],
+      })
+    }
+  })
 
 type Track = z.infer<typeof TrackSchema>
 

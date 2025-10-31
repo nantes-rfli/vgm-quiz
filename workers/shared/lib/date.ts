@@ -1,10 +1,12 @@
 /**
  * Get today's date in JST timezone (YYYY-MM-DD)
+ * Uses arithmetic on UTC timestamp to avoid locale-dependent parsing
  */
 export function getTodayJST(): string {
-  const now = new Date()
-  const jst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
-  return jst.toISOString().split('T')[0]
+  const nowMs = Date.now()
+  const jstOffsetMs = 9 * 60 * 60 * 1000 // JST is UTC+9
+  const jstDate = new Date(nowMs + jstOffsetMs)
+  return jstDate.toISOString().split('T')[0]
 }
 
 /**

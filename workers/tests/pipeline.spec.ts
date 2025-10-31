@@ -520,6 +520,7 @@ describe('pipeline facets integration', () => {
     env = {
       DB: db as unknown as D1Database,
       STORAGE: storage as unknown as R2Bucket,
+      JWT_SECRET: 'test-secret-key-for-unit-tests',
     }
   })
 

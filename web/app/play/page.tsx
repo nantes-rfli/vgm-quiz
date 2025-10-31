@@ -175,20 +175,9 @@ export default function PlayPage() {
         })),
       };
 
-      // Phase 1: decode continuationToken to get actual progress
-      let progress = { index: 1, total: 10 }; // fallback
-      try {
-        const { decodeBase64url } = await import('@/src/lib/base64url');
-        const tokenData = decodeBase64url<{ currentIndex: number; totalQuestions: number }>(
-          res.continuationToken
-        );
-        progress = {
-          index: tokenData.currentIndex + 1, // currentIndex is 0-based, index is 1-based
-          total: tokenData.totalQuestions,
-        };
-      } catch {
-        // fallback to hardcoded values if decode fails
-      }
+      // Get progress from API response (preferred) or fallback to hardcoded values
+      // The token is treated as opaque and never decoded on the client
+      const progress = res.progress || { index: 1, total: 10 }; // fallback if not provided by API
 
       safeDispatch({
         type: 'STARTED',
