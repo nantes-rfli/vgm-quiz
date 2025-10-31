@@ -1,0 +1,51 @@
+{
+  "filters": {
+    "difficulty": "easy",
+    "era": null,
+    "series": []
+  },
+  "round": {
+    "token": "tok_easy_0001",
+    "progress": {
+      "index": 1,
+      "total": 10
+    }
+  },
+  "question": {
+    "id": "q_easy_0001",
+    "prompt": "このBGMはどのゲームのものでしょう？（簡単）",
+    "choices": [
+      {
+        "id": "a",
+        "label": "スーパーマリオ"
+      },
+      {
+        "id": "b",
+        "label": "ゼルダの伝説"
+      },
+      {
+        "id": "c",
+        "label": "ソニック"
+      },
+      {
+        "id": "d",
+        "label": "ポケモン"
+      }
+    ],
+    "artwork": {
+      "url": "https://example.com/art-easy.jpg",
+      "width": 1024,
+      "height": 1024,
+      "alt": "Easy Track Art"
+    },
+    "reveal": {
+      "links": [
+        {
+          "provider": "youtube",
+          "url": "https://www.youtube.com/watch?v=easy123"
+        }
+      ]
+    }
+  },
+  "finished": false
+}

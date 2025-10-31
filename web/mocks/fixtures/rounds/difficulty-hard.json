@@ -1,0 +1,51 @@
+{
+  "filters": {
+    "difficulty": "hard",
+    "era": null,
+    "series": []
+  },
+  "round": {
+    "token": "tok_hard_0001",
+    "progress": {
+      "index": 1,
+      "total": 10
+    }
+  },
+  "question": {
+    "id": "q_hard_0001",
+    "prompt": "このBGMの作曲者の名前は？（難しい）",
+    "choices": [
+      {
+        "id": "a",
+        "label": "Kei Shigema"
+      },
+      {
+        "id": "b",
+        "label": "Yoko Shimomura"
+      },
+      {
+        "id": "c",
+        "label": "Yasunori Mitsuda"
+      },
+      {
+        "id": "d",
+        "label": "Koji Kondo"
+      }
+    ],
+    "artwork": {
+      "url": "https://example.com/art-hard.jpg",
+      "width": 1024,
+      "height": 1024,
+      "alt": "Hard Track Art"
+    },
+    "reveal": {
+      "links": [
+        {
+          "provider": "youtube",
+          "url": "https://www.youtube.com/watch?v=hard123"
+        }
+      ]
+    }
+  },
+  "finished": false
+}

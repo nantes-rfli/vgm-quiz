@@ -1,0 +1,51 @@
+{
+  "filters": {
+    "difficulty": null,
+    "era": "90s",
+    "series": []
+  },
+  "round": {
+    "token": "tok_90s_0001",
+    "progress": {
+      "index": 1,
+      "total": 10
+    }
+  },
+  "question": {
+    "id": "q_90s_0001",
+    "prompt": "このBGMは1990年代のゲームのものです。ゲームのタイトルは？",
+    "choices": [
+      {
+        "id": "a",
+        "label": "Final Fantasy VII"
+      },
+      {
+        "id": "b",
+        "label": "The Legend of Zelda: Ocarina of Time"
+      },
+      {
+        "id": "c",
+        "label": "Chrono Trigger"
+      },
+      {
+        "id": "d",
+        "label": "Metal Gear Solid"
+      }
+    ],
+    "artwork": {
+      "url": "https://example.com/art-90s.jpg",
+      "width": 1024,
+      "height": 1024,
+      "alt": "90s Track Art"
+    },
+    "reveal": {
+      "links": [
+        {
+          "provider": "youtube",
+          "url": "https://www.youtube.com/watch?v=90s123"
+        }
+      ]
+    }
+  },
+  "finished": false
+}
