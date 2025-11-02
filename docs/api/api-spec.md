@@ -1,6 +1,6 @@
 # API Specification — Tokenized Round (Stateless)
 - Status: Approved
-- Last Updated: 2025-09-25
+- Last Updated: 2025-11-02
 
 > See also:
 > - [Rounds Token (JWS) — 最小仕様](./rounds-token-spec.md)

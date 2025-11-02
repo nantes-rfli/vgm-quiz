@@ -1,4 +1,5 @@
 import type { Env } from '../../shared/types/env'
+import { handleAvailabilityRequest } from './routes/availability'
 import { handleDailyRequest } from './routes/daily'
 import { handleMetricsRequest } from './routes/metrics'
 import { handleRoundsNext, handleRoundsStart } from './routes/rounds'
@@ -41,6 +42,11 @@ export default {
       // POST /v1/metrics
       if (url.pathname === '/v1/metrics' && request.method === 'POST') {
         return await handleMetricsRequest(request, env)
+      }
+
+      // POST /v1/availability
+      if (url.pathname === '/v1/availability' && request.method === 'POST') {
+        return await handleAvailabilityRequest(request, env)
       }
 
       // Health check

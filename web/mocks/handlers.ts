@@ -39,7 +39,7 @@ function getCanonicalFiltersHash(): string {
 
 export const handlers = [
   // Phase 2B: GET /v1/manifest - Describe available modes, facets, and features
-  http.get('/v1/manifest', () => {
+  http.get('*/v1/manifest', () => {
     const manifest: Manifest = {
       schema_version: 2,
       modes: [
@@ -64,7 +64,7 @@ export const handlers = [
   }),
 
   // Phase 2B: GET /v1/rounds/start (JWS token format with filter support)
-  http.get('/v1/rounds/start', async ({ request }) => {
+  http.get('*/v1/rounds/start', async ({ request }) => {
     try {
       // Extract filter parameters from query string
       const url = new URL(request.url);
@@ -148,7 +148,7 @@ export const handlers = [
   }),
 
   // Phase 1 & 2B: POST /v1/rounds/next
-  http.post('/v1/rounds/next', async ({ request }) => {
+  http.post('*/v1/rounds/next', async ({ request }) => {
     try {
       const body = (await request.json().catch(() => ({}))) as {
         continuationToken?: string;
@@ -360,7 +360,98 @@ export const handlers = [
     }
   }),
 
-  http.post('/v1/metrics', async () => new HttpResponse(null, { status: 202 })),
+  http.post('*/v1/metrics', async () => new HttpResponse(null, { status: 202 })),
+
+  // Phase 2B: POST /v1/availability - Count available tracks for given filters
+  http.post('*/v1/availability', async ({ request }) => {
+    try {
+      const body = (await request.json().catch(() => ({}))) as {
+        mode?: string;
+        filters?: unknown;
+      };
+
+      if (!body.mode) {
+        return new HttpResponse(
+          JSON.stringify({
+            error: {
+              code: 'bad_request',
+              message: 'mode is required',
+              details: { pointer: '/mode' },
+            },
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Validate filter format (must be arrays, not strings/numbers/objects)
+      if (body.filters && typeof body.filters === 'object') {
+        const filterObj = body.filters as Record<string, unknown>;
+        if (
+          ('difficulty' in filterObj && !Array.isArray(filterObj.difficulty)) ||
+          ('era' in filterObj && !Array.isArray(filterObj.era)) ||
+          ('series' in filterObj && !Array.isArray(filterObj.series))
+        ) {
+          return new HttpResponse(
+            JSON.stringify({
+              error: {
+                code: 'bad_request',
+                message: 'filters must be an object with array-valued facets (difficulty, era, series)',
+                details: { pointer: '/filters' },
+              },
+            }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      // For MVP implementation with MSW mocks, return a fixed count of available tracks
+      // In a real scenario, this would query the database and count matching tracks
+      // Simulate with reasonable counts based on filter specificity
+      const filters = body.filters as {
+        difficulty?: Difficulty[];
+        era?: Era[];
+        series?: string[];
+      } | undefined;
+      let available = 50; // Default count for all tracks
+
+      // Adjust availability based on filter specificity
+      // This is a simulation - in production, this would be a real database query
+      // Difficulty filter (array): if present and not 'mixed', reduces availability
+      if (filters?.difficulty && filters.difficulty.length > 0) {
+        const hasMixed = filters.difficulty.includes('mixed');
+        if (!hasMixed) {
+          available = 40; // Difficulty filter reduces availability
+        }
+      }
+      // Era filter (array): if present and not 'mixed', further reduces
+      if (filters?.era && filters.era.length > 0) {
+        const hasMixed = filters.era.includes('mixed');
+        if (!hasMixed) {
+          available = Math.max(20, available - 10); // Era filter further reduces
+        }
+      }
+      // Series filter (array): most restrictive
+      if (filters?.series && filters.series.length > 0) {
+        const hasMixed = filters.series.includes('mixed');
+        if (!hasMixed) {
+          available = Math.max(14, available - 15); // Series filter significantly reduces
+        }
+      }
+
+      return HttpResponse.json({ available });
+    } catch (err) {
+      console.error('[MSW] POST /v1/availability error:', err);
+      return new HttpResponse(
+        JSON.stringify({
+          error: {
+            code: 'server_error',
+            message: 'Internal server error',
+          },
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }),
 ];
 
 export default handlers;
