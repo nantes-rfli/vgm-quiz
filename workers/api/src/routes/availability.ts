@@ -21,39 +21,30 @@ async function countAvailableTracks(db: D1Database, filters?: FilterOptions): Pr
   const bindings: Array<string | number> = ['available']
 
   // Handle difficulty filter (array of difficulty levels)
-  // "mixed" means no filtering for this facet, so exclude it from DB conditions
-  if (filters?.difficulty && filters.difficulty.length > 0) {
-    const nonMixedDifficulties = filters.difficulty.filter((d) => d !== 'mixed')
-    if (nonMixedDifficulties.length > 0) {
-      const difficultyConditions = nonMixedDifficulties.map(() => 'f.difficulty = ?').join(' OR ')
-      whereClauses.push(`(${difficultyConditions})`)
-      bindings.push(...nonMixedDifficulties)
-    }
+  // "mixed" in the array means "no filtering for this facet" - skip the entire filter if present
+  if (filters?.difficulty && filters.difficulty.length > 0 && !filters.difficulty.includes('mixed')) {
+    const difficultyConditions = filters.difficulty.map(() => 'f.difficulty = ?').join(' OR ')
+    whereClauses.push(`(${difficultyConditions})`)
+    bindings.push(...filters.difficulty)
   }
 
   // Handle era filter (array of eras)
-  // "mixed" means no filtering for this facet, so exclude it from DB conditions
-  if (filters?.era && filters.era.length > 0) {
-    const nonMixedEras = filters.era.filter((e) => e !== 'mixed')
-    if (nonMixedEras.length > 0) {
-      const eraConditions = nonMixedEras.map(() => 'f.era = ?').join(' OR ')
-      whereClauses.push(`(${eraConditions})`)
-      bindings.push(...nonMixedEras)
-    }
+  // "mixed" in the array means "no filtering for this facet" - skip the entire filter if present
+  if (filters?.era && filters.era.length > 0 && !filters.era.includes('mixed')) {
+    const eraConditions = filters.era.map(() => 'f.era = ?').join(' OR ')
+    whereClauses.push(`(${eraConditions})`)
+    bindings.push(...filters.era)
   }
 
   // Handle series filter (array of series, stored as JSON in database)
-  // "mixed" means no filtering for this facet, so exclude it from DB conditions
-  if (filters?.series && filters.series.length > 0) {
-    const nonMixedSeries = filters.series.filter((s) => s !== 'mixed')
-    if (nonMixedSeries.length > 0) {
-      // For series tags (JSON array), check if the JSON string contains the series tag
-      // Using LIKE pattern matching as SQLite doesn't support json_contains directly
-      const seriesConditions = nonMixedSeries.map(() => 'f.series_tags LIKE ?').join(' OR ')
-      whereClauses.push(`(${seriesConditions})`)
-      // Use pattern: %"ff"% to match "ff" within the JSON array
-      bindings.push(...nonMixedSeries.map((s) => `%"${s}"%`))
-    }
+  // "mixed" in the array means "no filtering for this facet" - skip the entire filter if present
+  if (filters?.series && filters.series.length > 0 && !filters.series.includes('mixed')) {
+    // For series tags (JSON array), check if the JSON string contains the series tag
+    // Using LIKE pattern matching as SQLite doesn't support json_contains directly
+    const seriesConditions = filters.series.map(() => 'f.series_tags LIKE ?').join(' OR ')
+    whereClauses.push(`(${seriesConditions})`)
+    // Use pattern: %"ff"% to match "ff" within the JSON array
+    bindings.push(...filters.series.map((s) => `%"${s}"%`))
   }
 
   const whereClause = whereClauses.join(' AND ')
