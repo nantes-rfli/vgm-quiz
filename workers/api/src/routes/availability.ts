@@ -2,8 +2,8 @@ import type { D1Database } from '@cloudflare/workers-types'
 import type { Env } from '../../../shared/types/env'
 
 interface FilterOptions {
-  difficulty?: string
-  era?: string
+  difficulty?: string[]
+  era?: string[]
   series?: string[]
 }
 
@@ -20,16 +20,21 @@ async function countAvailableTracks(db: D1Database, filters?: FilterOptions): Pr
   const whereClauses = ['p.state = ?']
   const bindings: Array<string | number> = ['available']
 
-  if (filters?.difficulty) {
-    whereClauses.push('f.difficulty = ?')
-    bindings.push(filters.difficulty)
+  // Handle difficulty filter (array of difficulty levels)
+  if (filters?.difficulty && filters.difficulty.length > 0) {
+    const difficultyConditions = filters.difficulty.map(() => 'f.difficulty = ?').join(' OR ')
+    whereClauses.push(`(${difficultyConditions})`)
+    bindings.push(...filters.difficulty)
   }
 
-  if (filters?.era) {
-    whereClauses.push('f.era = ?')
-    bindings.push(filters.era)
+  // Handle era filter (array of eras)
+  if (filters?.era && filters.era.length > 0) {
+    const eraConditions = filters.era.map(() => 'f.era = ?').join(' OR ')
+    whereClauses.push(`(${eraConditions})`)
+    bindings.push(...filters.era)
   }
 
+  // Handle series filter (array of series, stored as JSON in database)
   if (filters?.series && filters.series.length > 0) {
     // For series tags (JSON array), check if the JSON string contains the series tag
     // Using LIKE pattern matching as SQLite doesn't support json_contains directly

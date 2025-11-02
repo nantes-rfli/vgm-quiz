@@ -368,8 +368,8 @@ export const handlers = [
       const body = (await request.json().catch(() => ({}))) as {
         mode?: string;
         filters?: {
-          difficulty?: Difficulty;
-          era?: Era;
+          difficulty?: Difficulty[];
+          era?: Era[];
           series?: string[];
         };
       };
@@ -389,20 +389,32 @@ export const handlers = [
 
       // For MVP implementation with MSW mocks, return a fixed count of available tracks
       // In a real scenario, this would query the database and count matching tracks
-      // For now, we simulate with reasonable counts based on filters
+      // Simulate with reasonable counts based on filter specificity
       const filters = body.filters || {};
       let available = 50; // Default count for all tracks
 
       // Adjust availability based on filter specificity
       // This is a simulation - in production, this would be a real database query
-      if (filters.difficulty && filters.difficulty !== 'mixed') {
-        available = 40; // Difficulty filter reduces availability
+      // Difficulty filter (array): if present and not 'mixed', reduces availability
+      if (filters.difficulty && filters.difficulty.length > 0) {
+        const hasMixed = filters.difficulty.includes('mixed');
+        if (!hasMixed) {
+          available = 40; // Difficulty filter reduces availability
+        }
       }
-      if (filters.era && filters.era !== 'mixed') {
-        available = Math.max(20, available - 10); // Era filter further reduces
+      // Era filter (array): if present and not 'mixed', further reduces
+      if (filters.era && filters.era.length > 0) {
+        const hasMixed = filters.era.includes('mixed');
+        if (!hasMixed) {
+          available = Math.max(20, available - 10); // Era filter further reduces
+        }
       }
-      if (filters.series && filters.series.length > 0 && !filters.series.includes('mixed')) {
-        available = Math.max(14, available - 15); // Series filter significantly reduces
+      // Series filter (array): most restrictive
+      if (filters.series && filters.series.length > 0) {
+        const hasMixed = filters.series.includes('mixed');
+        if (!hasMixed) {
+          available = Math.max(14, available - 15); // Series filter significantly reduces
+        }
       }
 
       return HttpResponse.json({ available });

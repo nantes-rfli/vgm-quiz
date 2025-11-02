@@ -71,7 +71,7 @@ test.describe('API: /v1/availability endpoint', () => {
     })
     const baselineCount = baselineResult.body.available
 
-    // Get count with difficulty filter
+    // Get count with difficulty filter (as array per API spec)
     const filteredResult = await page.evaluate(async () => {
       const response = await fetch('/v1/availability', {
         method: 'POST',
@@ -79,7 +79,7 @@ test.describe('API: /v1/availability endpoint', () => {
         body: JSON.stringify({
           mode: 'vgm_v1-ja',
           filters: {
-            difficulty: 'easy',
+            difficulty: ['easy'],
           },
         }),
       })
@@ -114,7 +114,7 @@ test.describe('API: /v1/availability endpoint', () => {
     })
     const baselineCount = baselineResult.body.available
 
-    // Get count with era filter
+    // Get count with era filter (as array per API spec)
     const filteredResult = await page.evaluate(async () => {
       const response = await fetch('/v1/availability', {
         method: 'POST',
@@ -122,7 +122,7 @@ test.describe('API: /v1/availability endpoint', () => {
         body: JSON.stringify({
           mode: 'vgm_v1-ja',
           filters: {
-            era: '90s',
+            era: ['90s'],
           },
         }),
       })
@@ -191,8 +191,8 @@ test.describe('API: /v1/availability endpoint', () => {
         body: JSON.stringify({
           mode: 'vgm_v1-ja',
           filters: {
-            difficulty: 'hard',
-            era: '00s',
+            difficulty: ['hard'],
+            era: ['00s'],
             series: ['ff'],
           },
         }),
@@ -212,7 +212,7 @@ test.describe('API: /v1/availability endpoint', () => {
   test('handles mixed filter value (should return higher count)', async ({ page }) => {
     await page.goto('/play')
 
-    // Get count with mixed filters
+    // Get count with mixed filters (less restrictive)
     const mixedResult = await page.evaluate(async () => {
       const response = await fetch('/v1/availability', {
         method: 'POST',
@@ -220,8 +220,8 @@ test.describe('API: /v1/availability endpoint', () => {
         body: JSON.stringify({
           mode: 'vgm_v1-ja',
           filters: {
-            difficulty: 'mixed',
-            era: 'mixed',
+            difficulty: ['mixed'],
+            era: ['mixed'],
           },
         }),
       })
@@ -234,7 +234,7 @@ test.describe('API: /v1/availability endpoint', () => {
     expect(mixedResult.status).toBe(200)
     expect(mixedResult.body).toHaveProperty('available')
 
-    // Get count with specific filter
+    // Get count with specific filter (more restrictive)
     const specificResult = await page.evaluate(async () => {
       const response = await fetch('/v1/availability', {
         method: 'POST',
@@ -242,7 +242,7 @@ test.describe('API: /v1/availability endpoint', () => {
         body: JSON.stringify({
           mode: 'vgm_v1-ja',
           filters: {
-            difficulty: 'easy',
+            difficulty: ['easy'],
           },
         }),
       })
