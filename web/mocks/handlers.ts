@@ -39,7 +39,7 @@ function getCanonicalFiltersHash(): string {
 
 export const handlers = [
   // Phase 2B: GET /v1/manifest - Describe available modes, facets, and features
-  http.get('/v1/manifest', () => {
+  http.get('*/v1/manifest', () => {
     const manifest: Manifest = {
       schema_version: 2,
       modes: [
@@ -64,7 +64,7 @@ export const handlers = [
   }),
 
   // Phase 2B: GET /v1/rounds/start (JWS token format with filter support)
-  http.get('/v1/rounds/start', async ({ request }) => {
+  http.get('*/v1/rounds/start', async ({ request }) => {
     try {
       // Extract filter parameters from query string
       const url = new URL(request.url);
@@ -148,7 +148,7 @@ export const handlers = [
   }),
 
   // Phase 1 & 2B: POST /v1/rounds/next
-  http.post('/v1/rounds/next', async ({ request }) => {
+  http.post('*/v1/rounds/next', async ({ request }) => {
     try {
       const body = (await request.json().catch(() => ({}))) as {
         continuationToken?: string;
@@ -361,6 +361,64 @@ export const handlers = [
   }),
 
   http.post('/v1/metrics', async () => new HttpResponse(null, { status: 202 })),
+
+  // Phase 2B: POST /v1/availability - Count available tracks for given filters
+  http.post('/v1/availability', async ({ request }) => {
+    try {
+      const body = (await request.json().catch(() => ({}))) as {
+        mode?: string;
+        filters?: {
+          difficulty?: Difficulty;
+          era?: Era;
+          series?: string[];
+        };
+      };
+
+      if (!body.mode) {
+        return new HttpResponse(
+          JSON.stringify({
+            error: {
+              code: 'bad_request',
+              message: 'mode is required',
+              details: { pointer: '/mode' },
+            },
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // For MVP implementation with MSW mocks, return a fixed count of available tracks
+      // In a real scenario, this would query the database and count matching tracks
+      // For now, we simulate with reasonable counts based on filters
+      const filters = body.filters || {};
+      let available = 50; // Default count for all tracks
+
+      // Adjust availability based on filter specificity
+      // This is a simulation - in production, this would be a real database query
+      if (filters.difficulty && filters.difficulty !== 'mixed') {
+        available = 40; // Difficulty filter reduces availability
+      }
+      if (filters.era && filters.era !== 'mixed') {
+        available = Math.max(20, available - 10); // Era filter further reduces
+      }
+      if (filters.series && filters.series.length > 0 && !filters.series.includes('mixed')) {
+        available = Math.max(14, available - 15); // Series filter significantly reduces
+      }
+
+      return HttpResponse.json({ available });
+    } catch (err) {
+      console.error('[MSW] POST /v1/availability error:', err);
+      return new HttpResponse(
+        JSON.stringify({
+          error: {
+            code: 'server_error',
+            message: 'Internal server error',
+          },
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }),
 ];
 
 export default handlers;
