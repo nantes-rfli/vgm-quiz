@@ -1,10 +1,16 @@
 import { test, expect, type Page } from '@playwright/test'
 
+declare global {
+  interface Window {
+    __MSW_READY__?: boolean
+  }
+}
+
 async function waitForMSW(page: Page): Promise<void> {
   await page.evaluate(async () => {
     const deadline = Date.now() + 5000
     while (Date.now() < deadline) {
-      if ((window as any).__MSW_READY__ === true) break
+      if ((window as Window).__MSW_READY__ === true) break
       await new Promise(r => setTimeout(r, 50))
     }
   })

@@ -61,7 +61,11 @@ async function countAvailableTracks(db: D1Database, filters?: FilterOptions): Pr
 
   // Handle difficulty filter (array of difficulty levels)
   // "mixed" in the array means "no filtering for this facet" - skip the entire filter if present
-  if (filters?.difficulty && filters.difficulty.length > 0 && !filters.difficulty.includes('mixed')) {
+  if (
+    filters?.difficulty &&
+    filters.difficulty.length > 0 &&
+    !filters.difficulty.includes('mixed')
+  ) {
     const difficultyConditions = filters.difficulty.map(() => 'f.difficulty = ?').join(' OR ')
     whereClauses.push(`(${difficultyConditions})`)
     bindings.push(...filters.difficulty)
