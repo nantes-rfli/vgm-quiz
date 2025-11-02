@@ -304,4 +304,83 @@ test.describe('API: /v1/availability endpoint', () => {
       expect(result.body.error).toHaveProperty('message')
     }
   })
+
+  test('rejects filters with non-array difficulty (validation)', async ({ page }) => {
+    await page.goto('/play')
+    await waitForMSW(page)
+
+    const result = await page.evaluate(async () => {
+      const response = await fetch('/v1/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'vgm_v1-ja',
+          filters: {
+            difficulty: 'easy', // String instead of array - invalid
+          },
+        }),
+      })
+      return {
+        status: response.status,
+        body: await response.json(),
+      }
+    })
+
+    expect(result.status).toBe(400)
+    expect(result.body).toHaveProperty('error')
+    expect(result.body.error.code).toBe('bad_request')
+    expect(result.body.error.message).toContain('array')
+  })
+
+  test('rejects filters with non-array era (validation)', async ({ page }) => {
+    await page.goto('/play')
+    await waitForMSW(page)
+
+    const result = await page.evaluate(async () => {
+      const response = await fetch('/v1/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'vgm_v1-ja',
+          filters: {
+            era: 42, // Number instead of array - invalid
+          },
+        }),
+      })
+      return {
+        status: response.status,
+        body: await response.json(),
+      }
+    })
+
+    expect(result.status).toBe(400)
+    expect(result.body).toHaveProperty('error')
+    expect(result.body.error.code).toBe('bad_request')
+  })
+
+  test('rejects filters with non-array series (validation)', async ({ page }) => {
+    await page.goto('/play')
+    await waitForMSW(page)
+
+    const result = await page.evaluate(async () => {
+      const response = await fetch('/v1/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'vgm_v1-ja',
+          filters: {
+            series: { name: 'ff' }, // Object instead of array - invalid
+          },
+        }),
+      })
+      return {
+        status: response.status,
+        body: await response.json(),
+      }
+    })
+
+    expect(result.status).toBe(400)
+    expect(result.body).toHaveProperty('error')
+    expect(result.body.error.code).toBe('bad_request')
+  })
 })

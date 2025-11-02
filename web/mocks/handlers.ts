@@ -367,11 +367,7 @@ export const handlers = [
     try {
       const body = (await request.json().catch(() => ({}))) as {
         mode?: string;
-        filters?: {
-          difficulty?: Difficulty[];
-          era?: Era[];
-          series?: string[];
-        };
+        filters?: unknown;
       };
 
       if (!body.mode) {
@@ -387,30 +383,55 @@ export const handlers = [
         );
       }
 
+      // Validate filter format (must be arrays, not strings/numbers/objects)
+      if (body.filters && typeof body.filters === 'object') {
+        const filterObj = body.filters as Record<string, unknown>;
+        if (
+          ('difficulty' in filterObj && !Array.isArray(filterObj.difficulty)) ||
+          ('era' in filterObj && !Array.isArray(filterObj.era)) ||
+          ('series' in filterObj && !Array.isArray(filterObj.series))
+        ) {
+          return new HttpResponse(
+            JSON.stringify({
+              error: {
+                code: 'bad_request',
+                message: 'filters must be an object with array-valued facets (difficulty, era, series)',
+                details: { pointer: '/filters' },
+              },
+            }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
       // For MVP implementation with MSW mocks, return a fixed count of available tracks
       // In a real scenario, this would query the database and count matching tracks
       // Simulate with reasonable counts based on filter specificity
-      const filters = body.filters || {};
+      const filters = body.filters as {
+        difficulty?: Difficulty[];
+        era?: Era[];
+        series?: string[];
+      } | undefined;
       let available = 50; // Default count for all tracks
 
       // Adjust availability based on filter specificity
       // This is a simulation - in production, this would be a real database query
       // Difficulty filter (array): if present and not 'mixed', reduces availability
-      if (filters.difficulty && filters.difficulty.length > 0) {
+      if (filters?.difficulty && filters.difficulty.length > 0) {
         const hasMixed = filters.difficulty.includes('mixed');
         if (!hasMixed) {
           available = 40; // Difficulty filter reduces availability
         }
       }
       // Era filter (array): if present and not 'mixed', further reduces
-      if (filters.era && filters.era.length > 0) {
+      if (filters?.era && filters.era.length > 0) {
         const hasMixed = filters.era.includes('mixed');
         if (!hasMixed) {
           available = Math.max(20, available - 10); // Era filter further reduces
         }
       }
       // Series filter (array): most restrictive
-      if (filters.series && filters.series.length > 0) {
+      if (filters?.series && filters.series.length > 0) {
         const hasMixed = filters.series.includes('mixed');
         if (!hasMixed) {
           available = Math.max(14, available - 15); // Series filter significantly reduces

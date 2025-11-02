@@ -9,7 +9,46 @@ interface FilterOptions {
 
 interface AvailabilityRequest {
   mode: string
-  filters?: FilterOptions
+  filters?: unknown
+}
+
+/**
+ * Validate and normalize filter options
+ * Ensures each filter facet is an array; returns null if validation fails
+ */
+function validateFilters(filters: unknown): FilterOptions | null {
+  if (!filters || typeof filters !== 'object') {
+    return {}
+  }
+
+  const result: FilterOptions = {}
+  const obj = filters as Record<string, unknown>
+
+  // Validate difficulty filter
+  if ('difficulty' in obj) {
+    if (!Array.isArray(obj.difficulty)) {
+      return null // Invalid: not an array
+    }
+    result.difficulty = obj.difficulty as string[]
+  }
+
+  // Validate era filter
+  if ('era' in obj) {
+    if (!Array.isArray(obj.era)) {
+      return null // Invalid: not an array
+    }
+    result.era = obj.era as string[]
+  }
+
+  // Validate series filter
+  if ('series' in obj) {
+    if (!Array.isArray(obj.series)) {
+      return null // Invalid: not an array
+    }
+    result.series = obj.series as string[]
+  }
+
+  return result
 }
 
 /**
@@ -85,8 +124,23 @@ export async function handleAvailabilityRequest(request: Request, env: Env): Pro
       )
     }
 
+    // Validate and normalize filters
+    const validatedFilters = validateFilters(body.filters)
+    if (validatedFilters === null) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 'bad_request',
+            message: 'filters must be an object with array-valued facets (difficulty, era, series)',
+            details: { pointer: '/filters' },
+          },
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      )
+    }
+
     // Count available tracks
-    const available = await countAvailableTracks(env.DB, body.filters)
+    const available = await countAvailableTracks(env.DB, validatedFilters)
 
     return new Response(JSON.stringify({ available }), {
       headers: {
