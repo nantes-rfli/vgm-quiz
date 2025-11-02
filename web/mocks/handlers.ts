@@ -360,10 +360,10 @@ export const handlers = [
     }
   }),
 
-  http.post('/v1/metrics', async () => new HttpResponse(null, { status: 202 })),
+  http.post('*/v1/metrics', async () => new HttpResponse(null, { status: 202 })),
 
   // Phase 2B: POST /v1/availability - Count available tracks for given filters
-  http.post('/v1/availability', async ({ request }) => {
+  http.post('*/v1/availability', async ({ request }) => {
     try {
       const body = (await request.json().catch(() => ({}))) as {
         mode?: string;

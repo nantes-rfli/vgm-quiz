@@ -1,4 +1,14 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+
+async function waitForMSW(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const deadline = Date.now() + 5000
+    while (Date.now() < deadline) {
+      if ((window as any).__MSW_READY__ === true) break
+      await new Promise(r => setTimeout(r, 50))
+    }
+  })
+}
 
 test.describe('API: /v1/availability endpoint', () => {
   // Note: These tests use MSW mocks defined in web/mocks/handlers.ts
@@ -7,6 +17,7 @@ test.describe('API: /v1/availability endpoint', () => {
   test('returns available count for all tracks without filters', async ({ page }) => {
     // Navigate to page first to establish MSW context
     await page.goto('/play')
+    await waitForMSW(page)
 
     // Use page.evaluate to call fetch within the MSW-intercepted context
     const result = await page.evaluate(async () => {
@@ -31,6 +42,7 @@ test.describe('API: /v1/availability endpoint', () => {
 
   test('returns error when mode is missing', async ({ page }) => {
     await page.goto('/play')
+    await waitForMSW(page)
 
     const result = await page.evaluate(async () => {
       const response = await fetch('/v1/availability', {
@@ -54,6 +66,7 @@ test.describe('API: /v1/availability endpoint', () => {
 
   test('returns reduced count with difficulty filter', async ({ page }) => {
     await page.goto('/play')
+    await waitForMSW(page)
 
     // Get baseline count without filters
     const baselineResult = await page.evaluate(async () => {
@@ -97,6 +110,7 @@ test.describe('API: /v1/availability endpoint', () => {
 
   test('returns reduced count with era filter', async ({ page }) => {
     await page.goto('/play')
+    await waitForMSW(page)
 
     // Get baseline count without filters
     const baselineResult = await page.evaluate(async () => {
@@ -140,6 +154,7 @@ test.describe('API: /v1/availability endpoint', () => {
 
   test('returns reduced count with series filter', async ({ page }) => {
     await page.goto('/play')
+    await waitForMSW(page)
 
     // Get baseline count without filters
     const baselineResult = await page.evaluate(async () => {
@@ -183,6 +198,7 @@ test.describe('API: /v1/availability endpoint', () => {
 
   test('returns count with multiple filters combined', async ({ page }) => {
     await page.goto('/play')
+    await waitForMSW(page)
 
     const result = await page.evaluate(async () => {
       const response = await fetch('/v1/availability', {
@@ -211,6 +227,7 @@ test.describe('API: /v1/availability endpoint', () => {
 
   test('handles mixed filter value (should return higher count)', async ({ page }) => {
     await page.goto('/play')
+    await waitForMSW(page)
 
     // Get count with mixed filters (less restrictive)
     const mixedResult = await page.evaluate(async () => {
@@ -260,6 +277,7 @@ test.describe('API: /v1/availability endpoint', () => {
     page,
   }) => {
     await page.goto('/play')
+    await waitForMSW(page)
 
     // This test checks response format compliance
     const result = await page.evaluate(async () => {
