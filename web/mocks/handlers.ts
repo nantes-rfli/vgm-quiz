@@ -371,9 +371,12 @@ export const handlers = [
             total: phase2Token.total,
             seed: phase2Token.seed,
             filtersHash: phase2Token.filtersHash,
+            filtersKey: phase2Token.filtersKey,
             ver: phase2Token.ver,
             ...(phase2Token.aud && { aud: phase2Token.aud }),
             ...(phase2Token.nbf && { nbf: phase2Token.nbf }),
+            ...(phase2Token.mode && { mode: phase2Token.mode }),
+            ...(phase2Token.date && { date: phase2Token.date }),
           },
           JWT_SECRET,
         );

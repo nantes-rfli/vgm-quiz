@@ -143,6 +143,7 @@ describe('Token signing and verification', () => {
         total: validPayload.total,
         seed: validPayload.seed,
         filtersHash: validPayload.filtersHash,
+        filtersKey: validPayload.filtersKey,
         ver: validPayload.ver,
         iat: now - 100, // Issued 100 seconds ago
         exp: now - 10, // Expired 10 seconds ago
@@ -247,6 +248,7 @@ describe('Token signing and verification', () => {
         total: verified1.total,
         seed: verified1.seed,
         filtersHash: verified1.filtersHash,
+        filtersKey: verified1.filtersKey,
         ver: verified1.ver,
       }
       const token2 = await createJWSToken(payload2, TEST_SECRET, TEST_TTL)
@@ -276,6 +278,7 @@ describe('Token signing and verification', () => {
           total: verified.total,
           seed: verified.seed,
           filtersHash: verified.filtersHash,
+          filtersKey: verified.filtersKey,
           ver: verified.ver,
         }
 
