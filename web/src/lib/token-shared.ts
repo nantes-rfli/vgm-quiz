@@ -13,9 +13,12 @@ export interface Phase2TokenPayload {
   total: number // Total questions
   seed: string // Sampling seed (base64url)
   filtersHash: string // SHA-256 hash of canonicalized filters (base64url)
+  filtersKey: string // Canonical filters JSON string
   ver: number // Token spec version (1)
   iat: number // Issued at (Unix timestamp)
   exp: number // Expiration (Unix timestamp)
+  mode?: string // Quiz mode identifier
+  date?: string // Round date (YYYY-MM-DD)
   aud?: string // Audience (optional, e.g., "rounds")
   nbf?: number // Not before (optional)
 }

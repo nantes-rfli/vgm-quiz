@@ -33,7 +33,7 @@ Discovery → Harvest → Guard → Dedup → Score → Publish
 
 ### API Endpoints
 - `GET /daily?date=YYYY-MM-DD` - 日次問題セット取得 (R2 → D1 fallback)
-- `GET /v1/rounds/start` - ラウンド開始 (既存 MSW と互換)
+- `POST /v1/rounds/start` - ラウンド開始 (フィルタ対応)
 - `POST /v1/rounds/next` - 次問題取得 (既存 MSW と互換)
 
 ## Key Decisions (ADR)

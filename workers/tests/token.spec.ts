@@ -19,7 +19,10 @@ describe('Token signing and verification', () => {
       idx: 0,
       total: 10,
       seed: 'test-seed-16-char',
-      filtersHash: 'canonical-daily',
+      filtersHash: '00000f62',
+      filtersKey: '{}',
+      mode: 'vgm_v1-ja',
+      date: '2025-11-03',
       ver: 1,
       aud: 'rounds',
     }
@@ -53,10 +56,10 @@ describe('Token signing and verification', () => {
       const verified = await verifyJWSToken(token, TEST_SECRET)
 
       expect(verified).toBeDefined()
-      expect(verified!.iat).toBeDefined()
-      expect(verified!.exp).toBeDefined()
-      expect(typeof verified!.iat).toBe('number')
-      expect(typeof verified!.exp).toBe('number')
+      expect(verified?.iat).toBeDefined()
+      expect(verified?.exp).toBeDefined()
+      expect(typeof verified?.iat).toBe('number')
+      expect(typeof verified?.exp).toBe('number')
     })
 
     it('sets correct token expiration', async () => {
@@ -65,8 +68,8 @@ describe('Token signing and verification', () => {
       const verified = await verifyJWSToken(token, TEST_SECRET)
 
       expect(verified).toBeDefined()
-      expect(verified!.exp).toBeGreaterThanOrEqual(nowSeconds + TEST_TTL - 1) // -1 for rounding
-      expect(verified!.exp).toBeLessThanOrEqual(nowSeconds + TEST_TTL + 1) // +1 for rounding
+      expect(verified?.exp).toBeGreaterThanOrEqual(nowSeconds + TEST_TTL - 1) // -1 for rounding
+      expect(verified?.exp).toBeLessThanOrEqual(nowSeconds + TEST_TTL + 1) // +1 for rounding
     })
 
     it('preserves optional fields', async () => {
@@ -74,7 +77,7 @@ describe('Token signing and verification', () => {
       const verified = await verifyJWSToken(token, TEST_SECRET)
 
       expect(verified).toBeDefined()
-      expect(verified!.aud).toBe('rounds')
+      expect(verified?.aud).toBe('rounds')
     })
   })
 
@@ -84,11 +87,11 @@ describe('Token signing and verification', () => {
       const verified = await verifyJWSToken(token, TEST_SECRET)
 
       expect(verified).toBeDefined()
-      expect(verified!.rid).toBe(validPayload.rid)
-      expect(verified!.idx).toBe(validPayload.idx)
-      expect(verified!.total).toBe(validPayload.total)
-      expect(verified!.seed).toBe(validPayload.seed)
-      expect(verified!.filtersHash).toBe(validPayload.filtersHash)
+      expect(verified?.rid).toBe(validPayload.rid)
+      expect(verified?.idx).toBe(validPayload.idx)
+      expect(verified?.total).toBe(validPayload.total)
+      expect(verified?.seed).toBe(validPayload.seed)
+      expect(verified?.filtersHash).toBe(validPayload.filtersHash)
     })
 
     it('rejects token with invalid signature', async () => {
@@ -140,6 +143,7 @@ describe('Token signing and verification', () => {
         total: validPayload.total,
         seed: validPayload.seed,
         filtersHash: validPayload.filtersHash,
+        filtersKey: validPayload.filtersKey,
         ver: validPayload.ver,
         iat: now - 100, // Issued 100 seconds ago
         exp: now - 10, // Expired 10 seconds ago
@@ -234,23 +238,26 @@ describe('Token signing and verification', () => {
       const verified1 = await verifyJWSToken(token1, TEST_SECRET)
 
       expect(verified1).toBeDefined()
-      expect(verified1!.idx).toBe(0)
+      if (!verified1) throw new Error('expected verified token')
+      expect(verified1.idx).toBe(0)
 
       // Regenerate with next idx
       const payload2 = {
-        rid: verified1!.rid,
-        idx: verified1!.idx + 1,
-        total: verified1!.total,
-        seed: verified1!.seed,
-        filtersHash: verified1!.filtersHash,
-        ver: verified1!.ver,
+        rid: verified1.rid,
+        idx: verified1.idx + 1,
+        total: verified1.total,
+        seed: verified1.seed,
+        filtersHash: verified1.filtersHash,
+        filtersKey: verified1.filtersKey,
+        ver: verified1.ver,
       }
       const token2 = await createJWSToken(payload2, TEST_SECRET, TEST_TTL)
       const verified2 = await verifyJWSToken(token2, TEST_SECRET)
 
       expect(verified2).toBeDefined()
-      expect(verified2!.idx).toBe(1)
-      expect(verified2!.rid).toBe(verified1!.rid) // Same round
+      if (!verified2) throw new Error('expected verified token')
+      expect(verified2.idx).toBe(1)
+      expect(verified2.rid).toBe(verified1.rid) // Same round
       expect(token1).not.toBe(token2) // Different tokens
     })
 
@@ -263,14 +270,16 @@ describe('Token signing and verification', () => {
       for (let i = 1; i < 5; i++) {
         const verified = await verifyJWSToken(lastToken, TEST_SECRET)
         expect(verified).toBeDefined()
+        if (!verified) throw new Error('expected verified token')
 
         currentPayload = {
-          rid: verified!.rid,
-          idx: verified!.idx + 1,
-          total: verified!.total,
-          seed: verified!.seed,
-          filtersHash: verified!.filtersHash,
-          ver: verified!.ver,
+          rid: verified.rid,
+          idx: verified.idx + 1,
+          total: verified.total,
+          seed: verified.seed,
+          filtersHash: verified.filtersHash,
+          filtersKey: verified.filtersKey,
+          ver: verified.ver,
         }
 
         lastToken = await createJWSToken(currentPayload, TEST_SECRET, TEST_TTL)
@@ -279,8 +288,9 @@ describe('Token signing and verification', () => {
       // Verify final token
       const finalVerified = await verifyJWSToken(lastToken, TEST_SECRET)
       expect(finalVerified).toBeDefined()
-      expect(finalVerified!.rid).toBe(roundId) // Same round throughout
-      expect(finalVerified!.idx).toBe(4) // Correct position
+      if (!finalVerified) throw new Error('expected verified token')
+      expect(finalVerified.rid).toBe(roundId) // Same round throughout
+      expect(finalVerified.idx).toBe(4) // Correct position
     })
   })
 })

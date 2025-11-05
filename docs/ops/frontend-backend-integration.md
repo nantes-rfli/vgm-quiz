@@ -2,6 +2,7 @@
 
 - **Status**: Draft
 - **Last Updated**: 2025-10-11
+- **Note (2025-11-03)**: バックエンドは Phase 2 (`POST /v1/rounds/start`) に移行済み。以下の内容は Phase 1 互換レイヤーの履歴として残しています。
 - **Target**: Phase 1 Backend Integration
 
 ## 1. Overview

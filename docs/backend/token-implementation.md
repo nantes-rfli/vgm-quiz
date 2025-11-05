@@ -205,22 +205,25 @@ export function isPhase2Token(token: TokenPayload): token is Phase2TokenPayload 
 
 ## Integration Points
 
-### 1. **GET /v1/rounds/start**
+### 1. **POST /v1/rounds/start**
 
-[workers/api/src/routes/rounds.ts](../../workers/api/src/routes/rounds.ts:30-81)
+[workers/api/src/routes/rounds.ts](../../workers/api/src/routes/rounds.ts)
 
 ```typescript
-const roundId = randomUUID()
-const seed = randomUUID().replace(/-/g, '').substring(0, 16)
-const filtersHash = getCanonicalFiltersHash()
+const normalizedFilters = normalizeFilters(requestFilters)
+const filterKey = createFilterKey(normalizedFilters)
+const filtersHash = hashFilterKey(filterKey)
 
 const token = await createJWSToken(
   {
     rid: roundId,
     idx: 0,
-    total: daily.questions.length,
+    total: availableTotal,
     seed,
     filtersHash,
+    filtersKey: filterKey,
+    mode: mode.id,
+    date,
     ver: 1,
     aud: 'rounds',
   },
@@ -228,7 +231,7 @@ const token = await createJWSToken(
 )
 ```
 
-**Returns**: JWS token with `idx=0` and first question metadata
+**Returns**: JWS token with `idx=0` and first question metadata。`filtersKey` は `'{}'` などの正規化JSON、`filtersHash` は同じJSONに対するハッシュ。
 
 ### 2. **POST /v1/rounds/next**
 

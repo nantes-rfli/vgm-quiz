@@ -1,6 +1,6 @@
 # API Specification — Tokenized Round (Stateless)
 - Status: Approved
-- Last Updated: 2025-11-02
+- Last Updated: 2025-11-03
 
 > See also:
 > - [Rounds Token (JWS) — 最小仕様](./rounds-token-spec.md)
@@ -45,15 +45,30 @@ POST /v1/rounds/start
 ```json
 {
   "round": {
+    "id": "round_2025-11-03_t8s",
     "mode": "vgm_v1-ja",
+    "date": "2025-11-03",
+    "filters": { "difficulty": "mixed", "era": "90s" },
     "progress": { "index": 1, "total": 10 },
     "token": "<JWS-compact-string>"
   },
-  "question": { }
+  "question": {
+    "id": "q_0001",
+    "title": "この曲のゲームタイトルは?"
+  },
+  "choices": [
+    { "id": "a", "text": "Chrono Trigger" },
+    { "id": "b", "text": "Final Fantasy VI" },
+    { "id": "c", "text": "Secret of Mana" },
+    { "id": "d", "text": "Phantasy Star IV" }
+  ],
+  "continuationToken": "<JWS-compact-string>",
+  "progress": { "index": 1, "total": 10 }
 }
 ```
 
-- サーバは `filters` に合致する問題IDを重複なしで `total` 件サンプリングし、順序付き配列をトークンに封入する。
+- サーバは `filters` に合致する問題セットを日次バッチ（Publishステージ）から復元し、既存セットがない場合は `503 no_questions` を返す。
+- `total` は Publish 済みセットと一致する必要がある（不一致は `422 insufficient_inventory`）。
 - `seed` は決定論を高めたい場合に利用可能。同一データ集合と同一 `seed` で同じ並びとなる。
 
 ### 3.2 Next Question
@@ -68,17 +83,33 @@ POST /v1/rounds/next
 **Response**
 ```json
 {
-  "round": {
-    "progress": { "index": 2, "total": 10 },
-    "token": "<updated-JWS>"
+  "result": {
+    "correct": true,
+    "correctAnswer": "b",
+    "reveal": {
+      "title": "Terra's Theme",
+      "game": "Final Fantasy VI"
+    }
   },
-  "question": { },
+  "question": {
+    "id": "q_0002",
+    "title": "この曲のゲームタイトルは?"
+  },
+  "choices": [
+    { "id": "a", "text": "Chrono Trigger" },
+    { "id": "b", "text": "Final Fantasy VI" },
+    { "id": "c", "text": "Rudra no Hihou" },
+    { "id": "d", "text": "Romancing SaGa 3" }
+  ],
+  "continuationToken": "<updated-JWS>",
+  "progress": { "index": 2, "total": 10 },
   "finished": false
 }
 ```
 
 - トークン内の現在位置を1つ進め、該当IDの問題を返す。
-- 最終問後は `finished: false`。このフィールドは毎回返され、最後のレスポンスで true となる。必要なら `question` を省略可能。
+- 最終問後は `finished: true` となり、`question` と `choices` は省略される。
+- トークンは都度更新され、`idx` がインクリメントされる。
 
 ### 3.3 Manifest
 ```
@@ -88,19 +119,17 @@ GET /v1/manifest
 ```json
 {
   "schema_version": 2,
-  "app": { "name": "VGM Quiz", "revision": "2025-09-19" },
   "features": {
     "inlinePlaybackDefault": false,
-    "allowEmbedProviders": ["youtube", "appleMusic"],
-    "imageProxyEnabled": true
+    "imageProxyEnabled": false
   },
   "modes": [
     { "id": "vgm_v1-ja", "title": "VGM Quiz Vol.1 (JA)", "defaultTotal": 10, "locale": "ja" }
   ],
   "facets": {
-    "era": ["80s","90s","00s","10s","mixed"],
-    "difficulty": ["easy","normal","hard","mixed"],
-    "series": ["ff","dq","zelda","mario","mixed"]
+    "era": ["80s", "90s", "00s", "10s", "20s", "mixed"],
+    "difficulty": ["easy", "normal", "hard", "mixed"],
+    "series": ["ff", "dq", "zelda", "mario", "sonic", "pokemon", "mixed"]
   }
 }
 ```
@@ -182,18 +211,24 @@ POST /v1/availability
 ### 4.2 Token（JWS payload の論理構造）
 ```json
 {
+  "rid": "9fdc4d7c-0a1b-4d6c-9a3d-63d6e3c8dbf2",
+  "idx": 0,
+  "total": 10,
+  "seed": "Z3ikN0H1P4Qc2As1",
+  "filtersHash": "3fa4b1c2",
+  "filtersKey": "{\"difficulty\":\"mixed\",\"era\":\"90s\"}",
   "mode": "vgm_v1-ja",
-  "filters": { "era": ["90s"], "difficulty": ["mixed"] },
-  "ids": ["q_0001","q_0007","q_0012"],
-  "i": 0,
-  "limit": 10,
-  "seed": "optional",
-  "policyVersion": 1,
-  "exp": 1760000000
+  "date": "2025-11-03",
+  "ver": 1,
+  "iat": 1760000000,
+  "exp": 1760000120,
+  "aud": "rounds"
 }
 ```
-- 署名方式は JWS（HMAC-SHA256）を想定。改ざん不可。
-- `exp` により短TTLで運用する。IDは難読化を推奨。
+- 署名方式は JWS（HMAC-SHA256）。`filtersHash` は `filtersKey` のハッシュ（`hashFilterKey`）。
+- `filtersKey` は正規化済みフィルタJSON文字列（空条件は `'{}'`）。
+- `date` はJST基準の日付。`idx` は0ベース。
+- `exp` により短TTLで運用する。
 
 ## 5. Flows
 
@@ -202,7 +237,7 @@ POST /v1/availability
 - `POST /v1/rounds/start`（mode、filters、total、seed）でトークンと1問目を受け取る
 - 出題 → 回答 → 結果表示
 - 次へで `POST /v1/rounds/next`（token）を呼ぶ
-- 10問後 `finished: false` で `/result` へ
+  - 10問後 `finished: true` で `/result` へ
 
 ### 5.2 途中再開
 - 保存しておいた `token` で `POST /v1/rounds/next` を再開

@@ -144,23 +144,38 @@ function getTodayJST(): string {
 
 ---
 
-### 2. GET /v1/rounds/start
+### 2. POST /v1/rounds/start
 
-ラウンド開始 (既存 MSW モックと互換)。
+ラウンド開始。`mode` と `filters` を指定して Publish 済みの問題セットから復元する。
 
 #### Request
 
 ```http
-GET /v1/rounds/start HTTP/1.1
+POST /v1/rounds/start HTTP/1.1
 Host: api.vgm-quiz.example.com
+Content-Type: application/json
+
+{
+  "mode": "vgm_v1-ja",
+  "filters": { "difficulty": "mixed", "era": "90s" },
+  "total": 10
+}
 ```
 
 #### Response (200 OK)
 
 ```json
 {
+  "round": {
+    "id": "round_2025-11-03_t8s",
+    "mode": "vgm_v1-ja",
+    "date": "2025-11-03",
+    "filters": { "difficulty": "mixed", "era": "90s" },
+    "progress": { "index": 1, "total": 10 },
+    "token": "<JWS-compact-string>"
+  },
   "question": {
-    "id": "q_2025-10-10_1",
+    "id": "q_2025-11-03_1",
     "title": "この曲のゲームタイトルは?"
   },
   "choices": [
@@ -169,52 +184,37 @@ Host: api.vgm-quiz.example.com
     { "id": "c", "text": "The Legend of Zelda" },
     { "id": "d", "text": "Mega Man" }
   ],
-  "continuationToken": "eyJ..."
+  "continuationToken": "<JWS-compact-string>",
+  "progress": { "index": 1, "total": 10 }
 }
 ```
 
-**continuationToken**: 次問題取得用の署名付きトークン (JWS 形式)。
+- `503 no_questions`: 指定フィルタで Publish 済みセットが存在しない
+- `422 insufficient_inventory`: `total` が Publish 済みセットと一致しない
+- `400 bad_request`: フィルタ値が無効
 
-#### Implementation
+#### Implementation (抜粋)
 
 ```typescript
-// workers/api/src/routes/rounds.ts
-export async function handleRoundsStart(
-  request: Request,
-  env: Env
-): Promise<Response> {
-  // 1. Get today's question set from R2
-  const date = getTodayJST()
-  const daily = await fetchDailyQuestions(env, date)
+const normalizedFilters = normalizeFilters(requestFilters)
+const filterKey = createFilterKey(normalizedFilters)
+const exportData = await fetchRoundExport(env, date, filterKey)
 
-  if (!daily) {
-    return new Response(JSON.stringify({ error: 'No questions available' }), {
-      status: 503,
-    })
-  }
-
-  // 2. Return first question
-  const firstQuestion = daily.questions[0]
-
-  // 3. Create continuation token
-  const token = await createContinuationToken({
+const token = await createJWSToken(
+  {
+    rid: roundId,
+    idx: 0,
+    total: exportData.questions.length,
+    seed,
+    filtersHash: hashFilterKey(filterKey),
+    filtersKey: filterKey,
+    mode: mode.id,
     date,
-    currentIndex: 0,
-    totalQuestions: daily.questions.length,
-  })
-
-  return new Response(
-    JSON.stringify({
-      question: {
-        id: firstQuestion.id,
-        title: 'この曲のゲームタイトルは?',
-      },
-      choices: firstQuestion.choices.map((c) => ({ id: c.id, text: c.text })),
-      continuationToken: token,
-    }),
-    { headers: { 'Content-Type': 'application/json' } }
-  )
-}
+    ver: 1,
+    aud: 'rounds',
+  },
+  env.JWT_SECRET,
+)
 ```
 
 ---

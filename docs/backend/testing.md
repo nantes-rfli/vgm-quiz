@@ -236,7 +236,7 @@ describe('Publish: Export to R2', () => {
 ## E2E Tests
 
 ### Scope
-- API endpoints (`GET /daily`, `GET /v1/rounds/start`, etc.)
+- API endpoints (`GET /daily`, `POST /v1/rounds/start`, etc.)
 - Cron-triggered pipeline execution
 - Error handling (404, 500)
 - CORS headers
@@ -273,8 +273,10 @@ test.describe('API Endpoints', () => {
     expect(json.meta.date).toBe(today)
   })
 
-  test('GET /v1/rounds/start should return first question', async ({ request }) => {
-    const response = await request.get(`${API_BASE}/v1/rounds/start`)
+  test('POST /v1/rounds/start should return first question', async ({ request }) => {
+    const response = await request.post(`${API_BASE}/v1/rounds/start`, {
+      data: {},
+    })
     expect(response.ok()).toBeTruthy()
 
     const json = await response.json()
