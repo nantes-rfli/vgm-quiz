@@ -29,12 +29,81 @@ const dec = decodeBase64url;
 // Shared secret for JWS token signing in development (same as wrangler.toml dev value)
 const JWT_SECRET = 'dev-secret-key-please-replace-in-production-with-strong-random-value';
 
-/**
- * Generate a hash for empty filters (canonical round)
- * Phase 2B: All question sets are keyed by filtersHash for consistency
- */
-function getCanonicalFiltersHash(): string {
-  return 'canonical-daily';
+const CANONICAL_FILTER_KEY = '{}';
+
+interface StartFilters {
+  difficulty?: string | string[];
+  era?: string | string[];
+  series?: string[];
+}
+
+interface StartRequestBody {
+  mode?: string;
+  filters?: StartFilters;
+  total?: number;
+  seed?: string;
+}
+
+function normalizeFilters(filters?: StartFilters): StartFilters {
+  if (!filters) return {};
+
+  const normalized: StartFilters = {};
+
+  if (filters.difficulty) {
+    const values = Array.isArray(filters.difficulty) ? filters.difficulty : [filters.difficulty];
+    const candidate = values.find((value) => value && value !== 'mixed');
+    if (candidate) {
+      normalized.difficulty = candidate;
+    }
+  }
+
+  if (filters.era) {
+    const values = Array.isArray(filters.era) ? filters.era : [filters.era];
+    const candidate = values.find((value) => value && value !== 'mixed');
+    if (candidate) {
+      normalized.era = candidate;
+    }
+  }
+
+  if (filters.series && filters.series.length > 0) {
+    const uniqueSeries = Array.from(new Set(filters.series.map((value) => value.trim()).filter(Boolean)));
+    if (uniqueSeries.length > 0) {
+      normalized.series = uniqueSeries.sort();
+    }
+  }
+
+  return normalized;
+}
+
+function createFilterKey(filters?: StartFilters): string {
+  const normalized = normalizeFilters(filters);
+  if (Object.keys(normalized).length === 0) {
+    return CANONICAL_FILTER_KEY;
+  }
+
+  const sortedKeys = Object.keys(normalized).sort();
+  const payload: Record<string, unknown> = {};
+
+  for (const key of sortedKeys) {
+    const value = normalized[key as keyof StartFilters];
+    if (Array.isArray(value)) {
+      payload[key] = value.slice().sort();
+    } else if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
+
+  return JSON.stringify(payload);
+}
+
+function hashFilterKey(filterKey: string): string {
+  let hash = 0;
+  for (let i = 0; i < filterKey.length; i += 1) {
+    const charCode = filterKey.charCodeAt(i);
+    hash = (hash << 5) - hash + charCode;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0');
 }
 
 export const handlers = [
@@ -63,31 +132,17 @@ export const handlers = [
     return HttpResponse.json(manifest);
   }),
 
-  // Phase 2B: GET /v1/rounds/start (JWS token format with filter support)
-  http.get('*/v1/rounds/start', async ({ request }) => {
+  // Phase 2B: POST /v1/rounds/start (JWS token format with filter support)
+  http.post('*/v1/rounds/start', async ({ request }) => {
     try {
-      // Extract filter parameters from query string
-      const url = new URL(request.url);
-      const difficulty = (url.searchParams.get('difficulty') || undefined) as Difficulty | undefined;
-      const era = (url.searchParams.get('era') || undefined) as Era | undefined;
-      const series = url.searchParams.getAll('series') || [];
-      const totalParam = url.searchParams.get('total');
+      const body = (await request.json().catch(() => ({}))) as StartRequestBody;
+      const filters = normalizeFilters(body.filters);
 
-      // Validate total parameter: must be a positive integer <= ROUND_TOTAL
-      let total = ROUND_TOTAL;
-      if (totalParam) {
-        // Strict validation: must be string matching /^\d+$/ (digits only)
-        // This prevents "5.5", "10abc", etc. from being silently accepted
-        if (/^\d+$/.test(totalParam)) {
-          const parsedTotal = Number(totalParam);
-          // Check range: >= 1 and <= ROUND_TOTAL
-          if (parsedTotal >= 1 && parsedTotal <= ROUND_TOTAL) {
-            total = parsedTotal;
-          }
-          // Otherwise silently fall back to ROUND_TOTAL
-        }
-        // Non-integer strings are silently ignored, default to ROUND_TOTAL
-      }
+      const difficulty = filters.difficulty as Difficulty | undefined;
+      const era = filters.era as Era | undefined;
+      const series = filters.series ?? [];
+
+      const total = body.total && Number.isInteger(body.total) ? Math.min(body.total, ROUND_TOTAL) : ROUND_TOTAL;
 
       // Get first question based on filters (Phase 2B)
       // If filters specified, use filter-specific fixture; otherwise use default
@@ -99,16 +154,9 @@ export const handlers = [
       // Create Phase 2B JWS token with filter info
       const roundId = generateUUID();
       const seed = generateUUID().replace(/-/g, '').substring(0, 16);
-      // Store filter info in filtersHash for subsequent question retrieval
-      // Format: "difficulty=easy|era=90s|series=ff,zelda" or "canonical-daily"
-      // Using key=value format to avoid ambiguity when restoring
-      const filterParts: string[] = [];
-      if (difficulty) filterParts.push(`difficulty=${difficulty}`);
-      if (era) filterParts.push(`era=${era}`);
-      if (series && series.length > 0) filterParts.push(`series=${series.join(',')}`);
-      const filtersHash = filterParts.length > 0
-        ? filterParts.join('|')
-        : getCanonicalFiltersHash();
+      const filterKey = createFilterKey(filters);
+      const filtersHash = hashFilterKey(filterKey);
+      const date = new Date().toISOString().split('T')[0];
 
       const token = await createJWSToken(
         {
@@ -117,6 +165,9 @@ export const handlers = [
           total,
           seed,
           filtersHash,
+          filtersKey: filterKey,
+          mode: body.mode ?? 'vgm_v1-ja',
+          date,
           ver: 1,
           aud: 'rounds',
         },
@@ -124,6 +175,17 @@ export const handlers = [
       );
 
       return HttpResponse.json({
+        round: {
+          id: roundId,
+          mode: body.mode ?? 'vgm_v1-ja',
+          date,
+          filters,
+          progress: {
+            index: 1,
+            total,
+          },
+          token,
+        },
         question: {
           id: firstQuestion.id,
           title: firstQuestion.prompt,
@@ -134,12 +196,12 @@ export const handlers = [
         })),
         continuationToken: token,
         progress: {
-          index: 1, // 1-based: first question
+          index: 1,
           total,
         },
       });
     } catch (err) {
-      console.error('[MSW] GET /v1/rounds/start error:', err);
+      console.error('[MSW] POST /v1/rounds/start error:', err);
       return new HttpResponse(JSON.stringify({ error: 'Internal error' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },

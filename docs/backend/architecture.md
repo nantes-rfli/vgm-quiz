@@ -22,7 +22,7 @@
 │                                                               │
 │  [Worker: api]                                               │
 │    ├─ GET /daily?date=YYYY-MM-DD → R2 (fallback: D1)         │
-│    ├─ GET /v1/rounds/start       → D1/R2 (問題セット取得)    │
+│    ├─ POST /v1/rounds/start      → D1/R2 (問題セット取得)    │
 │    └─ POST /v1/rounds/next       → D1/R2 (次問題取得)        │
 │                                                               │
 └─────────────────────────────────────────────────────────────┘

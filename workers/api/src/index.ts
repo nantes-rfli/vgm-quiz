@@ -1,6 +1,7 @@
 import type { Env } from '../../shared/types/env'
 import { handleAvailabilityRequest } from './routes/availability'
 import { handleDailyRequest } from './routes/daily'
+import { handleManifestRequest } from './routes/manifest'
 import { handleMetricsRequest } from './routes/metrics'
 import { handleRoundsNext, handleRoundsStart } from './routes/rounds'
 
@@ -29,9 +30,29 @@ export default {
         return await handleDailyRequest(request, env)
       }
 
-      // GET /v1/rounds/start
-      if (url.pathname === '/v1/rounds/start' && request.method === 'GET') {
+      // GET /v1/manifest
+      if (url.pathname === '/v1/manifest' && request.method === 'GET') {
+        return handleManifestRequest()
+      }
+
+      // POST /v1/rounds/start
+      if (url.pathname === '/v1/rounds/start' && request.method === 'POST') {
         return await handleRoundsStart(request, env)
+      }
+
+      if (url.pathname === '/v1/rounds/start' && request.method === 'GET') {
+        return new Response(
+          JSON.stringify({
+            error: {
+              code: 'method_not_allowed',
+              message: 'Use POST /v1/rounds/start with a JSON body',
+            },
+          }),
+          {
+            status: 405,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json', Allow: 'POST' },
+          },
+        )
       }
 
       // POST /v1/rounds/next

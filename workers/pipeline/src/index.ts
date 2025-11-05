@@ -1,6 +1,7 @@
 import type { Env } from '../../shared/types/env'
+import type { FilterOptions } from '../../shared/types/filters'
 import { handleDiscovery } from './stages/discovery'
-import { type FilterOptions, handlePublish } from './stages/publish'
+import { handlePublish } from './stages/publish'
 
 export default {
   /**

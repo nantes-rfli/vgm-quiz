@@ -1,14 +1,10 @@
 import { generateChoices } from '../../../shared/lib/choices'
 import { getTodayJST } from '../../../shared/lib/date'
+import { buildExportR2Key, createFilterKey, normalizeFilters } from '../../../shared/lib/filters'
 import { sha256 } from '../../../shared/lib/hash'
 import type { Env } from '../../../shared/types/env'
 import type { DailyExport, Question, QuestionFacets } from '../../../shared/types/export'
-
-export interface FilterOptions {
-  difficulty?: string
-  era?: string
-  series?: string[]
-}
+import type { FilterOptions } from '../../../shared/types/filters'
 
 interface PublishResult {
   success: boolean
@@ -51,58 +47,18 @@ interface TrackRow {
  * - Uses INSERT OR REPLACE for D1 tables to handle concurrent execution
  * - R2 PUT operation naturally overwrites existing files (idempotent)
  */
-/**
- * Normalize filters to a consistent JSON string for use as a key.
- * Ensures empty objects and undefined filters both map to '{}'
- */
-function getFilterKey(filters?: FilterOptions): string {
-  if (!filters || Object.keys(filters).length === 0) {
-    return '{}'
-  }
-
-  // Sort keys for consistent ordering
-  const normalized: Record<string, unknown> = {}
-  for (const key of Object.keys(filters).sort()) {
-    const value = filters[key as keyof FilterOptions]
-    if (value !== undefined && value !== null) {
-      // For series array, ensure it's sorted for consistency
-      if (Array.isArray(value)) {
-        normalized[key] = value.slice().sort()
-      } else {
-        normalized[key] = value
-      }
-    }
-  }
-
-  return JSON.stringify(normalized)
-}
-
-/**
- * Create a short hash of the filter key for use in R2 keys.
- * Uses a simple hash approach - first 12 chars of hex digest of the filter JSON.
- */
-function hashFilterKey(filterJson: string): string {
-  // Simple hash: sum of character codes modulo 2^32, converted to hex
-  let hash = 0
-  for (let i = 0; i < filterJson.length; i++) {
-    const char = filterJson.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash // Convert to 32-bit integer
-  }
-  return Math.abs(hash).toString(16).padStart(8, '0')
-}
-
 export async function handlePublish(
   env: Env,
   dateParam: string | null,
   filters?: FilterOptions,
 ): Promise<PublishResult> {
   const date = dateParam || getTodayJST()
-  const filterKey = getFilterKey(filters)
+  const normalizedFilters = normalizeFilters(filters)
+  const filterKey = createFilterKey(normalizedFilters)
 
   const filterStr =
-    filters && Object.keys(filters).length > 0
-      ? ` with filters: ${JSON.stringify(filters)}`
+    Object.keys(normalizedFilters).length > 0
+      ? ` with filters: ${JSON.stringify(normalizedFilters)}`
       : ' (no filters - daily preset)'
   console.log(`[Publish] START: Generating question set for date=${date}${filterStr}`)
 
@@ -119,10 +75,7 @@ export async function handlePublish(
 
     if (existing) {
       // Use filter-aware R2 key to distinguish filtered exports from canonical
-      const r2Key =
-        filterKey === '{}'
-          ? `exports/${date}.json`
-          : `exports/${date}_${hashFilterKey(filterKey)}.json`
+      const r2Key = buildExportR2Key(date, filterKey)
 
       const r2Object = await env.STORAGE.head(r2Key)
 
@@ -183,12 +136,12 @@ export async function handlePublish(
     }
 
     // 2. Select 10 random available tracks with optional filtering
-    const tracks = await selectTracks(env.DB, 10, filters)
+    const tracks = await selectTracks(env.DB, 10, normalizedFilters)
 
     if (tracks.length < 10) {
       const filterDesc =
-        filters && Object.keys(filters).length > 0
-          ? ` with filters (${JSON.stringify(filters)})`
+        Object.keys(normalizedFilters).length > 0
+          ? ` with filters (${JSON.stringify(normalizedFilters)})`
           : ''
       throw new Error(`Not enough tracks available${filterDesc} (need 10, got ${tracks.length})`)
     }
@@ -278,10 +231,7 @@ export async function handlePublish(
     }
 
     // 10. Export to R2 (use filter-aware key)
-    const r2Key =
-      filterKey === '{}'
-        ? `exports/${date}.json`
-        : `exports/${date}_${hashFilterKey(filterKey)}.json`
+    const r2Key = buildExportR2Key(date, filterKey)
     await env.STORAGE.put(r2Key, JSON.stringify(exportData, null, 2), {
       httpMetadata: {
         contentType: 'application/json',

@@ -58,7 +58,7 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 
 **API Worker** (`vgm-quiz-api.nantos.workers.dev`)
 - `GET /daily?date=YYYY-MM-DD` - Fetch daily question set metadata
-- `GET /v1/rounds/start` - Start quiz round, returns first question + continuation token
+- `POST /v1/rounds/start` - Start quiz round, returns first question + continuation token
 - `POST /v1/rounds/next` - Submit answer, get next question or finish
 - Token-based state management (no server-side sessions)
 

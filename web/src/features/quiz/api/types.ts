@@ -97,6 +97,17 @@ export interface Phase1StartResponse {
     index: number; // 1-based question index
     total: number; // total questions in round
   };
+  round?: {
+    id: string;
+    mode: string;
+    date: string;
+    filters?: Record<string, unknown>;
+    progress: {
+      index: number;
+      total: number;
+    };
+    token: string;
+  };
 }
 
 export interface Phase1NextResponse {

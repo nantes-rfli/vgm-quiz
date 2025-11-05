@@ -1,7 +1,10 @@
+import { getDefaultMode, isValidFacetValue, manifest } from '../../../shared/data/manifest'
 import { getTodayJST } from '../../../shared/lib/date'
+import { createFilterKey, hashFilterKey, normalizeFilters } from '../../../shared/lib/filters'
 import type { Env } from '../../../shared/types/env'
 import type { DailyExport } from '../../../shared/types/export'
-import { fetchDailyQuestions, fetchRoundByToken } from '../lib/daily'
+import type { FilterOptions } from '../../../shared/types/filters'
+import { fetchDailyQuestions, fetchRoundByToken, fetchRoundExport } from '../lib/daily'
 import {
   type Phase1TokenPayload,
   type Phase2TokenPayload,
@@ -25,77 +28,238 @@ function generateUUID(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`
 }
 
-/**
- * Generate a hash for empty filters (canonical round)
- * Phase 2B: All question sets are keyed by filtersHash for consistency
- */
-function getCanonicalFiltersHash(): string {
-  // SHA-256 hash of '{}' (canonical filters)
-  // For MVP, use a fixed value to represent canonical daily questions
-  // TODO: Compute actual SHA-256 hash of canonical filters JSON
-  return 'canonical-daily'
+const JSON_HEADERS = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+}
+
+interface StartRequestBody {
+  mode?: string
+  filters?: {
+    difficulty?: string | string[]
+    era?: string | string[]
+    series?: string | string[]
+  }
+  total?: number
+  seed?: string
+}
+
+function jsonResponse(status: number, payload: unknown): Response {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: JSON_HEADERS,
+  })
+}
+
+function errorResponse(status: number, code: string, message: string, pointer?: string): Response {
+  return jsonResponse(status, {
+    error: {
+      code,
+      message,
+      ...(pointer ? { details: { pointer } } : {}),
+    },
+  })
+}
+
+function coerceStringArray(input: unknown): string[] | null {
+  if (input === undefined) return []
+  if (input === null) return []
+  if (typeof input === 'string') return [input]
+  if (Array.isArray(input) && input.every((value) => typeof value === 'string')) {
+    return input as string[]
+  }
+  return null
+}
+
+function parseFilters(input: StartRequestBody['filters']): FilterOptions | Response {
+  if (!input) {
+    return {}
+  }
+
+  const filters: FilterOptions = {}
+
+  const difficultyValues = coerceStringArray(input.difficulty)
+  if (difficultyValues === null) {
+    return errorResponse(
+      400,
+      'bad_request',
+      'difficulty must be a string or string[]',
+      '/filters/difficulty',
+    )
+  }
+  // "mixed" is treated as an empty/no-filter request (i.e., all difficulties)
+  const difficultyCandidates = difficultyValues.filter((value) => value && value !== 'mixed')
+  if (difficultyCandidates.length > 1) {
+    return errorResponse(
+      400,
+      'bad_request',
+      'specify at most one difficulty value',
+      '/filters/difficulty',
+    )
+  }
+  if (difficultyCandidates.length === 1) {
+    const candidate = difficultyCandidates[0]
+    if (!isValidFacetValue('difficulty', candidate)) {
+      return errorResponse(
+        400,
+        'bad_request',
+        `unknown difficulty: ${candidate}`,
+        '/filters/difficulty',
+      )
+    }
+    filters.difficulty = candidate
+  }
+
+  const eraValues = coerceStringArray(input.era)
+  if (eraValues === null) {
+    return errorResponse(400, 'bad_request', 'era must be a string or string[]', '/filters/era')
+  }
+  // "mixed" is treated as an empty/no-filter request (i.e., all eras)
+  const eraCandidates = eraValues.filter((value) => value && value !== 'mixed')
+  if (eraCandidates.length > 1) {
+    return errorResponse(400, 'bad_request', 'specify at most one era value', '/filters/era')
+  }
+  if (eraCandidates.length === 1) {
+    const candidate = eraCandidates[0]
+    if (!isValidFacetValue('era', candidate)) {
+      return errorResponse(400, 'bad_request', `unknown era: ${candidate}`, '/filters/era')
+    }
+    filters.era = candidate
+  }
+
+  const seriesValues = coerceStringArray(input.series)
+  if (seriesValues === null) {
+    return errorResponse(
+      400,
+      'bad_request',
+      'series must be a string or string[]',
+      '/filters/series',
+    )
+  }
+  const seriesCandidates = seriesValues
+    .filter((value) => value && value !== 'mixed')
+    .filter((value, index, arr) => arr.indexOf(value) === index)
+
+  if (seriesCandidates.length > 0) {
+    const invalid = seriesCandidates.find((value) => !isValidFacetValue('series', value))
+    if (invalid) {
+      return errorResponse(400, 'bad_request', `unknown series: ${invalid}`, '/filters/series')
+    }
+    filters.series = seriesCandidates
+  }
+
+  return filters
+}
+
+function resolveMode(modeId?: string) {
+  if (!modeId) {
+    return getDefaultMode()
+  }
+  return manifest.modes.find((mode) => mode.id === modeId)
 }
 
 /**
- * GET /v1/rounds/start - Start a new round
- * Phase 1 (legacy): Returns Base64 continuation token
- * Phase 2B (current): Returns JWS signed continuation token
+ * POST /v1/rounds/start - Start a new round with optional filters
  */
 export async function handleRoundsStart(request: Request, env: Env): Promise<Response> {
-  // Get today's question set
-  const date = getTodayJST()
-  const daily = await fetchDailyQuestions(env, date)
+  let body: StartRequestBody
+  try {
+    body = (await request.json()) as StartRequestBody
+  } catch (error) {
+    console.error('[RoundsStart] Failed to parse JSON body', error)
+    return errorResponse(400, 'bad_request', 'request body must be valid JSON')
+  }
 
-  if (!daily) {
-    return new Response(
-      JSON.stringify({ error: 'No questions available', message: 'No question set for today' }),
-      { status: 503, headers: { 'Content-Type': 'application/json' } },
+  const mode = resolveMode(body.mode)
+  if (!mode) {
+    return errorResponse(404, 'not_found', `mode ${body.mode} not found`, '/mode')
+  }
+
+  const filtersOrError = parseFilters(body.filters)
+  if (filtersOrError instanceof Response) {
+    return filtersOrError
+  }
+
+  const normalizedFilters = normalizeFilters(filtersOrError)
+  const filterKey = createFilterKey(normalizedFilters)
+  const requestedTotal = body.total ?? mode.defaultTotal
+
+  if (!Number.isInteger(requestedTotal) || requestedTotal <= 0) {
+    return errorResponse(400, 'bad_request', 'total must be a positive integer', '/total')
+  }
+
+  const date = getTodayJST()
+  const exportData = await fetchRoundExport(env, date, filterKey)
+
+  if (!exportData || exportData.questions.length === 0) {
+    return errorResponse(503, 'no_questions', 'No questions available for the requested filters')
+  }
+
+  const availableTotal = exportData.questions.length
+  if (requestedTotal > availableTotal) {
+    return errorResponse(
+      422,
+      'insufficient_inventory',
+      `Requested total ${requestedTotal} exceeds available inventory (${availableTotal})`,
+      '/total',
     )
   }
 
-  // Return first question
-  const firstQuestion = daily.questions[0]
+  const effectiveTotal = Math.min(requestedTotal, availableTotal)
 
-  // Create continuation token (Phase 2B: JWS format)
-  // For Phase 2B, always use JWS token format
-  // Phase 1 compatibility: Clients can still handle Base64 tokens if needed
+  const firstQuestion = exportData.questions[0]
+  if (!firstQuestion) {
+    return errorResponse(503, 'no_questions', 'No questions available for the requested filters')
+  }
+
   const roundId = generateUUID()
-  const seed = generateUUID().replace(/-/g, '').substring(0, 16) // 16-char base64url compatible seed
-  const filtersHash = getCanonicalFiltersHash()
+  const seed =
+    typeof body.seed === 'string' && body.seed.length > 0
+      ? body.seed
+      : generateUUID().replace(/-/g, '').substring(0, 16)
+  const filtersHash = hashFilterKey(filterKey)
 
   const token = await createJWSToken(
     {
       rid: roundId,
       idx: 0,
-      total: daily.questions.length,
+      total: effectiveTotal,
       seed,
       filtersHash,
+      filtersKey: filterKey,
+      mode: mode.id,
+      date,
       ver: 1,
       aud: 'rounds',
     },
     env.JWT_SECRET,
   )
 
-  return new Response(
-    JSON.stringify({
-      question: {
-        id: firstQuestion.id,
-        title: 'この曲のゲームタイトルは?',
-      },
-      choices: firstQuestion.choices.map((c) => ({ id: c.id, text: c.text })),
-      continuationToken: token,
+  const choices = firstQuestion.choices.map((choice) => ({ id: choice.id, text: choice.text }))
+
+  return jsonResponse(200, {
+    round: {
+      id: roundId,
+      mode: mode.id,
+      date,
+      filters: normalizedFilters,
       progress: {
-        index: 1, // 1-based: first question
-        total: daily.questions.length,
+        index: 1,
+        total: effectiveTotal,
       },
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      token,
     },
-  )
+    question: {
+      id: firstQuestion.id,
+      title: 'この曲のゲームタイトルは?',
+    },
+    choices,
+    continuationToken: token,
+    progress: {
+      index: 1,
+      total: effectiveTotal,
+    },
+  })
 }
 
 /**
@@ -121,6 +285,7 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
   let daily: DailyExport | null
   let currentIndex: number
   let isPhase2 = false
+  let phase2Token: Phase2TokenPayload | null = null
 
   if (isPhase1Token(token)) {
     // Phase 1: Use date and currentIndex directly
@@ -140,7 +305,7 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
     }
   } else if (isPhase2Token(token)) {
     // Phase 2B: Use rid, idx from token
-    const phase2Token = token as Phase2TokenPayload
+    phase2Token = token as Phase2TokenPayload
     currentIndex = phase2Token.idx
     isPhase2 = true
 
@@ -179,7 +344,12 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
   }
 
   // 3. Validate currentIndex
-  if (currentIndex < 0 || currentIndex >= daily.questions.length) {
+  const totalQuestions =
+    isPhase2 && phase2Token
+      ? Math.min(phase2Token.total, daily.questions.length)
+      : daily.questions.length
+
+  if (currentIndex < 0 || currentIndex >= totalQuestions) {
     return new Response(
       JSON.stringify({ error: 'Invalid state', message: 'Question index out of bounds' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } },
@@ -199,7 +369,7 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
 
   const isCorrect = answer === correctChoice.id
   const nextIndex = currentIndex + 1
-  const isFinished = nextIndex >= daily.questions.length
+  const isFinished = nextIndex >= totalQuestions
 
   // 5. Prepare response
   const response: {
@@ -224,8 +394,8 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
     },
     progress: {
       // Clamp index to [1, total]: when finished, show total (last question)
-      index: Math.min(nextIndex + 1, daily.questions.length), // 1-based
-      total: daily.questions.length,
+      index: Math.min(nextIndex + 1, totalQuestions), // 1-based
+      total: totalQuestions,
     },
     finished: false,
   }
@@ -244,22 +414,29 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
     // 7. Generate next token based on type
     if (isPhase2) {
       // Phase 2B: Create JWS token
-      const phase2Token = token as Phase2TokenPayload
+      const currentPhase2Token = phase2Token as Phase2TokenPayload
       const newPayload: Parameters<typeof createJWSToken>[0] = {
-        rid: phase2Token.rid,
+        rid: currentPhase2Token.rid,
         idx: nextIndex,
-        total: phase2Token.total,
-        seed: phase2Token.seed,
-        filtersHash: phase2Token.filtersHash,
-        ver: phase2Token.ver,
+        total: currentPhase2Token.total,
+        seed: currentPhase2Token.seed,
+        filtersHash: currentPhase2Token.filtersHash,
+        filtersKey: currentPhase2Token.filtersKey,
+        ver: currentPhase2Token.ver,
       }
 
       // Preserve optional aud and nbf fields for future use
-      if (phase2Token.aud) {
-        newPayload.aud = phase2Token.aud
+      if (currentPhase2Token.aud) {
+        newPayload.aud = currentPhase2Token.aud
       }
-      if (phase2Token.nbf) {
-        newPayload.nbf = phase2Token.nbf
+      if (currentPhase2Token.nbf) {
+        newPayload.nbf = currentPhase2Token.nbf
+      }
+      if (currentPhase2Token.mode) {
+        newPayload.mode = currentPhase2Token.mode
+      }
+      if (currentPhase2Token.date) {
+        newPayload.date = currentPhase2Token.date
       }
 
       response.continuationToken = await createJWSToken(newPayload, env.JWT_SECRET)

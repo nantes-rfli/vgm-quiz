@@ -1,6 +1,7 @@
 // Path: web/src/features/quiz/datasource.ts
 'use client';
 
+import type { RoundStartRequest, Manifest } from './api/manifest';
 import type { Phase1StartResponse, Phase1NextResponse } from './api/types';
 import { ApiError, ensureApiError, delay, isNavigatorOffline } from './api/errors';
 
@@ -111,8 +112,34 @@ async function fetchJson<T>(path: string, options: RequestOptions): Promise<T> {
   throw lastError ?? new ApiError('unknown', 'Request failed after multiple attempts');
 }
 
-export async function start(): Promise<Phase1StartResponse> {
-  return fetchJson<Phase1StartResponse>('/v1/rounds/start', { method: 'GET' });
+export async function start(params: Partial<RoundStartRequest> = {}): Promise<Phase1StartResponse> {
+  const filtersPresent = params.difficulty || params.era || (params.series && params.series.length > 0);
+  const body: {
+    mode?: string;
+    total?: number;
+    seed?: string;
+    filters?: {
+      difficulty?: string[];
+      era?: string[];
+      series?: string[];
+    };
+  } = {
+    mode: params.mode,
+    total: params.total,
+    seed: params.seed,
+    filters: filtersPresent
+      ? {
+          difficulty: params.difficulty ? [params.difficulty] : undefined,
+          era: params.era ? [params.era] : undefined,
+          series: params.series && params.series.length > 0 ? [...params.series] : undefined,
+        }
+      : undefined,
+  };
+
+  return fetchJson<Phase1StartResponse>('/v1/rounds/start', {
+    method: 'POST',
+    body,
+  });
 }
 
 export async function next(payload: {
@@ -120,4 +147,8 @@ export async function next(payload: {
   answer: string;
 }): Promise<Phase1NextResponse> {
   return fetchJson<Phase1NextResponse>('/v1/rounds/next', { method: 'POST', body: payload });
+}
+
+export async function manifest(): Promise<Manifest> {
+  return fetchJson<Manifest>('/v1/manifest', { method: 'GET' });
 }

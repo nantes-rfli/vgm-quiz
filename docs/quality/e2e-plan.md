@@ -90,7 +90,7 @@ reveal: {
 
 #### 4.4 MSW ハンドラーの修正
 [web/mocks/handlers.ts](../../web/mocks/handlers.ts) で以下を実装:
-- `GET /v1/rounds/start` → `rounds.start.ok.json` を返却
+- `POST /v1/rounds/start` → `rounds.start.ok.json` を返却
 - `POST /v1/rounds/next` → `continuationToken` をデコードして次の問題を返却
 - 最終問題 (index 10) では `finished: true` を返却
 
@@ -112,4 +112,3 @@ npm run test:e2e -- play-features.spec.ts
 - トレース／スクリーンショット保存ポリシーの策定
 - 一部シナリオを `retry: 1` として安定性を確保
 - エラーシナリオの E2E テスト自動化 (429エラー、オフライン復帰など)
-
