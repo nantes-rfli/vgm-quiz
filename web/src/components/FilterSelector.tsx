@@ -61,6 +61,18 @@ export default function FilterSelector({
     }
   }
 
+  if (!manifest || isLoading) {
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="bg-card rounded-2xl shadow p-6 mb-4 border border-border">
+          <div className="text-center">
+            <p className="text-muted-foreground">{t('filter.title')} {t('play.loading')}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const difficultyOptions = manifest.facets.difficulty.filter((d) => d !== 'mixed')
   const eraOptions = manifest.facets.era.filter((e) => e !== 'mixed')
   const seriesOptions = manifest.facets.series.filter((s) => s !== 'mixed')
@@ -118,7 +130,8 @@ export default function FilterSelector({
           <div className="flex gap-3 flex-wrap">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
-                type="checkbox"
+                type="radio"
+                name="era"
                 value="mixed"
                 checked={!filters.era || filters.era === 'mixed'}
                 onChange={() => handleEraChange('mixed')}
@@ -130,7 +143,8 @@ export default function FilterSelector({
             {eraOptions.map((e) => (
               <label key={e} className="flex items-center gap-2 cursor-pointer">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="era"
                   value={e}
                   checked={filters.era === e}
                   onChange={() => handleEraChange(e as Era)}

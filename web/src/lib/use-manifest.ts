@@ -12,7 +12,7 @@ interface CachedManifest {
   timestamp: number
 }
 
-// Default manifest for fallback
+// Default manifest for fallback - ONLY used if all other sources fail
 const DEFAULT_MANIFEST: Manifest = {
   schema_version: 2,
   modes: [
@@ -41,9 +41,45 @@ export function useManifest() {
   useEffect(() => {
     const fetchManifest = async () => {
       try {
+        // Step 1: Try to load from cache first (cache-first strategy)
+        const cached = localStorage.getItem(MANIFEST_CACHE_KEY)
+        if (cached) {
+          try {
+            const parsed: CachedManifest = JSON.parse(cached)
+            const age = Date.now() - parsed.timestamp
+            if (age < CACHE_MAX_AGE) {
+              setManifest(parsed.data)
+              setIsLoading(false)
+              setError(null)
+              // Continue fetching in background to update cache
+              // (don't await, let it update asynchronously)
+              fetchAndUpdateCache()
+              return
+            }
+          } catch {
+            // Invalid cache, continue to network fetch
+          }
+        }
+
+        // Step 2: Fetch from network if no valid cache
         setIsLoading(true)
         setError(null)
+        const data = await fetchFromNetwork()
+        if (data) {
+          setManifest(data)
+          setError(null)
+        }
+      } catch (err) {
+        // Step 3: Fall back to DEFAULT_MANIFEST if all else fails
+        setManifest(DEFAULT_MANIFEST)
+        setError(err instanceof Error ? err : new Error('Unknown error'))
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
+    const fetchFromNetwork = async (): Promise<Manifest | null> => {
+      try {
         const res = await fetch('/v1/manifest', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -63,34 +99,28 @@ export function useManifest() {
         localStorage.setItem(MANIFEST_CACHE_KEY, JSON.stringify(cached))
         localStorage.setItem(MANIFEST_VERSION_KEY, String(data.schema_version))
 
-        setManifest(data)
+        return data
       } catch (err) {
-        // Try to load from cache on error
+        throw err
+      }
+    }
+
+    const fetchAndUpdateCache = async () => {
+      try {
+        await fetchFromNetwork()
+        // Update state with fresh data after cache is updated
         const cached = localStorage.getItem(MANIFEST_CACHE_KEY)
         if (cached) {
-          try {
-            const parsed: CachedManifest = JSON.parse(cached)
-            const age = Date.now() - parsed.timestamp
-            if (age < CACHE_MAX_AGE) {
-              setManifest(parsed.data)
-              setError(null)
-              return
-            }
-          } catch {
-            // Invalid cache, ignore
-          }
+          const parsed: CachedManifest = JSON.parse(cached)
+          setManifest(parsed.data)
         }
-
-        // Fall back to default manifest
-        setManifest(DEFAULT_MANIFEST)
-        setError(err instanceof Error ? err : new Error('Unknown error'))
-      } finally {
-        setIsLoading(false)
+      } catch {
+        // Ignore background fetch errors, keep using cache
       }
     }
 
     fetchManifest()
   }, [])
 
-  return { manifest: manifest || DEFAULT_MANIFEST, isLoading, error }
+  return { manifest, isLoading, error }
 }
