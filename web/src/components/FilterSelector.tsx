@@ -42,17 +42,31 @@ export default function FilterSelector({
   const handleStart = async () => {
     setIsLoading(true)
     try {
+      // Safety check: manifest should always be available here due to loading guard above
+      if (!manifest) return
+
       const params: Partial<RoundStartRequest> = {}
 
-      // Only include non-default values in the request
+      // Only include non-default values that exist in current manifest
+      // This guards against stale cache where manifest may have changed since filter was selected
       if (filters.difficulty && filters.difficulty !== 'mixed') {
-        params.difficulty = filters.difficulty as Difficulty
+        if (manifest.facets.difficulty.includes(filters.difficulty)) {
+          params.difficulty = filters.difficulty as Difficulty
+        }
       }
       if (filters.era && filters.era !== 'mixed') {
-        params.era = filters.era as Era
+        if (manifest.facets.era.includes(filters.era)) {
+          params.era = filters.era as Era
+        }
       }
       if (filters.series.length > 0) {
-        params.series = filters.series
+        // Filter out any series that are no longer in manifest
+        const validSeries = filters.series.filter((s) =>
+          manifest.facets.series.includes(s),
+        )
+        if (validSeries.length > 0) {
+          params.series = validSeries
+        }
       }
 
       onStart(params)
