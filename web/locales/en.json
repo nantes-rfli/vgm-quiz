@@ -75,5 +75,41 @@
   "toast": {
     "retry": "Retry",
     "close": "Close"
+  },
+  "filter": {
+    "title": "Select quiz conditions",
+    "description": "Customize your quiz with your preferred conditions",
+    "difficulty": {
+      "label": "Difficulty",
+      "easy": "Easy",
+      "normal": "Normal",
+      "hard": "Hard",
+      "mixed": "Mixed"
+    },
+    "era": {
+      "label": "Era",
+      "80s": "80s",
+      "90s": "90s",
+      "00s": "00s",
+      "10s": "10s",
+      "20s": "20s",
+      "mixed": "All"
+    },
+    "series": {
+      "label": "Series",
+      "ff": "Final Fantasy",
+      "dq": "Dragon Quest",
+      "zelda": "The Legend of Zelda",
+      "mario": "Super Mario",
+      "sonic": "Sonic",
+      "pokemon": "Pokémon",
+      "mixed": "All"
+    },
+    "preset": {
+      "daily": "Daily (All)"
+    },
+    "availability": "Available questions: {{count}}",
+    "insufficient": "Not enough questions available for this condition",
+    "start": "Start"
   }
 }
