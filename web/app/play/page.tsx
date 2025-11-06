@@ -10,14 +10,17 @@ import ScoreBadge from '@/src/components/ScoreBadge';
 import InlinePlaybackToggle from '@/src/components/InlinePlaybackToggle';
 import Timer from '@/src/components/Timer';
 import Toast from '@/src/components/Toast';
+import FilterSelector from '@/src/components/FilterSelector';
 import {
   clearReveals,
 } from '@/src/lib/resultStorage';
 import { useI18n } from '@/src/lib/i18n';
+import { FilterProvider } from '@/src/lib/filter-context';
 import type { Phase1StartResponse } from '@/src/features/quiz/api/types';
 import type { ApiError } from '@/src/features/quiz/api/errors';
 import { ensureApiError, mapApiErrorToMessage } from '@/src/features/quiz/api/errors';
 import { start } from '@/src/features/quiz/datasource';
+import type { RoundStartRequest } from '@/src/features/quiz/api/manifest';
 import { waitMockReady } from '@/src/lib/waitMockReady';
 import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
 import { mark, measure } from '@/src/lib/perfMarks';
@@ -49,7 +52,7 @@ type ToastState = {
 const AUTO_START = process.env.NEXT_PUBLIC_PLAY_AUTOSTART !== '0';
 const IS_MOCK = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_MOCK === '1';
 
-export default function PlayPage() {
+function PlayPageContent() {
   const router = useRouter();
   const { t } = useI18n();
 
@@ -137,24 +140,25 @@ export default function PlayPage() {
 
   const latestRecord = history.length > 0 ? history[history.length - 1] : undefined;
 
-  const bootAndStart = React.useCallback(async () => {
-    try {
-      await waitMockReady({ timeoutMs: 2000 });
-      mark('quiz:bootstrap-ready');
-
-      let res: Phase1StartResponse | undefined;
+  const bootAndStart = React.useCallback(
+    async (params?: Partial<RoundStartRequest>) => {
       try {
-        res = await start();
-      } catch (e: unknown) {
-        const apiError = ensureApiError(e);
-        if (IS_MOCK && apiError.status === 404) {
-          // mock server cold-start shim
-          await new Promise((r) => setTimeout(r, 180));
-          res = await start();
-        } else {
-          throw apiError;
+        await waitMockReady({ timeoutMs: 2000 });
+        mark('quiz:bootstrap-ready');
+
+        let res: Phase1StartResponse | undefined;
+        try {
+          res = await start(params);
+        } catch (e: unknown) {
+          const apiError = ensureApiError(e);
+          if (IS_MOCK && apiError.status === 404) {
+            // mock server cold-start shim
+            await new Promise((r) => setTimeout(r, 180));
+            res = await start(params);
+          } else {
+            throw apiError;
+          }
         }
-      }
 
       if (!isMountedRef.current) return;
 
@@ -200,16 +204,27 @@ export default function PlayPage() {
       safeDispatch({ type: 'ERROR', error: mapApiErrorToMessage(apiError) });
       scheduleRetry(apiError, () => {
         safeDispatch({ type: 'BOOTING' });
-        void bootAndStart();
+        void bootAndStart(params);
       });
     }
-  }, [safeDispatch, closeToast, scheduleRetry]);
+    },
+    [safeDispatch, closeToast, scheduleRetry],
+  );
 
   // bootstrap (autostart mode)
   React.useEffect(() => {
     if (!AUTO_START) return;
     void bootAndStart();
   }, [bootAndStart]);
+
+  const onFilterStart = React.useCallback(
+    (params: Partial<RoundStartRequest>) => {
+      closeToast();
+      safeDispatch({ type: 'BOOTING' });
+      void bootAndStart(params);
+    },
+    [bootAndStart, closeToast, safeDispatch],
+  );
 
   const onClickStart = React.useCallback(async () => {
     closeToast();
@@ -359,13 +374,17 @@ export default function PlayPage() {
           </div>
 
           {!s.started ? (
-            <div className="bg-white rounded-2xl shadow p-6 text-center">
-              <h1 className="text-2xl font-semibold mb-4">Ready?</h1>
-              {s.error ? <div className="mb-3 text-red-700">{s.error}</div> : null}
-              <button type="button" onClick={onClickStart} className="px-4 py-2 rounded-xl bg-black text-white">
-                Start
-              </button>
-            </div>
+            !AUTO_START ? (
+              <FilterSelector onStart={onFilterStart} disabled={s.loading} />
+            ) : (
+              <div className="bg-white rounded-2xl shadow p-6 text-center">
+                <h1 className="text-2xl font-semibold mb-4">Ready?</h1>
+                {s.error ? <div className="mb-3 text-red-700">{s.error}</div> : null}
+                <button type="button" onClick={onClickStart} className="px-4 py-2 rounded-xl bg-black text-white">
+                  Start
+                </button>
+              </div>
+            )
           ) : (
             <>
               <Progress index={s.progress?.index} total={s.progress?.total} />
@@ -434,5 +453,13 @@ export default function PlayPage() {
         />
       ) : null}
     </>
+  );
+}
+
+export default function PlayPage() {
+  return (
+    <FilterProvider>
+      <PlayPageContent />
+    </FilterProvider>
   );
 }
