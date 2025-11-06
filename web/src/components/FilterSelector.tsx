@@ -39,6 +39,34 @@ export default function FilterSelector({
     reset()
   }
 
+  // Auto-reset invalid filters when manifest is updated (e.g., from background fetch)
+  // This prevents UI showing all unselected radio buttons when a selected option disappears
+  React.useEffect(() => {
+    if (!manifest) return
+
+    // Validate difficulty
+    if (filters.difficulty && filters.difficulty !== 'mixed') {
+      if (!manifest.facets.difficulty.includes(filters.difficulty)) {
+        setDifficulty('mixed')
+      }
+    }
+
+    // Validate era
+    if (filters.era && filters.era !== 'mixed') {
+      if (!manifest.facets.era.includes(filters.era)) {
+        setEra('mixed')
+      }
+    }
+
+    // Validate series
+    if (filters.series.length > 0) {
+      const validSeries = filters.series.filter((s) => manifest.facets.series.includes(s))
+      if (validSeries.length !== filters.series.length) {
+        setSeries(validSeries.length > 0 ? validSeries : [])
+      }
+    }
+  }, [manifest, filters.difficulty, filters.era, filters.series, setDifficulty, setEra, setSeries])
+
   const handleStart = async () => {
     setIsLoading(true)
     try {
