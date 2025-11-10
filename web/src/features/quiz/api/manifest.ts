@@ -52,12 +52,12 @@ export interface RoundStartParams {
 
 // Manifest caching configuration
 const MANIFEST_STORAGE_KEY = 'vgm2.manifest.cache'
-const MANIFEST_VERSION_KEY = 'vgm2.manifest.version'
 const CACHE_MAX_AGE = 24 * 60 * 60 * 1000 // 24 hours
 
 interface CachedManifest {
   data: Manifest
   timestamp: number
+  version: number // schema_version for change detection
 }
 
 // Default manifest fallback - used only if all other sources fail
@@ -82,30 +82,42 @@ const DEFAULT_MANIFEST: Manifest = {
 }
 
 /**
- * Fetch Manifest from API endpoint
+ * Fetch Manifest from API endpoint with fallback support
+ * On error, attempts to use cached data or returns DEFAULT_MANIFEST
  */
 export async function fetchManifest(): Promise<Manifest> {
-  const res = await fetch('/v1/manifest')
-  if (!res.ok) {
-    throw new Error(`Failed to fetch manifest: ${res.status}`)
-  }
-  const data = (await res.json()) as Manifest
+  try {
+    const res = await fetch('/v1/manifest')
+    if (!res.ok) {
+      throw new Error(`Failed to fetch manifest: ${res.status}`)
+    }
+    const data = (await res.json()) as Manifest
 
-  // Save to localStorage for offline fallback
-  const cached: CachedManifest = {
-    data,
-    timestamp: Date.now(),
-  }
-  localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(cached))
-  localStorage.setItem(MANIFEST_VERSION_KEY, String(data.schema_version))
+    // Save to localStorage for offline fallback
+    const cached: CachedManifest = {
+      data,
+      timestamp: Date.now(),
+      version: data.schema_version,
+    }
+    localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(cached))
 
-  return data
+    return data
+  } catch {
+    // Attempt to recover from cache
+    const cached = loadManifestFromStorage()
+    if (cached) {
+      return cached.data
+    }
+    // Ultimate fallback
+    return DEFAULT_MANIFEST
+  }
 }
 
 /**
  * Load cached Manifest from localStorage
+ * Returns null only if cache is invalid (too old or corrupted)
  */
-function loadManifestFromStorage(): Manifest | null {
+function loadManifestFromStorage(): CachedManifest | null {
   try {
     const stored = localStorage.getItem(MANIFEST_STORAGE_KEY)
     if (!stored) return null
@@ -116,30 +128,49 @@ function loadManifestFromStorage(): Manifest | null {
     // Invalidate cache if older than 24 hours
     if (age > CACHE_MAX_AGE) return null
 
-    return parsed.data
+    return parsed
   } catch {
     return null
   }
 }
 
 /**
- * React Query hook for Manifest with caching and fallback strategy
- * - Cache-first strategy: uses localStorage if available
- * - Falls back to DEFAULT_MANIFEST if API fails
- * - Automatically saves to localStorage on successful fetch
+ * Get stored Manifest version for change detection
+ */
+function getStoredManifestVersion(): number | null {
+  const cached = loadManifestFromStorage()
+  return cached?.version ?? null
+}
+
+/**
+ * React Query hook for Manifest with caching and version-aware update strategy
+ *
+ * Strategy:
+ * 1. Load from cache on mount (cache-first)
+ * 2. Always refetch on mount to detect schema_version changes
+ * 3. If version changed, automatically re-fetch from API
+ * 4. On API failure, use cached data or DEFAULT_MANIFEST
+ * 5. Auto-save successful fetches to localStorage
  */
 export function useManifest() {
-  const initialData = loadManifestFromStorage()
+  const cachedVersion = getStoredManifestVersion()
 
   return useQuery({
     queryKey: ['manifest'],
     queryFn: fetchManifest,
-    initialData,
+    // Use cached data as initial data
+    initialData: loadManifestFromStorage()?.data ?? DEFAULT_MANIFEST,
     staleTime: 1000 * 60 * 60, // 1 hour
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
-    refetchOnMount: !initialData, // Only refetch if no initial data
+    // Always validate manifest on mount to detect schema_version changes
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
-    throwOnError: false, // Don't throw on error, use fallback instead
-    select: (data) => data ?? DEFAULT_MANIFEST, // Use DEFAULT_MANIFEST if data is undefined
+    throwOnError: false, // Don't throw - we handle fallback in queryFn
+    // Return data or fallback to DEFAULT_MANIFEST
+    select: (data) => data ?? DEFAULT_MANIFEST,
+    // Store metadata for version change detection
+    meta: {
+      cachedVersion,
+    },
   })
 }
