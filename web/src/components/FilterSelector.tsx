@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useI18n } from '@/src/lib/i18n'
 import { useFilter } from '@/src/lib/filter-context'
-import { useManifest } from '@/src/lib/use-manifest'
+import { useManifest } from '@/src/features/quiz/api/manifest'
 import type { Difficulty, Era, RoundStartRequest } from '@/src/features/quiz/api/manifest'
 
 export interface FilterSelectorProps {
@@ -17,7 +17,7 @@ export default function FilterSelector({
 }: FilterSelectorProps) {
   const { t } = useI18n()
   const { filters, setDifficulty, setEra, setSeries, reset, isDefault } = useFilter()
-  const { manifest } = useManifest()
+  const { data: manifest, isLoading: isManifestLoading } = useManifest()
   const [isLoading, setIsLoading] = useState(false)
 
   const handleDifficultyChange = (difficulty: Difficulty | '') => {
@@ -103,7 +103,7 @@ export default function FilterSelector({
     }
   }
 
-  if (!manifest || isLoading) {
+  if (!manifest || isLoading || isManifestLoading) {
     return (
       <div className="w-full max-w-2xl mx-auto">
         <div className="bg-card rounded-2xl shadow p-6 mb-4 border border-border">
