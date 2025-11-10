@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import MswBoot from "./_msw";
-import { ThemeProvider } from "@/src/components/ThemeProvider";
+import { Providers } from "@/src/components/Providers";
 import { I18nProvider } from "@/src/lib/i18n";
 import { HtmlLangSync } from "@/src/components/HtmlLangSync";
 
@@ -47,11 +46,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <I18nProvider>
-          <ThemeProvider>
+          <Providers>
             <HtmlLangSync />
-            <MswBoot />
             {children}
-          </ThemeProvider>
+          </Providers>
         </I18nProvider>
       </body>
     </html>
