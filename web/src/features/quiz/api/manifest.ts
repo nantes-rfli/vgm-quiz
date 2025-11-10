@@ -142,9 +142,12 @@ export function useManifest() {
     queryFn: fetchManifest,
     // Use cached data as initial data to prevent loading state
     initialData: loadManifestFromStorage()?.data ?? DEFAULT_MANIFEST,
+    // Mark initialData as stale so refetchOnMount will trigger immediately
+    // This ensures first-time visitors (no cache) fetch /v1/manifest right away
+    initialDataUpdatedAt: 0,
     staleTime: 1000 * 60 * 60, // 1 hour
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
-    // Always validate manifest on mount to detect schema_version changes
+    // Always validate manifest on mount - will refetch because initialDataUpdatedAt: 0
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     // Refetch every 5 minutes to catch schema_version updates
