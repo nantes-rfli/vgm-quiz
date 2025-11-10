@@ -1,6 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 
 // Manifest API types for Phase 2B
 // Describes available quiz modes, facets, and features
@@ -82,35 +83,26 @@ const DEFAULT_MANIFEST: Manifest = {
 }
 
 /**
- * Fetch Manifest from API endpoint with fallback support
- * On error, attempts to use cached data or returns DEFAULT_MANIFEST
+ * Fetch Manifest from API endpoint
+ * Throws on error to enable React Query retry mechanisms
+ * Callers should use initialData/select for fallback
  */
 export async function fetchManifest(): Promise<Manifest> {
-  try {
-    const res = await fetch('/v1/manifest')
-    if (!res.ok) {
-      throw new Error(`Failed to fetch manifest: ${res.status}`)
-    }
-    const data = (await res.json()) as Manifest
-
-    // Save to localStorage for offline fallback
-    const cached: CachedManifest = {
-      data,
-      timestamp: Date.now(),
-      version: data.schema_version,
-    }
-    localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(cached))
-
-    return data
-  } catch {
-    // Attempt to recover from cache
-    const cached = loadManifestFromStorage()
-    if (cached) {
-      return cached.data
-    }
-    // Ultimate fallback
-    return DEFAULT_MANIFEST
+  const res = await fetch('/v1/manifest')
+  if (!res.ok) {
+    throw new Error(`Failed to fetch manifest: ${res.status}`)
   }
+  const data = (await res.json()) as Manifest
+
+  // Save to localStorage for offline fallback
+  const cached: CachedManifest = {
+    data,
+    timestamp: Date.now(),
+    version: data.schema_version,
+  }
+  localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(cached))
+
+  return data
 }
 
 /**
@@ -148,29 +140,48 @@ function getStoredManifestVersion(): number | null {
  * Strategy:
  * 1. Load from cache on mount (cache-first)
  * 2. Always refetch on mount to detect schema_version changes
- * 3. If version changed, automatically re-fetch from API
- * 4. On API failure, use cached data or DEFAULT_MANIFEST
- * 5. Auto-save successful fetches to localStorage
+ * 3. On successful fetch, compare schema_version and invalidate if changed
+ * 4. Auto-refetch every 5 minutes and on network reconnect
+ * 5. On failure, fallback to cached data or DEFAULT_MANIFEST
+ * 6. UI receives data that is always non-null (never loading state)
  */
 export function useManifest() {
+  const queryClient = useQueryClient()
   const cachedVersion = getStoredManifestVersion()
+
+  // Select with version change detection
+  const selectManifest = useCallback(
+    (data: Manifest) => {
+      // Detect schema_version changes and invalidate cache
+      if (cachedVersion !== null && data.schema_version !== cachedVersion) {
+        // Version changed - schedule invalidation (non-blocking)
+        Promise.resolve().then(() => {
+          queryClient.invalidateQueries({ queryKey: ['manifest'] })
+        })
+      }
+      // Ensure data is never undefined
+      return data ?? DEFAULT_MANIFEST
+    },
+    [cachedVersion, queryClient]
+  )
 
   return useQuery({
     queryKey: ['manifest'],
     queryFn: fetchManifest,
-    // Use cached data as initial data
+    // Use cached data as initial data to prevent loading state
     initialData: loadManifestFromStorage()?.data ?? DEFAULT_MANIFEST,
     staleTime: 1000 * 60 * 60, // 1 hour
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
     // Always validate manifest on mount to detect schema_version changes
     refetchOnMount: true,
     refetchOnWindowFocus: false,
-    throwOnError: false, // Don't throw - we handle fallback in queryFn
-    // Return data or fallback to DEFAULT_MANIFEST
-    select: (data) => data ?? DEFAULT_MANIFEST,
-    // Store metadata for version change detection
-    meta: {
-      cachedVersion,
-    },
+    // Refetch every 5 minutes to catch schema_version updates
+    refetchInterval: 1000 * 60 * 5,
+    // Refetch when network comes back online
+    refetchOnReconnect: true,
+    // Let React Query handle errors (retry with backoff)
+    throwOnError: false,
+    // Select with version change detection and fallback
+    select: selectManifest,
   })
 }
