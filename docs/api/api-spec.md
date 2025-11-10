@@ -36,8 +36,8 @@ POST /v1/rounds/start
 {
   "mode": "vgm_v1-ja",
   "filters": {
-    "difficulty": ["hard"],
-    "era": ["90s"],
+    "difficulty": "hard",
+    "era": "90s",
     "series": ["ff", "dq"]
   },
   "total": 10,
@@ -45,11 +45,11 @@ POST /v1/rounds/start
 }
 ```
 
-**フィルタ仕様**:
+**フィルタ仕様** ([web/src/components/FilterSelector.tsx](web/src/components/FilterSelector.tsx)):
 | ファセット | 型 | 選択方式 | 例 |
 |----------|-----|---------|-----|
-| `difficulty` | string \| string[] | 単一選択 | `"hard"` or `["hard"]` |
-| `era` | string \| string[] | 単一選択 | `"90s"` or `["90s"]` |
+| `difficulty` | string | 単一選択 | `"hard"` |
+| `era` | string | 単一選択 | `"90s"` |
 | `series` | string[] | 複数選択 | `["ff", "dq", "zelda"]` |
 
 **フィルタ検証ルール**:
@@ -207,7 +207,7 @@ POST /v1/availability
 ```
 **Body**
 ```json
-{ "mode": "vgm_v1-ja", "filters": { "era": ["90s"], "difficulty": ["mixed"] } }
+{ "mode": "vgm_v1-ja", "filters": { "difficulty": "mixed", "era": "90s", "series": [] } }
 ```
 **Response**
 ```json
@@ -278,15 +278,15 @@ POST /v1/availability
   - 例: `{"difficulty":"hard","era":"90s","series":["dq","ff"]}`
   - フィルタなし → `"{}"`
 - **`filtersHash`** (string):
-  - `filtersKey` の Simple Hash（8文字16進数）
+  - `filtersKey` の DJB2 ハッシュ（8文字16進数） ([workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
   - R2 ストレージキー生成用: `exports/{date}_{filtersHash}.json`
   - トークン検証時に filtersKey との整合性を確認
 
 **その他フィールド**:
-- 署名方式: JWS（HMAC-SHA256）
+- 署名方式: JWS（HMAC-SHA256） ([workers/shared/lib/token.ts](../../workers/shared/lib/token.ts))
 - `date`: JST基準の日付（`YYYY-MM-DD`）
 - `idx`: 0ベース（現在の問題インデックス）
-- `iat` / `exp`: Unix timestamp（秒）。短TTL（例: 1時間）で運用
+- `iat` / `exp`: Unix timestamp（秒）。TTL = **120秒** (`exp - iat`)
 
 ## 5. Flows
 
@@ -303,7 +303,7 @@ POST /v1/availability
 
 ## 6. Security & Limits
 - レート制限と署名検証エラーで乱用を抑止
-- `token` は短TTL（例: 1時間）
+- `token` は短TTL（**120秒**）で即座に失効
 - `POST /v1/metrics` は冪等IDの導入を推奨（重複除去）
 - CORS は `GET` と `POST` のみ許可
 

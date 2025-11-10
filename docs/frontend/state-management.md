@@ -68,35 +68,52 @@ const DEFAULT_FILTERS: FilterState = {
   {/* フィルタ情報は useFilter() で任意の子コンポーネントから取得可能 */}
 </FilterProvider>
 
-// 使用例
-const { difficulty, era, series, setDifficulty, setEra, setSeries } = useFilter()
+// 使用例 - useFilter() は以下オブジェクトを返却
+const { filters, setDifficulty, setEra, setSeries, reset, isDefault } = useFilter()
+const { difficulty, era, series } = filters
+```
+
+**useFilter() 返却オブジェクト**:
+```typescript
+{
+  filters: FilterState,                        // { difficulty?, era?, series }
+  setDifficulty: (value?: string) => void,
+  setEra: (value?: string) => void,
+  setSeries: (values: string[]) => void,
+  reset: () => void,
+  isDefault: () => boolean
+}
 ```
 
 **主要メソッド**:
-- `setDifficulty(value)` - 難易度を更新
-- `setEra(value)` - 年代を更新
-- `setSeries(values)` - シリーズを複数選択
-- `reset()` - フィルタを初期化
-- `isDefault()` - フィルタがデフォルト値かチェック
+- `setDifficulty(value)` - 難易度を更新（'mixed' 含む）
+- `setEra(value)` - 年代を更新（'mixed' 含む）
+- `setSeries(values)` - シリーズを複数選択（'mixed' は自動フィルタリング）
+- `reset()` - フィルタをデフォルト値に初期化
+- `isDefault()` - 全フィルタがデフォルト値かチェック
+
+**重要**:
+- `setSeries()` は **重複排除・ソートを行いません**。バックエンド側で正規化されます。
+- difficulty/era は単一値のみですが、UI/API 層では異なる表現を使用（後述）。
 
 ---
 
 ### 1.3. Manifest キャッシュ（localStorage + React Query）
 
-**ファイル**: `web/src/features/quiz/api/manifest.ts`
+**ファイル**: [web/src/features/quiz/api/manifest.ts](web/src/features/quiz/api/manifest.ts) (lines 139-161)
 
 Manifest を `React Query` で管理。効率的なキャッシュと自動再フェッチ。
 
-**キャッシュ戦略**:
+**キャッシュ戦略** (実装ベース):
 ```typescript
 const useManifest = () => {
   return useQuery({
     queryKey: ['manifest'],
     queryFn: async () => {
-      // 1. localStorage から取得を試みる（キャッシュ）
-      const cached = getCachedManifest()
-      if (cached && isValid(cached)) {
-        return cached.data
+      // 1. localStorage から取得を試みる
+      const cached = loadManifestFromStorage()
+      if (cached && isCacheValid(cached)) {
+        return cached.data  // 即座に返却（React Query は "stale" と判定）
       }
 
       // 2. ネットワークから取得
@@ -104,15 +121,18 @@ const useManifest = () => {
       const manifest = await response.json()
 
       // 3. localStorage に保存
-      setCachedManifest(manifest)
-
+      saveManifestToStorage(manifest)
       return manifest
     },
-    staleTime: 1000 * 60 * 5,    // 5分で stale に
-    gcTime: 1000 * 60 * 60 * 24, // 24時間でガベージ回収
+    staleTime: 1000 * 60 * 60,      // 1時間で stale に
+    gcTime: 1000 * 60 * 60 * 24,    // 24時間でガベージ回収
+    initialDataUpdatedAt: 0,        // 常に stale として扱う
+    refetchOnMount: true,           // マウント時に再フェッチ
+    refetchOnWindowFocus: false,    // ウィンドウフォーカス時は再フェッチしない
     refetchInterval: 1000 * 60 * 5, // 5分ごとにバックグラウンド再フェッチ
-    retry: 2,
-    fallbackData: DEFAULT_MANIFEST,
+    refetchOnReconnect: true,       // 再接続時に再フェッチ
+    throwOnError: false,            // エラー時は throw しない
+    select: (data) => data ?? DEFAULT_MANIFEST,  // フォールバック
   })
 }
 ```
@@ -131,6 +151,12 @@ const useManifest = () => {
   "version": 2
 }
 ```
+
+**重要な特徴**:
+- **Cache-First 戦略**: localStorage にあれば即座に返す → 同時にバックグラウンド再フェッチ（最新性確保）
+- **TTL 整合性**: localStorage キャッシュは 24 時間、React Query staleTime は 1 時間
+- **schema_version 変更検知**: Phase 2D で実装予定。キャッシュ内 version 変更を検知したら FilterContext をリセット
+- **エラーハンドリング**: ネットワーク + localStorage 両失敗時は DEFAULT_MANIFEST にフォールバック
 
 ---
 
@@ -164,7 +190,7 @@ GET リクエストで Manifest を取得。レスポンス例：
 ```
 
 **重要な設計**:
-- `schema_version` - スキーマの互換性チェック用
+- `schema_version` - スキーマの互換性チェック用。変更検知時は FilterContext をリセット（Phase 2D 実装予定）
 - `facets` - フロントエンド UI が受け入れる値の完全なリスト
 - `features` - フロント機能のフラグ
 

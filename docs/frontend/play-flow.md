@@ -26,7 +26,9 @@
      }
    }
    ```
-3. Manifest の schema_version 変更を検知したら、フィルタ選択を自動リセット
+3. **[Future - Phase 2D]** Manifest の schema_version 変更を検知したら、フィルタ選択を自動リセット
+   - 現在の実装では、キャッシュから Manifest を返却するのみで、schema_version 変更は検知していません
+   - Phase 2D (#115 QA-01) で実装予定
 
 ### 1.2. フィルタ選択UI
 1. `FilterSelector` コンポーネントが Manifest 上のファセット値でドロップダウンを生成

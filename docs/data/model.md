@@ -83,7 +83,9 @@ interface FilterOptions {
 - Difficulty & Era は単一値のみ（`mixed` で全選択）
 - Series は複数値をサポート
 - `mixed` はフィルタリングでスキップされ、実質的に「全選択」を意味する
-- API 送信時は配列形式に統一（バックエンド処理の簡素化）
+- **API 送信時の形式** ([web/src/components/FilterSelector.tsx](web/src/components/FilterSelector.tsx)):
+  - Difficulty & Era: **文字列** (例: `"hard"`, `"90s"`)
+  - Series: **文字列の配列** (例: `["ff", "dq"]`)
 
 ### Round (API レスポンス内の round フィールド)
 

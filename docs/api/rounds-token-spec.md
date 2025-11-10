@@ -10,11 +10,10 @@
 
 ## 形式
 - **JWS Compact Serialization**
-- **alg:** `EdDSA`（Ed25519）
+- **alg:** `HS256`（HMAC-SHA256）
 - **Header 例**
-  - `alg: "EdDSA"`
+  - `alg: "HS256"`
   - `typ: "JWT"`
-  - `kid: "<key-id>"`（任意。鍵ローテーション識別に利用）
 
 ## Claims（ペイロード）
 | Claim | 型 | 必須 | 説明 |
@@ -23,7 +22,7 @@
 | `idx` | number | ✓ | 現在の問題インデックス（0-based） |
 | `total` | number | ✓ | 総問題数（例: 10） |
 | `seed` | string | ✓ | サンプリング用シード（16 bytes の base64url 推奨） |
-| `filtersHash` | string | ✓ | **正準化**した filters JSON の SHA-256 を base64url 化 |
+| `filtersHash` | string | ✓ | **正準化**した filters JSON の DJB2 ハッシュ（8文字16進数） |
 | `ver` | number | ✓ | トークン仕様バージョン。初期値 `1` |
 | `iat` | number | ✓ | 発行時刻（epoch seconds） |
 | `exp` | number | ✓ | 失効時刻（epoch seconds）。**TTL = 120 秒** |
@@ -31,8 +30,8 @@
 | `nbf` | number | - | Not Before（任意） |
 
 ### filters の正準化（ハッシュ対象）
-- キーを **昇順** に並べる、空白無し、真偽・数値は厳密表現（JCS 相当）。
-- `filtersHash = base64url( SHA-256( canonicalJSONString ) )`。
+- キーを **昇順** に並べる、空白無し、JSON 形式（例: `{"difficulty":"hard","era":"90s","series":["dq","ff"]}`)
+- `filtersHash = DJB2( canonicalJSONString )` → 8文字16進数 ([workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
 
 ## サーバの検証・発行規範
 - **署名検証**・`exp` 未失効であること。
@@ -47,7 +46,7 @@
 - レート超過: `rate_limited`（HTTP 429, Retry-After 付与）
 
 ## セキュリティ運用ノート
-- 署名鍵は Ed25519 を使用し、`kid` でローテーション可能にする。
+- 署名鍵は HMAC-SHA256 の共有鍵として管理。环境変数で設定し、本番環境で安全に保管。
 - トークンは **ベアラー扱い**（漏えい時はラウンド再作成を促す）。
-- TTL は短く保つ（MVP: 120 秒）。必要に応じて `/start` の再発行で回復する。
+- TTL は短く保つ（**120 秒**）。失効時は `/v1/rounds/start` で新しいトークンを取得。
 

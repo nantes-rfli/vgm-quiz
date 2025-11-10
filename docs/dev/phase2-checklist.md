@@ -40,36 +40,36 @@ Phase 2（フィルタ UI + Manifest 統合）の完成度を確認するため�
 ## Phase 2B: Manifest & Filter UI (Frontend)
 
 ### Manifest 統合
-- [ ] `useManifest()` Hook 実装
-- [ ] `/v1/manifest` 取得 + キャッシュ戦略
-  - [ ] localStorage 24 時間キャッシュ
-  - [ ] 5 分ごとにバックグラウンド再フェッチ
-  - [ ] ネットワーク失敗時は `DEFAULT_MANIFEST` フォールバック
-- [ ] `schema_version` 変更検知 → フィルタリセット
+- [x] `useManifest()` Hook 実装 (web/src/features/quiz/api/manifest.ts)
+- [x] `/v1/manifest` 取得 + キャッシュ戦略
+  - [x] localStorage 24 時間キャッシュ
+  - [x] 5 分ごとにバックグラウンド再フェッチ
+  - [x] ネットワーク失敗時は `DEFAULT_MANIFEST` フォールバック
+- [ ] **[Phase 2D-Future]** `schema_version` 変更検知 → フィルタリセット
 
 ### フィルタ状態管理
-- [ ] `FilterContext` + `useFilter()` Hook 実装
-- [ ] `difficulty` — 単一選択（easy/normal/hard/mixed）
-- [ ] `era` — 単一選択（80s/90s/00s/10s/20s/mixed）
-- [ ] `series` — 複数選択（ff/dq/zelda/mario/sonic/pokemon）
-- [ ] フィルタリセット機能
-- [ ] デフォルト値: すべて mixed（全選択）
+- [x] `FilterContext` + `useFilter()` Hook 実装 (web/src/lib/filter-context.tsx)
+- [x] `difficulty` — 単一選択（easy/normal/hard/mixed）
+- [x] `era` — 単一選択（80s/90s/00s/10s/20s/mixed）
+- [x] `series` — 複数選択（ff/dq/zelda/mario/sonic/pokemon）
+- [x] フィルタリセット機能
+- [x] デフォルト値: すべて mixed（全選択）
 
 ### フィルタ選択 UI
-- [ ] `FilterSelector` コンポーネント実装
-- [ ] Manifest 上の facets でドロップダウン生成
-- [ ] ユーザー選択値をバリデーション
-- [ ] 利用可能な質問数を表示（推定値）
-- [ ] 無効なフィルタ値は自動リセット
+- [x] `FilterSelector` コンポーネント実装 (web/src/components/FilterSelector.tsx)
+- [x] Manifest 上の facets でドロップダウン生成
+- [x] ユーザー選択値をバリデーション
+- [ ] **[Phase 2D-Future]** 利用可能な質問数を表示（推定値）— Availability API との連携検討
+- [x] 無効なフィルタ値は自動リセット
 
 ### i18n 文言
-- [ ] 日本語: `web/locales/ja.json` に filter キー追加
-- [ ] 英語: `web/locales/en.json` に filter キー追加
-  - [ ] `filter.title`, `filter.description`
-  - [ ] `filter.difficulty.{label, easy, normal, hard, mixed}`
-  - [ ] `filter.era.{label, 80s, 90s, 00s, 10s, 20s, mixed}`
-  - [ ] `filter.series.{label, ff, dq, zelda, mario, sonic, pokemon, mixed}`
-  - [ ] `filter.availability`, `filter.insufficient`, `filter.start`
+- [x] 日本語: `web/locales/ja.json` に filter キー追加 (#113, #114)
+- [x] 英語: `web/locales/en.json` に filter キー追加 (#113, #114)
+  - [x] `filter.title`, `filter.description`
+  - [x] `filter.difficulty.{label, easy, normal, hard, mixed}`
+  - [x] `filter.era.{label, 80s, 90s, 00s, 10s, 20s, mixed}`
+  - [x] `filter.series.{label, ff, dq, zelda, mario, sonic, pokemon, mixed}`
+  - [x] `filter.availability`, `filter.insufficient`, `filter.start`
 
 ---
 
@@ -119,6 +119,16 @@ Phase 2（フィルタ UI + Manifest 統合）の完成度を確認するため�
 ---
 
 ## Phase 2D: テスト & 品質保証
+
+### 未実装機能の完成（Phase 2D-Future）
+- [ ] `schema_version` 変更検知とフィルタ自動リセット ([issue #115](https://github.com/anthropics/claude-code/issues/115))
+  - [ ] useManifest が schema_version の変化を検知
+  - [ ] FilterContext の無効なフィルタ値を自動リセット
+  - [ ] ユーザー通知メッセージの実装
+- [ ] 利用可能な質問数表示 (Availability API 連携)
+  - [ ] `/v1/availability` エンドポイントの実装 (バックエンド)
+  - [ ] FilterSelector で「推定値」ではなく「実値」を表示
+  - [ ] キャッシュとの同期戦略の検討
 
 ### E2E テスト
 - [ ] フィルタ選択フロー
@@ -177,30 +187,29 @@ Phase 2（フィルタ UI + Manifest 統合）の完成度を確認するため�
 
 ## Phase 2 成功基準
 
-Phase 2 が完了したと判定する条件：
+Phase 2C が完了したと判定する条件（**Phase 2D の機能は除外**）：
 
-### 機能
+### 実装完了（Phase 2A/2B）
 - ✅ ユーザーが `/play` でフィルタを選択可能
 - ✅ フィルタが API に送信され、フィルタ済み質問を受け取る
-- ✅ Manifest がキャッシュされ、オフライン時も UI が機能
+- ✅ Manifest がキャッシュされ、オフライン時も基本 UI が機能
 - ✅ フィルタ値の変更時に UI が自動更新
+- ✅ FilterContext + useFilter() で フロント状態管理
+- ✅ useManifest() で Manifest キャッシュ管理
 
-### パフォーマンス
-- ✅ Manifest フェッチ: 初回 < 500ms（キャッシュ時はほぼ 0ms）
-- ✅ フィルタ選択: レスポンス < 100ms（ローカル状態更新）
-- ✅ API 送信: < 1s（ネットワーク + サーバー処理）
+### ドキュメント完成（Phase 2C）
+- ✅ API 仕様書（`docs/api/api-spec.md`）が実装と同期
+- ✅ Token 仕様（`docs/api/rounds-token-spec.md`）が HMAC-SHA256 + DJB2 で統一
+- ✅ データモデル（`docs/data/model.md`）が FilterOptions/Manifest/Round を定義
+- ✅ フロント仕様書（`docs/frontend/play-flow.md`, `state-management.md`）が状態遷移を説明
+- ✅ CLAUDE.md が Phase 2 機能を記載
+- ✅ Phase 2C Checklist が Phase 2D-Future 項目を明確化
 
-### ドキュメント
-- ✅ API 仕様書（`api-spec.md`）が完全
-- ✅ データモデル（`model.md`）が完全
-- ✅ フロント仕様書（`play-flow.md`, `state-management.md`）が完全
-- ✅ CLAUDE.md が最新
-
-### テスト
-- ✅ E2E テストが全パス
-- ✅ TypeScript 厳格モード
-- ✅ ESLint / Biome リント全パス
-- ✅ ユーザー受け入れテスト (UAT) 完了
+### Phase 2D で追加予定
+- [ ] `schema_version` 変更検知 (Issue #115)
+- [ ] 利用可能な質問数表示 (Availability API 連携)
+- [ ] E2E テスト拡張
+- [ ] パフォーマンス検証
 
 ---
 
