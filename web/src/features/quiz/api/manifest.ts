@@ -1,7 +1,6 @@
 'use client'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 // Manifest API types for Phase 2B
 // Describes available quiz modes, facets, and features
@@ -127,44 +126,17 @@ function loadManifestFromStorage(): CachedManifest | null {
 }
 
 /**
- * Get stored Manifest version for change detection
- */
-function getStoredManifestVersion(): number | null {
-  const cached = loadManifestFromStorage()
-  return cached?.version ?? null
-}
-
-/**
- * React Query hook for Manifest with caching and version-aware update strategy
+ * React Query hook for Manifest with robust caching strategy
  *
  * Strategy:
- * 1. Load from cache on mount (cache-first)
- * 2. Always refetch on mount to detect schema_version changes
- * 3. On successful fetch, compare schema_version and invalidate if changed
- * 4. Auto-refetch every 5 minutes and on network reconnect
- * 5. On failure, fallback to cached data or DEFAULT_MANIFEST
- * 6. UI receives data that is always non-null (never loading state)
+ * 1. Load from cache on mount (cache-first) to prevent loading state
+ * 2. Refetch on mount to validate cache
+ * 3. Auto-refetch every 5 minutes to catch schema_version updates
+ * 4. Refetch on network reconnection to sync with latest data
+ * 5. On failure, fallback to cached data or DEFAULT_MANIFEST via React Query retry
+ * 6. UI always receives non-null Manifest (never undefined)
  */
 export function useManifest() {
-  const queryClient = useQueryClient()
-  const cachedVersion = getStoredManifestVersion()
-
-  // Select with version change detection
-  const selectManifest = useCallback(
-    (data: Manifest) => {
-      // Detect schema_version changes and invalidate cache
-      if (cachedVersion !== null && data.schema_version !== cachedVersion) {
-        // Version changed - schedule invalidation (non-blocking)
-        Promise.resolve().then(() => {
-          queryClient.invalidateQueries({ queryKey: ['manifest'] })
-        })
-      }
-      // Ensure data is never undefined
-      return data ?? DEFAULT_MANIFEST
-    },
-    [cachedVersion, queryClient]
-  )
-
   return useQuery({
     queryKey: ['manifest'],
     queryFn: fetchManifest,
@@ -181,7 +153,7 @@ export function useManifest() {
     refetchOnReconnect: true,
     // Let React Query handle errors (retry with backoff)
     throwOnError: false,
-    // Select with version change detection and fallback
-    select: selectManifest,
+    // Ensure data is never undefined (fallback to DEFAULT_MANIFEST)
+    select: (data) => data ?? DEFAULT_MANIFEST,
   })
 }
