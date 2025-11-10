@@ -48,19 +48,25 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 
 ### Backend (Cloudflare Workers)
 
-**Phase 1 (Current)**: Manual curated data with two-worker architecture
+**Phase 2 (Current)**: Dynamic sampling with filters + Manifest-driven UI
 
 **Pipeline Worker** (`vgm-quiz-pipeline.nantos.workers.dev`)
 - **Discovery stage**: Ingests tracks from [workers/data/curated.json](workers/data/curated.json) into D1 (`tracks_normalized` table)
-  - Phase 2A: curated.json extended with `difficulty`, `genres`, `seriesTags`, `era` fields for filtering
-- **Publish stage**: Generates daily question sets (10 questions, 4-choice format) and exports to R2
+  - Supports facet metadata: `difficulty`, `genres`, `seriesTags`, `era`
+- **Publish stage**: Generates daily question sets **per filter combination** and exports to R2
+  - R2 keys: `exports/{date}.json` (default) or `exports/{date}_{filterHash}.json` (filtered)
+  - D1 `picks` table stores JSON as backup
 - Manual trigger via POST endpoints (`/trigger/discovery`, `/trigger/publish?date=YYYY-MM-DD`)
 
 **API Worker** (`vgm-quiz-api.nantos.workers.dev`)
-- `GET /daily?date=YYYY-MM-DD` - Fetch daily question set metadata
-- `POST /v1/rounds/start` - Start quiz round, returns first question + continuation token
-- `POST /v1/rounds/next` - Submit answer, get next question or finish
+- `GET /v1/manifest` - Fetch UI metadata (modes, facets, features, schema_version)
+- `POST /v1/rounds/start` - Start quiz with optional filters, returns first question + JWS token
+  - Filters: `difficulty` (single), `era` (single), `series` (multiple)
+  - Manifest-driven validation: filters must be in `facets`
+- `POST /v1/rounds/next` - Submit answer via token, get next question or finish
+- `POST /v1/metrics` - Telemetry ingest
 - Token-based state management (no server-side sessions)
+  - Token payload includes `filtersKey` (normalized JSON) + `filtersHash` for R2 lookup
 
 **Database (D1)**
 - `sources` - Track data sources
@@ -91,16 +97,27 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 
 
 ### State Management
+- **Filter State** ([web/src/lib/filter-context.tsx](web/src/lib/filter-context.tsx)): React Context + useState for user-selected filters
+  - Difficulty & Era: single-select
+  - Series: multi-select
+  - Managed via `FilterProvider` + `useFilter()` hook
+- **Manifest State** ([web/src/features/quiz/api/manifest.ts](web/src/features/quiz/api/manifest.ts)): React Query with localStorage caching
+  - Cache strategy: localStorage (24h) + 5min background refetch
+  - Fallback: `DEFAULT_MANIFEST` if network fails
+  - `schema_version` change triggers filter reset
 - **Play page** ([web/app/play/page.tsx](web/app/play/page.tsx)) uses `useReducer` with centralized state transitions via [playReducer.ts](web/src/features/quiz/playReducer.ts)
-- Two phases: `question` (user answering) and `reveal` (showing result + metadata)
-- Timer-based auto-submission after 15 seconds (`QUESTION_TIME_LIMIT_MS`)
-- Answer processing extracted into [useAnswerProcessor.ts](web/src/features/quiz/useAnswerProcessor.ts) hook
+  - Flow: Filter Selection → Manifest fetch → Round Start → Question/Reveal loop → Result
+  - Timer-based auto-submission after 15 seconds (`QUESTION_TIME_LIMIT_MS`)
+  - Answer processing extracted into [useAnswerProcessor.ts](web/src/features/quiz/useAnswerProcessor.ts) hook
 
 ### API Integration
-- **Two endpoints only**: `/v1/rounds/*` (quiz flow) and `/v1/metrics` (telemetry)
-- MSW handlers in [web/mocks/handlers.ts](web/mocks/handlers.ts) use JWS-like tokens to track round progress
+- **Three main endpoints**:
+  - `GET /v1/manifest` — Fetch UI metadata (modes, facets, features, schema_version)
+  - `POST /v1/rounds/start` — Start quiz with optional filters, returns first question + JWS token
+  - `POST /v1/rounds/next` — Submit answer via token, get next question
+- MSW handlers in [web/mocks/handlers.ts](web/mocks/handlers.ts) mock all three endpoints
 - Fixtures in `web/mocks/fixtures/rounds/` define 10 questions with metadata
-- Set `NEXT_PUBLIC_API_MOCK=0` to disable MSW and connect to real backend (not yet implemented)
+- **Filter validation**: Done on both client (Manifest-based) and server (re-validation)
 
 ### Storage Strategy
 | Key | Storage | Purpose |
@@ -110,6 +127,7 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 | `vgm2.settings.inlinePlayback` | localStorage | Inline playback toggle (0/1) |
 | `vgm2.metrics.queue` | localStorage | Unsent metrics events buffer |
 | `vgm2.metrics.clientId` | localStorage | Anonymous client ID (UUID) |
+| `vgm2.manifest.cache` | localStorage | Manifest JSON + timestamp + schema_version (24h TTL) |
 
 ### Scoring Logic
 - Correct answer: **100 + remainingSeconds × 5** points
@@ -172,13 +190,15 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 Key docs in `docs/`:
 - [docs/product/requirements.md](docs/product/requirements.md) — Product requirements
 - [docs/api/api-spec.md](docs/api/api-spec.md) — API specification
-- [docs/data/model.md](docs/data/model.md) — Data models
+- [docs/data/model.md](docs/data/model.md) — Data models (Question, Session, Manifest, FilterOptions, Round)
 - [docs/frontend/README.md](docs/frontend/README.md) — Frontend overview
-- [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Play page state flow
+- [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Play page state flow (Phase 2+: filter selection, Manifest integration)
+- [docs/frontend/state-management.md](docs/frontend/state-management.md) — State management details (filters, Manifest caching, front-back sync)
 - [docs/frontend/metrics-client.md](docs/frontend/metrics-client.md) — Metrics implementation
 - [docs/backend/README.md](docs/backend/README.md) — Backend overview
 - [docs/backend/architecture.md](docs/backend/architecture.md) — Backend architecture
 - [docs/dev/phase1-implementation.md](docs/dev/phase1-implementation.md) — Phase 1 implementation
+- [docs/dev/phase2-checklist.md](docs/dev/phase2-checklist.md) — Phase 2 completion checklist
 - [docs/backend/database.md](docs/backend/database.md) — Database schema
 - [docs/backend/curated-data-format.md](docs/backend/curated-data-format.md) — Curated data format (minimum 4 unique games required)
 - [docs/quality/e2e-plan.md](docs/quality/e2e-plan.md) — E2E test plan
