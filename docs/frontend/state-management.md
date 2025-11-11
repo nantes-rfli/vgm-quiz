@@ -106,32 +106,41 @@ Manifest を `React Query` で管理。効率的なキャッシュと自動再�
 
 **キャッシュ戦略** (実装ベース):
 ```typescript
+// web/src/features/quiz/api/manifest.ts より
 const useManifest = () => {
   return useQuery({
     queryKey: ['manifest'],
+    // 1. queryFn は常にネットワークからフェッチ
     queryFn: async () => {
-      // 1. localStorage から取得を試みる
-      const cached = loadManifestFromStorage()
-      if (cached && isCacheValid(cached)) {
-        return cached.data  // 即座に返却（React Query は "stale" と判定）
-      }
-
-      // 2. ネットワークから取得
       const response = await fetch('/v1/manifest')
+      if (!response.ok) throw new Error('Failed to fetch manifest')
       const manifest = await response.json()
-
-      // 3. localStorage に保存
-      saveManifestToStorage(manifest)
+      // 自動的に localStorage に保存される（React Query キャッシュ）
       return manifest
     },
+    // 2. localStorage から初期データを復元
+    initialData: () => {
+      const cached = localStorage.getItem('vgm2.manifest.cache')
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          // キャッシュが 24 時間以上古いかチェック
+          if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+            return parsed.data  // キャッシュを使用（stale と判定）
+          }
+        } catch (e) {
+          // JSON パースエラーは無視
+        }
+      }
+      return undefined
+    },
+    // 3. React Query のキャッシュ設定
     staleTime: 1000 * 60 * 60,      // 1時間で stale に
     gcTime: 1000 * 60 * 60 * 24,    // 24時間でガベージ回収
-    initialDataUpdatedAt: 0,        // 常に stale として扱う
-    refetchOnMount: true,           // マウント時に再フェッチ
-    refetchOnWindowFocus: false,    // ウィンドウフォーカス時は再フェッチしない
-    refetchInterval: 1000 * 60 * 5, // 5分ごとにバックグラウンド再フェッチ
-    refetchOnReconnect: true,       // 再接続時に再フェッチ
-    throwOnError: false,            // エラー時は throw しない
+    refetchOnMount: true,            // マウント時に再フェッチ
+    refetchInterval: 1000 * 60 * 5,  // 5分ごとにバックグラウンド再フェッチ
+    refetchOnReconnect: true,        // 再接続時に再フェッチ
+    throwOnError: false,             // エラー時は throw しない
     select: (data) => data ?? DEFAULT_MANIFEST,  // フォールバック
   })
 }
@@ -245,7 +254,7 @@ POST リクエストでフィルタを指定してラウンド開始。
 1. **Manifest 取得** → FilterSelector が `facets` から valid な値の一覧を取得
 2. **ユーザー選択** → FilterContext に保存
 3. **フィルタ検証** → 選択値が現在の Manifest 内に存在するか確認
-4. **リセット** → Manifest の schema_version 変更を検知したら、無効なフィルタを自動リセット
+4. **[Phase 2D-Future]** リセット → Manifest の schema_version 変更を検知したら、無効なフィルタを自動リセット
 5. **送信** → 検証済みフィルタを `/v1/rounds/start` に送信
 
 ### 3.2. バックエンドフィルタ検証
@@ -313,16 +322,20 @@ localStorage から取得を試みる
 
 ### 5.2. キャッシュ有効期限
 
-- **staleTime**: 5 分 → 5 分以内は再フェッチしない（同期的に返却）
+- **staleTime**: 1 時間 → 1 時間以内は再フェッチしない（ローカルキャッシュから即座に返却）
 - **gcTime**: 24 時間 → 24 時間以上古いキャッシュは破棄
-- **refetchInterval**: 5 分 → バックグラウンドで 5 分ごとに更新確認
+- **refetchInterval**: 5 分 → バックグラウンドで 5 分ごとに更新確認（stale 後の自動再フェッチ）
 
-### 5.3. schema_version 変更検知
+### 5.3. schema_version 変更検知 [Phase 2D-Future]
 
-Manifest の `schema_version` が変わった場合：
-1. 新しい schema_version をキャッシュに保存
-2. FilterContext の `isDefault()` で有効性を再確認
-3. 無効なフィルタ値は自動リセット（例：削除されたシリーズ値）
+**現在の実装状況**: このフローは未実装です。
+
+計画中の動作：
+- Manifest の `schema_version` が変わった場合に検知
+- FilterContext の無効なフィルタ値を自動リセット（例：削除されたシリーズ値）
+- ユーザーに通知メッセージを表示
+
+実装予定時期: Issue #115 (QA-01)
 
 ---
 
@@ -338,15 +351,16 @@ if (manifestQuery.isError) {
 }
 ```
 
-### 6.2. フィルタ検証失敗
+### 6.2. フィルタ検証失敗 [Phase 2D-Future]
 
-```javascript
-if (filterError) {
-  // UserError: Manifest の schema_version 変更で無効なフィルタを選択
-  // → 無効なフィルタをリセット + ユーザーに通知
-  // → 再度フィルタ選択を促す
-}
-```
+**現在の実装**: 通常の UI バリデーション（Manifest 上の facets に存在しない値を選択した場合のリセット）のみ
+
+計画中の動作（Phase 2D）:
+- UserError: Manifest の `schema_version` 変更で無効なフィルタを選択
+- → 無効なフィルタを自動リセット + ユーザーに通知
+- → 再度フィルタ選択を促す
+
+実装予定時期: Issue #115 (QA-01)
 
 ### 6.3. /v1/rounds/start 失敗
 

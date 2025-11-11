@@ -248,7 +248,9 @@ interface FilterOptions {
   - `difficulty` & `era` は単一値のみ（複数指定時は API 400 エラー）
   - `series` は複数値をサポート
   - `"mixed"` はフィルタリングされ、実質的に「全選択」を意味する
-  - API 送信時は配列形式に統一
+  - **API 送信時の形式**:
+    - `difficulty` & `era`: **文字列** (例: `"hard"`, `"90s"`)
+    - `series`: **文字列の配列** (例: `["ff", "dq"]`)
 
 - **Session (local)**
 

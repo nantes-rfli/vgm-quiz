@@ -37,25 +37,25 @@
    - **Era**: 単一選択（80s / 90s / 00s / 10s / 20s / mixed）
    - **Series**: 複数選択（ff, dq, zelda, mario, sonic, pokemon）
    - 各選択は `FilterContext` (`useFilter()`) で管理
-3. **利用可能な問題数**: 選択フィルタに対して `/v1/manifest` キャッシュから推定値を表示（実値は次ステップで確認）
+3. **[Future - Phase 2D]** 利用可能な問題数表示: `/v1/availability` エンドポイント連携により、選択フィルタに対する実際の問題数を表示
 4. 不正なフィルタ選択（例：キャッシュ古化で削除されたファセット値）は自動的にリセット
 
 ### 1.3. ラウンド開始
 1. ユーザーが「スタート」ボタンをクリック → `bootAndStart(filters)` が呼ばれる
-2. `/v1/rounds/start` に以下のペイロードを送信：
+2. `/v1/rounds/start` に以下のペイロードを送信 ([web/src/components/FilterSelector.tsx](web/src/components/FilterSelector.tsx))：
    ```json
    {
      "filters": {
-       "difficulty": ["hard"],
-       "era": ["90s"],
+       "difficulty": "hard",
+       "era": "90s",
        "series": ["ff", "dq"]
      },
      "total": 10,
      "mode": "vgm_v1-ja"
    }
    ```
-   - **Difficulty & Era**: 単一値でも配列形式で送信（バックエンド正規化のため）
-   - **Series**: 複数値をそのまま配列で送信
+   - **Difficulty & Era**: 文字列形式で送信（例: `"hard"`, `"90s"`）
+   - **Series**: 複数値を配列で送信
    - **Filters が空の場合**: 整数フィルタは `undefined` に（デフォルト・日替わり動作）
 3. バックエンドが フィルタ済み質問セット を返却
    - レスポンスには `round.filters` が含まれ、リクエストで指定したフィルタが返される
