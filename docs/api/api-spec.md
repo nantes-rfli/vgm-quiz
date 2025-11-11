@@ -207,12 +207,22 @@ POST /v1/availability
 ```
 **Body**
 ```json
-{ "mode": "vgm_v1-ja", "filters": { "difficulty": "mixed", "era": "90s", "series": [] } }
+{ "mode": "vgm_v1-ja", "filters": { "difficulty": ["mixed"], "era": ["90s"], "series": [] } }
 ```
+
+**フィルタ仕様** （`/v1/rounds/start` と異なり、すべてのファセットが **配列型**）:
+| ファセット | 型 | 例 |
+|----------|-----|-----|
+| `difficulty` | string[] | `["mixed"]` または `["hard"]` |
+| `era` | string[] | `["90s"]` または `["80s", "90s"]` |
+| `series` | string[] | `["ff", "dq"]` または `[]` |
+
 **Response**
 ```json
 { "available": 14 }
 ```
+
+**注意**: `/v1/rounds/start` では `difficulty` と `era` が文字列ですが、`/v1/availability` では配列です。
 
 ## 4. Schemas
 
