@@ -76,45 +76,45 @@ Phase 2（フィルタ UI + Manifest 統合）の完成度を確認するため�
 ## Phase 2C: Documentation & Polish
 
 ### フロントエンドドキュメント
-- [ ] `docs/frontend/play-flow.md` を更新
-  - [ ] Manifest 取得フロー追加
-  - [ ] フィルタ選択フロー追加
-  - [ ] ラウンド開始フロー更新
-- [ ] `docs/frontend/state-management.md` を新規作成
-  - [ ] フィルタ状態管理
-  - [ ] Manifest キャッシュ戦略
-  - [ ] フロント ↔ バック同期
+- [x] `docs/frontend/play-flow.md` を更新
+  - [x] Manifest 取得フロー追加
+  - [x] フィルタ選択フロー追加
+  - [x] ラウンド開始フロー更新
+- [x] `docs/frontend/state-management.md` を新規作成
+  - [x] フィルタ状態管理
+  - [x] Manifest キャッシュ戦略
+  - [x] フロント ↔ バック同期
 
 ### API ドキュメント
-- [ ] `docs/api/api-spec.md` を更新
-  - [ ] フィルタリクエストスキーマ
-  - [ ] フィルタ検証ルール
-  - [ ] フィルタレスポンス
-  - [ ] トークンペイロードの filters* フィールド説明
+- [x] `docs/api/api-spec.md` を更新
+  - [x] フィルタリクエストスキーマ
+  - [x] フィルタ検証ルール
+  - [x] フィルタレスポンス
+  - [x] トークンペイロードの filters* フィールド説明
 
 ### データモデルドキュメント
-- [ ] `docs/data/model.md` を更新
-  - [ ] `Manifest` スキーマ
-  - [ ] `FilterOptions` スキーマ
-  - [ ] `Round` スキーマ（filters フィールド）
-  - [ ] JSON 例を追加
+- [x] `docs/data/model.md` を更新
+  - [x] `Manifest` スキーマ
+  - [x] `FilterOptions` スキーマ
+  - [x] `Round` スキーマ（filters フィールド）
+  - [x] JSON 例を追加
 
 ### プロジェクト概要ドキュメント
-- [ ] `CLAUDE.md` を更新
-  - [ ] Backend セクション: Phase 2 説明
-  - [ ] State Management セクション: フィルタ + Manifest 追加
-  - [ ] API Integration セクション: 3エンドポイント説明
-  - [ ] Storage Strategy: Manifest キャッシュ追加
-  - [ ] Documentation: 新規ドキュメントへのリンク
+- [x] `CLAUDE.md` を更新
+  - [x] Backend セクション: Phase 2 説明
+  - [x] State Management セクション: フィルタ + Manifest 追加
+  - [x] API Integration セクション: 3エンドポイント説明
+  - [x] Storage Strategy: Manifest キャッシュ追加
+  - [x] Documentation: 新規ドキュメントへのリンク
 
 ### チェックリスト
-- [ ] `docs/dev/phase2-checklist.md` を新規作成（このファイル）
+- [x] `docs/dev/phase2-checklist.md` を新規作成（このファイル）
 
 ### ドキュメント品質
-- [ ] リンク切れ確認（相互参照）
-- [ ] マークダウンリンターが通る
-- [ ] コード例がすべて正確（JSON/TypeScript）
-- [ ] フロント・バック用語の統一（filters, facets, Manifest）
+- [x] リンク切れ確認（相互参照）
+- [x] マークダウンリンターが通る
+- [x] コード例がすべて正確（JSON/TypeScript）
+- [x] フロント・バック用語の統一（filters, facets, Manifest）
 
 ---
 
