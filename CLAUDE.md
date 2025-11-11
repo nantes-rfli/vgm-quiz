@@ -91,7 +91,7 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 
 **Phase 2 Status** (Filter-Aware Quiz):
 - Phase 2A: ✅ Data model extended with `difficulty`, `era`, `seriesTags` facets
-- Phase 2B: ✅ Dynamic sampling + JWS token with `filtersKey` + `filtersHash` (DJB2, 8-char hex)
+- Phase 2B: ✅ Dynamic sampling + JWS token with `filtersKey` + `filtersHash` (custom hash function, 8-char hex)
 - Phase 2C: ✅ Filter UI + Manifest caching + Documentation (current phase)
 - Phase 2D: 🔧 schema_version change detection, Availability API display (planned)
 
@@ -128,7 +128,7 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
     - Implemented in API Worker with Manifest endpoint
   - `POST /v1/rounds/start` — Start quiz with filters: `{ mode, difficulty?, era?, series?, total }`
     - Returns: `{ round, question, choices, continuationToken }`
-    - Token format: JWS (HMAC-SHA256) with payload including `filtersKey` (JSON string) + `filtersHash` (DJB2 8-char hex, [workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
+    - Token format: JWS (HMAC-SHA256) with payload including `filtersKey` (JSON string) + `filtersHash` (custom hash function 8-char hex, [workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
     - TTL: **120 seconds** (exp - iat in token payload)
     - Implemented in [workers/src/api/routes/rounds.ts](../../workers/src/api/routes/rounds.ts)
   - `POST /v1/rounds/next` — Submit answer + token, get next question or finished status
@@ -216,7 +216,7 @@ Key docs in `docs/`:
 
 **Phase 2 (Filter-Aware Quiz)**
 - [docs/api/api-spec.md](docs/api/api-spec.md) — `/v1/manifest`, `/v1/rounds/start/next`, filter validation
-- [docs/api/rounds-token-spec.md](docs/api/rounds-token-spec.md) — JWS token (HMAC-SHA256), `filtersHash` (DJB2)
+- [docs/api/rounds-token-spec.md](docs/api/rounds-token-spec.md) — JWS token (HMAC-SHA256), `filtersHash` (custom hash function)
 - [docs/data/model.md](docs/data/model.md) — Manifest, FilterOptions, Round schemas
 - [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Filter selection → Manifest fetch → Quiz flow
 - [docs/frontend/state-management.md](docs/frontend/state-management.md) — useFilter(), useManifest(), FilterContext, localStorage caching

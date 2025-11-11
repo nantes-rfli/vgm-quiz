@@ -288,7 +288,8 @@ POST /v1/availability
   - 例: `{"difficulty":"hard","era":"90s","series":["dq","ff"]}`
   - フィルタなし → `"{}"`
 - **`filtersHash`** (string):
-  - `filtersKey` の DJB2 ハッシュ（8文字16進数） ([workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
+  - `filtersKey` のハッシュ値（8文字16進数）([workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
+    - アルゴリズム: `hash = (hash << 5) - hash + charCode` （初期値: 0）、32ビット符号付き整数変換後に絶対値を16進数化
   - R2 ストレージキー生成用: `exports/{date}_{filtersHash}.json`
   - トークン検証時に filtersKey との整合性を確認
 

@@ -22,7 +22,7 @@
 | `idx` | number | ✓ | 現在の問題インデックス（0-based） |
 | `total` | number | ✓ | 総問題数（例: 10） |
 | `seed` | string | ✓ | サンプリング用シード（16 bytes の base64url 推奨） |
-| `filtersHash` | string | ✓ | **正準化**した filters JSON の DJB2 ハッシュ（8文字16進数） |
+| `filtersHash` | string | ✓ | **正準化**した filters JSON のハッシュ値（8文字16進数） |
 | `ver` | number | ✓ | トークン仕様バージョン。初期値 `1` |
 | `iat` | number | ✓ | 発行時刻（epoch seconds） |
 | `exp` | number | ✓ | 失効時刻（epoch seconds）。**TTL = 120 秒** |
@@ -31,7 +31,8 @@
 
 ### filters の正準化（ハッシュ対象）
 - キーを **昇順** に並べる、空白無し、JSON 形式（例: `{"difficulty":"hard","era":"90s","series":["dq","ff"]}`)
-- `filtersHash = DJB2( canonicalJSONString )` → 8文字16進数 ([workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
+- `filtersHash = hash( canonicalJSONString )` → 8文字16進数 ([workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
+  - ハッシュ関数: `hash = (hash << 5) - hash + charCode` （初期値: 0）、32ビット符号付き整数変換後に絶対値を16進数化
 
 ## サーバの検証・発行規範
 - **署名検証**・`exp` 未失効であること。

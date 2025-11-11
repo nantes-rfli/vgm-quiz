@@ -199,7 +199,7 @@ Phase 2C が完了したと判定する条件（**Phase 2D の機能は除外**�
 
 ### ドキュメント完成（Phase 2C）
 - ✅ API 仕様書（`docs/api/api-spec.md`）が実装と同期
-- ✅ Token 仕様（`docs/api/rounds-token-spec.md`）が HMAC-SHA256 + DJB2 で統一
+- ✅ Token 仕様（`docs/api/rounds-token-spec.md`）が HMAC-SHA256 + 正規化フィルタハッシュで統一
 - ✅ データモデル（`docs/data/model.md`）が FilterOptions/Manifest/Round を定義
 - ✅ フロント仕様書（`docs/frontend/play-flow.md`, `state-management.md`）が状態遷移を説明
 - ✅ CLAUDE.md が Phase 2 機能を記載
