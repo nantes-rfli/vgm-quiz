@@ -1,11 +1,11 @@
-# Data Model (VGM Quiz MVP)
-- Status: Approved
-- Last Updated: 2025-09-25
+# Data Model (VGM Quiz)
+- Status: Active (Phase 2+)
+- Last Updated: 2025-11-11
 
 ## この文書の目的
 
-MVPにおける**クライアント側の正準データ構造**を定義する。
-出題・回答・採点・結果表示（紹介リンク/埋め込み・アートワーク）のために必要な最小フィールドを規定する。
+クライアント側とサーバー側の**正準データ構造**を定義する。
+出題・回答・採点・結果表示（紹介リンク/埋め込み・アートワーク）、およびフィルタ選択に必要な最小フィールドを規定する。
 
 ## 1. エンティティ
 
@@ -52,6 +52,53 @@ MVPにおける**クライアント側の正準データ構造**を定義する�
 ```
 - `score: number`（**正解：100 + 残秒×5** の合計）
 - `completed: boolean`
+
+### Manifest (API レスポンス)
+
+**フィルタ UI と API 統合の中核となるメタデータ**
+
+- `schema_version: number`
+  - スキーマのバージョン。変更があればクライアント側でキャッシュを無効化
+- `modes: { id: string, title: string, defaultTotal: number, locale: string }[]`
+  - サポートするクイズモード（例: `vgm_v1-ja`）
+- `facets: { [facetName: string]: string[] }`
+  - フィルタに使用可能なファセット値
+  - 例: `{ difficulty: ["easy", "normal", "hard", "mixed"], era: ["80s", "90s", ...], series: ["ff", "dq", ...] }`
+- `features: { [featureName: string]: boolean }`
+  - フロント機能のフラグ（例: `inlinePlaybackDefault`, `imageProxyEnabled`）
+
+### FilterOptions (ユーザー選択フィルタ)
+
+**フロントエンドで管理、API 送信時に使用**
+
+```typescript
+interface FilterOptions {
+  difficulty?: "easy" | "normal" | "hard" | "mixed"
+  era?: "80s" | "90s" | "00s" | "10s" | "20s" | "mixed"
+  series?: string[] // ["ff", "dq", "zelda", ...]
+}
+```
+
+**特徴**:
+- Difficulty & Era は単一値のみ（`mixed` で全選択）
+- Series は複数値をサポート
+- `mixed` はフィルタリングでスキップされ、実質的に「全選択」を意味する
+- **API 送信時の形式** ([web/src/components/FilterSelector.tsx](web/src/components/FilterSelector.tsx)):
+  - Difficulty & Era: **文字列** (例: `"hard"`, `"90s"`)
+  - Series: **文字列の配列** (例: `["ff", "dq"]`)
+
+### Round (API レスポンス内の round フィールド)
+
+**ラウンド開始後のクイズセッション情報**
+
+- `id: string` — ラウンド ID
+- `mode: string` — モード ID（例: `vgm_v1-ja`）
+- `date: string` — 実施日付（YYYY-MM-DD）
+- `filters: FilterOptions` — リクエスト時に指定されたフィルタ（**正規化済み**）
+  - Difficulty & Era は文字列として返却
+  - Series はソート済みの配列
+- `progress: { index: number, total: number }` — 現在位置
+- `token: string` — トークン（JWS）
 
 ---
 
@@ -117,6 +164,68 @@ MVPにおける**クライアント側の正準データ構造**を定義する�
 }
 ```
 
+### Manifest（例）
+
+```json
+{
+  "schema_version": 2,
+  "modes": [
+    {
+      "id": "vgm_v1-ja",
+      "title": "VGM Quiz Vol.1 (JA)",
+      "defaultTotal": 10,
+      "locale": "ja"
+    }
+  ],
+  "facets": {
+    "difficulty": ["easy", "normal", "hard", "mixed"],
+    "era": ["80s", "90s", "00s", "10s", "20s", "mixed"],
+    "series": ["ff", "dq", "zelda", "mario", "sonic", "pokemon", "mixed"]
+  },
+  "features": {
+    "inlinePlaybackDefault": false,
+    "imageProxyEnabled": false
+  }
+}
+```
+
+### Round（例）
+
+```json
+{
+  "round": {
+    "id": "round_2025-11-11_abc123",
+    "mode": "vgm_v1-ja",
+    "date": "2025-11-11",
+    "filters": {
+      "difficulty": "hard",
+      "era": "90s",
+      "series": ["dq", "ff"]
+    },
+    "progress": {
+      "index": 1,
+      "total": 10
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWQiOiI5ZmRjNGQ3Yy0wYTFiLTRkNmMtOWEzZC02M2Q2ZTNjOGRiZjIiLCJpZHgiOjAsInRvdGFsIjoxMCwiZmlsdGVyc0hhc2giOiJhMWIyYzNkNCIsImZpbHRlcnNLZXkiOiJ7XCJkaWZmaWN1bHR5XCI6XCJoYXJkXCIsXCJlcmFcIjpcIjkwc1wiLFwic2VyaWVzXCI6W1wiZHFcIixcImZmXCJdfSIsIm1vZGUiOiJ2Z21fdjEtamEiLCJkYXRlIjoiMjAyNS0xMS0xMSIsInZlciI6MSwiaWF0IjoxNzMxMjg0NDAwLCJleHAiOjE3MzEyODgwMDAsImF1ZCI6InJvdW5kcyJ9.signature"
+  },
+  "question": {
+    "id": "q_0001",
+    "title": "この曲のゲームタイトルは？"
+  },
+  "choices": [
+    { "id": "a", "text": "Final Fantasy VII" },
+    { "id": "b", "text": "Dragon Quest VIII" },
+    { "id": "c", "text": "Zelda: Ocarina of Time" },
+    { "id": "d", "text": "Super Mario 64" }
+  ],
+  "continuationToken": "...",
+  "progress": {
+    "index": 1,
+    "total": 10
+  }
+}
+```
+
 ---
 
 ## 3. バリデーション方針
@@ -128,11 +237,31 @@ MVPにおける**クライアント側の正準データ構造**を定義する�
   - `reveal.embedPreferredProvider` は `reveal.links[*].provider` のいずれか、もしくは `null`
   - `artwork.url` はHTTPS推奨、`width`/`height` は指定推奨、`alt` は必須
   - `backup: true` は通常ローテから除外
+
+- **Manifest**
+  - `schema_version` は整数、変更があればクライアントキャッシュを無効化
+  - `modes` は1件以上、各モードは `id`, `title`, `defaultTotal`, `locale` を必須
+  - `facets` の各値は **1件以上の有効値を含む** + `"mixed"` オプション
+  - `features` の値はブール値
+
+- **FilterOptions**
+  - `difficulty` & `era` は単一値のみ（複数指定時は API 400 エラー）
+  - `series` は複数値をサポート
+  - `"mixed"` はフィルタリングされ、実質的に「全選択」を意味する
+  - **API 送信時の形式**:
+    - `difficulty` & `era`: **文字列** (例: `"hard"`, `"90s"`)
+    - `series`: **文字列の配列** (例: `["ff", "dq"]`)
+
 - **Session (local)**
 
   - `answers.length === questionOrder.length`（`system_skip` も1問として記録）
   - `outcome` はいずれか1つ／`timeout` の `remainingSec` は **0**
   - `score` は「正解：100 + 残秒×5」「その他：0」の合計と一致
+
+- **Round**
+  - `filters` は API リクエスト値から正規化されたもの
+  - Difficulty & Era は文字列として返却
+  - Series はソート済みの配列（重複なし）
 
 ---
 

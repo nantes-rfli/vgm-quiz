@@ -35,9 +35,43 @@ POST /v1/rounds/start
 ```json
 {
   "mode": "vgm_v1-ja",
-  "filters": { "era": ["90s"], "difficulty": ["mixed"] },
+  "filters": {
+    "difficulty": "hard",
+    "era": "90s",
+    "series": ["ff", "dq"]
+  },
   "total": 10,
   "seed": "optional-string"
+}
+```
+
+**フィルタ仕様** ([web/src/components/FilterSelector.tsx](web/src/components/FilterSelector.tsx)):
+| ファセット | 型 | 選択方式 | 例 |
+|----------|-----|---------|-----|
+| `difficulty` | string | 単一選択 | `"hard"` |
+| `era` | string | 単一選択 | `"90s"` |
+| `series` | string[] | 複数選択 | `["ff", "dq", "zelda"]` |
+
+**フィルタ検証ルール**:
+1. **型強制**: 文字列または配列に正規化
+2. **'mixed' 除外**: 'mixed' 値はフィルタリング（全選択を意味するため）
+3. **複数値チェック**:
+   - `difficulty`: 最大1値（複数指定時は `400 bad_request`）
+   - `era`: 最大1値（複数指定時は `400 bad_request`）
+   - `series`: 制限なし（複数値可能）
+4. **マニフェスト照合**: 各値が `/v1/manifest` の `facets` に存在するか確認
+5. **正規化**:
+   - `difficulty` & `era`: 文字列として保存
+   - `series`: ソート + 重複排除
+
+**エラー例**:
+```json
+{
+  "error": {
+    "code": "bad_request",
+    "message": "specify at most one difficulty value",
+    "details": { "pointer": "/filters/difficulty" }
+  }
 }
 ```
 
@@ -48,7 +82,11 @@ POST /v1/rounds/start
     "id": "round_2025-11-03_t8s",
     "mode": "vgm_v1-ja",
     "date": "2025-11-03",
-    "filters": { "difficulty": "mixed", "era": "90s" },
+    "filters": {
+      "difficulty": "hard",
+      "era": "90s",
+      "series": ["dq", "ff"]
+    },
     "progress": { "index": 1, "total": 10 },
     "token": "<JWS-compact-string>"
   },
@@ -67,9 +105,16 @@ POST /v1/rounds/start
 }
 ```
 
-- サーバは `filters` に合致する問題セットを日次バッチ（Publishステージ）から復元し、既存セットがない場合は `503 no_questions` を返す。
-- `total` は Publish 済みセットと一致する必要がある（不一致は `422 insufficient_inventory`）。
-- `seed` は決定論を高めたい場合に利用可能。同一データ集合と同一 `seed` で同じ並びとなる。
+**詳細**:
+- **フィルタセット取得**: サーバは `filters` に合致する問題セットを日次バッチ（Pipeline Worker の Publish ステージ）から復元
+  - R2 に `exports/{date}_{filterHash}.json` として保存
+  - フォールバック: D1 `picks` テーブルから取得
+- **利用可能性**:
+  - 既存セットなし → `503 no_questions`
+  - リクエスト数が利用可能数を超過 → `422 insufficient_inventory`
+- `total` は Publish 済みセットと一致する必要がある
+- `seed` は決定論を高めたい場合に利用可能。同一データ集合と同一 `seed` で同じ並びとなる
+- **レスポンスフィルタ**: リクエストで指定したフィルタが正規化されて返却される
 
 ### 3.2 Next Question
 ```
@@ -162,12 +207,22 @@ POST /v1/availability
 ```
 **Body**
 ```json
-{ "mode": "vgm_v1-ja", "filters": { "era": ["90s"], "difficulty": ["mixed"] } }
+{ "mode": "vgm_v1-ja", "filters": { "difficulty": ["mixed"], "era": ["90s"], "series": [] } }
 ```
+
+**フィルタ仕様** （`/v1/rounds/start` と異なり、すべてのファセットが **配列型**）:
+| ファセット | 型 | 例 |
+|----------|-----|-----|
+| `difficulty` | string[] | `["mixed"]` または `["hard"]` |
+| `era` | string[] | `["90s"]` または `["80s", "90s"]` |
+| `series` | string[] | `["ff", "dq"]` または `[]` |
+
 **Response**
 ```json
 { "available": 14 }
 ```
+
+**注意**: `/v1/rounds/start` では `difficulty` と `era` が文字列ですが、`/v1/availability` では配列です。
 
 ## 4. Schemas
 
@@ -215,8 +270,8 @@ POST /v1/availability
   "idx": 0,
   "total": 10,
   "seed": "Z3ikN0H1P4Qc2As1",
-  "filtersHash": "3fa4b1c2",
-  "filtersKey": "{\"difficulty\":\"mixed\",\"era\":\"90s\"}",
+  "filtersHash": "a1b2c3d4",
+  "filtersKey": "{\"difficulty\":\"hard\",\"era\":\"90s\",\"series\":[\"dq\",\"ff\"]}",
   "mode": "vgm_v1-ja",
   "date": "2025-11-03",
   "ver": 1,
@@ -225,10 +280,24 @@ POST /v1/availability
   "aud": "rounds"
 }
 ```
-- 署名方式は JWS（HMAC-SHA256）。`filtersHash` は `filtersKey` のハッシュ（`hashFilterKey`）。
-- `filtersKey` は正規化済みフィルタJSON文字列（空条件は `'{}'`）。
-- `date` はJST基準の日付。`idx` は0ベース。
-- `exp` により短TTLで運用する。
+
+**フィルタ関連フィールド**:
+- **`filtersKey`** (string):
+  - 正規化済みフィルタの JSON 文字列
+  - キー順ソート済み + Series は内部ソート
+  - 例: `{"difficulty":"hard","era":"90s","series":["dq","ff"]}`
+  - フィルタなし → `"{}"`
+- **`filtersHash`** (string):
+  - `filtersKey` のハッシュ値（8文字16進数）([workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
+    - アルゴリズム: `hash = (hash << 5) - hash + charCode` （初期値: 0）、32ビット符号付き整数変換後に絶対値を16進数化
+  - R2 ストレージキー生成用: `exports/{date}_{filtersHash}.json`
+  - トークン検証時に filtersKey との整合性を確認
+
+**その他フィールド**:
+- 署名方式: JWS（HMAC-SHA256） ([workers/shared/lib/token.ts](../../workers/shared/lib/token.ts))
+- `date`: JST基準の日付（`YYYY-MM-DD`）
+- `idx`: 0ベース（現在の問題インデックス）
+- `iat` / `exp`: Unix timestamp（秒）。TTL = **120秒** (`exp - iat`)
 
 ## 5. Flows
 
@@ -245,7 +314,7 @@ POST /v1/availability
 
 ## 6. Security & Limits
 - レート制限と署名検証エラーで乱用を抑止
-- `token` は短TTL（例: 1時間）
+- `token` は短TTL（**120秒**）で即座に失効
 - `POST /v1/metrics` は冪等IDの導入を推奨（重複除去）
 - CORS は `GET` と `POST` のみ許可
 

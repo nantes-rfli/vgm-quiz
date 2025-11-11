@@ -48,19 +48,25 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 
 ### Backend (Cloudflare Workers)
 
-**Phase 1 (Current)**: Manual curated data with two-worker architecture
+**Phase 2 (Current)**: Dynamic sampling with filters + Manifest-driven UI
 
 **Pipeline Worker** (`vgm-quiz-pipeline.nantos.workers.dev`)
 - **Discovery stage**: Ingests tracks from [workers/data/curated.json](workers/data/curated.json) into D1 (`tracks_normalized` table)
-  - Phase 2A: curated.json extended with `difficulty`, `genres`, `seriesTags`, `era` fields for filtering
-- **Publish stage**: Generates daily question sets (10 questions, 4-choice format) and exports to R2
+  - Supports facet metadata: `difficulty`, `genres`, `seriesTags`, `era`
+- **Publish stage**: Generates daily question sets **per filter combination** and exports to R2
+  - R2 keys: `exports/{date}.json` (default) or `exports/{date}_{filterHash}.json` (filtered)
+  - D1 `picks` table stores JSON as backup
 - Manual trigger via POST endpoints (`/trigger/discovery`, `/trigger/publish?date=YYYY-MM-DD`)
 
 **API Worker** (`vgm-quiz-api.nantos.workers.dev`)
-- `GET /daily?date=YYYY-MM-DD` - Fetch daily question set metadata
-- `POST /v1/rounds/start` - Start quiz round, returns first question + continuation token
-- `POST /v1/rounds/next` - Submit answer, get next question or finish
+- `GET /v1/manifest` - Fetch UI metadata (modes, facets, features, schema_version)
+- `POST /v1/rounds/start` - Start quiz with optional filters, returns first question + JWS token
+  - Filters: `difficulty` (single), `era` (single), `series` (multiple)
+  - Manifest-driven validation: filters must be in `facets`
+- `POST /v1/rounds/next` - Submit answer via token, get next question or finish
+- `POST /v1/metrics` - Telemetry ingest
 - Token-based state management (no server-side sessions)
+  - Token payload includes `filtersKey` (normalized JSON) + `filtersHash` for R2 lookup
 
 **Database (D1)**
 - `sources` - Track data sources
@@ -83,24 +89,55 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
   - `seriesTags`: Series abbreviations (e.g., ["ff", "zelda", "mario"])
   - `era`: Decade classification (80s-20s)
 
+**Phase 2 Status** (Filter-Aware Quiz):
+- Phase 2A: ✅ Data model extended with `difficulty`, `era`, `seriesTags` facets
+- Phase 2B: ✅ Dynamic sampling + JWS token with `filtersKey` + `filtersHash` (custom hash function, 8-char hex)
+- Phase 2C: ✅ Filter UI + Manifest caching + Documentation (current phase)
+- Phase 2D: 🔧 schema_version change detection, Availability API display (planned)
+
 **Future Phases** (not yet implemented):
-- Phase 2: Spotify API automation for Discovery/Harvest
-- Phase 3: YouTube integration, audio download, ML quality scoring
-- Phase 4+: Behavioral scoring, automatic scheduling with Cron Triggers
+- Phase 3: Spotify API automation for Discovery/Harvest
+- Phase 4: YouTube integration, audio download, ML quality scoring
+- Phase 5+: Behavioral scoring, automatic scheduling with Cron Triggers
 
 
 
-### State Management
-- **Play page** ([web/app/play/page.tsx](web/app/play/page.tsx)) uses `useReducer` with centralized state transitions via [playReducer.ts](web/src/features/quiz/playReducer.ts)
-- Two phases: `question` (user answering) and `reveal` (showing result + metadata)
-- Timer-based auto-submission after 15 seconds (`QUESTION_TIME_LIMIT_MS`)
-- Answer processing extracted into [useAnswerProcessor.ts](web/src/features/quiz/useAnswerProcessor.ts) hook
+### State Management (Phase 2 Implementation)
+- **Filter State** ([web/src/lib/filter-context.tsx](web/src/lib/filter-context.tsx)): React Context + useState for user-selected filters
+  - `useFilter()` hook returns: `{ filters, setDifficulty, setEra, setSeries, reset, isDefault }`
+  - Difficulty & Era: single-select (string)
+  - Series: multi-select (string[])
+  - Note: Backend handles normalization (dedup, sort); frontend filters out 'mixed' via setSeries()
+  - Managed via `FilterProvider` + hook pattern
+- **Manifest State** ([web/src/features/quiz/api/manifest.ts](web/src/features/quiz/api/manifest.ts)): React Query with localStorage caching
+  - Cache strategy: localStorage 24h TTL + 5min background refetch (via React Query config)
+  - **Fallback**: `DEFAULT_MANIFEST` if both cache and network fail
+  - **Phase 2D-Future**: `schema_version` change detection for auto-reset (Issue #115)
+  - Structure: `{ data, timestamp, version }` stored in localStorage key `vgm2.manifest.cache`
+- **Play page** ([web/app/play/page.tsx](web/app/play/page.tsx)) state machine via `useReducer`
+  - Initialized via [playReducer.ts](web/src/features/quiz/playReducer.ts) with filter validation
+  - Flow: Filter Selection (FilterSelector) → POST /v1/rounds/start → Question/Reveal loop → Result
+  - Timer-based auto-submission after 15 seconds (`QUESTION_TIME_LIMIT_MS = 15000`)
+  - Answer submission: POST /v1/rounds/next with token
+  - Answer processing: [useAnswerProcessor.ts](web/src/features/quiz/useAnswerProcessor.ts) computes score (correct: 100 + remainingSec×5)
 
-### API Integration
-- **Two endpoints only**: `/v1/rounds/*` (quiz flow) and `/v1/metrics` (telemetry)
-- MSW handlers in [web/mocks/handlers.ts](web/mocks/handlers.ts) use JWS-like tokens to track round progress
-- Fixtures in `web/mocks/fixtures/rounds/` define 10 questions with metadata
-- Set `NEXT_PUBLIC_API_MOCK=0` to disable MSW and connect to real backend (not yet implemented)
+### API Integration (Phase 2)
+- **Three main endpoints**:
+  - `GET /v1/manifest` — Fetch modes, facets, features, schema_version
+    - Used by FilterSelector to populate dropdown options
+    - Implemented in API Worker with Manifest endpoint
+  - `POST /v1/rounds/start` — Start quiz with filters: `{ mode, difficulty?, era?, series?, total }`
+    - Returns: `{ round, question, choices, continuationToken }`
+    - Token format: JWS (HMAC-SHA256) with payload including `filtersKey` (JSON string) + `filtersHash` (custom hash function 8-char hex, [workers/shared/lib/filters.ts](../../workers/shared/lib/filters.ts))
+    - TTL: **120 seconds** (exp - iat in token payload)
+    - Implemented in [workers/src/api/routes/rounds.ts](../../workers/src/api/routes/rounds.ts)
+  - `POST /v1/rounds/next` — Submit answer + token, get next question or finished status
+    - Body: `{ token: string }`
+    - Returns: `{ reveal, question?, choices? }` or `{ finished: true }`
+- **Token validation**: Signature (HMAC-SHA256) + expiry check; filtersHash matches filtersKey for integrity
+- MSW handlers in [web/mocks/handlers.ts](web/mocks/handlers.ts) mock all endpoints for local development
+- See [docs/api/api-spec.md](docs/api/api-spec.md) and [docs/api/rounds-token-spec.md](docs/api/rounds-token-spec.md) for full details
+- **Filter validation**: Done on both client (Manifest-based) and server (re-validation)
 
 ### Storage Strategy
 | Key | Storage | Purpose |
@@ -110,6 +147,7 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 | `vgm2.settings.inlinePlayback` | localStorage | Inline playback toggle (0/1) |
 | `vgm2.metrics.queue` | localStorage | Unsent metrics events buffer |
 | `vgm2.metrics.clientId` | localStorage | Anonymous client ID (UUID) |
+| `vgm2.manifest.cache` | localStorage | Manifest JSON + timestamp + schema_version (24h TTL) |
 
 ### Scoring Logic
 - Correct answer: **100 + remainingSeconds × 5** points
@@ -170,20 +208,30 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 ## Documentation
 
 Key docs in `docs/`:
+
+**Product & Architecture**
 - [docs/product/requirements.md](docs/product/requirements.md) — Product requirements
-- [docs/api/api-spec.md](docs/api/api-spec.md) — API specification
-- [docs/data/model.md](docs/data/model.md) — Data models
+- [docs/dev/roadmap.md](docs/dev/roadmap.md) — Phase 1-5 roadmap (current: Phase 2C)
+- [docs/backend/architecture.md](docs/backend/architecture.md) — Backend system design
+
+**Phase 2 (Filter-Aware Quiz)**
+- [docs/api/api-spec.md](docs/api/api-spec.md) — `/v1/manifest`, `/v1/rounds/start/next`, filter validation
+- [docs/api/rounds-token-spec.md](docs/api/rounds-token-spec.md) — JWS token (HMAC-SHA256), `filtersHash` (custom hash function)
+- [docs/data/model.md](docs/data/model.md) — Manifest, FilterOptions, Round schemas
+- [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Filter selection → Manifest fetch → Quiz flow
+- [docs/frontend/state-management.md](docs/frontend/state-management.md) — useFilter(), useManifest(), FilterContext, localStorage caching
+- [docs/dev/phase2-checklist.md](docs/dev/phase2-checklist.md) — Phase 2C completion items (Phase 2D-Future marked)
+
+**Other Documentation**
 - [docs/frontend/README.md](docs/frontend/README.md) — Frontend overview
-- [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Play page state flow
-- [docs/frontend/metrics-client.md](docs/frontend/metrics-client.md) — Metrics implementation
+- [docs/frontend/metrics-client.md](docs/frontend/metrics-client.md) — Metrics client implementation
 - [docs/backend/README.md](docs/backend/README.md) — Backend overview
-- [docs/backend/architecture.md](docs/backend/architecture.md) — Backend architecture
-- [docs/dev/phase1-implementation.md](docs/dev/phase1-implementation.md) — Phase 1 implementation
-- [docs/backend/database.md](docs/backend/database.md) — Database schema
-- [docs/backend/curated-data-format.md](docs/backend/curated-data-format.md) — Curated data format (minimum 4 unique games required)
+- [docs/dev/phase1-implementation.md](docs/dev/phase1-implementation.md) — Phase 1 implementation details
+- [docs/backend/database.md](docs/backend/database.md) — D1 schema (sources, tracks_normalized, pool, picks, exports)
+- [docs/backend/curated-data-format.md](docs/backend/curated-data-format.md) — Curated data format (4+ unique games required)
 - [docs/quality/e2e-plan.md](docs/quality/e2e-plan.md) — E2E test plan
 
-Docs are updated in the same PR as code changes (Docs-as-Code). Issue-specific docs live in `docs/issues/<number>-*.md`.
+**Update Practice**: Docs updated in same PR as code changes (Docs-as-Code). Phase 2C: Documentation synchronized with actual implementation (Issue #118).
 
 ## Workflow
 
