@@ -47,14 +47,15 @@ interface RoundState {
 
 **State 型**:
 ```typescript
-interface FilterState {
-  difficulty: 'easy' | 'normal' | 'hard' | 'mixed'
-  era: '80s' | '90s' | '00s' | '10s' | '20s' | 'mixed'
+// web/src/lib/filter-context.tsx より
+export interface FilterState {
+  difficulty?: 'easy' | 'normal' | 'hard' | 'mixed'  // オプショナル（undefined の可能性）
+  era?: '80s' | '90s' | '00s' | '10s' | '20s' | 'mixed'  // オプショナル（undefined の可能性）
   series: string[] // ['ff', 'dq', 'zelda', ...]
 }
 
 // デフォルト
-const DEFAULT_FILTERS: FilterState = {
+const defaultFilters: FilterState = {
   difficulty: 'mixed',
   era: 'mixed',
   series: [],
@@ -76,9 +77,9 @@ const { difficulty, era, series } = filters
 **useFilter() 返却オブジェクト**:
 ```typescript
 {
-  filters: FilterState,                        // { difficulty?, era?, series }
-  setDifficulty: (value?: string) => void,
-  setEra: (value?: string) => void,
+  filters: FilterState,                        // { difficulty?: string, era?: string, series: string[] }
+  setDifficulty: (value?: Difficulty) => void,  // undefined または 'easy'/'normal'/'hard'/'mixed'
+  setEra: (value?: Era) => void,                // undefined または '80s'/'90s'/.../'mixed'
   setSeries: (values: string[]) => void,
   reset: () => void,
   isDefault: () => boolean
@@ -93,6 +94,9 @@ const { difficulty, era, series } = filters
 - `isDefault()` - 全フィルタがデフォルト値かチェック
 
 **重要**:
+- **FilterState 型**: `difficulty` と `era` は **オプショナル** (`?` 付き)
+  - `filters.difficulty` が `undefined` になり得る。コンポーネントで使用時は null check が必要
+  - 例: `const isMixed = filters.difficulty !== 'mixed' && filters.difficulty !== undefined`
 - `setSeries()` は **重複排除・ソートを行いません**。バックエンド側で正規化されます。
 - difficulty/era は単一値のみですが、UI/API 層では異なる表現を使用（後述）。
 
@@ -140,22 +144,26 @@ const fetchManifest = async () => {
   return manifest
 }
 
-// 3. useQuery で管理
-const useManifest = () => {
+// 3. useQuery で管理（実装: web/src/features/quiz/api/manifest.ts (lines 139-162)）
+export function useManifest() {
   return useQuery({
     queryKey: ['manifest'],
-    // queryFn は常にネットワークからフェッチ（最新データを確保）
     queryFn: fetchManifest,
-    // initialData は localStorage から復元（オフライン・初回起動を高速化）
-    initialData: () => loadManifestFromStorage()?.data ?? undefined,
+    // キャッシュ優先で即座にデータを返し、ローディング状態を避ける
+    // キャッシュなければ DEFAULT_MANIFEST を返す
+    initialData: loadManifestFromStorage()?.data ?? DEFAULT_MANIFEST,
+    // initialData を即座に stale にすることで refetchOnMount を発動させ、最新データを確認
+    initialDataUpdatedAt: 0,
     // React Query キャッシュ設定
     staleTime: 1000 * 60 * 60,      // 1時間で stale に
     gcTime: 1000 * 60 * 60 * 24,    // 24時間でガベージ回収
-    refetchOnMount: true,            // マウント時に再フェッチ
-    refetchInterval: 1000 * 60 * 5,  // 5分ごとにバックグラウンド再フェッチ
+    refetchOnMount: true,            // マウント時に再フェッチ（initialDataUpdatedAt: 0 と組み合わせ）
+    refetchOnWindowFocus: false,     // ウィンドウフォーカス時は再フェッチしない
+    refetchInterval: 1000 * 60 * 5,  // 5分ごとにバックグラウンド再フェッチ（schema_version 変更検知用）
     refetchOnReconnect: true,        // 再接続時に再フェッチ
     throwOnError: false,             // エラー時は throw しない
-    select: (data) => data ?? DEFAULT_MANIFEST,  // フォールバック
+    // エラー時でも常に Manifest を返す（initialData か DEFAULT_MANIFEST か select か）
+    select: (data) => data ?? DEFAULT_MANIFEST,
   })
 }
 ```
@@ -320,19 +328,29 @@ POST リクエストでフィルタを指定してラウンド開始。
 
 ## 5. Manifest キャッシュの詳細
 
-### 5.1. キャッシュ取得フロー
+### 5.1. キャッシュ取得フロー（Cache-First 戦略）
+
+**重要な設計**: `initialData` で即座にデータを返し、UI ローディング状態を避ける。
 
 ```
 useManifest() 呼ばれる
   ↓
-localStorage から取得を試みる
+【即座に返却】
+  initialData: loadManifestFromStorage()?.data ?? DEFAULT_MANIFEST
+  - キャッシュあり + 有効 → キャッシュデータを返却
+  - キャッシュなし or 無効 → DEFAULT_MANIFEST を返却
   ↓
-  - キャッシュあり + 有効 → キャッシュデータを返却 + バックグラウンド再フェッチ
-  - キャッシュなし or 無効 → ネットワークからフェッチ
+【同時にバックグラウンド検証開始】（initialDataUpdatedAt: 0 + refetchOnMount: true）
+  fetchManifest() でネットワークからフェッチ
   ↓
-  ネットワークフェッチ成功 → localStorage に保存 + 返却
-  ネットワークフェッチ失敗 → DEFAULT_MANIFEST を返却
+  - フェッチ成功 → 新しいデータを localStorage に保存 → UI 更新
+  - フェッチ失敗 → エラー状態だが select で DEFAULT_MANIFEST を返す（UI は変わらず）
 ```
+
+**動作の詳細**:
+- **1回目訪問**: キャッシュなし → DEFAULT_MANIFEST を返却 → 同時に /v1/manifest をフェッチ → キャッシュに保存
+- **2回目以降**: キャッシュを返却（高速） → 同時に最新データをフェッチ（バージョン確認）
+- **オフライン**: キャッシュがあれば返却、なければ DEFAULT_MANIFEST（常にデータあり）
 
 ### 5.2. キャッシュ有効期限
 
@@ -357,13 +375,29 @@ localStorage から取得を試みる
 
 ### 6.1. Manifest 取得失敗
 
+**実装の特徴**: エラー時の自動フォールバック
+
+useManifest() は常に正常なデータを返します：
+
 ```javascript
-if (manifestQuery.isError) {
-  // フォールバック: DEFAULT_MANIFEST を使用
-  // DEFAULT_MANIFEST は基本的なファセット値を含む最小限のマニフェスト
-  // ユーザーは制限されたフィルタ選択肢でプレイ可能
+const { data: manifest, isError, isLoading } = useManifest()
+// data は常に存在（キャッシュ、initialData、DEFAULT_MANIFEST のいずれか）
+
+// エラーが発生した場合：
+if (isError) {
+  // manifestQuery.data は DEFAULT_MANIFEST（select で保証）
+  // UI は常に表示可能、ただしデータは最小限のデフォルト値
+  // ネットワーク再接続を待つか、ユーザーに再試行を促す
 }
+
+// 通常の利用：
+const facets = manifest.facets  // 常に存在（undefined チェック不要）
 ```
+
+**三重のフォールバック**:
+1. キャッシュがあれば使用
+2. キャッシュなければ DEFAULT_MANIFEST を initialData として返す
+3. ネットワーク失敗時も select で DEFAULT_MANIFEST を返す
 
 ### 6.2. フィルタ検証失敗 [Phase 2D-Future]
 
