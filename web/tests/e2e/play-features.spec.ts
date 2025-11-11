@@ -570,3 +570,199 @@ test.describe('Play page features', () => {
     expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
   });
 });
+
+test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
+  test('difficulty filter: hard selection sends correct filter to API', async ({ page, context }) => {
+    // Intercept /v1/rounds/start to capture request body
+    let capturedRequest: StartRequestBody | null = null;
+    await context.route('**/v1/rounds/start', async (route) => {
+      const request = route.request();
+      try {
+        const body = await request.postDataJSON() as StartRequestBody;
+        capturedRequest = body;
+      } catch {
+        // ignore parsing errors
+      }
+      await route.continue();
+    });
+
+    await page.goto('/play');
+
+    // Wait for FilterSelector to be visible and select "hard" difficulty
+    const difficultyRadios = page.locator('input[name="difficulty"]');
+    await expect(difficultyRadios).toBeDefined();
+
+    // Find and click the "hard" radio button (use getByLabel for accessibility)
+    await page.getByLabel('むずかしい').check();
+
+    // Click Start button
+    await page.getByRole('button', { name: '開始' }).click();
+
+    // Wait for question to appear
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+
+    // Verify that difficulty filter was sent in request
+    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
+    expect(capturedRequest).toBeDefined();
+    expect(capturedRequest?.filters?.difficulty).toBe('hard');
+  });
+
+  test('era filter: 90s selection affects quiz questions', async ({ page, context }) => {
+    // Intercept /v1/rounds/start to capture request
+    let capturedRequest: StartRequestBody | null = null;
+    await context.route('**/v1/rounds/start', async (route) => {
+      const request = route.request();
+      try {
+        const body = await request.postDataJSON() as StartRequestBody;
+        capturedRequest = body;
+      } catch {
+        // ignore
+      }
+      await route.continue();
+    });
+
+    await page.goto('/play');
+
+    // Wait for era filter options and select "90s"
+    const eraRadios = page.locator('input[name="era"]');
+    await expect(eraRadios).toBeDefined();
+
+    // Click 90s option using accessible label
+    await page.getByLabel('90年代').check();
+
+    // Click Start
+    await page.getByRole('button', { name: '開始' }).click();
+
+    // Wait for question
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+
+    // Verify era filter was sent
+    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
+    expect(capturedRequest).toBeDefined();
+    expect(capturedRequest?.filters?.era).toBe('90s');
+  });
+
+  test('series filter: multiple selection sends array to API', async ({ page, context }) => {
+    // Intercept /v1/rounds/start to capture request
+    let capturedRequest: StartRequestBody | null = null;
+    await context.route('**/v1/rounds/start', async (route) => {
+      const request = route.request();
+      try {
+        const body = await request.postDataJSON() as StartRequestBody;
+        capturedRequest = body;
+      } catch {
+        // ignore
+      }
+      await route.continue();
+    });
+
+    await page.goto('/play');
+
+    // Select multiple series (using checkboxes)
+    // Assuming manifest has 'ff' and 'zelda' series
+    await page.getByLabel('ファイナルファンタジー').check();
+    await page.getByLabel('ゼルダの伝説').check();
+
+    // Click Start
+    await page.getByRole('button', { name: '開始' }).click();
+
+    // Wait for question
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+
+    // Verify series array was sent (sorted)
+    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
+    expect(capturedRequest).toBeDefined();
+    expect(Array.isArray(capturedRequest?.filters?.series)).toBe(true);
+    expect(capturedRequest?.filters?.series).toContain('ff');
+    expect(capturedRequest?.filters?.series).toContain('zelda');
+  });
+
+  test('combined filters: difficulty + era send both to API', async ({ page, context }) => {
+    // Intercept /v1/rounds/start
+    let capturedRequest: StartRequestBody | null = null;
+    await context.route('**/v1/rounds/start', async (route) => {
+      const request = route.request();
+      try {
+        const body = await request.postDataJSON() as StartRequestBody;
+        capturedRequest = body;
+      } catch {
+        // ignore
+      }
+      await route.continue();
+    });
+
+    await page.goto('/play');
+
+    // Select both difficulty and era
+    await page.getByLabel('かんたん').check();
+    await page.getByLabel('80年代').check();
+
+    // Click Start
+    await page.getByRole('button', { name: '開始' }).click();
+
+    // Wait for question
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+
+    // Verify both filters were sent
+    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
+    expect(capturedRequest).toBeDefined();
+    expect(capturedRequest?.filters?.difficulty).toBe('easy');
+    expect(capturedRequest?.filters?.era).toBe('80s');
+  });
+
+  test('reset button restores mixed (default) filters', async ({ page }) => {
+    await page.goto('/play');
+
+    // Select some filters
+    await page.getByLabel('むずかしい').check();
+    await page.getByLabel('90年代').check();
+
+    // Click Reset button
+    const resetButton = page.getByRole('button', { name: /デフォルト|リセット/i });
+    await resetButton.click();
+
+    // Verify filters are reset (radio buttons should show mixed/default state)
+    const mixedDifficultyRadio = page.locator('input[name="difficulty"][value="mixed"]');
+    const mixedEraRadio = page.locator('input[name="era"][value="mixed"]');
+
+    await expect(mixedDifficultyRadio).toBeChecked();
+    await expect(mixedEraRadio).toBeChecked();
+  });
+
+  test('error handling: no_questions error gracefully handled', async ({ page, context }) => {
+    // Intercept /v1/rounds/start and return 503 error
+    await context.route('**/v1/rounds/start', (route) => {
+      route.abort('blockedbyclient');
+    });
+
+    await page.goto('/play');
+
+    // Select a filter that would cause no_questions error
+    await page.getByLabel('むずかしい').check();
+
+    // Click Start
+    const startButton = page.getByRole('button', { name: '開始' });
+    await startButton.click();
+
+    // Wait a bit for the error to be processed
+    await page.waitForTimeout(2000);
+
+    // The filter page should still be visible (quiz didn't start)
+    // Or an error message should appear
+    const filterPageStillVisible = await page.getByText(/フィルター|Filter/i).isVisible();
+    const startButtonStillVisible = await startButton.isVisible();
+
+    // Either the filter page is still showing, or there's an error indication
+    expect(filterPageStillVisible || startButtonStillVisible).toBe(true);
+  });
+});
+
+interface StartRequestBody {
+  mode?: string;
+  filters?: {
+    difficulty?: string;
+    era?: string;
+    series?: string[];
+  };
+  total?: number;
+}

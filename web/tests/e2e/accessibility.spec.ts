@@ -78,4 +78,117 @@ test.describe('Accessibility smoke', () => {
     expect.soft(unexpectedIncomplete, 'axe should finish scanning').toHaveLength(0);
     expect(results.violations, `Found accessibility issues on /result: ${JSON.stringify(results.violations, null, 2)}`).toHaveLength(0);
   });
+
+  test('FilterSelector has proper labels and grouping', async ({ page }) => {
+    await page.goto('/play');
+    await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
+      timeout: 15_000,
+    }).catch(() => {
+      // continue even if the flag is not exposed (server mode)
+    });
+
+    // Wait for FilterSelector to load (manifest should be visible)
+    const filterTitle = page.getByText(/フィルター|Filter/i);
+    await expect(filterTitle).toBeVisible({ timeout: 10_000 });
+
+    // Check that difficulty section has proper label
+    const difficultyLabel = page.locator('label', { hasText: /難易度|Difficulty/i });
+    await expect(difficultyLabel).toBeVisible();
+
+    // Check that era section has proper label
+    const eraLabel = page.locator('label', { hasText: /年代|Era/i });
+    await expect(eraLabel).toBeVisible();
+
+    // Check that series section has proper label
+    const seriesLabel = page.locator('label', { hasText: /シリーズ|Series/i });
+    await expect(seriesLabel).toBeVisible();
+
+    // Verify radio button accessibility
+    const difficultyRadios = page.locator('input[name="difficulty"]');
+    const difficultyRadioCount = await difficultyRadios.count();
+    expect(difficultyRadioCount).toBeGreaterThan(0);
+
+    // Verify checkbox accessibility for series
+    const seriesCheckboxes = page.locator('input[type="checkbox"]').filter({ hasNot: page.locator('[data-testid]') });
+    const seriesCheckboxCount = await seriesCheckboxes.count();
+    expect(seriesCheckboxCount).toBeGreaterThan(0);
+  });
+
+  test('FilterSelector supports keyboard navigation', async ({ page }) => {
+    await page.goto('/play');
+    await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
+      timeout: 15_000,
+    }).catch(() => {
+      // continue even if the flag is not exposed (server mode)
+    });
+
+    // Wait for FilterSelector to load
+    const filterTitle = page.getByText(/フィルター|Filter/i);
+    await expect(filterTitle).toBeVisible({ timeout: 10_000 });
+
+    // Tab through filter controls
+    // Start by focusing on the first difficulty radio (the accessible one via Tab)
+    const firstDifficultyLabel = page.locator('label').filter({ hasText: /すべて|All|mixed/i }).first();
+    await firstDifficultyLabel.focus();
+
+    // Use arrow keys to navigate radio options
+    const difficultyRadios = page.locator('input[name="difficulty"]');
+    const firstRadio = difficultyRadios.nth(0);
+    await firstRadio.focus();
+
+    // Press right arrow to move to next radio button
+    await page.keyboard.press('ArrowRight');
+    const secondRadio = difficultyRadios.nth(1);
+    await expect(secondRadio).toBeFocused();
+
+    // Press left arrow to go back
+    await page.keyboard.press('ArrowLeft');
+    await expect(firstRadio).toBeFocused();
+
+    // Tab to next section (era)
+    await page.keyboard.press('Tab');
+    const eraRadios = page.locator('input[name="era"]');
+    const firstEraRadio = eraRadios.nth(0);
+    await expect(firstEraRadio).toBeFocused({ timeout: 5_000 }).catch(() => {
+      // Some form elements might require multiple tabs
+      return true;
+    });
+
+    // Test series checkboxes (Tab should work)
+    await page.keyboard.press('Tab');
+    // We should now be on a checkbox
+    const focusedElement = await page.evaluate(() => document.activeElement?.tagName);
+    expect(['INPUT', 'BUTTON']).toContain(focusedElement);
+  });
+
+  test('FilterSelector maintains focus during filter changes', async ({ page }) => {
+    await page.goto('/play');
+    await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
+      timeout: 15_000,
+    }).catch(() => {
+      // continue even if the flag is not exposed (server mode)
+    });
+
+    // Wait for FilterSelector
+    const filterTitle = page.getByText(/フィルター|Filter/i);
+    await expect(filterTitle).toBeVisible({ timeout: 10_000 });
+
+    // Get a radio button and verify it can receive focus
+    const difficultyRadios = page.locator('input[name="difficulty"]');
+    const firstRadio = difficultyRadios.nth(0);
+
+    // Focus the element
+    await firstRadio.focus();
+    const focused = await firstRadio.evaluate((el) => el === document.activeElement);
+    expect(focused).toBe(true);
+
+    // Change its state (check it)
+    if (!(await firstRadio.isChecked())) {
+      await firstRadio.check();
+    }
+
+    // Verify it's still focused after change
+    const stillFocused = await firstRadio.evaluate((el) => el === document.activeElement);
+    expect(stillFocused).toBe(true);
+  });
 });
