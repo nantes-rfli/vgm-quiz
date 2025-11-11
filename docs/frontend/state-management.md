@@ -107,34 +107,48 @@ Manifest を `React Query` で管理。効率的なキャッシュと自動再�
 **キャッシュ戦略** (実装ベース):
 ```typescript
 // web/src/features/quiz/api/manifest.ts より
+
+// 1. localStorage から読み込む補助関数
+const loadManifestFromStorage = () => {
+  try {
+    const cached = localStorage.getItem('vgm2.manifest.cache')
+    if (!cached) return null
+    const parsed = JSON.parse(cached)
+    // キャッシュが 24 時間以上古いかチェック
+    if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+      return parsed  // 有効なキャッシュ
+    }
+  } catch (e) {
+    // JSON パースエラーは無視
+  }
+  return null
+}
+
+// 2. ネットワークからフェッチして localStorage に保存
+const fetchManifest = async () => {
+  const response = await fetch('/v1/manifest')
+  if (!response.ok) throw new Error('Failed to fetch manifest')
+  const manifest = await response.json()
+
+  // 手動で localStorage に保存
+  localStorage.setItem('vgm2.manifest.cache', JSON.stringify({
+    data: manifest,
+    timestamp: Date.now(),
+    version: manifest.schema_version
+  }))
+
+  return manifest
+}
+
+// 3. useQuery で管理
 const useManifest = () => {
   return useQuery({
     queryKey: ['manifest'],
-    // 1. queryFn は常にネットワークからフェッチ
-    queryFn: async () => {
-      const response = await fetch('/v1/manifest')
-      if (!response.ok) throw new Error('Failed to fetch manifest')
-      const manifest = await response.json()
-      // 自動的に localStorage に保存される（React Query キャッシュ）
-      return manifest
-    },
-    // 2. localStorage から初期データを復元
-    initialData: () => {
-      const cached = localStorage.getItem('vgm2.manifest.cache')
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached)
-          // キャッシュが 24 時間以上古いかチェック
-          if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
-            return parsed.data  // キャッシュを使用（stale と判定）
-          }
-        } catch (e) {
-          // JSON パースエラーは無視
-        }
-      }
-      return undefined
-    },
-    // 3. React Query のキャッシュ設定
+    // queryFn は常にネットワークからフェッチ（最新データを確保）
+    queryFn: fetchManifest,
+    // initialData は localStorage から復元（オフライン・初回起動を高速化）
+    initialData: () => loadManifestFromStorage()?.data ?? undefined,
+    // React Query キャッシュ設定
     staleTime: 1000 * 60 * 60,      // 1時間で stale に
     gcTime: 1000 * 60 * 60 * 24,    // 24時間でガベージ回収
     refetchOnMount: true,            // マウント時に再フェッチ
@@ -207,23 +221,23 @@ GET リクエストで Manifest を取得。レスポンス例：
 
 POST リクエストでフィルタを指定してラウンド開始。
 
-**リクエストペイロード**:
+**リクエストペイロード** ([web/src/components/FilterSelector.tsx](web/src/components/FilterSelector.tsx)):
 ```json
 {
   "mode": "vgm_v1-ja",
   "total": 10,
   "filters": {
-    "difficulty": ["hard"],
-    "era": ["90s"],
+    "difficulty": "hard",
+    "era": "90s",
     "series": ["ff", "dq"]
   }
 }
 ```
 
 **重要な仕様**:
-- Difficulty & Era は単一値でも配列形式で送信（バックエンド正規化に対応）
-- Series は複数値をそのまま配列で送信
-- Filter が空の場合は整数フィルタを `undefined` に（デフォルト動作）
+- **Difficulty & Era**: 文字列形式で送信（例: `"hard"`, `"90s"`）
+- **Series**: 複数値を配列で送信（例: `["ff", "dq"]`）
+- **Filter が空の場合**: フィルタフィールドを `undefined` または省略（デフォルト・日替わり動作）
 
 **レスポンス**:
 ```json
