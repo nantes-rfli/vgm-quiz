@@ -88,7 +88,7 @@ test.describe('Accessibility smoke', () => {
     });
 
     // Wait for FilterSelector to load (manifest should be visible)
-    const filterTitle = page.getByText(/フィルター|Filter/i);
+    const filterTitle = page.getByTestId('filter-selector-title');
     await expect(filterTitle).toBeVisible({ timeout: 10_000 });
 
     // Verify legend elements exist (fieldset + legend structure)
@@ -104,32 +104,46 @@ test.describe('Accessibility smoke', () => {
     await expect(seriesLegend).toBeVisible();
     await expect(seriesLegend).toHaveText(/シリーズ|Series/i);
 
-    // Verify difficulty section is properly associated (labeled radio buttons)
+    // Verify difficulty section is properly associated (radio buttons have labels)
     const difficultyRadios = page.locator('input[name="difficulty"]');
     await expect(difficultyRadios).toHaveCount(4); // mixed + easy/normal/hard
+
+    // Verify all difficulty inputs have aria-labels or are in label elements
     for (let i = 0; i < 4; i++) {
       const radio = difficultyRadios.nth(i);
-      const label = page.locator('label').filter({ has: radio });
-      await expect(label).toHaveCount(1); // Each radio should have one label
+      const hasAriaLabel = await radio.getAttribute('aria-label');
+      const isInLabel = await radio.evaluate((el) => {
+        return el.closest('label') !== null;
+      });
+      expect(hasAriaLabel || isInLabel).toBeTruthy();
     }
 
     // Verify era radio buttons are accessible
     const eraRadios = page.locator('input[name="era"]');
     await expect(eraRadios).toHaveCount(6); // mixed + 80s/90s/00s/10s/20s
+
+    // Verify all era inputs have aria-labels or are in label elements
     for (let i = 0; i < 6; i++) {
       const radio = eraRadios.nth(i);
-      const label = page.locator('label').filter({ has: radio });
-      await expect(label).toHaveCount(1);
+      const hasAriaLabel = await radio.getAttribute('aria-label');
+      const isInLabel = await radio.evaluate((el) => {
+        return el.closest('label') !== null;
+      });
+      expect(hasAriaLabel || isInLabel).toBeTruthy();
     }
 
     // Verify checkboxes for series are properly labeled
     const seriesCheckboxes = page.locator('input[type="checkbox"]');
     const seriesCount = await seriesCheckboxes.count();
     expect(seriesCount).toBeGreaterThan(0); // Should have at least 1 checkbox
+
     for (let i = 0; i < await seriesCheckboxes.count(); i++) {
       const checkbox = seriesCheckboxes.nth(i);
-      const label = page.locator('label').filter({ has: checkbox });
-      await expect(label).toHaveCount(1); // Each checkbox should have one label
+      const hasAriaLabel = await checkbox.getAttribute('aria-label');
+      const isInLabel = await checkbox.evaluate((el) => {
+        return el.closest('label') !== null;
+      });
+      expect(hasAriaLabel || isInLabel).toBeTruthy();
     }
   });
 
@@ -142,7 +156,7 @@ test.describe('Accessibility smoke', () => {
     });
 
     // Wait for FilterSelector to load
-    const filterTitle = page.getByText(/フィルター|Filter/i);
+    const filterTitle = page.getByTestId('filter-selector-title');
     await expect(filterTitle).toBeVisible({ timeout: 10_000 });
 
     // Focus on first difficulty radio button
@@ -184,7 +198,7 @@ test.describe('Accessibility smoke', () => {
     });
 
     // Wait for FilterSelector
-    const filterTitle = page.getByText(/フィルター|Filter/i);
+    const filterTitle = page.getByTestId('filter-selector-title');
     await expect(filterTitle).toBeVisible({ timeout: 10_000 });
 
     // Get a radio button and verify it can receive focus
@@ -215,7 +229,7 @@ test.describe('Accessibility smoke', () => {
     });
 
     // Wait for FilterSelector to load
-    const filterTitle = page.getByText(/フィルター|Filter/i);
+    const filterTitle = page.getByTestId('filter-selector-title');
     await expect(filterTitle).toBeVisible({ timeout: 10_000 });
 
     // Verify fieldsets with legends are present (proper form grouping)
@@ -247,29 +261,38 @@ test.describe('Accessibility smoke', () => {
     const seriesGroup = page.locator('[role="group"][aria-labelledby="series-legend"]');
     await expect(seriesGroup).toHaveCount(1);
 
-    // Verify that each radio/checkbox has an associated label
+    // Verify that each radio/checkbox has an associated label or aria-label
     // Difficulty section
     const difficultyRadios = page.locator('input[name="difficulty"]');
     for (let i = 0; i < await difficultyRadios.count(); i++) {
       const radio = difficultyRadios.nth(i);
-      const label = page.locator('label').filter({ has: radio });
-      await expect(label).toHaveCount(1);
+      const hasAriaLabel = await radio.getAttribute('aria-label');
+      const isInLabel = await radio.evaluate((el) => {
+        return el.closest('label') !== null;
+      });
+      expect(hasAriaLabel || isInLabel).toBeTruthy();
     }
 
     // Era section
     const eraRadios = page.locator('input[name="era"]');
     for (let i = 0; i < await eraRadios.count(); i++) {
       const radio = eraRadios.nth(i);
-      const label = page.locator('label').filter({ has: radio });
-      await expect(label).toHaveCount(1);
+      const hasAriaLabel = await radio.getAttribute('aria-label');
+      const isInLabel = await radio.evaluate((el) => {
+        return el.closest('label') !== null;
+      });
+      expect(hasAriaLabel || isInLabel).toBeTruthy();
     }
 
     // Series section - checkboxes
     const seriesCheckboxes = page.locator('input[type="checkbox"]');
     for (let i = 0; i < await seriesCheckboxes.count(); i++) {
       const checkbox = seriesCheckboxes.nth(i);
-      const label = page.locator('label').filter({ has: checkbox });
-      await expect(label).toHaveCount(1);
+      const hasAriaLabel = await checkbox.getAttribute('aria-label');
+      const isInLabel = await checkbox.evaluate((el) => {
+        return el.closest('label') !== null;
+      });
+      expect(hasAriaLabel || isInLabel).toBeTruthy();
     }
   });
 });

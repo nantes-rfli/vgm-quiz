@@ -122,7 +122,7 @@ export default function FilterSelector({
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-card rounded-2xl shadow p-6 mb-4 border border-border">
-        <h2 className="text-2xl font-semibold mb-2 text-card-foreground">
+        <h2 data-testid="filter-selector-title" className="text-2xl font-semibold mb-2 text-card-foreground">
           {t('filter.title')}
         </h2>
         <p className="text-sm text-muted-foreground mb-6">{t('filter.description')}</p>
@@ -243,6 +243,7 @@ export default function FilterSelector({
             type="button"
             onClick={handleReset}
             disabled={disabled || isLoading || isDefault()}
+            data-testid="filter-reset-button"
             className="px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {t('filter.preset.daily')}
@@ -254,6 +255,7 @@ export default function FilterSelector({
           type="button"
           onClick={handleStart}
           disabled={disabled || isLoading}
+          data-testid="filter-start-button"
           className="w-full px-4 py-3 font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? '...' : t('filter.start')}
