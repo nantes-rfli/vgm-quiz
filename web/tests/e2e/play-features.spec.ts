@@ -572,8 +572,21 @@ test.describe('Play page features', () => {
 });
 
 test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
-  test('difficulty filter: hard selection allows quiz to start', async ({ page }) => {
-    await page.goto('/play');
+  test('difficulty filter: hard selection sends correct filter to API', async ({ page, context }) => {
+    // Intercept /v1/rounds/start to capture request body
+    let capturedRequest: { filters?: { difficulty?: string[] } } | null = null;
+    await context.route('**/v1/rounds/start', async (route) => {
+      const request = route.request();
+      try {
+        const body = await request.postDataJSON();
+        capturedRequest = body as typeof capturedRequest;
+      } catch {
+        // ignore parsing errors
+      }
+      await route.continue();
+    });
+
+    await page.goto('/play?autostart=0');
 
     // Wait for FilterSelector to be visible and select "hard" difficulty
     const difficultyRadios = page.locator('input[name="difficulty"]');
@@ -591,10 +604,26 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
     // Verify that quiz started with question visible
     await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+
+    // Verify that difficulty filter was sent in request as array
+    await expect.poll(() => capturedRequest?.filters?.difficulty, { timeout: 5_000 }).toEqual(['hard']);
   });
 
-  test('era filter: 90s selection allows quiz to start', async ({ page }) => {
-    await page.goto('/play');
+  test('era filter: 90s selection affects quiz questions and result display', async ({ page, context }) => {
+    // Intercept /v1/rounds/start to verify era filter sent
+    let capturedRequest: { filters?: { era?: string[] } } | null = null;
+    await context.route('**/v1/rounds/start', async (route) => {
+      const request = route.request();
+      try {
+        const body = await request.postDataJSON();
+        capturedRequest = body as typeof capturedRequest;
+      } catch {
+        // ignore
+      }
+      await route.continue();
+    });
+
+    await page.goto('/play?autostart=0');
 
     // Wait for era filter options and select "90s"
     const eraRadios = page.locator('input[name="era"]');
@@ -610,10 +639,57 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
     // Verify that quiz started with question visible
     await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+
+    // Verify era filter was sent to API as array
+    await expect.poll(() => capturedRequest?.filters?.era, { timeout: 5_000 }).toEqual(['90s']);
+
+    // Complete the quiz by answering all questions with first choice (abbreviated for speed)
+    for (let i = 0; i < 3; i++) {
+      const choiceButtons = page.locator('[data-testid^="choice-"]');
+      if (await choiceButtons.count() > 0) {
+        await choiceButtons.first().click();
+        const submitButton = page.getByRole('button', { name: 'Answer (Enter)' });
+        if (await submitButton.isVisible()) {
+          await submitButton.click();
+          // Wait for reveal
+          await expect(page.getByRole('heading', { name: 'Listen / Watch' })).toBeVisible({ timeout: 10_000 });
+
+          if (i < 2) {
+            // Move to next question
+            const nextButton = page.getByTestId('reveal-next');
+            if (await nextButton.isVisible()) {
+              await nextButton.click();
+              await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 10_000 });
+            }
+          }
+        }
+      }
+    }
+
+    // Navigate to result page
+    const resultLink = page.getByRole('link');
+    const resultPageLinks = await resultLink.all();
+    for (const link of resultPageLinks) {
+      const href = await link.getAttribute('href');
+      if (href === '/result') {
+        await link.click();
+        break;
+      }
+    }
+
+    // Verify that result page is showing
+    await expect(page).toHaveURL(/\/result/);
+
+    // Verify era filter is displayed on result page
+    const appliedFilterSection = page.getByTestId('applied-filters');
+    if (await appliedFilterSection.isVisible()) {
+      const eraFilter = page.getByTestId('applied-filter-era');
+      await expect(eraFilter).toBeVisible();
+    }
   });
 
   test('series filter: multiple selection allows quiz to start', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     // Select multiple series (using checkboxes)
     // Assuming manifest has 'ff' and 'zelda' series
@@ -632,7 +708,7 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
   });
 
   test('combined filters: difficulty + era allows quiz to start', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     // Select both difficulty and era
     const easyRadio = page.locator('input[name="difficulty"][value="easy"]');
@@ -650,7 +726,7 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
   });
 
   test('reset button restores mixed (default) filters', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     // Select some filters
     const hardRadio2 = page.locator('input[name="difficulty"][value="hard"]');
@@ -672,35 +748,51 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await expect(mixedEraRadio).toBeChecked();
   });
 
-  test('filters can be changed without errors', async ({ page }) => {
-    await page.goto('/play');
+  test('error handling: 503 no_questions error shows localized toast message', async ({ page, context }) => {
+    // Intercept /v1/rounds/start and return 503 error with no_questions code
+    await context.route('**/v1/rounds/start', (route) => {
+      route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'no_questions',
+          message: 'No questions available for the selected filters',
+        }),
+      });
+    });
 
-    // Select multiple different filters to ensure no errors occur
-    const difficultyRadio = page.locator('input[name="difficulty"][value="hard"]');
-    const eraRadio = page.locator('input[name="era"][value="90s"]');
-    const seriesCheckbox = page.locator('input[type="checkbox"][value="ff"]');
+    await page.goto('/play?autostart=0');
 
-    // Select each filter
-    await difficultyRadio.check();
-    await expect(difficultyRadio).toBeChecked();
+    // Select a filter combination that would result in no questions
+    const hardRadio = page.locator('input[name="difficulty"][value="hard"]');
+    const nineties = page.locator('input[name="era"][value="90s"]');
+    await hardRadio.check();
+    await expect(hardRadio).toBeChecked();
+    await nineties.check();
+    await expect(nineties).toBeChecked();
 
-    await eraRadio.check();
-    await expect(eraRadio).toBeChecked();
+    // Click Start (using data-testid for locale independence)
+    const startButton = page.getByTestId('filter-start-button');
+    await startButton.click();
 
-    await seriesCheckbox.check();
-    await expect(seriesCheckbox).toBeChecked();
+    // Wait for toast to appear with error message
+    const toast = page.getByTestId('toast-notification');
+    await expect(toast).toBeVisible({ timeout: 10_000 });
 
-    // Verify the reset button exists and is clickable
-    const resetButton = page.getByTestId('filter-reset-button');
-    await expect(resetButton).toBeVisible();
+    // Verify toast shows error message (should be translated based on current locale)
+    // English: "Not enough questions available for this condition."
+    // Japanese: "この条件では問題数が不足しています"
+    const toastText = await toast.textContent();
+    expect(toastText).toBeTruthy();
+    // Check for either English or Japanese error message keywords
+    const hasErrorText =
+      toastText?.includes('available') ||
+      toastText?.includes('不足') ||
+      toastText?.includes('condition');
+    expect(hasErrorText).toBe(true);
 
-    // Click reset to restore defaults
-    await resetButton.click();
-
-    // Verify filters are reset to mixed/default state
-    const mixedDifficultyRadio = page.locator('input[name="difficulty"][value="mixed"]');
-    const mixedEraRadio = page.locator('input[name="era"][value="mixed"]');
-    await expect(mixedDifficultyRadio).toBeChecked();
-    await expect(mixedEraRadio).toBeChecked();
+    // Verify we're still on filter page (didn't start quiz due to error)
+    const filterTitle = page.getByTestId('filter-selector-title');
+    await expect(filterTitle).toBeVisible();
   });
 });

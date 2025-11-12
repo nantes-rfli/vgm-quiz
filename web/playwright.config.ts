@@ -18,7 +18,6 @@ export default defineConfig({
         command: 'npm run dev',
         cwd: './',
         env: {
-          NEXT_PUBLIC_PLAY_AUTOSTART: '0',
           NEXT_PUBLIC_API_MOCK: '1',
         },
         port: 3000,
