@@ -588,6 +588,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
     await page.goto('/play?autostart=0');
 
+    // Wait for FilterSelector to load
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
     // Wait for FilterSelector to be visible and select "hard" difficulty
     const difficultyRadios = page.locator('input[name="difficulty"]');
     await expect(difficultyRadios).toHaveCount(4); // mixed + easy/normal/hard
@@ -624,6 +627,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     });
 
     await page.goto('/play?autostart=0');
+
+    // Wait for FilterSelector to load
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
 
     // Wait for era filter options and select "90s"
     const eraRadios = page.locator('input[name="era"]');
@@ -691,6 +697,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
   test('series filter: multiple selection allows quiz to start', async ({ page }) => {
     await page.goto('/play?autostart=0');
 
+    // Wait for FilterSelector to load
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
     // Select multiple series (using checkboxes)
     // Assuming manifest has 'ff' and 'zelda' series
     const ffCheckbox = page.locator('input[type="checkbox"][value="ff"]');
@@ -710,6 +719,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
   test('combined filters: difficulty + era allows quiz to start', async ({ page }) => {
     await page.goto('/play?autostart=0');
 
+    // Wait for FilterSelector to load
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
     // Select both difficulty and era
     const easyRadio = page.locator('input[name="difficulty"][value="easy"]');
     const eightiesco = page.locator('input[name="era"][value="80s"]');
@@ -727,6 +739,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
   test('reset button restores mixed (default) filters', async ({ page }) => {
     await page.goto('/play?autostart=0');
+
+    // Wait for FilterSelector to load
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
 
     // Select some filters
     const hardRadio2 = page.locator('input[name="difficulty"][value="hard"]');
@@ -762,6 +777,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     });
 
     await page.goto('/play?autostart=0');
+
+    // Wait for FilterSelector to load
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
 
     // Select a filter combination that would result in no questions
     const hardRadio = page.locator('input[name="difficulty"][value="hard"]');
