@@ -223,7 +223,7 @@ function PlayPageContent() {
       });
     }
     },
-    [safeDispatch, closeToast, scheduleRetry],
+    [safeDispatch, closeToast, scheduleRetry, t],
   );
 
   // bootstrap (autostart mode)

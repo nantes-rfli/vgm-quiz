@@ -141,6 +141,7 @@ export default function FilterSelector({
                 checked={!filters.difficulty || filters.difficulty === 'mixed'}
                 onChange={() => handleDifficultyChange('mixed')}
                 disabled={disabled || isLoading}
+                aria-label={t('filter.difficulty.mixed')}
                 className="w-4 h-4 accent-primary"
               />
               <span className="text-sm">{t('filter.difficulty.mixed')}</span>
@@ -154,6 +155,7 @@ export default function FilterSelector({
                   checked={filters.difficulty === d}
                   onChange={() => handleDifficultyChange(d as Difficulty)}
                   disabled={disabled || isLoading}
+                  aria-label={t(`filter.difficulty.${String(d)}`)}
                   className="w-4 h-4 accent-primary"
                 />
                 <span className="text-sm">
@@ -178,6 +180,7 @@ export default function FilterSelector({
                 checked={!filters.era || filters.era === 'mixed'}
                 onChange={() => handleEraChange('mixed')}
                 disabled={disabled || isLoading}
+                aria-label={t('filter.era.mixed')}
                 className="w-4 h-4 accent-primary"
               />
               <span className="text-sm">{t('filter.era.mixed')}</span>
@@ -191,6 +194,7 @@ export default function FilterSelector({
                   checked={filters.era === e}
                   onChange={() => handleEraChange(e as Era)}
                   disabled={disabled || isLoading}
+                  aria-label={t(`filter.era.${String(e)}`)}
                   className="w-4 h-4 accent-primary"
                 />
                 <span className="text-sm">{t(`filter.era.${String(e)}`)}</span>
@@ -211,6 +215,7 @@ export default function FilterSelector({
                 checked={filters.series.length === 0}
                 onChange={() => setSeries([])}
                 disabled={disabled || isLoading}
+                aria-label={t('filter.series.mixed')}
                 className="w-4 h-4 accent-primary"
               />
               <span className="text-sm">{t('filter.series.mixed')}</span>
@@ -223,6 +228,7 @@ export default function FilterSelector({
                   checked={filters.series.includes(s)}
                   onChange={() => handleSeriesToggle(s)}
                   disabled={disabled || isLoading}
+                  aria-label={t(`filter.series.${String(s)}`)}
                   className="w-4 h-4 accent-primary"
                 />
                 <span className="text-sm">{t(`filter.series.${String(s)}`)}</span>

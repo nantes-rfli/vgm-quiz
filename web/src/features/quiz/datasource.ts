@@ -15,6 +15,13 @@ type RequestOptions = {
   retries?: number;
 };
 
+// Error response payload type
+type ErrorResponse = {
+  error?: string | { code?: string; message?: string };
+  code?: string;
+  message?: string;
+};
+
 async function fetchJson<T>(path: string, options: RequestOptions): Promise<T> {
   const { method, body, retries = DEFAULT_RETRIES } = options;
   const url = IS_MOCK ? path : `${API_BASE_URL}${path}`;
@@ -41,20 +48,19 @@ async function fetchJson<T>(path: string, options: RequestOptions): Promise<T> {
           payload = await response.json().catch(() => undefined);
         }
 
+        const errorPayload = (payload as ErrorResponse | undefined) ?? {};
         const errorCode =
-          typeof payload === 'object' && payload !== null
-            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (typeof (payload as any).error === 'string'
-                ? (payload as any).error
-                : ((payload as any).error?.code ?? (payload as any).code))
-            : undefined;
+          typeof errorPayload.error === 'string'
+            ? errorPayload.error
+            : (typeof errorPayload.error === 'object'
+                ? errorPayload.error?.code
+                : errorPayload.code);
         const errorMessage =
-          typeof payload === 'object' && payload !== null
-            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (typeof (payload as any).error === 'string'
-                ? (payload as any).message
-                : ((payload as any).error?.message ?? (payload as any).message))
-            : undefined;
+          typeof errorPayload.error === 'string'
+            ? errorPayload.message
+            : (typeof errorPayload.error === 'object'
+                ? errorPayload.error?.message ?? errorPayload.message
+                : errorPayload.message);
 
         const status = response.status;
         const isRateLimited = status === 429;

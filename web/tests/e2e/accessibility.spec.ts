@@ -162,8 +162,6 @@ test.describe('Accessibility smoke', () => {
 
     // Tab to next section (should move through radio group to next focusable)
     await page.keyboard.press('Tab');
-    // Next focus should be somewhere in the page (likely another form element)
-    const focusedElement = await page.evaluate(() => document.activeElement?.getAttribute('type'));
     // Should have moved focus to another element
     const stillFirstRadio = await firstRadio.evaluate((el) => el === document.activeElement);
     expect(stillFirstRadio).toBe(false); // Should have moved away from first radio
