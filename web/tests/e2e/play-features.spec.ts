@@ -593,7 +593,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await expect(difficultyRadios).toHaveCount(4); // mixed + easy/normal/hard
 
     // Find and click the "hard" radio button by value
-    await page.locator('input[name="difficulty"][value="hard"]').check();
+    const hardRadio = page.locator('input[name="difficulty"][value="hard"]');
+    await hardRadio.check();
+    await expect(hardRadio).toBeChecked();
 
     // Click Start button
     await page.getByRole('button', { name: '開始' }).click();
@@ -626,7 +628,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await expect(eraRadios).toHaveCount(6); // mixed + 80s/90s/00s/10s/20s
 
     // Click 90s option by value
-    await page.locator('input[name="era"][value="90s"]').check();
+    const ninetiesco = page.locator('input[name="era"][value="90s"]');
+    await ninetiesco.check();
+    await expect(ninetiesco).toBeChecked();
 
     // Click Start
     await page.getByRole('button', { name: '開始' }).click();
@@ -687,8 +691,12 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
     // Select multiple series (using checkboxes)
     // Assuming manifest has 'ff' and 'zelda' series
-    await page.locator('input[type="checkbox"][value="ff"]').check();
-    await page.locator('input[type="checkbox"][value="zelda"]').check();
+    const ffCheckbox = page.locator('input[type="checkbox"][value="ff"]');
+    const zeldaCheckbox = page.locator('input[type="checkbox"][value="zelda"]');
+    await ffCheckbox.check();
+    await expect(ffCheckbox).toBeChecked();
+    await zeldaCheckbox.check();
+    await expect(zeldaCheckbox).toBeChecked();
 
     // Click Start
     await page.getByRole('button', { name: '開始' }).click();
@@ -719,8 +727,12 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await page.goto('/play');
 
     // Select both difficulty and era
-    await page.locator('input[name="difficulty"][value="easy"]').check();
-    await page.locator('input[name="era"][value="80s"]').check();
+    const easyRadio = page.locator('input[name="difficulty"][value="easy"]');
+    const eightiesco = page.locator('input[name="era"][value="80s"]');
+    await easyRadio.check();
+    await expect(easyRadio).toBeChecked();
+    await eightiesco.check();
+    await expect(eightiesco).toBeChecked();
 
     // Click Start
     await page.getByRole('button', { name: '開始' }).click();
@@ -742,8 +754,12 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await page.goto('/play');
 
     // Select some filters
-    await page.locator('input[name="difficulty"][value="hard"]').check();
-    await page.locator('input[name="era"][value="90s"]').check();
+    const hardRadio2 = page.locator('input[name="difficulty"][value="hard"]');
+    const nineties2 = page.locator('input[name="era"][value="90s"]');
+    await hardRadio2.check();
+    await expect(hardRadio2).toBeChecked();
+    await nineties2.check();
+    await expect(nineties2).toBeChecked();
 
     // Click Reset button
     const resetButton = page.getByRole('button', { name: /デフォルト|リセット/i });
@@ -773,8 +789,12 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await page.goto('/play');
 
     // Select a filter combination that results in no questions
-    await page.locator('input[name="difficulty"][value="hard"]').check();
-    await page.locator('input[name="era"][value="90s"]').check();
+    const hardRadio3 = page.locator('input[name="difficulty"][value="hard"]');
+    const nineties3 = page.locator('input[name="era"][value="90s"]');
+    await hardRadio3.check();
+    await expect(hardRadio3).toBeChecked();
+    await nineties3.check();
+    await expect(nineties3).toBeChecked();
 
     // Click Start
     const startButton = page.getByRole('button', { name: '開始' });
