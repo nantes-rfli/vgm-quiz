@@ -598,7 +598,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await expect(hardRadio).toBeChecked();
 
     // Click Start button
-    await page.getByRole('button', { name: '開始' }).click();
+    const startButton = page.getByRole('button', { name: '開始' });
+    await expect(startButton).toBeVisible({ timeout: 10_000 });
+    await startButton.click();
 
     // Wait for question to appear
     await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
