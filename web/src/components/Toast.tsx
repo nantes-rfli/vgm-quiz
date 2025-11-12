@@ -38,7 +38,9 @@ export default function Toast({
 
   return (
     <div
-      role="status"
+      role="alert"
+      aria-live="assertive"
+      data-testid="toast-notification"
       className={`${baseClasses} ${palette}`}
       style={{
         position: 'fixed',

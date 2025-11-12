@@ -91,9 +91,18 @@ test.describe('Accessibility smoke', () => {
     const filterTitle = page.getByText(/フィルター|Filter/i);
     await expect(filterTitle).toBeVisible({ timeout: 10_000 });
 
-    // Check that difficulty section has proper label (section should be accessible)
-    const difficultyLabel = page.locator('label', { hasText: /難易度|Difficulty/i });
-    await expect(difficultyLabel).toBeVisible();
+    // Verify legend elements exist (fieldset + legend structure)
+    const difficultyLegend = page.locator('#difficulty-legend');
+    await expect(difficultyLegend).toBeVisible();
+    await expect(difficultyLegend).toHaveText(/難易度|Difficulty/i);
+
+    const eraLegend = page.locator('#era-legend');
+    await expect(eraLegend).toBeVisible();
+    await expect(eraLegend).toHaveText(/年代|Era/i);
+
+    const seriesLegend = page.locator('#series-legend');
+    await expect(seriesLegend).toBeVisible();
+    await expect(seriesLegend).toHaveText(/シリーズ|Series/i);
 
     // Verify difficulty section is properly associated (labeled radio buttons)
     const difficultyRadios = page.locator('input[name="difficulty"]');
@@ -104,10 +113,6 @@ test.describe('Accessibility smoke', () => {
       await expect(label).toHaveCount(1); // Each radio should have one label
     }
 
-    // Check that era section has proper label
-    const eraLabel = page.locator('label', { hasText: /年代|Era/i });
-    await expect(eraLabel).toBeVisible();
-
     // Verify era radio buttons are accessible
     const eraRadios = page.locator('input[name="era"]');
     await expect(eraRadios).toHaveCount(6); // mixed + 80s/90s/00s/10s/20s
@@ -117,14 +122,15 @@ test.describe('Accessibility smoke', () => {
       await expect(label).toHaveCount(1);
     }
 
-    // Check that series section has proper label
-    const seriesLabel = page.locator('label', { hasText: /シリーズ|Series/i });
-    await expect(seriesLabel).toBeVisible();
-
     // Verify checkboxes for series are properly labeled
     const seriesCheckboxes = page.locator('input[type="checkbox"]');
     const seriesCount = await seriesCheckboxes.count();
     expect(seriesCount).toBeGreaterThan(0); // Should have at least 1 checkbox
+    for (let i = 0; i < await seriesCheckboxes.count(); i++) {
+      const checkbox = seriesCheckboxes.nth(i);
+      const label = page.locator('label').filter({ has: checkbox });
+      await expect(label).toHaveCount(1); // Each checkbox should have one label
+    }
   });
 
   test('FilterSelector supports keyboard navigation', async ({ page }) => {
@@ -202,7 +208,7 @@ test.describe('Accessibility smoke', () => {
     expect(stillFocused).toBe(true);
   });
 
-  test('FilterSelector uses proper ARIA associations', async ({ page }) => {
+  test('FilterSelector uses proper ARIA associations and fieldset grouping', async ({ page }) => {
     await page.goto('/play');
     await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
       timeout: 15_000,
@@ -214,13 +220,41 @@ test.describe('Accessibility smoke', () => {
     const filterTitle = page.getByText(/フィルター|Filter/i);
     await expect(filterTitle).toBeVisible({ timeout: 10_000 });
 
+    // Verify fieldsets with legends are present (proper form grouping)
+    // Difficulty fieldset
+    const difficultyFieldset = page.locator('fieldset').filter({ has: page.locator('#difficulty-legend') });
+    await expect(difficultyFieldset).toHaveCount(1);
+    const difficultyLegend = page.locator('#difficulty-legend');
+    await expect(difficultyLegend).toHaveText(/難易度|Difficulty/i);
+
+    // Era fieldset
+    const eraFieldset = page.locator('fieldset').filter({ has: page.locator('#era-legend') });
+    await expect(eraFieldset).toHaveCount(1);
+    const eraLegend = page.locator('#era-legend');
+    await expect(eraLegend).toHaveText(/年代|Era/i);
+
+    // Series fieldset
+    const seriesFieldset = page.locator('fieldset').filter({ has: page.locator('#series-legend') });
+    await expect(seriesFieldset).toHaveCount(1);
+    const seriesLegend = page.locator('#series-legend');
+    await expect(seriesLegend).toHaveText(/シリーズ|Series/i);
+
+    // Verify role="group" with aria-labelledby on option containers
+    const difficultyGroup = page.locator('[role="group"][aria-labelledby="difficulty-legend"]');
+    await expect(difficultyGroup).toHaveCount(1);
+
+    const eraGroup = page.locator('[role="group"][aria-labelledby="era-legend"]');
+    await expect(eraGroup).toHaveCount(1);
+
+    const seriesGroup = page.locator('[role="group"][aria-labelledby="series-legend"]');
+    await expect(seriesGroup).toHaveCount(1);
+
     // Verify that each radio/checkbox has an associated label
     // Difficulty section
     const difficultyRadios = page.locator('input[name="difficulty"]');
     for (let i = 0; i < await difficultyRadios.count(); i++) {
       const radio = difficultyRadios.nth(i);
       const label = page.locator('label').filter({ has: radio });
-      // Each radio should be wrapped in or associated with a label
       await expect(label).toHaveCount(1);
     }
 
@@ -237,18 +271,7 @@ test.describe('Accessibility smoke', () => {
     for (let i = 0; i < await seriesCheckboxes.count(); i++) {
       const checkbox = seriesCheckboxes.nth(i);
       const label = page.locator('label').filter({ has: checkbox });
-      // Each checkbox should have an associated label
       await expect(label).toHaveCount(1);
     }
-
-    // Verify section headings are visible (for grouping context)
-    const difficultyHeading = page.locator('label', { hasText: /難易度|Difficulty/i });
-    await expect(difficultyHeading).toBeVisible();
-
-    const eraHeading = page.locator('label', { hasText: /年代|Era/i });
-    await expect(eraHeading).toBeVisible();
-
-    const seriesHeading = page.locator('label', { hasText: /シリーズ|Series/i });
-    await expect(seriesHeading).toBeVisible();
   });
 });

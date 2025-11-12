@@ -128,11 +128,11 @@ export default function FilterSelector({
         <p className="text-sm text-muted-foreground mb-6">{t('filter.description')}</p>
 
         {/* Difficulty Section */}
-        <div className="mb-8">
-          <label className="block text-lg font-medium mb-3 text-card-foreground">
+        <fieldset className="mb-8">
+          <legend id="difficulty-legend" className="block text-lg font-medium mb-3 text-card-foreground">
             {t('filter.difficulty.label')}
-          </label>
-          <div className="flex gap-3 flex-wrap">
+          </legend>
+          <div className="flex gap-3 flex-wrap" role="group" aria-labelledby="difficulty-legend">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -162,14 +162,14 @@ export default function FilterSelector({
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Era Section */}
-        <div className="mb-8">
-          <label className="block text-lg font-medium mb-3 text-card-foreground">
+        <fieldset className="mb-8">
+          <legend id="era-legend" className="block text-lg font-medium mb-3 text-card-foreground">
             {t('filter.era.label')}
-          </label>
-          <div className="flex gap-3 flex-wrap">
+          </legend>
+          <div className="flex gap-3 flex-wrap" role="group" aria-labelledby="era-legend">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -197,14 +197,14 @@ export default function FilterSelector({
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Series Section */}
-        <div className="mb-8">
-          <label className="block text-lg font-medium mb-3 text-card-foreground">
+        <fieldset className="mb-8">
+          <legend id="series-legend" className="block text-lg font-medium mb-3 text-card-foreground">
             {t('filter.series.label')}
-          </label>
-          <div className="flex gap-3 flex-wrap">
+          </legend>
+          <div className="flex gap-3 flex-wrap" role="group" aria-labelledby="series-legend">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -229,7 +229,7 @@ export default function FilterSelector({
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Preset Button */}
         <div className="mb-6">

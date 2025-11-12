@@ -662,6 +662,10 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await expect(page).toHaveURL(/\/result$/);
     // Check that we can see result content (filter would affect which questions appeared)
     await expect(page.getByRole('heading', { name: /Result/i })).toBeVisible();
+
+    // Note: Full filter display verification would require result page changes
+    // Currently result page does not display applied filters,
+    // but API request verification confirms 90s filter was sent
   });
 
   test('series filter: multiple selection sends array to API', async ({ page, context }) => {
@@ -752,36 +756,40 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await expect(mixedEraRadio).toBeChecked();
   });
 
-  test('error handling: no_questions error gracefully handled', async ({ page, context }) => {
-    // Intercept /v1/rounds/start and return 503 error with no_questions reason
+  test('error handling: 503 error shows toast message', async ({ page, context }) => {
+    // Intercept /v1/rounds/start and return 503 error
     await context.route('**/v1/rounds/start', (route) => {
       route.fulfill({
         status: 503,
         contentType: 'application/json',
         body: JSON.stringify({
-          error: 'no_questions',
-          message: 'この条件では問題数が不足しています',
+          error: 'service_unavailable',
+          message: 'The service is temporarily unavailable',
         }),
       });
     });
 
     await page.goto('/play');
 
-    // Select a filter that would cause no_questions error
+    // Select a filter
     await page.getByLabel('むずかしい').check();
 
     // Click Start
     const startButton = page.getByRole('button', { name: '開始' });
     await startButton.click();
 
-    // Wait for error to be processed (either toast/alert or page stays on filter)
-    // Check for error indication: filter page still visible or error message
-    await page.waitForTimeout(1000);
+    // Wait for toast to appear - use role="alert" and data-testid for reliability
+    const toast = page.getByRole('alert');
+    await expect(toast).toBeVisible({ timeout: 5_000 });
 
+    // Verify toast has error content (the exact message depends on error handling)
+    await expect(toast).toContainText(/unavailable|error/i);
+
+    // Verify we're still on filter page (didn't start quiz)
     const filterPageStillVisible = await page.getByText(/フィルター|Filter/i).isVisible();
     const startButtonStillVisible = await startButton.isVisible();
 
-    // Verify we're still on filter page (didn't start quiz)
+    // Either the filter page is still showing or error is handled
     expect(filterPageStillVisible || startButtonStillVisible).toBe(true);
   });
 });
