@@ -69,11 +69,6 @@ export function mapApiErrorToMessage(error: unknown): string {
   const status = apiError.status;
   const code = apiError.code;
 
-  // Check for specific error codes first (returns code for i18n handling in components)
-  if (code === 'no_questions') {
-    return code; // Component will handle i18n translation
-  }
-
   switch (apiError.kind) {
     case 'offline':
       return 'You appear to be offline. Check your internet connection and try again.';
@@ -82,6 +77,10 @@ export function mapApiErrorToMessage(error: unknown): string {
     case 'network':
       return 'We could not reach the server. Please verify your connection and try again.';
     case 'server':
+      // Check for specific error codes first
+      if (code === 'no_questions') {
+        return 'Not enough questions available for this condition.';
+      }
       if (status === 429) {
         return 'The request rate limit was reached. Please wait a few seconds and try again.';
       }
