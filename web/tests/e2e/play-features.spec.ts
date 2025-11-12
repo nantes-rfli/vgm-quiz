@@ -592,8 +592,8 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     const difficultyRadios = page.locator('input[name="difficulty"]');
     await expect(difficultyRadios).toHaveCount(4); // mixed + easy/normal/hard
 
-    // Find and click the "hard" radio button (use getByLabel for accessibility)
-    await page.getByLabel('むずかしい').check();
+    // Find and click the "hard" radio button by value
+    await page.locator('input[name="difficulty"][value="hard"]').check();
 
     // Click Start button
     await page.getByRole('button', { name: '開始' }).click();
@@ -625,8 +625,8 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     const eraRadios = page.locator('input[name="era"]');
     await expect(eraRadios).toHaveCount(6); // mixed + 80s/90s/00s/10s/20s
 
-    // Click 90s option using accessible label
-    await page.getByLabel('90年代').check();
+    // Click 90s option by value
+    await page.locator('input[name="era"][value="90s"]').check();
 
     // Click Start
     await page.getByRole('button', { name: '開始' }).click();
@@ -687,8 +687,8 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
     // Select multiple series (using checkboxes)
     // Assuming manifest has 'ff' and 'zelda' series
-    await page.getByLabel('ファイナルファンタジー').check();
-    await page.getByLabel('ゼルダの伝説').check();
+    await page.locator('input[type="checkbox"][value="ff"]').check();
+    await page.locator('input[type="checkbox"][value="zelda"]').check();
 
     // Click Start
     await page.getByRole('button', { name: '開始' }).click();
@@ -719,8 +719,8 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await page.goto('/play');
 
     // Select both difficulty and era
-    await page.getByLabel('かんたん').check();
-    await page.getByLabel('80年代').check();
+    await page.locator('input[name="difficulty"][value="easy"]').check();
+    await page.locator('input[name="era"][value="80s"]').check();
 
     // Click Start
     await page.getByRole('button', { name: '開始' }).click();
@@ -742,8 +742,8 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await page.goto('/play');
 
     // Select some filters
-    await page.getByLabel('むずかしい').check();
-    await page.getByLabel('90年代').check();
+    await page.locator('input[name="difficulty"][value="hard"]').check();
+    await page.locator('input[name="era"][value="90s"]').check();
 
     // Click Reset button
     const resetButton = page.getByRole('button', { name: /デフォルト|リセット/i });
@@ -773,8 +773,8 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await page.goto('/play');
 
     // Select a filter combination that results in no questions
-    await page.getByLabel('むずかしい').check();
-    await page.getByLabel('90年代').check();
+    await page.locator('input[name="difficulty"][value="hard"]').check();
+    await page.locator('input[name="era"][value="90s"]').check();
 
     // Click Start
     const startButton = page.getByRole('button', { name: '開始' });
