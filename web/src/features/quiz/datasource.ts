@@ -44,12 +44,16 @@ async function fetchJson<T>(path: string, options: RequestOptions): Promise<T> {
         const errorCode =
           typeof payload === 'object' && payload !== null
             ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ((payload as any).error?.code ?? (payload as any).code)
+              (typeof (payload as any).error === 'string'
+                ? (payload as any).error
+                : ((payload as any).error?.code ?? (payload as any).code))
             : undefined;
         const errorMessage =
           typeof payload === 'object' && payload !== null
             ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ((payload as any).error?.message ?? (payload as any).message)
+              (typeof (payload as any).error === 'string'
+                ? (payload as any).message
+                : ((payload as any).error?.message ?? (payload as any).message))
             : undefined;
 
         const status = response.status;

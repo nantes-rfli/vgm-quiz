@@ -86,7 +86,11 @@ function PlayPageContent() {
 
   const scheduleRetry = React.useCallback(
     (error: ApiError, retryFn: () => void) => {
-      const message = mapApiErrorToMessage(error);
+      let message = mapApiErrorToMessage(error);
+      // Handle specific error codes with i18n
+      if (error.code === 'no_questions') {
+        message = t('error.noQuestions');
+      }
       const wrappedRetry = () => {
         pendingRetryRef.current = null;
         retryFn();
@@ -207,7 +211,12 @@ function PlayPageContent() {
     } catch (e: unknown) {
       if (!isMountedRef.current) return;
       const apiError = ensureApiError(e);
-      safeDispatch({ type: 'ERROR', error: mapApiErrorToMessage(apiError) });
+      let errorMessage = mapApiErrorToMessage(apiError);
+      // Handle specific error codes with i18n
+      if (apiError.code === 'no_questions') {
+        errorMessage = t('error.noQuestions');
+      }
+      safeDispatch({ type: 'ERROR', error: errorMessage });
       scheduleRetry(apiError, () => {
         safeDispatch({ type: 'BOOTING' });
         void bootAndStart(params);

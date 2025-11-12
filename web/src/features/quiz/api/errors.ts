@@ -69,9 +69,9 @@ export function mapApiErrorToMessage(error: unknown): string {
   const status = apiError.status;
   const code = apiError.code;
 
-  // Check for specific error codes first
+  // Check for specific error codes first (returns code for i18n handling in components)
   if (code === 'no_questions') {
-    return 'この条件では問題数が不足しています';
+    return code; // Component will handle i18n translation
   }
 
   switch (apiError.kind) {
