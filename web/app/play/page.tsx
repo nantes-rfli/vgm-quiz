@@ -57,6 +57,16 @@ function PlayPageContent() {
   const router = useRouter();
   const { t } = useI18n();
 
+  // Allow ?autostart=0 query parameter to override the env var
+  const [shouldAutoStart, setShouldAutoStart] = React.useState(AUTO_START);
+  React.useEffect(() => {
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const querystartval = params.get('autostart');
+    if (querystartval === '0') {
+      setShouldAutoStart(false);
+    }
+  }, []);
+
   const isMountedRef = React.useRef(true);
   React.useEffect(() => () => { isMountedRef.current = false; }, []);
 
@@ -121,7 +131,7 @@ function PlayPageContent() {
     return () => window.removeEventListener('online', handleOnline);
   }, [closeToast]);
 
-  const [s, dispatch] = React.useReducer(playReducer, createInitialState(AUTO_START));
+  const [s, dispatch] = React.useReducer(playReducer, createInitialState(shouldAutoStart));
   const {
     phase,
     token,
@@ -225,9 +235,9 @@ function PlayPageContent() {
 
   // bootstrap (autostart mode)
   React.useEffect(() => {
-    if (!AUTO_START) return;
+    if (!shouldAutoStart) return;
     void bootAndStart();
-  }, [bootAndStart]);
+  }, [bootAndStart, shouldAutoStart]);
 
   const onFilterStart = React.useCallback(
     (params: Partial<RoundStartRequest>) => {

@@ -80,7 +80,7 @@ test.describe('Accessibility smoke', () => {
   });
 
   test('FilterSelector has proper labels and grouping', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
     await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
       timeout: 15_000,
     }).catch(() => {
@@ -148,7 +148,7 @@ test.describe('Accessibility smoke', () => {
   });
 
   test('FilterSelector supports keyboard navigation', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
     await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
       timeout: 15_000,
     }).catch(() => {
@@ -190,7 +190,7 @@ test.describe('Accessibility smoke', () => {
   });
 
   test('FilterSelector maintains focus during filter changes', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
     await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
       timeout: 15_000,
     }).catch(() => {
@@ -221,7 +221,7 @@ test.describe('Accessibility smoke', () => {
   });
 
   test('FilterSelector uses proper ARIA associations and fieldset grouping', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
     await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
       timeout: 15_000,
     }).catch(() => {
