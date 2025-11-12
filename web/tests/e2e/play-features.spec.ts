@@ -590,7 +590,7 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
     // Wait for FilterSelector to be visible and select "hard" difficulty
     const difficultyRadios = page.locator('input[name="difficulty"]');
-    await expect(difficultyRadios).toBeDefined();
+    await expect(difficultyRadios).toHaveCount(4); // mixed + easy/normal/hard
 
     // Find and click the "hard" radio button (use getByLabel for accessibility)
     await page.getByLabel('むずかしい').check();
@@ -601,10 +601,8 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     // Wait for question to appear
     await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
 
-    // Verify that difficulty filter was sent in request
-    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
-    expect(capturedRequest).toBeDefined();
-    expect(capturedRequest?.filters?.difficulty).toBe('hard');
+    // Verify that difficulty filter was sent in request (poll from Node context)
+    await expect.poll(() => capturedRequest?.filters?.difficulty, { timeout: 5_000 }).toBe('hard');
   });
 
   test('era filter: 90s selection affects quiz questions', async ({ page, context }) => {
@@ -625,7 +623,7 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
 
     // Wait for era filter options and select "90s"
     const eraRadios = page.locator('input[name="era"]');
-    await expect(eraRadios).toBeDefined();
+    await expect(eraRadios).toHaveCount(6); // mixed + 80s/90s/00s/10s/20s
 
     // Click 90s option using accessible label
     await page.getByLabel('90年代').check();
@@ -633,13 +631,37 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     // Click Start
     await page.getByRole('button', { name: '開始' }).click();
 
-    // Wait for question
+    // Wait for first question
     await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
 
-    // Verify era filter was sent
-    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
-    expect(capturedRequest).toBeDefined();
-    expect(capturedRequest?.filters?.era).toBe('90s');
+    // Verify era filter was sent to API
+    await expect.poll(() => capturedRequest?.filters?.era, { timeout: 5_000 }).toBe('90s');
+
+    // Complete the quiz by answering all questions with first choice
+    for (let i = 0; i < 10; i++) {
+      const choiceButtons = page.locator('[data-testid^="choice-"]');
+      await choiceButtons.first().click();
+      const submitButton = page.getByRole('button', { name: 'Answer (Enter)' });
+      await expect(submitButton).toBeEnabled();
+      await submitButton.click();
+
+      // Wait for reveal
+      await expect(page.getByRole('heading', { name: 'Listen / Watch' })).toBeVisible();
+
+      if (i < 9) {
+        // Move to next question (not last)
+        await page.getByTestId('reveal-next').click();
+        await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 10_000 });
+      }
+    }
+
+    // Wait for result page navigation
+    await page.waitForURL('**/result', { timeout: 10_000 });
+
+    // Verify that result page is showing
+    await expect(page).toHaveURL(/\/result$/);
+    // Check that we can see result content (filter would affect which questions appeared)
+    await expect(page.getByRole('heading', { name: /Result/i })).toBeVisible();
   });
 
   test('series filter: multiple selection sends array to API', async ({ page, context }) => {
@@ -670,11 +692,9 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
 
     // Verify series array was sent (sorted)
-    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
-    expect(capturedRequest).toBeDefined();
-    expect(Array.isArray(capturedRequest?.filters?.series)).toBe(true);
-    expect(capturedRequest?.filters?.series).toContain('ff');
-    expect(capturedRequest?.filters?.series).toContain('zelda');
+    await expect.poll(() => capturedRequest?.filters?.series, { timeout: 5_000 }).toEqual(
+      expect.arrayContaining(['ff', 'zelda'])
+    );
   });
 
   test('combined filters: difficulty + era send both to API', async ({ page, context }) => {
@@ -703,11 +723,14 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     // Wait for question
     await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
 
-    // Verify both filters were sent
-    await page.waitForFunction(() => capturedRequest !== null, { timeout: 5_000 });
-    expect(capturedRequest).toBeDefined();
-    expect(capturedRequest?.filters?.difficulty).toBe('easy');
-    expect(capturedRequest?.filters?.era).toBe('80s');
+    // Verify both filters were sent (use expect.poll from Node context)
+    await expect.poll(
+      async () => ({
+        difficulty: capturedRequest?.filters?.difficulty,
+        era: capturedRequest?.filters?.era,
+      }),
+      { timeout: 5_000 }
+    ).toEqual({ difficulty: 'easy', era: '80s' });
   });
 
   test('reset button restores mixed (default) filters', async ({ page }) => {
@@ -730,9 +753,16 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
   });
 
   test('error handling: no_questions error gracefully handled', async ({ page, context }) => {
-    // Intercept /v1/rounds/start and return 503 error
+    // Intercept /v1/rounds/start and return 503 error with no_questions reason
     await context.route('**/v1/rounds/start', (route) => {
-      route.abort('blockedbyclient');
+      route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'no_questions',
+          message: 'この条件では問題数が不足しています',
+        }),
+      });
     });
 
     await page.goto('/play');
@@ -744,15 +774,14 @@ test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
     const startButton = page.getByRole('button', { name: '開始' });
     await startButton.click();
 
-    // Wait a bit for the error to be processed
-    await page.waitForTimeout(2000);
+    // Wait for error to be processed (either toast/alert or page stays on filter)
+    // Check for error indication: filter page still visible or error message
+    await page.waitForTimeout(1000);
 
-    // The filter page should still be visible (quiz didn't start)
-    // Or an error message should appear
     const filterPageStillVisible = await page.getByText(/フィルター|Filter/i).isVisible();
     const startButtonStillVisible = await startButton.isVisible();
 
-    // Either the filter page is still showing, or there's an error indication
+    // Verify we're still on filter page (didn't start quiz)
     expect(filterPageStillVisible || startButtonStillVisible).toBe(true);
   });
 });
