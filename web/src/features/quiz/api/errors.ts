@@ -67,6 +67,12 @@ export function ensureApiError(error: unknown, fallback: string = 'Unexpected er
 export function mapApiErrorToMessage(error: unknown): string {
   const apiError = ensureApiError(error);
   const status = apiError.status;
+  const code = apiError.code;
+
+  // Check for specific error codes first
+  if (code === 'no_questions') {
+    return 'この条件では問題数が不足しています';
+  }
 
   switch (apiError.kind) {
     case 'offline':

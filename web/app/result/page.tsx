@@ -11,16 +11,19 @@ import LocaleSwitcher from '@/src/components/LocaleSwitcher';
 import type { Reveal } from '@/src/features/quiz/api/types';
 import { msToSeconds } from '@/src/lib/timeUtils';
 import { getOutcomeDisplay } from '@/src/lib/outcomeUtils';
+import { loadAppliedFilters } from '@/src/lib/appliedFiltersStorage';
 
 export default function ResultPage() {
   const { t } = useI18n();
   const [ready, setReady] = React.useState(false);
   const [summary, setSummary] = React.useState<ResultSummary | null>(null);
   const [reveals, setReveals] = React.useState<Reveal[]>([]);
+  const [appliedFilters, setAppliedFilters] = React.useState<ReturnType<typeof loadAppliedFilters>>(undefined);
 
   React.useEffect(() => {
     setSummary(loadResult() ?? null);
     setReveals(loadReveals<Reveal>());
+    setAppliedFilters(loadAppliedFilters());
     setReady(true);
   }, []);
 
@@ -112,6 +115,35 @@ export default function ResultPage() {
               ) : null}
             </dl>
           </div>
+
+          {/* Applied Filters Display */}
+          {appliedFilters && (appliedFilters.difficulty || appliedFilters.era || (appliedFilters.series && appliedFilters.series.length > 0)) && (
+            <div className="mt-6 pt-6 border-t border-border">
+              <h3 className="text-sm font-semibold mb-3 text-card-foreground">{t('result.appliedFilters')}</h3>
+              <dl data-testid="applied-filters" className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                {appliedFilters.difficulty && appliedFilters.difficulty !== 'mixed' && (
+                  <div className="flex gap-2">
+                    <dt className="font-medium">{t('filter.difficulty.label')}:</dt>
+                    <dd data-testid="applied-filter-difficulty">{t(`filter.difficulty.${appliedFilters.difficulty}`)}</dd>
+                  </div>
+                )}
+                {appliedFilters.era && appliedFilters.era !== 'mixed' && (
+                  <div className="flex gap-2">
+                    <dt className="font-medium">{t('filter.era.label')}:</dt>
+                    <dd data-testid="applied-filter-era">{t(`filter.era.${appliedFilters.era}`)}</dd>
+                  </div>
+                )}
+                {appliedFilters.series && appliedFilters.series.length > 0 && (
+                  <div className="flex gap-2">
+                    <dt className="font-medium">{t('filter.series.label')}:</dt>
+                    <dd data-testid="applied-filter-series">
+                      {appliedFilters.series.map((s) => t(`filter.series.${s}`)).join(', ')}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          )}
         </section>
 
         <div className="mt-4 text-right">

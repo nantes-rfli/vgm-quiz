@@ -14,6 +14,7 @@ import FilterSelector from '@/src/components/FilterSelector';
 import {
   clearReveals,
 } from '@/src/lib/resultStorage';
+import { saveAppliedFilters } from '@/src/lib/appliedFiltersStorage';
 import { useI18n } from '@/src/lib/i18n';
 import { FilterProvider } from '@/src/lib/filter-context';
 import type { Phase1StartResponse } from '@/src/features/quiz/api/types';
@@ -158,6 +159,11 @@ function PlayPageContent() {
           } else {
             throw apiError;
           }
+        }
+
+        // Save applied filters to sessionStorage for result page display
+        if (params) {
+          saveAppliedFilters(params);
         }
 
       if (!isMountedRef.current) return;
