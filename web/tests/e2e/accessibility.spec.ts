@@ -4,21 +4,21 @@ import AxeBuilder from '@axe-core/playwright';
 const QUESTION_PROMPT_TIMEOUT = 60_000;
 
 async function loadPlayPage(page: import('@playwright/test').Page) {
-  await page.goto('/play');
+  await page.goto('/play?autostart=0');
   await page.waitForFunction(() => (window as unknown as { __MSW_READY__?: boolean }).__MSW_READY__ === true, {
     timeout: 15_000,
   }).catch(() => {
     // continue even if the flag is not exposed (server mode)
   });
-  const startButton = page.getByRole('button', { name: 'Start' });
-  try {
-    await startButton.waitFor({ timeout: 5000 });
-    if (await startButton.isVisible()) {
-      await startButton.click();
-    }
-  } catch {
-    // auto-start is enabled; ignore if button never appears
-  }
+
+  // With autostart disabled we explicitly kick off the round once MSW is ready
+  const filterTitle = page.getByTestId('filter-selector-title');
+  await filterTitle.waitFor({ timeout: 10_000 });
+
+  const startButton = page.getByTestId('filter-start-button');
+  await startButton.waitFor({ timeout: 10_000 });
+  await startButton.click();
+
   await page.getByTestId('question-prompt').waitFor({ timeout: QUESTION_PROMPT_TIMEOUT });
 }
 
