@@ -23,8 +23,7 @@ async function loadPlayPage(page: import('@playwright/test').Page) {
 }
 
 test.describe('Accessibility smoke', () => {
-  // Run serially to avoid browser/page cleanup issues when running in parallel
-  test.serial('play page has no WCAG AA violations', async ({ page }) => {
+  test('play page has no WCAG AA violations', async ({ page }) => {
     await loadPlayPage(page);
 
     const results = await new AxeBuilder({ page })
