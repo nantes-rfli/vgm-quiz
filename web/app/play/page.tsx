@@ -228,8 +228,10 @@ function PlayPageContent() {
     } catch (e: unknown) {
       if (!isMountedRef.current) return;
       const apiError = ensureApiError(e);
-      // Use language-agnostic message for ERROR action
-      const errorMessage = mapApiErrorToMessage(apiError);
+      let errorMessage = mapApiErrorToMessage(apiError);
+      if (apiError.code === 'no_questions') {
+        errorMessage = t('error.noQuestions');
+      }
       safeDispatch({ type: 'ERROR', error: errorMessage });
       scheduleRetry(apiError, () => {
         safeDispatch({ type: 'BOOTING' });
@@ -237,7 +239,7 @@ function PlayPageContent() {
       });
     }
     },
-    [safeDispatch, closeToast, scheduleRetry],
+    [safeDispatch, closeToast, scheduleRetry, t],
   );
 
   // bootstrap (autostart mode)

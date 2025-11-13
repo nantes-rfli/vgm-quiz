@@ -64,7 +64,8 @@ async function waitForStartRequest(page: Page, trigger: () => Promise<void>) {
 }
 
 async function completeQuizAndNavigateToResult(page: Page) {
-  for (let i = 0; i < 10; i += 1) {
+  const maxQuestions = 20;
+  for (let i = 0; i < maxQuestions; i += 1) {
     await page.getByTestId('question-prompt').waitFor({ timeout: 60_000 });
     const choiceButtons = page.locator('[data-testid^="choice-"]');
     await choiceButtons.first().click();
@@ -73,8 +74,18 @@ async function completeQuizAndNavigateToResult(page: Page) {
     const revealNext = page.getByTestId('reveal-next');
     await expect(revealNext).toBeVisible({ timeout: 10_000 });
     await revealNext.click();
+
+    const reachedResult = await Promise.race([
+      page.waitForURL('**/result', { timeout: 5_000 }).then(() => true).catch(() => false),
+      page.getByTestId('question-prompt').waitFor({ timeout: 5_000 }).then(() => false).catch(() => false),
+    ]);
+
+    if (reachedResult) {
+      await page.waitForURL('**/result', { timeout: 30_000 });
+      return;
+    }
   }
-  await page.waitForURL('**/result', { timeout: 30_000 });
+  throw new Error('Result page was not reached within the expected number of questions');
 }
 
 async function enableStartErrorInterceptor(page: Page) {
