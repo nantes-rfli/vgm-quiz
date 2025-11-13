@@ -22,9 +22,9 @@ async function loadPlayPage(page: import('@playwright/test').Page) {
   await page.getByTestId('question-prompt').waitFor({ timeout: QUESTION_PROMPT_TIMEOUT });
 }
 
-test.describe('Accessibility smoke', () => {
-  // Run serially to avoid browser/page cleanup issues when running in parallel
-  test.serial('play page has no WCAG AA violations', async ({ page }) => {
+// Run play page test serially to avoid browser/page cleanup issues when running in parallel
+test.describe.serial('Play page accessibility (serial)', () => {
+  test('play page has no WCAG AA violations', async ({ page }) => {
     await loadPlayPage(page);
 
     const results = await new AxeBuilder({ page })
@@ -45,7 +45,9 @@ test.describe('Accessibility smoke', () => {
     expect.soft(unexpectedIncomplete, 'axe should finish scanning').toHaveLength(0);
     expect(results.violations, `Found accessibility issues on /play: ${JSON.stringify(results.violations, null, 2)}`).toHaveLength(0);
   });
+});
 
+test.describe('Accessibility smoke (parallel)', () => {
   test('result page has no WCAG AA violations', async ({ page }) => {
     await loadPlayPage(page);
 
