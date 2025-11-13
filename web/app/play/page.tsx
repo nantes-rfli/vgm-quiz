@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ErrorBanner from '@/src/components/ErrorBanner';
 import Progress from '@/src/components/Progress';
@@ -484,10 +484,20 @@ function PlayPageContent() {
   );
 }
 
+function PlayPageSuspenseFallback() {
+  return (
+    <main className="p-6">
+      <div className="max-w-2xl mx-auto text-muted-foreground">Loading quiz experience...</div>
+    </main>
+  );
+}
+
 export default function PlayPage() {
   return (
-    <FilterProvider>
-      <PlayPageContent />
-    </FilterProvider>
+    <Suspense fallback={<PlayPageSuspenseFallback />}>
+      <FilterProvider>
+        <PlayPageContent />
+      </FilterProvider>
+    </Suspense>
   );
 }
