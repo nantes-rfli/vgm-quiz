@@ -14,7 +14,6 @@ import FilterSelector from '@/src/components/FilterSelector';
 import {
   clearReveals,
 } from '@/src/lib/resultStorage';
-import { saveOrClearAppliedFilters } from '@/src/lib/appliedFiltersStorage';
 import { useI18n } from '@/src/lib/i18n';
 import { FilterProvider } from '@/src/lib/filter-context';
 import type { Phase1StartResponse } from '@/src/features/quiz/api/types';
@@ -76,6 +75,7 @@ function PlayPageContent() {
 
   const [toast, setToast] = React.useState<ToastState | null>(null);
   const pendingRetryRef = React.useRef<(() => void) | null>(null);
+  const activeFiltersRef = React.useRef<Partial<RoundStartRequest> | undefined>(undefined);
 
   const showToast = React.useCallback(
     (
@@ -163,6 +163,7 @@ function PlayPageContent() {
 
   const bootAndStart = React.useCallback(
     async (params?: Partial<RoundStartRequest>) => {
+      activeFiltersRef.current = params;
       try {
         await waitMockReady({ timeoutMs: 2000 });
         mark('quiz:bootstrap-ready');
@@ -181,8 +182,7 @@ function PlayPageContent() {
           }
         }
 
-        // Save applied filters to sessionStorage for result page display
-        saveOrClearAppliedFilters(params);
+        // Filters are persisted when a run successfully completes (see useAnswerProcessor)
 
       if (!isMountedRef.current) return;
 
@@ -272,6 +272,7 @@ function PlayPageContent() {
     startedAt,
     dispatch: safeDispatch,
     onError: scheduleRetry,
+    getActiveFilters: () => activeFiltersRef.current,
   });
 
   const onSelectChoice = React.useCallback(

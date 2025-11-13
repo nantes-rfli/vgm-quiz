@@ -5,6 +5,8 @@ import { ApiError, ensureApiError, mapApiErrorToMessage } from './api/errors';
 import { enrichReveal, toQuestionRecord } from './lib/reveal';
 import { appendReveal } from '@/src/lib/resultStorage';
 import { saveResult } from '@/src/lib/resultStorage';
+import { saveOrClearAppliedFilters } from '@/src/lib/appliedFiltersStorage';
+import type { RoundStartRequest } from './api/manifest';
 import { computePoints, rollupTally, composeSummary } from '@/src/lib/scoring';
 import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
 import { mark } from '@/src/lib/perfMarks';
@@ -28,6 +30,7 @@ type ProcessAnswerParams = {
   startedAt?: string;
   dispatch: (action: PlayAction) => void;
   onError?: (error: ApiError, retry: () => void) => void;
+  getActiveFilters?: () => Partial<RoundStartRequest> | undefined;
 };
 
 /**
@@ -48,6 +51,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
     startedAt,
     dispatch,
     onError,
+    getActiveFilters,
   } = params;
 
   return useCallback(
@@ -148,6 +152,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
           const finishedAt = new Date().toISOString();
           const totalQuestions = progress?.total ?? updatedHistory.length;
           const durationMs = startedAt ? Date.parse(finishedAt) - Date.parse(startedAt) : undefined;
+          saveOrClearAppliedFilters(getActiveFilters?.());
           saveResult(
             composeSummary({
               tally: updatedTally,
@@ -204,6 +209,6 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         onError?.(apiError, retry);
       }
     },
-    [phase, continuationToken, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt, onError]
+    [phase, continuationToken, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt, onError, getActiveFilters]
   );
 }
