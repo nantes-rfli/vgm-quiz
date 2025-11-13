@@ -135,9 +135,12 @@ function PlayPageContent() {
     return () => window.removeEventListener('online', handleOnline);
   }, [closeToast]);
 
-  // Always initialize with started: false, let bootstrap effect control when to start
-  // This avoids race conditions with query params that might not be available on first render
-  const [s, dispatch] = React.useReducer(playReducer, createInitialState(false));
+  // Initialize reducer based on resolved auto-start flag so manual CTA stays hidden when auto-run is enabled
+  const [s, dispatch] = React.useReducer(
+    playReducer,
+    queryAutoStartValue,
+    (autoStart) => createInitialState(Boolean(autoStart))
+  );
   const {
     phase,
     token,
