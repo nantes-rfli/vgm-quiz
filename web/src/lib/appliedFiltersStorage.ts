@@ -30,6 +30,14 @@ export function loadAppliedFilters(): AppliedFilters | undefined {
   }
 }
 
+export function saveOrClearAppliedFilters(params?: Partial<RoundStartRequest>): void {
+  if (!params || Object.values(params).every((value) => value === undefined || (Array.isArray(value) && value.length === 0))) {
+    clearAppliedFilters();
+    return;
+  }
+  saveAppliedFilters(params);
+}
+
 export function clearAppliedFilters(): void {
   if (typeof window === 'undefined') return;
   try {

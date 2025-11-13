@@ -14,7 +14,7 @@ import FilterSelector from '@/src/components/FilterSelector';
 import {
   clearReveals,
 } from '@/src/lib/resultStorage';
-import { saveAppliedFilters } from '@/src/lib/appliedFiltersStorage';
+import { saveOrClearAppliedFilters } from '@/src/lib/appliedFiltersStorage';
 import { useI18n } from '@/src/lib/i18n';
 import { FilterProvider } from '@/src/lib/filter-context';
 import type { Phase1StartResponse } from '@/src/features/quiz/api/types';
@@ -182,9 +182,7 @@ function PlayPageContent() {
         }
 
         // Save applied filters to sessionStorage for result page display
-        if (params) {
-          saveAppliedFilters(params);
-        }
+        saveOrClearAppliedFilters(params);
 
       if (!isMountedRef.current) return;
 
@@ -242,8 +240,9 @@ function PlayPageContent() {
   // bootstrap (autostart mode)
   React.useEffect(() => {
     if (!queryAutoStartValue) return;
+    safeDispatch({ type: 'BOOTING' });
     void bootAndStart();
-  }, [bootAndStart, queryAutoStartValue]);
+  }, [bootAndStart, queryAutoStartValue, safeDispatch]);
 
   const onFilterStart = React.useCallback(
     (params: Partial<RoundStartRequest>) => {
