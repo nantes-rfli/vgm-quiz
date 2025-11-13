@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ErrorBanner from '@/src/components/ErrorBanner';
 import Progress from '@/src/components/Progress';
 import QuestionCard from '@/src/components/QuestionCard';
@@ -55,17 +55,21 @@ const IS_MOCK = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_MOC
 
 function PlayPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useI18n();
 
-  // Allow ?autostart=0 query parameter to override the env var
-  const [shouldAutoStart, setShouldAutoStart] = React.useState(AUTO_START);
-  React.useEffect(() => {
-    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-    const querystartval = params.get('autostart');
-    if (querystartval === '0') {
-      setShouldAutoStart(false);
+  // Compute shouldAutoStart directly from query params (no state needed)
+  // This avoids race conditions with state updates
+  const queryAutoStartValue = React.useMemo(() => {
+    try {
+      const queryAutoStart = searchParams?.get('autostart');
+      if (queryAutoStart === '0') return false;
+      if (queryAutoStart === '1') return true;
+    } catch {
+      // Ignore errors reading query params
     }
-  }, []);
+    return AUTO_START; // Default to env var
+  }, [searchParams]);
 
   const isMountedRef = React.useRef(true);
   React.useEffect(() => () => { isMountedRef.current = false; }, []);
@@ -131,7 +135,9 @@ function PlayPageContent() {
     return () => window.removeEventListener('online', handleOnline);
   }, [closeToast]);
 
-  const [s, dispatch] = React.useReducer(playReducer, createInitialState(shouldAutoStart));
+  // Always initialize with started: false, let bootstrap effect control when to start
+  // This avoids race conditions with query params that might not be available on first render
+  const [s, dispatch] = React.useReducer(playReducer, createInitialState(false));
   const {
     phase,
     token,
@@ -235,9 +241,9 @@ function PlayPageContent() {
 
   // bootstrap (autostart mode)
   React.useEffect(() => {
-    if (!shouldAutoStart) return;
+    if (!queryAutoStartValue) return;
     void bootAndStart();
-  }, [bootAndStart, shouldAutoStart]);
+  }, [bootAndStart, queryAutoStartValue]);
 
   const onFilterStart = React.useCallback(
     (params: Partial<RoundStartRequest>) => {
@@ -396,7 +402,7 @@ function PlayPageContent() {
           </div>
 
           {!s.started ? (
-            !AUTO_START ? (
+            !queryAutoStartValue ? (
               <FilterSelector onStart={onFilterStart} disabled={s.loading} />
             ) : (
               <div className="bg-white rounded-2xl shadow p-6 text-center">
