@@ -1,15 +1,36 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { ANSWERS } from '../../mocks/fixtures/rounds/answers';
 
 const QUESTION_IDS = Object.keys(ANSWERS).sort();
 
+async function ensureQuizStarted(page: Page) {
+  const filterTitle = page.getByTestId('filter-selector-title');
+  const filterVisible = await filterTitle.isVisible({ timeout: 500 }).catch(() => false);
+  if (filterVisible) {
+    const startButton = page.getByTestId('filter-start-button');
+    await startButton.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(startButton).toBeEnabled({ timeout: 10_000 });
+    await startButton.click();
+    return;
+  }
+
+  const ctaButton = page.getByRole('button', { name: /^Start$/i }).first();
+  const ctaVisible = await ctaButton.isVisible({ timeout: 500 }).catch(() => false);
+  if (ctaVisible) {
+    await expect(ctaButton).toBeEnabled({ timeout: 5_000 });
+    await ctaButton.click();
+  }
+}
+
 test.describe('Smoke: complete quiz and reach result', () => {
   test('user can finish a round and see the result summary', async ({ page }) => {
     await page.goto('/play');
+    await ensureQuizStarted(page);
     const questionPrompt = page.getByTestId('question-prompt');
     const retryButton = page.getByRole('button', { name: /Retry/i });
 
     const waitForQuestion = async (timeout: number, questionId: string) => {
+      await ensureQuizStarted(page);
       const deadline = Date.now() + timeout;
       while (Date.now() < deadline) {
         try {
