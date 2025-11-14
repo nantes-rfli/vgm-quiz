@@ -33,6 +33,17 @@ async function waitForQuestion(page: Page, index: number) {
   const timeout = index === 0 ? 60_000 : 15_000;
   const deadline = Date.now() + timeout;
 
+  if (index === 0) {
+    const filterTitle = page.getByTestId('filter-selector-title');
+    const filterVisible = await filterTitle.isVisible({ timeout: 1000 }).catch(() => false);
+    if (filterVisible) {
+      const startButton = page.getByTestId('filter-start-button');
+      await startButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(startButton).toBeEnabled({ timeout: 10_000 });
+      await startButton.click();
+    }
+  }
+
   while (Date.now() < deadline) {
     try {
       await questionPrompt.waitFor({ state: 'visible', timeout: 500 });
@@ -75,14 +86,12 @@ async function completeQuizAndNavigateToResult(page: Page) {
     await expect(revealNext).toBeVisible({ timeout: 10_000 });
     await revealNext.click();
 
-    const reachedResult = await Promise.race([
-      page.waitForURL('**/result', { timeout: 5_000 }).then(() => true).catch(() => false),
-      page.getByTestId('question-prompt').waitFor({ timeout: 5_000 }).then(() => false).catch(() => false),
-    ]);
-
-    if (reachedResult) {
+    try {
+      await page.waitForURL('**/result', { timeout: 5_000 });
       await page.waitForURL('**/result', { timeout: 30_000 });
       return;
+    } catch {
+      // still in quiz, continue loop
     }
   }
   throw new Error('Result page was not reached within the expected number of questions');
