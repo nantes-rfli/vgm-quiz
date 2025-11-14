@@ -42,6 +42,13 @@ async function waitForQuestion(page: Page, index: number) {
       await expect(startButton).toBeEnabled({ timeout: 10_000 });
       await startButton.click();
     }
+  } else {
+    const ctaStartButton = page.getByRole('button', { name: /Start/i }).first();
+    const ctaVisible = await ctaStartButton.isVisible({ timeout: 500 }).catch(() => false);
+    if (ctaVisible) {
+      await expect(ctaStartButton).toBeEnabled({ timeout: 5_000 });
+      await ctaStartButton.click();
+    }
   }
 
   while (Date.now() < deadline) {
@@ -143,7 +150,7 @@ async function enableStartErrorInterceptor(page: Page) {
 test.describe('Play page features', () => {
 
   test('inline playback toggle persists across reload', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=1');
 
     const toggle = page.getByRole('button', { name: 'Inline playback' });
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');
