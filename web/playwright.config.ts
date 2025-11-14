@@ -19,6 +19,7 @@ export default defineConfig({
         cwd: './',
         env: {
           NEXT_PUBLIC_API_MOCK: '1',
+          NEXT_PUBLIC_PLAY_AUTOSTART: '0',
         },
         port: 3000,
         reuseExistingServer: !process.env.CI,
