@@ -93,12 +93,14 @@ async function completeQuizAndNavigateToResult(page: Page) {
     await expect(revealNext).toBeVisible({ timeout: 10_000 });
     await revealNext.click();
 
-    try {
-      await page.waitForURL('**/result', { timeout: 5_000 });
+    const reachedResult = await Promise.race([
+      page.waitForURL('**/result', { timeout: 5_000 }).then(() => true).catch(() => false),
+      page.waitForSelector('[data-testid="question-prompt"]', { timeout: 5_000, state: 'visible' }).then(() => false).catch(() => false),
+    ]);
+
+    if (reachedResult) {
       await page.waitForURL('**/result', { timeout: 30_000 });
       return;
-    } catch {
-      // still in quiz, continue loop
     }
   }
   throw new Error('Result page was not reached within the expected number of questions');
