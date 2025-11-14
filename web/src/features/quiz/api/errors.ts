@@ -67,6 +67,7 @@ export function ensureApiError(error: unknown, fallback: string = 'Unexpected er
 export function mapApiErrorToMessage(error: unknown): string {
   const apiError = ensureApiError(error);
   const status = apiError.status;
+  const code = apiError.code;
 
   switch (apiError.kind) {
     case 'offline':
@@ -76,6 +77,10 @@ export function mapApiErrorToMessage(error: unknown): string {
     case 'network':
       return 'We could not reach the server. Please verify your connection and try again.';
     case 'server':
+      // Check for specific error codes first
+      if (code === 'no_questions') {
+        return 'Not enough questions available for this condition.';
+      }
       if (status === 429) {
         return 'The request rate limit was reached. Please wait a few seconds and try again.';
       }

@@ -122,17 +122,17 @@ export default function FilterSelector({
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-card rounded-2xl shadow p-6 mb-4 border border-border">
-        <h2 className="text-2xl font-semibold mb-2 text-card-foreground">
+        <h2 data-testid="filter-selector-title" className="text-2xl font-semibold mb-2 text-card-foreground">
           {t('filter.title')}
         </h2>
         <p className="text-sm text-muted-foreground mb-6">{t('filter.description')}</p>
 
         {/* Difficulty Section */}
-        <div className="mb-8">
-          <label className="block text-lg font-medium mb-3 text-card-foreground">
+        <fieldset className="mb-8">
+          <legend id="difficulty-legend" className="block text-lg font-medium mb-3 text-card-foreground">
             {t('filter.difficulty.label')}
-          </label>
-          <div className="flex gap-3 flex-wrap">
+          </legend>
+          <div className="flex gap-3 flex-wrap" role="group" aria-labelledby="difficulty-legend">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -141,6 +141,7 @@ export default function FilterSelector({
                 checked={!filters.difficulty || filters.difficulty === 'mixed'}
                 onChange={() => handleDifficultyChange('mixed')}
                 disabled={disabled || isLoading}
+                aria-label={t('filter.difficulty.mixed')}
                 className="w-4 h-4 accent-primary"
               />
               <span className="text-sm">{t('filter.difficulty.mixed')}</span>
@@ -154,6 +155,7 @@ export default function FilterSelector({
                   checked={filters.difficulty === d}
                   onChange={() => handleDifficultyChange(d as Difficulty)}
                   disabled={disabled || isLoading}
+                  aria-label={t(`filter.difficulty.${String(d)}`)}
                   className="w-4 h-4 accent-primary"
                 />
                 <span className="text-sm">
@@ -162,14 +164,14 @@ export default function FilterSelector({
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Era Section */}
-        <div className="mb-8">
-          <label className="block text-lg font-medium mb-3 text-card-foreground">
+        <fieldset className="mb-8">
+          <legend id="era-legend" className="block text-lg font-medium mb-3 text-card-foreground">
             {t('filter.era.label')}
-          </label>
-          <div className="flex gap-3 flex-wrap">
+          </legend>
+          <div className="flex gap-3 flex-wrap" role="group" aria-labelledby="era-legend">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -178,6 +180,7 @@ export default function FilterSelector({
                 checked={!filters.era || filters.era === 'mixed'}
                 onChange={() => handleEraChange('mixed')}
                 disabled={disabled || isLoading}
+                aria-label={t('filter.era.mixed')}
                 className="w-4 h-4 accent-primary"
               />
               <span className="text-sm">{t('filter.era.mixed')}</span>
@@ -191,26 +194,28 @@ export default function FilterSelector({
                   checked={filters.era === e}
                   onChange={() => handleEraChange(e as Era)}
                   disabled={disabled || isLoading}
+                  aria-label={t(`filter.era.${String(e)}`)}
                   className="w-4 h-4 accent-primary"
                 />
                 <span className="text-sm">{t(`filter.era.${String(e)}`)}</span>
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Series Section */}
-        <div className="mb-8">
-          <label className="block text-lg font-medium mb-3 text-card-foreground">
+        <fieldset className="mb-8">
+          <legend id="series-legend" className="block text-lg font-medium mb-3 text-card-foreground">
             {t('filter.series.label')}
-          </label>
-          <div className="flex gap-3 flex-wrap">
+          </legend>
+          <div className="flex gap-3 flex-wrap" role="group" aria-labelledby="series-legend">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.series.length === 0}
                 onChange={() => setSeries([])}
                 disabled={disabled || isLoading}
+                aria-label={t('filter.series.mixed')}
                 className="w-4 h-4 accent-primary"
               />
               <span className="text-sm">{t('filter.series.mixed')}</span>
@@ -223,13 +228,14 @@ export default function FilterSelector({
                   checked={filters.series.includes(s)}
                   onChange={() => handleSeriesToggle(s)}
                   disabled={disabled || isLoading}
+                  aria-label={t(`filter.series.${String(s)}`)}
                   className="w-4 h-4 accent-primary"
                 />
                 <span className="text-sm">{t(`filter.series.${String(s)}`)}</span>
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Preset Button */}
         <div className="mb-6">
@@ -237,6 +243,7 @@ export default function FilterSelector({
             type="button"
             onClick={handleReset}
             disabled={disabled || isLoading || isDefault()}
+            data-testid="filter-reset-button"
             className="px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {t('filter.preset.daily')}
@@ -248,6 +255,7 @@ export default function FilterSelector({
           type="button"
           onClick={handleStart}
           disabled={disabled || isLoading}
+          data-testid="filter-start-button"
           className="w-full px-4 py-3 font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? '...' : t('filter.start')}

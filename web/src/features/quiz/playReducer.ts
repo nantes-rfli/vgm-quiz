@@ -99,6 +99,7 @@ export function playReducer(state: PlayState, action: PlayAction): PlayState {
         phase: hasQuestion ? 'question' : state.phase,
         queuedNext: undefined,
         deadline: nextDeadline ?? state.deadline,
+        started: hasQuestion ? state.started : false,
       };
     }
 

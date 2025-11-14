@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ErrorBanner from '@/src/components/ErrorBanner';
 import Progress from '@/src/components/Progress';
 import QuestionCard from '@/src/components/QuestionCard';
@@ -54,13 +54,28 @@ const IS_MOCK = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_MOC
 
 function PlayPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useI18n();
+
+  // Compute shouldAutoStart directly from query params (no state needed)
+  // This avoids race conditions with state updates
+  const queryAutoStartValue = React.useMemo(() => {
+    try {
+      const queryAutoStart = searchParams?.get('autostart');
+      if (queryAutoStart === '0') return false;
+      if (queryAutoStart === '1') return true;
+    } catch {
+      // Ignore errors reading query params
+    }
+    return AUTO_START; // Default to env var
+  }, [searchParams]);
 
   const isMountedRef = React.useRef(true);
   React.useEffect(() => () => { isMountedRef.current = false; }, []);
 
   const [toast, setToast] = React.useState<ToastState | null>(null);
   const pendingRetryRef = React.useRef<(() => void) | null>(null);
+  const activeFiltersRef = React.useRef<Partial<RoundStartRequest> | undefined>(undefined);
 
   const showToast = React.useCallback(
     (
@@ -85,7 +100,11 @@ function PlayPageContent() {
 
   const scheduleRetry = React.useCallback(
     (error: ApiError, retryFn: () => void) => {
-      const message = mapApiErrorToMessage(error);
+      let message = mapApiErrorToMessage(error);
+      // Handle specific error codes with i18n
+      if (error.code === 'no_questions') {
+        message = t('error.noQuestions');
+      }
       const wrappedRetry = () => {
         pendingRetryRef.current = null;
         retryFn();
@@ -116,7 +135,12 @@ function PlayPageContent() {
     return () => window.removeEventListener('online', handleOnline);
   }, [closeToast]);
 
-  const [s, dispatch] = React.useReducer(playReducer, createInitialState(AUTO_START));
+  // Initialize reducer based on resolved auto-start flag so manual CTA stays hidden when auto-run is enabled
+  const [s, dispatch] = React.useReducer(
+    playReducer,
+    queryAutoStartValue,
+    (autoStart) => createInitialState(Boolean(autoStart))
+  );
   const {
     phase,
     token,
@@ -142,6 +166,7 @@ function PlayPageContent() {
 
   const bootAndStart = React.useCallback(
     async (params?: Partial<RoundStartRequest>) => {
+      activeFiltersRef.current = params;
       try {
         await waitMockReady({ timeoutMs: 2000 });
         mark('quiz:bootstrap-ready');
@@ -159,6 +184,8 @@ function PlayPageContent() {
             throw apiError;
           }
         }
+
+        // Filters are persisted when a run successfully completes (see useAnswerProcessor)
 
       if (!isMountedRef.current) return;
 
@@ -201,21 +228,26 @@ function PlayPageContent() {
     } catch (e: unknown) {
       if (!isMountedRef.current) return;
       const apiError = ensureApiError(e);
-      safeDispatch({ type: 'ERROR', error: mapApiErrorToMessage(apiError) });
+      let errorMessage = mapApiErrorToMessage(apiError);
+      if (apiError.code === 'no_questions') {
+        errorMessage = t('error.noQuestions');
+      }
+      safeDispatch({ type: 'ERROR', error: errorMessage });
       scheduleRetry(apiError, () => {
         safeDispatch({ type: 'BOOTING' });
         void bootAndStart(params);
       });
     }
     },
-    [safeDispatch, closeToast, scheduleRetry],
+    [safeDispatch, closeToast, scheduleRetry, t],
   );
 
   // bootstrap (autostart mode)
   React.useEffect(() => {
-    if (!AUTO_START) return;
+    if (!queryAutoStartValue) return;
+    safeDispatch({ type: 'BOOTING' });
     void bootAndStart();
-  }, [bootAndStart]);
+  }, [bootAndStart, queryAutoStartValue, safeDispatch]);
 
   const onFilterStart = React.useCallback(
     (params: Partial<RoundStartRequest>) => {
@@ -245,6 +277,7 @@ function PlayPageContent() {
     startedAt,
     dispatch: safeDispatch,
     onError: scheduleRetry,
+    getActiveFilters: () => activeFiltersRef.current,
   });
 
   const onSelectChoice = React.useCallback(
@@ -374,7 +407,7 @@ function PlayPageContent() {
           </div>
 
           {!s.started ? (
-            !AUTO_START ? (
+            !queryAutoStartValue ? (
               <FilterSelector onStart={onFilterStart} disabled={s.loading} />
             ) : (
               <div className="bg-white rounded-2xl shadow p-6 text-center">
@@ -456,10 +489,20 @@ function PlayPageContent() {
   );
 }
 
+function PlayPageSuspenseFallback() {
+  return (
+    <main className="p-6">
+      <div className="max-w-2xl mx-auto text-muted-foreground">Loading quiz experience...</div>
+    </main>
+  );
+}
+
 export default function PlayPage() {
   return (
-    <FilterProvider>
-      <PlayPageContent />
-    </FilterProvider>
+    <Suspense fallback={<PlayPageSuspenseFallback />}>
+      <FilterProvider>
+        <PlayPageContent />
+      </FilterProvider>
+    </Suspense>
   );
 }

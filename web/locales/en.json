@@ -46,7 +46,8 @@
     "trackLabel": "Track",
     "composerLabel": "Composer",
     "openInProvider": "Open in {provider}",
-    "noLink": "No link"
+    "noLink": "No link",
+    "appliedFilters": "Applied filters"
   },
   "settings": {
     "title": "Settings",
@@ -71,6 +72,9 @@
     "wrong": "Wrong",
     "timeout": "Timeout",
     "skip": "Skip"
+  },
+  "error": {
+    "noQuestions": "Not enough questions available for this condition"
   },
   "toast": {
     "retry": "Retry",

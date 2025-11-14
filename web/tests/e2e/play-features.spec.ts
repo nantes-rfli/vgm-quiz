@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page, type Request as PlaywrightRequest } from '@playwright/test';
 import { ANSWERS } from '../../mocks/fixtures/rounds/answers';
 
 type MetricsEvent = { name: string; attrs?: Record<string, unknown> };
@@ -11,6 +11,17 @@ type InstrumentedWindow = Window & {
   __OVERRIDE_READY__?: boolean;
 };
 
+type StartRequestPayload = {
+  mode?: string;
+  total?: number;
+  seed?: string;
+  filters?: {
+    difficulty?: string[];
+    era?: string[];
+    series?: string[];
+  };
+};
+
 const QUESTION_IDS = Object.keys(ANSWERS).sort((a, b) =>
   a.localeCompare(b, undefined, { numeric: true })
 );
@@ -21,6 +32,24 @@ async function waitForQuestion(page: Page, index: number) {
   const expectedId = QUESTION_IDS[index];
   const timeout = index === 0 ? 60_000 : 15_000;
   const deadline = Date.now() + timeout;
+
+  if (index === 0) {
+    const filterTitle = page.getByTestId('filter-selector-title');
+    const filterVisible = await filterTitle.isVisible({ timeout: 1000 }).catch(() => false);
+    if (filterVisible) {
+      const startButton = page.getByTestId('filter-start-button');
+      await startButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(startButton).toBeEnabled({ timeout: 10_000 });
+      await startButton.click();
+    }
+  } else {
+    const ctaStartButton = page.getByRole('button', { name: /Start/i }).first();
+    const ctaVisible = await ctaStartButton.isVisible({ timeout: 500 }).catch(() => false);
+    if (ctaVisible) {
+      await expect(ctaStartButton).toBeEnabled({ timeout: 5_000 });
+      await ctaStartButton.click();
+    }
+  }
 
   while (Date.now() < deadline) {
     try {
@@ -39,10 +68,91 @@ async function waitForQuestion(page: Page, index: number) {
   await expect(questionPrompt).toHaveAttribute('data-question-id', expectedId, { timeout: 1000 });
 }
 
+function parseStartRequest(request: PlaywrightRequest): StartRequestPayload {
+  const rawBody = request.postData();
+  return rawBody ? (JSON.parse(rawBody) as StartRequestPayload) : {};
+}
+
+async function waitForStartRequest(page: Page, trigger: () => Promise<void>) {
+  const requestPromise = page.waitForRequest((request) =>
+    request.url().includes('/v1/rounds/start') && request.method() === 'POST'
+  );
+  await trigger();
+  return requestPromise;
+}
+
+async function completeQuizAndNavigateToResult(page: Page) {
+  const maxQuestions = 20;
+  for (let i = 0; i < maxQuestions; i += 1) {
+    await page.getByTestId('question-prompt').waitFor({ timeout: 60_000 });
+    const choiceButtons = page.locator('[data-testid^="choice-"]');
+    await choiceButtons.first().click();
+    const answerButton = page.locator('button:has-text("(Enter)")').first();
+    await answerButton.click();
+    const revealNext = page.getByTestId('reveal-next');
+    await expect(revealNext).toBeVisible({ timeout: 10_000 });
+    await revealNext.click();
+
+    const reachedResult = await Promise.race([
+      page.waitForURL('**/result', { timeout: 5_000 }).then(() => true).catch(() => false),
+      page.waitForSelector('[data-testid="question-prompt"]', { timeout: 5_000, state: 'visible' }).then(() => false).catch(() => false),
+    ]);
+
+    if (reachedResult) {
+      await page.waitForURL('**/result', { timeout: 30_000 });
+      return;
+    }
+  }
+  throw new Error('Result page was not reached within the expected number of questions');
+}
+
+async function enableStartErrorInterceptor(page: Page) {
+  await page.addInitScript(() => {
+    const anyWindow = window as unknown as {
+      __VGQ_FETCH_PATCHED__?: boolean;
+      __VGQ_FORCE_START_ERROR__?: string | null;
+    } & typeof window;
+
+    if (anyWindow.__VGQ_FETCH_PATCHED__) return;
+    anyWindow.__VGQ_FETCH_PATCHED__ = true;
+    anyWindow.__VGQ_FORCE_START_ERROR__ = null;
+
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const [resource] = args;
+      const url =
+        typeof resource === 'string'
+          ? resource
+          : resource instanceof Request
+            ? resource.url
+            : resource instanceof URL
+              ? resource.toString()
+              : '';
+      const forceError = anyWindow.__VGQ_FORCE_START_ERROR__;
+      if (forceError && url?.includes('/v1/rounds/start')) {
+        anyWindow.__VGQ_FORCE_START_ERROR__ = null;
+        if (forceError === 'no_questions') {
+          return new Response(
+            JSON.stringify({
+              error: 'no_questions',
+              message: 'No questions available for the selected filters',
+            }),
+            {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
+        }
+      }
+      return originalFetch(...args);
+    };
+  });
+}
+
 test.describe('Play page features', () => {
 
   test('inline playback toggle persists across reload', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=1');
 
     const toggle = page.getByRole('button', { name: 'Inline playback' });
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');
@@ -568,5 +678,118 @@ test.describe('Play page features', () => {
 
     expect(result.attempts).toBeGreaterThanOrEqual(3);
     expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
+  });
+});
+
+test.describe('Filter-based quiz scenarios (Phase 2D)', () => {
+  test('difficulty filter: hard selection sends correct filter to API', async ({ page }) => {
+    await page.goto('/play?autostart=0');
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
+    const hardRadio = page.locator('input[name="difficulty"][value="hard"]');
+    await hardRadio.check();
+    await expect(hardRadio).toBeChecked();
+
+    const request = await waitForStartRequest(page, async () => {
+      await page.getByTestId('filter-start-button').click();
+    });
+    const body = parseStartRequest(request);
+    expect(body.filters?.difficulty).toEqual(['hard']);
+
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+  });
+
+  test('era filter: 90s selection is shown on the result page', async ({ page }) => {
+    await page.goto('/play?autostart=0');
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
+    const ninetiesRadio = page.locator('input[name="era"][value="90s"]');
+    await ninetiesRadio.check();
+    await expect(ninetiesRadio).toBeChecked();
+
+    const request = await waitForStartRequest(page, async () => {
+      await page.getByTestId('filter-start-button').click();
+    });
+    const body = parseStartRequest(request);
+    expect(body.filters?.era).toEqual(['90s']);
+
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+    await completeQuizAndNavigateToResult(page);
+
+    const eraFilterDisplay = page.getByTestId('applied-filter-era');
+    await expect(eraFilterDisplay).toHaveText(/90年代|90s/);
+  });
+
+  test('series filter: multiple selection sends array to API', async ({ page }) => {
+    await page.goto('/play?autostart=0');
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
+    const ffCheckbox = page.locator('input[type="checkbox"][value="ff"]');
+    const zeldaCheckbox = page.locator('input[type="checkbox"][value="zelda"]');
+    await ffCheckbox.check();
+    await zeldaCheckbox.check();
+    await expect(ffCheckbox).toBeChecked();
+    await expect(zeldaCheckbox).toBeChecked();
+
+    const request = await waitForStartRequest(page, async () => {
+      await page.getByTestId('filter-start-button').click();
+    });
+    const body = parseStartRequest(request);
+    expect(body.filters?.series).toEqual(expect.arrayContaining(['ff', 'zelda']));
+
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+  });
+
+  test('combined filters: difficulty + era send both values to API', async ({ page }) => {
+    await page.goto('/play?autostart=0');
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
+    await page.locator('input[name="difficulty"][value="easy"]').check();
+    await page.locator('input[name="era"][value="80s"]').check();
+
+    const request = await waitForStartRequest(page, async () => {
+      await page.getByTestId('filter-start-button').click();
+    });
+    const body = parseStartRequest(request);
+    expect(body.filters?.difficulty).toEqual(['easy']);
+    expect(body.filters?.era).toEqual(['80s']);
+
+    await expect(page.getByTestId('question-prompt')).toBeVisible({ timeout: 60_000 });
+  });
+
+  test('reset button restores mixed (default) filters', async ({ page }) => {
+    await page.goto('/play?autostart=0');
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
+    await page.locator('input[name="difficulty"][value="hard"]').check();
+    await page.locator('input[name="era"][value="90s"]').check();
+
+    const resetButton = page.getByTestId('filter-reset-button');
+    await resetButton.click();
+
+    await expect(page.locator('input[name="difficulty"][value="mixed"]').first()).toBeChecked();
+    await expect(page.locator('input[name="era"][value="mixed"]').first()).toBeChecked();
+  });
+
+  test('error handling: 503 no_questions error shows localized toast message', async ({ page }) => {
+    await enableStartErrorInterceptor(page);
+    await page.goto('/play?autostart=0');
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible({ timeout: 10_000 });
+
+    const hardRadio = page.locator('input[name="difficulty"][value="hard"]');
+    const nineties = page.locator('input[name="era"][value="90s"]');
+    await hardRadio.check();
+    await nineties.check();
+
+    await page.evaluate(() => {
+      (window as unknown as { __VGQ_FORCE_START_ERROR__?: string | null }).__VGQ_FORCE_START_ERROR__ = 'no_questions';
+    });
+
+    await page.getByTestId('filter-start-button').click();
+
+    const toast = page.getByTestId('toast-notification');
+    await expect(toast).toBeVisible({ timeout: 10_000 });
+    await expect(toast).toContainText(/available|不足|condition/);
+    await expect(page.getByTestId('filter-selector-title')).toBeVisible();
   });
 });

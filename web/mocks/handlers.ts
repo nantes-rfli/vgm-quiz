@@ -148,7 +148,10 @@ export const handlers = [
       // If filters specified, use filter-specific fixture; otherwise use default
       const firstQuestion = getFirstQuestionByFilters(difficulty, era, series);
       if (!firstQuestion) {
-        return new HttpResponse('No questions available', { status: 503 });
+        return HttpResponse.json(
+          { error: 'no_questions', message: 'No questions available for the selected filters' },
+          { status: 503 }
+        );
       }
 
       // Create Phase 2B JWS token with filter info

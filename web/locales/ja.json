@@ -46,7 +46,8 @@
     "trackLabel": "曲名",
     "composerLabel": "作曲者",
     "openInProvider": "{provider}で開く",
-    "noLink": "リンクなし"
+    "noLink": "リンクなし",
+    "appliedFilters": "適用されたフィルター"
   },
   "settings": {
     "title": "設定",
@@ -71,6 +72,9 @@
     "wrong": "不正解",
     "timeout": "時間切れ",
     "skip": "スキップ"
+  },
+  "error": {
+    "noQuestions": "この条件では問題数が不足しています"
   },
   "toast": {
     "retry": "再試行",
