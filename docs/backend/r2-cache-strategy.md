@@ -13,12 +13,12 @@ Pipeline Worker generates daily question sets and exports them to Cloudflare R2.
 ### File Naming Convention
 
 ```
-exports/YYYY-MM-DD.json
+exports/daily/YYYY-MM-DD.json
 ```
 
 **Examples:**
-- `exports/2025-10-13.json`
-- `exports/2025-10-14.json`
+- `exports/daily/2025-10-13.json`
+- `exports/daily/2025-10-14.json`
 
 ### File Format
 
@@ -54,7 +54,7 @@ Each export file contains:
 
 ```typescript
 // 10. Export to R2 (PUT operation is naturally idempotent - overwrites existing)
-const r2Key = `exports/${date}.json`
+const r2Key = `exports/daily/${date}.json`
 await env.STORAGE.put(r2Key, JSON.stringify(exportData, null, 2), {
   httpMetadata: {
     contentType: 'application/json',
@@ -158,13 +158,13 @@ wrangler r2 object list vgm-quiz-storage --prefix exports/
 ### Download Specific Export
 
 ```bash
-wrangler r2 object get vgm-quiz-storage/exports/2025-10-13.json
+wrangler r2 object get vgm-quiz-storage/exports/daily/2025-10-13.json
 ```
 
 ### Delete Specific Export
 
 ```bash
-wrangler r2 object delete vgm-quiz-storage/exports/2025-10-13.json
+wrangler r2 object delete vgm-quiz-storage/exports/daily/2025-10-13.json
 ```
 
 ### Verify D1 Consistency
@@ -174,7 +174,7 @@ wrangler r2 object delete vgm-quiz-storage/exports/2025-10-13.json
 wrangler d1 execute vgm-quiz-db --remote --command "SELECT date FROM picks ORDER BY date DESC LIMIT 10"
 
 # Check if R2 file exists for specific date
-wrangler r2 object head vgm-quiz-storage/exports/2025-10-13.json
+wrangler r2 object head vgm-quiz-storage/exports/daily/2025-10-13.json
 ```
 
 ## Error Handling
@@ -197,7 +197,7 @@ wrangler r2 object head vgm-quiz-storage/exports/2025-10-13.json
 2. Manually insert into `exports` table:
    ```sql
    INSERT INTO exports (date, r2_key, version, hash)
-   VALUES ('2025-10-13', 'exports/2025-10-13.json', '1.0.0', '<hash>');
+   VALUES ('2025-10-13', 'exports/daily/2025-10-13.json', '1.0.0', '<hash>');
    ```
 3. Hash can be read from R2 file's `meta.hash` field
 

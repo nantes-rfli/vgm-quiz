@@ -1,5 +1,6 @@
 import type { Env } from '../../shared/types/env'
 import type { FilterOptions } from '../../shared/types/filters'
+import { getTodayJST } from '../../shared/lib/date'
 import { handleDiscovery } from './stages/discovery'
 import { handlePublish } from './stages/publish'
 
@@ -9,9 +10,11 @@ export default {
    * Runs daily at 00:00 JST (15:00 UTC)
    */
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    console.log('[Cron] START: Daily pipeline execution')
+    const executionDate = getTodayJST()
+    console.log('[Cron] START: Daily preset generation')
     console.log(`[Cron] Scheduled time: ${new Date(event.scheduledTime).toISOString()}`)
     console.log(`[Cron] Cron expression: ${event.cron}`)
+    console.log(`[Cron] Target date (JST): ${executionDate}`)
 
     // Run discovery first to sync latest curated.json
     console.log('[Cron] Running discovery stage...')
@@ -24,14 +27,20 @@ export default {
     }
 
     // Run publish to generate today's question set
-    console.log('[Cron] Running publish stage...')
-    const publishResult = await handlePublish(env, null) // null = today's date
+    console.log('[Cron] Running publish stage for Phase 2 daily preset...')
+    const publishResult = await handlePublish(env, executionDate)
 
     if (publishResult.success) {
       if (publishResult.skipped) {
-        console.log('[Cron] SUCCESS: Pipeline completed (question set already exists, skipped)')
+        console.log('[Cron] SUCCESS: Daily preset already exists, skipping generation', {
+          date: publishResult.date,
+        })
       } else {
-        console.log('[Cron] SUCCESS: Pipeline completed successfully')
+        console.log('[Cron] SUCCESS: Daily preset generated', {
+          date: publishResult.date,
+          questionsGenerated: publishResult.questionsGenerated,
+          r2Key: publishResult.r2Key,
+        })
       }
     } else {
       console.error(`[Cron] FAILURE: Publish stage failed - ${publishResult.error}`)

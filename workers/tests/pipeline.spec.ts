@@ -543,7 +543,7 @@ describe('pipeline facets integration', () => {
     const publishResult = await handlePublish(env, '2025-01-01')
     expect(publishResult.success).toBe(true)
 
-    const exportObject = await storage.get('exports/2025-01-01.json')
+    const exportObject = await storage.get('exports/daily/2025-01-01.json')
     expect(exportObject).not.toBeNull()
 
     if (!exportObject) {
@@ -619,7 +619,7 @@ describe('pipeline facets integration', () => {
     if (publishResult.success) {
       expect(publishResult.questionsGenerated).toBe(10)
 
-      const exportObject = await storage.get('exports/2025-04-01.json')
+      const exportObject = await storage.get('exports/daily/2025-04-01.json')
       if (exportObject) {
         const raw = await exportObject.text()
         const parsed = JSON.parse(raw) as { questions: Question[] }
@@ -681,7 +681,7 @@ describe('pipeline facets integration', () => {
     expect(canonicalResult.questionsGenerated).toBe(10)
 
     // Verify canonical export exists
-    const canonicalExport = await storage.get('exports/2025-08-01.json')
+    const canonicalExport = await storage.get('exports/daily/2025-08-01.json')
     expect(canonicalExport).not.toBeNull()
 
     if (!canonicalExport) {
@@ -700,10 +700,10 @@ describe('pipeline facets integration', () => {
     // But canonical should NOT be overwritten
     if (filteredResult.success) {
       // Filtered export should exist with different R2 key
-      expect(filteredResult.r2Key).not.toBe('exports/2025-08-01.json')
+      expect(filteredResult.r2Key).not.toBe('exports/daily/2025-08-01.json')
 
       // Verify canonical is STILL intact (same hash)
-      const canonicalAfterFiltered = await storage.get('exports/2025-08-01.json')
+      const canonicalAfterFiltered = await storage.get('exports/daily/2025-08-01.json')
       expect(canonicalAfterFiltered).not.toBeNull()
 
       if (canonicalAfterFiltered) {
@@ -763,14 +763,14 @@ describe('pipeline facets integration', () => {
     // 1. Generate canonical daily preset (no filters)
     const canonicalResult = await handlePublish(env, '2025-11-01')
     expect(canonicalResult.success).toBe(true)
-    expect(canonicalResult.r2Key).toBe('exports/2025-11-01.json') // Canonical R2 key
+    expect(canonicalResult.r2Key).toBe('exports/daily/2025-11-01.json') // Canonical R2 key
     expect(canonicalResult.hash).toBeDefined()
 
     // 2. Generate a filtered variant for the same date
     const filteredResult = await handlePublish(env, '2025-11-01', { difficulty: 'easy' })
     expect(filteredResult.success).toBe(true)
     // Filtered variant should have different R2 key
-    expect(filteredResult.r2Key).not.toBe('exports/2025-11-01.json')
+    expect(filteredResult.r2Key).not.toBe('exports/daily/2025-11-01.json')
     expect(filteredResult.hash).toBeDefined()
     // Note: Due to random sampling, filtered and canonical results may happen to have
     // identical content and hash. We only verify R2 key difference here.
@@ -779,7 +779,7 @@ describe('pipeline facets integration', () => {
     // Remove the canonical R2 file but keep both D1 picks rows (canonical + filtered)
     const r2Bucket = storage as unknown as InMemoryR2Bucket
     const r2Store = r2Bucket.dump()
-    r2Store.delete('exports/2025-11-01.json') // Remove canonical from R2
+    r2Store.delete('exports/daily/2025-11-01.json') // Remove canonical from R2
 
     // 4. Now test the API fallback - it should retrieve ONLY the canonical row from D1
     // This mimics what fetchDailyQuestions does in workers/api/src/lib/daily.ts

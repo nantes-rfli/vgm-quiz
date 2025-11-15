@@ -34,7 +34,7 @@ describe('filter utilities', () => {
 
   it('builds canonical R2 key for default filters', () => {
     const key = buildExportR2Key('2025-11-03', CANONICAL_FILTER_KEY)
-    expect(key).toBe('exports/2025-11-03.json')
+    expect(key).toBe('exports/daily/2025-11-03.json')
   })
 
   it('builds hashed R2 key when filters provided', () => {

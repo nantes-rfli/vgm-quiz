@@ -40,7 +40,7 @@ Response: { "available": <count> }
 #### Filter Hash for R2 Keys (lines 84-93)
 - Function `hashFilterKey(filterJson: string)`: Creates short hash for R2 key distinction
 - Format: `exports/${date}_${hashFilterKey(filterKey)}.json` for filtered exports
-- Canonical (no filters) format: `exports/${date}.json`
+- Canonical (no filters) format: `exports/daily/${date}.json`
 
 #### Track Selection with Filters (lines 324-369)
 - Function `selectTracks(db, count, filters)`: Selects random tracks with optional filtering

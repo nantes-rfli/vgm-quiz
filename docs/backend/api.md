@@ -102,7 +102,7 @@ export async function handleDailyRequest(
   }
 
   // 1. Try R2 first (cache hit)
-  const r2Key = `exports/${date}.json`
+  const r2Key = `exports/daily/${date}.json`
   const obj = await env.STORAGE.get(r2Key)
 
   if (obj) {

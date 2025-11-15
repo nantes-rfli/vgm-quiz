@@ -375,7 +375,7 @@ wrangler d1 execute vgm-quiz-db --local --command "SELECT * FROM tracks_normaliz
 cd workers
 
 # Upload local file
-wrangler r2 object put vgm-quiz-storage/exports/2025-10-10.json --file=./test-data/sample.json
+wrangler r2 object put vgm-quiz-storage/exports/daily/2025-10-10.json --file=./test-data/sample.json
 ```
 
 ## Troubleshooting

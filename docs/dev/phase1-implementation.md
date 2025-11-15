@@ -62,7 +62,7 @@ curl -X POST http://localhost:8788/trigger/discovery
 # Publish 実行 (D1 → picks → R2)
 curl -X POST http://localhost:8788/trigger/publish?date=2025-10-10
 
-# 結果: R2 に exports/2025-10-10.json 生成
+# 結果: R2 に exports/daily/2025-10-10.json 生成
 ```
 
 ### 3. Frontend からの取得

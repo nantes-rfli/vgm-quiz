@@ -84,7 +84,7 @@
        │
        ↓
   ┌─────────┐
-  │ R2      │  /exports/2025-10-10.json
+  │ R2      │  /exports/daily/2025-10-10.json
   │ Export  │  { questions: [...], meta: {...} }
   └─────────┘
 ```
@@ -98,7 +98,7 @@
    ↓
 [Worker: api]
    │
-   ├─ Check R2: /exports/2025-10-10.json
+   ├─ Check R2: /exports/daily/2025-10-10.json
    │  ├─ Found → Return JSON (Cache-Control: public, max-age=3600)
    │  └─ Not Found ↓
    │
