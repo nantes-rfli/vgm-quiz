@@ -92,77 +92,67 @@
 
 ---
 
-## Phase 3 - Spotify API統合
+## Phase 3 - Observability & Guardrails
 
-**ゴール**: DiscoveryとHarvestステージをSpotify APIで自動化
+**ゴール**: 完全自動クイズ生成へ進む前に、現行フィルタ配信を計測・監視可能にし、失敗時でも即復旧できる体制を築く。手動介入ゼロで安定運用できる仕組みを整備する。
 
-**ステータス**: 将来計画
+**ステータス**: 計画中（2025-11-15 時点）
 
-**開始予定**: Phase 2安定化後（2025-11-15 時点で着手条件を満たし、キックオフ可）
+**開始予定**: Phase 2 安定確認後すぐ（2025-11 下旬見込み）
 
-### 計画中の機能
+### サブフェーズ別の状況と担当Issue
 
-#### Backend
-- [ ] **Spotify API統合**
-  - OAuth2認証
-  - プレイリスト発見
-  - トラックメタデータ拡充
+#### Phase 3A - 観測性基盤（計画中）
+- [ ] #75 Ops: Web Vitals & custom performance marks（P2, area:ops）
+- [ ] #76 Ops: CI Lighthouse smoke tests（P2, area:ops）
+- [ ] #134 OPS-03: Observability dashboard & Slack alerts（P2, area:ops）
 
-- [ ] **Discoveryステージ自動化**
-  - 定期的なSpotifyプレイリストスキャン
-  - プレイリスト人気度ベースの優先度スコアリング
+#### Phase 3B - Guardrails（計画中）
+- [ ] #65 FE: Runtime type guards for API responses（P1, area:fe）
+- [ ] #77 FE: Contract tests for metrics/reveal payloads（P2, area:fe）
+- [ ] #135 FE-Guardrails: Enforce contract tests in CI（P2, area:fe）
 
-- [ ] **Harvestステージ実装**
-  - Spotify APIからトラックメタデータを取得
-  - プレビューURL保存 (30秒クリップ)
-  - メタデータ正規化 (作曲者、ゲームタイトル抽出)
+#### Phase 3C - Runbook & Metrics Docs（計画中）
+- [ ] #32 DOCS-01: quality/metrics.md（P2, area:docs）
+- [ ] #33 DOCS-02: measurement-plan.md（P2, area:docs）
+- [ ] #35 DOCS-04: audio-playback runbook（P2, area:docs）
+- [ ] #37 OPS-02: レート制限/署名鍵ローテーション運用メモ（P3, area:ops）
 
-#### データパイプライン
-- [ ] **Guardステージ** (品質チェック)
-  - ルールベース検証 (メタデータ完全性)
-  - エッジケース用の手動レビューキュー
-
-- [ ] **Dedupステージ** (重複検出)
-  - タイトル/ゲームで類似トラックをクラスタリング
-  - 正規トラック選択
-
-#### Data
-- [ ] 100%手動キュレーションからハイブリッドモデルへ移行
-- [ ] curated.jsonをシード/フォールバックデータとして維持
+#### Phase 3D - データ冗長性（計画中）
+- [ ] #31 DATA-03: バックアップ在庫追加（P3, area:data）
+- [ ] #136 DATA-Backup-Automation: retain 14d of daily presets（P2, area:data）
 
 ### 成功基準
-- [ ] パイプラインが週50+トラックを自動発見
-- [ ] Guardステージが95%以上のメタデータ品質を維持
-- [ ] Dedupステージが重複を80%以上削減
+- Lighthouse/Perf smoke がCIで自動実行され、しきい値超過時にアラート/ブロックできる
+- Web Vitals・custom metrics が集計され、目標値とアラートしきい値が定義済み
+- `/v1/rounds/start` とメトリクスイベントのランタイム型検証が追加され、検証失敗時のログ/アラートが用意されている
+- Runbookとメトリクス定義が公開され、オンボーディング無しで運用可能
+- バックアップ在庫（R2スナップショット）が「自動生成停止後も少なくとも14日分の新規ラウンド」を供給できる
 
 ---
 
-## Phase 4+ - 将来の拡張
+## Phase 4+ - Autonomous Content Pipeline
 
-**ステータス**: バックログ / アイデア
+**ビジョン**: 「完全自動でデータ収集・作問・配信し続ける」最終ゴールに向かう長期フェーズ。Phase 3で整備したガードレール上で、新しいコンテンツ取得チャネルや高度なゲーム体験を段階的に導入する。
 
-### 候補機能
+### コアストリーム
+1. **Content Acquisition Automation**
+   - Spotify / YouTube / Apple Music など複数ソースの並行調査
+   - Discovery/Harvest/Guard/Dedup 各ステージの自動化
+   - ライセンス・レート制限・OAuth 運用を Runbook 化
+2. **Adaptive Gameplay**
+   - 難易度自動調整、モード追加（作曲者モード、年代モードなど）
+   - パーソナライズ配信ロジック（ユーザ行動ベース）
+3. **Social & Sharing**
+   - リーダーボード、チャレンジリンク、SNSシェア
+4. **Ops & Intelligence**
+   - 予測的スケジューラ、異常検知、MLベースの品質スコアリング
 
-#### コンテンツ拡張
-- [ ] YouTube統合 (音声抽出、ML品質スコアリング)
-- [ ] Apple Music統合
-- [ ] ユーザー投稿トラック (モデレーション必要)
+### ガードレール
+- 各ストリームは Phase 3 のメトリクス/Runbook を前提に、Proof-of-Concept → ガード付き本番化の順で進める
+- 新規ソース追加ごとに「計測/失敗検知/ロールバック」手順を必須化し、最終ゴールの“完全自動化”を段階的に達成する
 
-#### ゲームプレイ
-- [ ] 複数クイズモード (作曲者モード、年代モードなど)
-- [ ] ユーザーパフォーマンスベースの難易度調整
-- [ ] コンボ/連続正解ボーナス
-
-#### ソーシャル
-- [ ] リーダーボード (サーバー側スコア保存)
-- [ ] SNSシェア
-- [ ] フレンドチャレンジ
-
-#### 運用
-- [ ] 行動スコアリング (ML基づく難易度予測)
-- [ ] 自動スケジューリング (最適な問題ローテーション)
-- [ ] パイプライン障害アラート (Slack/Emailウェブフック)
-- [ ] メトリクスダッシュボード (Grafana/Cloudflare Analytics)
+---
 
 ---
 
