@@ -162,7 +162,7 @@ export async function handleDaily(request: Request, env: Env): Promise<Response>
   const date = url.searchParams.get('date') || getTodayJST()
 
   // 1. Try R2 first
-  const r2Key = `exports/${date}.json`
+  const r2Key = `exports/daily/${date}.json`
   const obj = await env.STORAGE.get(r2Key)
 
   if (obj) {

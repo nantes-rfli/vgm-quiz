@@ -210,10 +210,10 @@ describe('Publish: Export to R2', () => {
     const result = await exportToR2(storage, picks, '2025-10-10')
 
     expect(result.status).toBe('ok')
-    expect(result.r2_key).toBe('exports/2025-10-10.json')
+    expect(result.r2_key).toBe('exports/daily/2025-10-10.json')
 
     // Verify R2 upload
-    const obj = await storage.get('exports/2025-10-10.json')
+    const obj = await storage.get('exports/daily/2025-10-10.json')
     expect(obj).toBeDefined()
 
     const json = await obj.json()
@@ -224,7 +224,7 @@ describe('Publish: Export to R2', () => {
     const picks = [/* ... */]
     await exportToR2(storage, picks, '2025-10-10')
 
-    const obj = await storage.get('exports/2025-10-10.json')
+    const obj = await storage.get('exports/daily/2025-10-10.json')
     const json = await obj.json()
 
     expect(json.meta.version).toMatch(/^\d+\.\d+\.\d+$/)

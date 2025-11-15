@@ -1,5 +1,9 @@
 import { getTodayJST } from '../../../shared/lib/date'
-import { CANONICAL_FILTER_KEY, buildExportR2Key } from '../../../shared/lib/filters'
+import {
+  CANONICAL_FILTER_KEY,
+  buildExportR2Key,
+  buildLegacyCanonicalR2Key,
+} from '../../../shared/lib/filters'
 import type { Env } from '../../../shared/types/env'
 import type { DailyExport } from '../../../shared/types/export'
 import type { Phase2TokenPayload } from './token'
@@ -13,16 +17,22 @@ export async function fetchRoundExport(
   filterKey: string,
 ): Promise<DailyExport | null> {
   // 1. Try R2 first (cache hit)
-  const r2Key = buildExportR2Key(date, filterKey)
-  const obj = await env.STORAGE.get(r2Key)
+  const primaryKeys = [buildExportR2Key(date, filterKey)]
+  if (filterKey === CANONICAL_FILTER_KEY) {
+    primaryKeys.push(buildLegacyCanonicalR2Key(date))
+  }
 
-  if (obj) {
+  for (const r2Key of primaryKeys) {
+    const obj = await env.STORAGE.get(r2Key)
+    if (!obj) {
+      continue
+    }
+
     try {
       const text = await obj.text()
       return JSON.parse(text) as DailyExport
     } catch (error) {
-      console.error('[RoundExport] Failed to parse R2 JSON', { date, filterKey, error })
-      return null
+      console.error('[RoundExport] Failed to parse R2 JSON', { date, filterKey, r2Key, error })
     }
   }
 

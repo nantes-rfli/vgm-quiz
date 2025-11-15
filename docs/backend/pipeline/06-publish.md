@@ -22,7 +22,7 @@ Pool 管理 + 日次選定 + JSON Export を統合したステージ。Publish =
 ### 3. Export to R2
 - **Input**: `picks[]`
 - **Process**: JSON 生成 + R2 アップロード
-- **Output**: R2 key (`/exports/YYYY-MM-DD.json`)
+- **Output**: R2 key (`/exports/daily/YYYY-MM-DD.json`)
 
 ## Input
 
@@ -39,7 +39,7 @@ interface PublishInput {
 interface PublishOutput {
   date: string
   tracks_selected: number
-  r2_key: string            // e.g., "exports/2025-10-10.json"
+  r2_key: string            // e.g., "exports/daily/2025-10-10.json"
   export_hash: string       // SHA-256 of exported JSON
   export_version: string    // Semantic version
 }
@@ -200,7 +200,7 @@ async function exportToR2(
   const hash = await computeSHA256(JSON.stringify(exportData))
 
   // 4. Upload to R2
-  const r2Key = `exports/${date}.json`
+  const r2Key = `exports/daily/${date}.json`
   await storage.put(r2Key, JSON.stringify(exportData), {
     httpMetadata: {
       contentType: 'application/json',
@@ -400,7 +400,7 @@ async function handleDailyRequest(request: Request, env: Env): Promise<Response>
   const date = url.searchParams.get('date') || getTodayJST()
 
   // 1. Try R2 first
-  const r2Key = `exports/${date}.json`
+  const r2Key = `exports/daily/${date}.json`
   const obj = await env.STORAGE.get(r2Key)
 
   if (obj) {

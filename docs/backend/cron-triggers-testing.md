@@ -64,7 +64,7 @@ curl -X POST "http://localhost:8788/trigger/publish?date=2025-10-13"
   "success": true,
   "date": "2025-10-13",
   "questionsGenerated": 10,
-  "r2Key": "exports/2025-10-13.json",
+  "r2Key": "exports/daily/2025-10-13.json",
   "hash": "abc123..."
 }
 ```
@@ -72,7 +72,7 @@ curl -X POST "http://localhost:8788/trigger/publish?date=2025-10-13"
 **Expected logs**:
 ```
 [Publish] START: Generating question set for date=2025-10-13
-[Publish] R2: Exported to exports/2025-10-13.json
+[Publish] R2: Exported to exports/daily/2025-10-13.json
 [Publish] SUCCESS: 10 questions generated for 2025-10-13
 [Publish] Hash: abc123...
 ```
@@ -171,7 +171,7 @@ wrangler tail vgm-quiz-pipeline
 [Discovery] SUCCESS: 0 inserted, 20 updated
 [Cron] Running publish stage...
 [Publish] START: Generating question set for date=2025-10-13
-[Publish] R2: Exported to exports/2025-10-13.json
+[Publish] R2: Exported to exports/daily/2025-10-13.json
 [Publish] SUCCESS: 10 questions generated for 2025-10-13
 [Cron] SUCCESS: Pipeline completed successfully
 ```
@@ -186,7 +186,7 @@ wrangler d1 execute vgm-quiz-db --remote --command \
 
 Check R2:
 ```bash
-wrangler r2 object get vgm-quiz-storage/exports/2025-10-13.json
+wrangler r2 object get vgm-quiz-storage/exports/daily/2025-10-13.json
 ```
 
 **Verification**:

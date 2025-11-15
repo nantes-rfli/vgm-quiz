@@ -1,6 +1,7 @@
 import type { FilterOptions } from '../types/filters'
 
 export const CANONICAL_FILTER_KEY = '{}'
+const DAILY_EXPORT_PREFIX = 'exports/daily'
 
 export function normalizeFilters(filters?: FilterOptions | null): FilterOptions {
   if (!filters) {
@@ -60,9 +61,13 @@ export function hashFilterKey(filterJson: string): string {
   return Math.abs(hash).toString(16).padStart(8, '0')
 }
 
+export function buildLegacyCanonicalR2Key(date: string): string {
+  return `exports/${date}.json`
+}
+
 export function buildExportR2Key(date: string, filterKey: string): string {
   if (filterKey === CANONICAL_FILTER_KEY) {
-    return `exports/${date}.json`
+    return `${DAILY_EXPORT_PREFIX}/${date}.json`
   }
   return `exports/${date}_${hashFilterKey(filterKey)}.json`
 }
