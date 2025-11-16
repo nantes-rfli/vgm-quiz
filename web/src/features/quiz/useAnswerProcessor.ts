@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { next } from './datasource';
 import type { Question, Phase1NextResponse } from './api/types';
 import { ApiError, ensureApiError, mapApiErrorToMessage } from './api/errors';
@@ -9,7 +9,7 @@ import { saveOrClearAppliedFilters } from '@/src/lib/appliedFiltersStorage';
 import type { RoundStartRequest } from './api/manifest';
 import { computePoints, rollupTally, composeSummary } from '@/src/lib/scoring';
 import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
-import { mark } from '@/src/lib/perfMarks';
+import { mark, measure } from '@/src/lib/perfMarks';
 import { TIMEOUT_CHOICE_ID, SKIP_CHOICE_ID, type PlayAction } from './playReducer';
 import type { Outcome, ScoreBreakdown, QuestionRecord } from '@/src/lib/resultStorage';
 import type { Reveal } from './api/types';
@@ -54,6 +54,8 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
     getActiveFilters,
   } = params;
 
+  const firstRevealMeasuredRef = useRef(false);
+
   return useCallback(
     async function process(mode: AnswerMode): Promise<void> {
       if (phase === 'reveal' || !continuationToken || !question) return;
@@ -65,6 +67,12 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
       // Switch to reveal phase immediately (freeze UI) and show current reveal
       dispatch({ type: 'ENTER_REVEAL', reveal: question.reveal });
       mark('quiz:reveal-visible', { questionId: question.id });
+      if (!firstRevealMeasuredRef.current) {
+        measure('quiz:first-question-to-reveal', 'quiz:first-question-visible', 'quiz:reveal-visible', {
+          questionId: question.id,
+        });
+        firstRevealMeasuredRef.current = true;
+      }
 
       const effectiveChoiceId =
         mode.kind === 'answer'

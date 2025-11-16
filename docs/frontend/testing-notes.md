@@ -1,7 +1,7 @@
 # Frontend Testing Notes
 
 - Status: Draft
-- Last Updated: 2025-11-16 (contract tests + CI)
+- Last Updated: 2025-11-16 (observability & web vitals)
 
 ## この文書の目的
 フロントエンド開発者が、実装変更時にどのテストを実行し、どの観点を確認すべきかを素早く把握するためのメモです。`docs/quality/e2e-plan.md` で定義している公式な E2E 運用と補完関係にあり、より実務的な注意点や手動検証手順をまとめます。
@@ -94,14 +94,33 @@
 
 ## 7. パフォーマンス計測メモ
 
+### 7.1 Core Web Vitals（開発時の標準しきい値）
+
+- LCP < 2.5s（警告: 2.5〜4.0s）
+- FCP < 1.8s（警告: 1.8〜3.0s）
+- INP < 200ms（警告: 200〜500ms）
+- CLS < 0.10（警告: 0.10〜0.25）
+- TTFB < 800ms（警告: 800〜1200ms）
+
+しきい値を超える場合は PR コメントに記載し、原因箇所（画像遅延・MSW 初期化遅延など）を切り分けてください。
+
+### 7.2 収集方法と確認ポイント
+
 | 項目 | 手順 | 備考 |
 | --- | --- | --- |
-| Core Web Vitals | `app/reportWebVitals.ts` が `window.__VITALS__` にメトリクスを蓄積。DevTools Console で `window.__VITALS__` を確認。 | 開発時は `console.info('[vitals]', ...)` で即時ログ。 |
-| カスタムマーク | `/play` `/result` フローで `performance.mark` と `performance.measure` を発行。`window.__PERF_EVENTS__` に履歴が格納されるのでコンソールで確認。 | 例: `quiz:navigation-to-first-question`, `quiz:first-question-to-result`, `quiz:finish-to-result` |
-| Playwright 取得 | `page.evaluate(() => window.__PERF_EVENTS__)` で計測結果を収集可能。必要に応じて `test-results/` へ保存して差分比較。 |
-| 手動測定 | Chrome Performance パネルで `quiz:*` マーカーをフィルタ、`performance.getEntriesByName('quiz:first-question-to-result')` でも継続時間を確認。 | 初回ロード（モック MSW 起動込み）でのベースラインを残しておくと便利。 |
+| Core Web Vitals | `app/reportWebVitals.ts` が `window.__VITALS__` に保存し、開発環境では `console.info('[vitals]', ...)` で即時出力。カスタムハンドラは `window` の `vgm:vitals` CustomEvent を購読。 | 例: `window.addEventListener('vgm:vitals', e => console.log(e.detail))` |
+| カスタムマーク | `/play` `/result` フローで `performance.mark` / `measure` を発行。`window.__PERF_EVENTS__` に履歴が格納されるのでコンソールで確認。 | 代表マーク: `quiz:autostart-ready`, `quiz:first-question-visible`, `quiz:reveal-visible`, `quiz:result-ready`／代表 measure: `quiz:autostart-to-first-question`, `quiz:navigation-to-first-question`, `quiz:first-question-to-reveal`, `quiz:first-question-to-result`, `quiz:finish-to-result` |
+| Playwright 取得 | シナリオ末尾で `const perf = await page.evaluate(() => ({ vitals: window.__VITALS__, perf: window.__PERF_EVENTS__ }))` を JSON 出力し、`test-results/` に保存して差分を見る。 | `console` ログの `[vitals]` 行も `page.on('console', ...)` でキャプチャ可能。 |
+| 手動測定 | Chrome Performance パネルで `quiz:*` マーカーをフィルタ。DevTools Console で `performance.getEntriesByName('quiz:autostart-to-first-question')` などを確認。 | 初回ロード（MSW 起動込み）と二回目ロードで値を比較し、キャッシュ効果を把握する。 |
 
-※ Lighthouse CI ワークフロー (#76) 追加後は、PR ごとの自動メトリクス確認も行える予定。
+### 7.3 MVP 向けベースライン（目安値）
+
+- `quiz:autostart-to-first-question` < 2000ms
+- `quiz:navigation-to-first-question` < 2500ms（初回ページロード時）
+- `quiz:first-question-to-reveal` < 1200ms（最初の回答時）
+- `quiz:first-question-to-result` < 8000ms（10問想定、モックレスでのベースライン）
+
+※ Lighthouse CI ワークフロー (#76) が入れば、これらを CI で自動収集する予定。
 
 ---
 
