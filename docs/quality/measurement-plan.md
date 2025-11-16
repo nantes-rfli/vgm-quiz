@@ -146,7 +146,7 @@ if (res.finished === true) {
 ```sql
 -- Completion Rate = Complete / Started × 100% (D1/SQLite)
 SELECT
-  DATE(ts) as date,
+  DATE(event_ts) as date,
   COUNT(DISTINCT CASE WHEN event_name = 'quiz_complete' THEN round_id END) as completed,
   COUNT(DISTINCT round_id) as started,
   ROUND(
@@ -156,7 +156,7 @@ SELECT
   ) as completion_rate_pct
 FROM metrics_events
 WHERE event_name IN ('quiz_complete', 'answer_result')
-GROUP BY DATE(ts)
+GROUP BY DATE(event_ts)
 ORDER BY date DESC;
 ```
 
@@ -203,19 +203,19 @@ const handleExternalClick = useCallback(() => {
 -- answer_result は各設問で必ず 1 回送信されるため、reveal 表示の代理指標とする
 WITH answered AS (
   SELECT
-    DATE(ts) as date,
+    DATE(event_ts) as date,
     COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_answered
   FROM metrics_events
   WHERE event_name = 'answer_result'
-  GROUP BY DATE(ts)
+  GROUP BY DATE(event_ts)
 ),
 outbound AS (
   SELECT
-    DATE(ts) as date,
+    DATE(event_ts) as date,
     COUNT(*) as external_clicks
   FROM metrics_events
   WHERE event_name = 'reveal_open_external'
-  GROUP BY DATE(ts)
+  GROUP BY DATE(event_ts)
 )
 SELECT
   a.date,
@@ -282,22 +282,22 @@ React.useEffect(() => {
 -- Embed Fallback Rate = Fallback Events / Total Reveals × 100% (D1/SQLite)
 WITH reveals AS (
   SELECT
-    DATE(ts) as date,
+    DATE(event_ts) as date,
     COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_reveals
   FROM metrics_events
   WHERE event_name IN (
     'quiz_complete', 'embed_error', 'embed_fallback_to_link'
   )
-  GROUP BY DATE(ts)
+  GROUP BY DATE(event_ts)
 ),
 fallback AS (
   SELECT
-    DATE(ts) as date,
+    DATE(event_ts) as date,
     COUNT(*) as fallback_events
   FROM metrics_events
   WHERE event_name = 'embed_fallback_to_link'
     AND json_extract(attrs, '$.reason') = 'no_embed_available'
-  GROUP BY DATE(ts)
+  GROUP BY DATE(event_ts)
 )
 SELECT
   r.date,
@@ -363,19 +363,19 @@ const handleEmbedError = useCallback(() => {
 -- Embed Attempts ≒ answer_result（全設問）から「埋め込み不可だった質問」を差し引いた値
 WITH answered AS (
   SELECT
-    DATE(ts) as date,
+    DATE(event_ts) as date,
     COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_answered
   FROM metrics_events
   WHERE event_name = 'answer_result'
-  GROUP BY DATE(ts)
+  GROUP BY DATE(event_ts)
 ),
 fallback AS (
   SELECT
-    DATE(ts) as date,
+    DATE(event_ts) as date,
     COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as fallback_count
   FROM metrics_events
   WHERE event_name = 'embed_fallback_to_link'
-  GROUP BY DATE(ts)
+  GROUP BY DATE(event_ts)
 ),
 errors AS (
   SELECT

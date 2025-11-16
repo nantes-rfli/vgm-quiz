@@ -58,7 +58,7 @@ Reveal Card で以下のイベントを記録：
      - 有効な場合: 次へ進む。
 
 2. **URL 形式確認**
-   - [meta.ts](../../web/mocks/fixtures/rounds/meta.ts) の links 配列内の YouTube URL が正規形か確認
+- [meta.ts](../../../web/mocks/fixtures/rounds/meta.ts) の links 配列内の YouTube URL が正規形か確認
    - 正規形（youtube.com/watch?v=ID または youtu.be/ID）以外の場合、修正が必要
    ```javascript
    // ✅ 正規形
@@ -71,7 +71,7 @@ Reveal Card で以下のイベントを記録：
    ```
 
 3. **コード確認**
-   - [web/src/components/RevealCard.tsx](../../web/src/components/RevealCard.tsx) の `toYouTubeEmbed()` 関数が URL を正しく処理しているか
+- [web/src/components/RevealCard.tsx](../../../web/src/components/RevealCard.tsx) の `toYouTubeEmbed()` 関数が URL を正しく処理しているか
    - ローカルで MSW に `embed_fallback_to_link` イベントがログに出るか確認
    ```bash
    npm run dev
@@ -94,7 +94,7 @@ Reveal Card で以下のイベントを記録：
 
 1. **埋め込みの動作確認**
    - 問題の questionId を特定
-   - [meta.ts](../../web/mocks/fixtures/rounds/meta.ts) でその questionId の YouTube URL を確認
+- [meta.ts](../../../web/mocks/fixtures/rounds/meta.ts) でその questionId の YouTube URL を確認
    - 実際にその URL をブラウザで開き、動画が再生可能か確認
 
 2. **動画が再生不可能な場合（削除/非公開など）**
@@ -254,7 +254,7 @@ Reveal Card で以下のイベントを記録：
 - [RevealCard コンポーネント](../../web/src/components/RevealCard.tsx) - 埋め込み実装
 - [メトリクスクライアント](../../web/src/lib/metrics/metricsClient.ts) - イベント送信
 - [curated.json](../../workers/data/curated.json) - マスターデータ
-- [API 仕様 - /v1/metrics](../../api/api-spec.md) - メトリクス受け入れスキーマ
+- [API 仕様 - /v1/metrics](../../../api/api-spec.md) - メトリクス受け入れスキーマ
 - [Observability & Alerts](../observability.md) - ダッシュボード・アラート設定
 
 ---
