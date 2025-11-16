@@ -13,7 +13,7 @@ export default defineConfig({
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
     headless: true,
-    channel: 'chrome',
+    channel: 'chromium',
     trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
   },
   webServer: process.env.PLAYWRIGHT_WEB_SERVER
