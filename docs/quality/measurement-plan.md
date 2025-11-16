@@ -199,17 +199,14 @@ const handleExternalClick = useCallback(() => {
 **集計ロジック（SQL 例）**
 
 ```sql
--- Outbound Rate = External Clicks / Total Reveals × 100% (D1/SQLite)
--- Reveal = quiz_complete + embed_error + embed_fallback_to_link (重複排除)
--- 注: reveal_view は実イベントではなく代理イベント（合成）
-WITH reveals AS (
+-- Outbound Rate = External Clicks / Answer Results × 100% (D1/SQLite)
+-- answer_result は各設問で必ず 1 回送信されるため、reveal 表示の代理指標とする
+WITH answered AS (
   SELECT
     DATE(ts) as date,
-    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_reveals
+    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_answered
   FROM metrics_events
-  WHERE event_name IN (
-    'quiz_complete', 'embed_error', 'embed_fallback_to_link'
-  )
+  WHERE event_name = 'answer_result'
   GROUP BY DATE(ts)
 ),
 outbound AS (
@@ -221,16 +218,16 @@ outbound AS (
   GROUP BY DATE(ts)
 )
 SELECT
-  r.date,
-  r.total_reveals,
+  a.date,
+  a.total_answered,
   COALESCE(o.external_clicks, 0) as external_clicks,
   ROUND(
-    COALESCE(o.external_clicks, 0) * 100.0 / r.total_reveals,
+    COALESCE(o.external_clicks, 0) * 100.0 / NULLIF(a.total_answered, 0),
     2
   ) as outbound_rate_pct
-FROM reveals r
-LEFT JOIN outbound o ON r.date = o.date
-ORDER BY r.date DESC;
+FROM answered a
+LEFT JOIN outbound o ON a.date = o.date
+ORDER BY a.date DESC;
 ```
 
 **再送条件**
@@ -363,21 +360,19 @@ const handleEmbedError = useCallback(() => {
 
 ```sql
 -- Embed Load Error Rate = Error Events / Embed Attempts × 100% (D1/SQLite)
--- Embed Attempts = Total Reveals - Fallback Events
-WITH reveals AS (
+-- Embed Attempts ≒ answer_result（全設問）から「埋め込み不可だった質問」を差し引いた値
+WITH answered AS (
   SELECT
     DATE(ts) as date,
-    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_reveals
+    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_answered
   FROM metrics_events
-  WHERE event_name IN (
-    'quiz_complete', 'embed_error', 'embed_fallback_to_link'
-  )
+  WHERE event_name = 'answer_result'
   GROUP BY DATE(ts)
 ),
 fallback AS (
   SELECT
     DATE(ts) as date,
-    COUNT(*) as fallback_count
+    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as fallback_count
   FROM metrics_events
   WHERE event_name = 'embed_fallback_to_link'
   GROUP BY DATE(ts)
@@ -392,18 +387,18 @@ errors AS (
   GROUP BY DATE(ts)
 )
 SELECT
-  r.date,
-  (r.total_reveals - COALESCE(f.fallback_count, 0)) as embed_attempts,
+  a.date,
+  (a.total_answered - COALESCE(f.fallback_count, 0)) as embed_attempts,
   COALESCE(e.error_count, 0) as error_events,
   ROUND(
     COALESCE(e.error_count, 0) * 100.0
-    / NULLIF(r.total_reveals - COALESCE(f.fallback_count, 0), 0),
+    / NULLIF(a.total_answered - COALESCE(f.fallback_count, 0), 0),
     2
   ) as error_rate_pct
-FROM reveals r
-LEFT JOIN fallback f ON r.date = f.date
-LEFT JOIN errors e ON r.date = e.date
-ORDER BY r.date DESC;
+FROM answered a
+LEFT JOIN fallback f ON a.date = f.date
+LEFT JOIN errors e ON a.date = e.date
+ORDER BY a.date DESC;
 ```
 
 **再送条件**

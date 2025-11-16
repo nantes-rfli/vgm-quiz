@@ -84,7 +84,7 @@ Completion Rate = quiz_complete イベント数 / (round/start API コール数 
 
 **計算式**
 ```
-Outbound Rate = reveal_open_external イベント数 / reveal_view イベント数 × 100%
+Outbound Rate = reveal_open_external イベント数 / answer_result イベント数 × 100%
 ```
 
 **詳細**
@@ -92,7 +92,7 @@ Outbound Rate = reveal_open_external イベント数 / reveal_view イベント�
 | 項目 | 値 |
 |------|-----|
 | 分子 | `reveal_open_external` イベント数 |
-| 分母 | Reveal Card が表示された回数（代理: `quiz_complete` + `embed_error` + `embed_fallback_to_link`） |
+| 分母 | 質問あたりの reveal 表示回数の代理: `answer_result` イベント数（= 1 問ごとに必ず送信される） |
 | 集計粒度 | 日次、プロバイダ別（youtube/spotify/appleMusic/other） |
 | 計測期間 | 7 日（週次レビュー） |
 
@@ -102,11 +102,9 @@ Outbound Rate = reveal_open_external イベント数 / reveal_view イベント�
 - 属性: `roundId`, `questionIdx`, `attrs.provider`
 
 **分母の定義**
-- **Reveal View 代理イベント**:
-  - `quiz_complete`: ユーザーが最後の問題に回答した → reveal が表示されたと推定
-  - `embed_error`: iframe エラー → リンク fallback で reveal が強制表示
-  - `embed_fallback_to_link`: 埋め込み不可 → リンク表示
-  - 式: `quiz_complete + embed_error + embed_fallback_to_link` (重複排除は `questionId` + `roundId` で)
+- イベント: `answer_result`（各問題で 1 回必ず送信され、直後に Reveal が表示されるため per-question 代理として使用）
+- 集計: `COUNT(DISTINCT round_id || ':' || question_idx)`
+- 留意: ユーザーがインライン再生を無効にしていても Reveal は表示されるため、この代理は過小計測になりにくい。
 
 **参考指標の意味**
 - > 80%: ユーザーの大多数が外部サービスを活用（正常な利用パターン）
@@ -199,9 +197,9 @@ Embed Load Error Rate = embed_error イベント数 / (embed_attempt 数) × 100
 - 原因: 動画削除、非公開化、年齢制限、地域制限、ネットワークエラーなど
 
 **分母の定義**
-- **Embed Attempt**: 埋め込み可能な URL が設定された reveal 数
-  - = 全 reveal - `embed_fallback_to_link`
-  - = `quiz_complete` + `embed_error`（重複排除）
+- **Embed Attempt**: 各設問の reveal で「埋め込みを試行した回数」の代理
+  - proxy: `answer_result` の設問数 − `embed_fallback_to_link`（URL 変換できず試行しなかった分を除外）
+  - 集計: `COUNT(DISTINCT round_id || ':' || question_idx)` をベースに計算
 
 **目標値と閾値**
 
