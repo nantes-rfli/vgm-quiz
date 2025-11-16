@@ -2,35 +2,10 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-// Manifest API types for Phase 2B
-// Describes available quiz modes, facets, and features
+import { ManifestSchema } from './schemas'
+import type { Difficulty, Era, Manifest } from './schemas'
 
-export type Difficulty = 'easy' | 'normal' | 'hard' | 'mixed'
-export type Era = '80s' | '90s' | '00s' | '10s' | '20s' | 'mixed'
-
-export interface Mode {
-  id: string // e.g., 'vgm_v1-ja'
-  title: string // e.g., 'VGM Quiz Vol.1 (JA)'
-  defaultTotal: number // e.g., 10
-}
-
-export interface Facets {
-  difficulty: Difficulty[]
-  era: Era[]
-  series: string[] // e.g., ['ff', 'dq', 'zelda', 'mario', 'sonic', 'pokemon', 'mixed']
-}
-
-export interface Features {
-  inlinePlaybackDefault: boolean
-  imageProxyEnabled: boolean
-}
-
-export interface Manifest {
-  schema_version: number // e.g., 2
-  modes: Mode[]
-  facets: Facets
-  features: Features
-}
+export type { Manifest, Mode, Facets, Features, Difficulty, Era } from './schemas'
 
 // Request types for filtered rounds
 export interface RoundStartRequest {
@@ -91,15 +66,26 @@ export async function fetchManifest(): Promise<Manifest> {
   if (!res.ok) {
     throw new Error(`Failed to fetch manifest: ${res.status}`)
   }
-  const data = (await res.json()) as Manifest
 
-  // Save to localStorage for offline fallback
+  const raw = await res.json()
+  const parsed = ManifestSchema.safeParse(raw)
+  if (!parsed.success) {
+    throw new Error('Manifest response validation failed', { cause: parsed.error })
+  }
+
+  const data = parsed.data
+
   const cached: CachedManifest = {
     data,
     timestamp: Date.now(),
     version: data.schema_version,
   }
-  localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(cached))
+
+  try {
+    localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(cached))
+  } catch {
+    // ignore storage failures
+  }
 
   return data
 }
@@ -113,13 +99,22 @@ function loadManifestFromStorage(): CachedManifest | null {
     const stored = localStorage.getItem(MANIFEST_STORAGE_KEY)
     if (!stored) return null
 
-    const parsed: CachedManifest = JSON.parse(stored)
+    const parsed = JSON.parse(stored) as CachedManifest
     const age = Date.now() - parsed.timestamp
 
     // Invalidate cache if older than 24 hours
     if (age > CACHE_MAX_AGE) return null
 
-    return parsed
+    const validated = ManifestSchema.safeParse(parsed.data)
+    if (!validated.success) {
+      return null
+    }
+
+    return {
+      ...parsed,
+      data: validated.data,
+      version: validated.data.schema_version,
+    }
   } catch {
     return null
   }

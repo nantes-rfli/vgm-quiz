@@ -4,15 +4,18 @@
 import type { RoundStartRequest, Manifest } from './api/manifest';
 import type { Phase1StartResponse, Phase1NextResponse } from './api/types';
 import { ApiError, ensureApiError, delay, isNavigatorOffline } from './api/errors';
+import { Phase1StartResponseSchema, Phase1NextResponseSchema, ManifestSchema } from './api/schemas';
+import type { ZodType } from 'zod';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 const IS_MOCK = process.env.NEXT_PUBLIC_API_MOCK !== '0';
 const DEFAULT_RETRIES = IS_MOCK ? 0 : 3;
 
-type RequestOptions = {
+type RequestOptions<T> = {
   method: 'GET' | 'POST';
   body?: unknown;
   retries?: number;
+  schema?: ZodType<T>;
 };
 
 // Error response payload type
@@ -22,8 +25,8 @@ type ErrorResponse = {
   message?: string;
 };
 
-async function fetchJson<T>(path: string, options: RequestOptions): Promise<T> {
-  const { method, body, retries = DEFAULT_RETRIES } = options;
+async function fetchJson<T>(path: string, options: RequestOptions<T>): Promise<T> {
+  const { method, body, retries = DEFAULT_RETRIES, schema } = options;
   const url = IS_MOCK ? path : `${API_BASE_URL}${path}`;
 
   let attempt = 0;
@@ -88,11 +91,26 @@ async function fetchJson<T>(path: string, options: RequestOptions): Promise<T> {
         return undefined as any as T;
       }
 
+      let parsed: unknown;
       try {
-        return JSON.parse(text) as T;
+        parsed = JSON.parse(text);
       } catch (error) {
         throw new ApiError('decode', 'Failed to parse server response', { cause: error });
       }
+
+      if (schema) {
+        const validated = schema.safeParse(parsed);
+        if (!validated.success) {
+          throw new ApiError('decode', 'Unexpected response shape from server', {
+            cause: validated.error,
+            details: validated.error.format(),
+            retryable: false,
+          });
+        }
+        return validated.data;
+      }
+
+      return parsed as T;
     } catch (error) {
       let apiError: ApiError;
       if (error instanceof ApiError) {
@@ -149,6 +167,7 @@ export async function start(params: Partial<RoundStartRequest> = {}): Promise<Ph
   return fetchJson<Phase1StartResponse>('/v1/rounds/start', {
     method: 'POST',
     body,
+    schema: Phase1StartResponseSchema,
   });
 }
 
@@ -156,9 +175,13 @@ export async function next(payload: {
   continuationToken: string;
   answer: string;
 }): Promise<Phase1NextResponse> {
-  return fetchJson<Phase1NextResponse>('/v1/rounds/next', { method: 'POST', body: payload });
+  return fetchJson<Phase1NextResponse>('/v1/rounds/next', {
+    method: 'POST',
+    body: payload,
+    schema: Phase1NextResponseSchema,
+  });
 }
 
 export async function manifest(): Promise<Manifest> {
-  return fetchJson<Manifest>('/v1/manifest', { method: 'GET' });
+  return fetchJson<Manifest>('/v1/manifest', { method: 'GET', schema: ManifestSchema });
 }

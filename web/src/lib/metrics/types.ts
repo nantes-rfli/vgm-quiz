@@ -1,13 +1,16 @@
-export type MetricsEventName =
-  | 'answer_select'
-  | 'answer_result'
-  | 'quiz_complete'
-  | 'reveal_open_external'
-  | 'embed_error'
-  | 'embed_fallback_to_link'
-  | 'settings_inline_toggle'
-  | 'settings_theme_toggle'
-  | 'settings_locale_toggle';
+export const METRICS_EVENT_NAMES = [
+  'answer_select',
+  'answer_result',
+  'quiz_complete',
+  'reveal_open_external',
+  'embed_error',
+  'embed_fallback_to_link',
+  'settings_inline_toggle',
+  'settings_theme_toggle',
+  'settings_locale_toggle',
+] as const;
+
+export type MetricsEventName = (typeof METRICS_EVENT_NAMES)[number];
 
 export interface MetricsEvent {
   id: string;
