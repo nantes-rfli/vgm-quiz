@@ -1,14 +1,8 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "NEXT_PUBLIC_API_MOCK=1 NEXT_PUBLIC_PLAY_AUTOSTART=1 npm run start -- --hostname 0.0.0.0 --port 3000",
-      "startServerReadyPattern": "started server",
-      "startServerReadyTimeout": 120000,
-      "url": [
-        "http://localhost:3000/",
-        "http://localhost:3000/play",
-        "http://localhost:3000/result"
-      ],
+      "staticDistDir": "./out",
+      "url": ["./index.html", "./play.html", "./result.html"],
       "numberOfRuns": 1,
       "settings": {
         "preset": "desktop",

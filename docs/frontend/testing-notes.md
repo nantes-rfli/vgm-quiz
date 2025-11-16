@@ -129,14 +129,13 @@
   - Performance >= 0.80
   - Accessibility >= 0.95
   - Best Practices / SEO >= 0.90
-- ローカル手順（モック API 前提）
+- ローカル手順（モック API 前提、静的書き出し）
   ```bash
   cd web
-  NEXT_PUBLIC_API_MOCK=1 NEXT_PUBLIC_PLAY_AUTOSTART=1 npm run build
-  npm run test:lhci
+  NEXT_PUBLIC_API_MOCK=1 NEXT_PUBLIC_PLAY_AUTOSTART=1 npm run build  # out/ を生成
+  npm run test:lhci                                            # out/ を直接走査
   ls lighthouse-report  # HTML/JSON レポート
   ```
-  ※ `lighthouserc.json` の `startServerCommand` で `npm run start` を自動起動するため、別途 `serve` は不要。
 
 ---
 
