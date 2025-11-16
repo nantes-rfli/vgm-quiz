@@ -131,4 +131,20 @@ describe('metricsClient contract', () => {
 
     expect(getQueue()).toHaveLength(0);
   });
+
+  it('rejects batch payloads that fall outside the shared schema', () => {
+    expect(() =>
+      MetricsBatchSchema.parse({
+        client: { client_id: '' },
+        events: [
+          {
+            id: 'evt-1',
+            name: 'invalid_event',
+            ts: '2024-01-01T00:00:00.000Z',
+            attrs: {},
+          },
+        ],
+      }),
+    ).toThrow();
+  });
 });
