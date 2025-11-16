@@ -1,7 +1,7 @@
 # プロダクトロードマップ — vgm-quiz
 
 - **Status**: Living Document
-- **Last Updated**: 2025-11-15
+- **Last Updated**: 2025-11-16
 - **目的**: プロジェクトの各フェーズにおける機能実装を追跡
 
 ---
@@ -96,21 +96,21 @@
 
 **ゴール**: 完全自動クイズ生成へ進む前に、現行フィルタ配信を計測・監視可能にし、失敗時でも即復旧できる体制を築く。手動介入ゼロで安定運用できる仕組みを整備する。
 
-**ステータス**: 計画中（2025-11-15 時点）
+**ステータス**: Phase 3A/3B 完了、3C/3D 計画中（2025-11-16 時点）
 
 **開始予定**: Phase 2 安定確認後すぐ（2025-11 下旬見込み）
 
 ### サブフェーズ別の状況と担当Issue
 
-#### Phase 3A - 観測性基盤（計画中）
-- [ ] #75 Ops: Web Vitals & custom performance marks（P2, area:ops）
-- [ ] #76 Ops: CI Lighthouse smoke tests（P2, area:ops）
-- [ ] #134 OPS-03: Observability dashboard & Slack alerts（P2, area:ops）
+#### Phase 3A - 観測性基盤（完了 ✅）
+- ✅ #75 Ops: Web Vitals & custom performance marks（P2, area:ops、2025-11-16 クローズ）
+- ✅ #76 Ops: CI Lighthouse smoke tests（P2, area:ops、2025-11-16 クローズ）
+- ✅ #134 OPS-03: Observability dashboard & Slack alerts（P2, area:ops、2025-11-16 クローズ）
 
-#### Phase 3B - Guardrails（計画中）
-- [ ] #65 FE: Runtime type guards for API responses（P1, area:fe）
-- [ ] #77 FE: Contract tests for metrics/reveal payloads（P2, area:fe）
-- [ ] #135 FE-Guardrails: Enforce contract tests in CI（P2, area:fe）
+#### Phase 3B - Guardrails（完了 ✅）
+- ✅ #65 FE: Runtime type guards for API responses（P1, area:fe、2025-11-16 クローズ）
+- ✅ #77 FE: Contract tests for metrics/reveal payloads（P2, area:fe、2025-11-16 クローズ）
+- ✅ #135 FE-Guardrails: Enforce contract tests in CI（P2, area:fe、2025-11-16 クローズ）
 
 #### Phase 3C - Runbook & Metrics Docs（計画中）
 - [ ] #32 DOCS-01: quality/metrics.md（P2, area:docs）
@@ -194,6 +194,7 @@
 ## 変更履歴
 
 - **2025-11-11**: Phase 2C 完了（#113, #114, #118 マージ、全3タスク完了）、Phase 2D 開始（#115 QA-01取組開始）
+- **2025-11-16**: Phase 3A/3B 完了 (#75, #76, #134, #65, #77, #135 クローズ)。Phase 3C/3D 計画中に更新。
 - **2025-11-02**: Phase 2B 完了（#28 API-02 マージ、全4タスク完了）、Phase 2C 開始準備
 - **2025-10-22**: Phase 2A 完了状況と Phase 2B〜2D の担当 Issue を更新、成功基準を現行バックログと整合
 - **2025-10-13**: 初回ロードマップ作成、Phase 1完了マーク、Phase 2計画開始
