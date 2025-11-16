@@ -12,7 +12,8 @@
     "lint": "biome check .",
     "test": "vitest run",
     "validate:curated": "tsx scripts/validate-curated.ts",
-    "validate:facet-distribution": "tsx scripts/validate-facet-distribution.ts"
+    "validate:facet-distribution": "tsx scripts/validate-facet-distribution.ts",
+    "observability:test": "tsx scripts/observability-test.ts"
   },
   "dependencies": {
     "zod": "^3.23.8"

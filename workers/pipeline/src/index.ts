@@ -1,6 +1,7 @@
 import type { Env } from '../../shared/types/env'
 import type { FilterOptions } from '../../shared/types/filters'
 import { getTodayJST } from '../../shared/lib/date'
+import { isObservabilityEnabled, logEvent, sendSlackNotification } from '../../shared/lib/observability'
 import { handleDiscovery } from './stages/discovery'
 import { handlePublish } from './stages/publish'
 
@@ -11,41 +12,92 @@ export default {
    */
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     const executionDate = getTodayJST()
-    console.log('[Cron] START: Daily preset generation')
-    console.log(`[Cron] Scheduled time: ${new Date(event.scheduledTime).toISOString()}`)
-    console.log(`[Cron] Cron expression: ${event.cron}`)
-    console.log(`[Cron] Target date (JST): ${executionDate}`)
+    const startedAt = Date.now()
+    logEvent(env, 'info', {
+      event: 'cron.start',
+      status: 'start',
+      fields: {
+        scheduledTime: new Date(event.scheduledTime).toISOString(),
+        cron: event.cron,
+        targetDateJst: executionDate,
+      },
+    })
 
     // Run discovery first to sync latest curated.json
-    console.log('[Cron] Running discovery stage...')
+    logEvent(env, 'info', {
+      event: 'cron.discovery',
+      status: 'start',
+    })
     const discoveryResult = await handleDiscovery(env)
 
     if (!discoveryResult.success) {
-      console.error('[Cron] Discovery stage failed, aborting pipeline')
-      console.error(`[Cron] Discovery errors: ${discoveryResult.errors.join(', ')}`)
-      throw new Error(`Discovery stage failed: ${discoveryResult.errors.join(', ')}`)
+      const message = `Discovery stage failed: ${discoveryResult.errors.join(', ')}`
+      logEvent(env, 'error', {
+        event: 'cron.discovery',
+        status: 'fail',
+        message,
+        fields: { errors: discoveryResult.errors },
+      })
+      await maybeNotifySlack(env, 'Cron discovery failed', {
+        targetDate: executionDate,
+        cron: event.cron,
+        errors: discoveryResult.errors.slice(0, 5).join('; '),
+      })
+      throw new Error(message)
     }
 
     // Run publish to generate today's question set
-    console.log('[Cron] Running publish stage for Phase 2 daily preset...')
+    logEvent(env, 'info', {
+      event: 'cron.publish',
+      status: 'start',
+    })
     const publishResult = await handlePublish(env, executionDate)
 
     if (publishResult.success) {
       if (publishResult.skipped) {
-        console.log('[Cron] SUCCESS: Daily preset already exists, skipping generation', {
-          date: publishResult.date,
+        logEvent(env, 'info', {
+          event: 'cron.publish',
+          status: 'success',
+          message: 'Daily preset already exists, skipping generation',
+          fields: {
+            date: publishResult.date,
+          },
         })
       } else {
-        console.log('[Cron] SUCCESS: Daily preset generated', {
-          date: publishResult.date,
-          questionsGenerated: publishResult.questionsGenerated,
-          r2Key: publishResult.r2Key,
+        logEvent(env, 'info', {
+          event: 'cron.publish',
+          status: 'success',
+          message: 'Daily preset generated',
+          fields: {
+            date: publishResult.date,
+            questionsGenerated: publishResult.questionsGenerated,
+            r2Key: publishResult.r2Key,
+            hash: publishResult.hash,
+          },
         })
       }
     } else {
-      console.error(`[Cron] FAILURE: Publish stage failed - ${publishResult.error}`)
-      throw new Error(`Publish stage failed: ${publishResult.error}`)
+      const message = `Publish stage failed: ${publishResult.error}`
+      logEvent(env, 'error', {
+        event: 'cron.publish',
+        status: 'fail',
+        message,
+        fields: { date: publishResult.date },
+      })
+      await maybeNotifySlack(env, 'Cron publish failed', {
+        targetDate: executionDate,
+        cron: event.cron,
+        error: publishResult.error,
+      })
+      throw new Error(message)
     }
+
+    logEvent(env, 'info', {
+      event: 'cron.end',
+      status: 'success',
+      durationMs: Date.now() - startedAt,
+      fields: { targetDate: executionDate },
+    })
   },
 
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -118,7 +170,12 @@ export default {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     } catch (error) {
-      console.error('Pipeline error:', error)
+      logEvent(env, 'error', {
+        event: 'fetch.handler',
+        status: 'fail',
+        message: 'Pipeline fetch failed',
+        error,
+      })
       return new Response(
         JSON.stringify({
           error: 'Internal error',
@@ -131,4 +188,9 @@ export default {
       )
     }
   },
+}
+
+async function maybeNotifySlack(env: Env, title: string, fields: Record<string, unknown>) {
+  if (!isObservabilityEnabled(env)) return
+  await sendSlackNotification(env, `【vgm-quiz】${title}`, fields)
 }

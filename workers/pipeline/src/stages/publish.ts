@@ -2,6 +2,7 @@ import { generateChoices } from '../../../shared/lib/choices'
 import { getTodayJST } from '../../../shared/lib/date'
 import { buildExportR2Key, createFilterKey, normalizeFilters } from '../../../shared/lib/filters'
 import { sha256 } from '../../../shared/lib/hash'
+import { logEvent } from '../../../shared/lib/observability'
 import type { Env } from '../../../shared/types/env'
 import type { DailyExport, Question, QuestionFacets } from '../../../shared/types/export'
 import type { FilterOptions } from '../../../shared/types/filters'
@@ -60,7 +61,13 @@ export async function handlePublish(
     Object.keys(normalizedFilters).length > 0
       ? ` with filters: ${JSON.stringify(normalizedFilters)}`
       : ' (no filters - daily preset)'
-  console.log(`[Publish] START: Generating question set for date=${date}${filterStr}`)
+  logEvent(env, 'info', {
+    event: 'publish.start',
+    status: 'start',
+    filtersKey: filterKey,
+    fields: { date, filters: normalizedFilters },
+    message: `Generating question set${filterStr}`,
+  })
 
   try {
     // 1. Check if already published (idempotency guard with filter awareness)
@@ -80,9 +87,13 @@ export async function handlePublish(
       const r2Object = await env.STORAGE.head(r2Key)
 
       if (!r2Object) {
-        console.warn(
-          `[Publish] WARNING: D1 entry exists but R2 file missing for ${date} (filters=${filterKey}). Attempting recovery from picks table.`,
-        )
+        logEvent(env, 'warn', {
+          event: 'publish.recover.start',
+          status: 'start',
+          filtersKey: filterKey,
+          fields: { date },
+          message: 'D1 entry exists but R2 file missing; attempting recovery',
+        })
 
         try {
           const exportData = JSON.parse(existing.items) as DailyExport
@@ -100,9 +111,13 @@ export async function handlePublish(
             .bind(date, r2Key, exportData.meta.version ?? '1.0.0', exportData.meta.hash, filterKey)
             .run()
 
-          console.log(
-            `[Publish] RECOVER: Re-exported ${r2Key} from existing pick data (filters=${filterKey})`,
-          )
+          logEvent(env, 'info', {
+            event: 'publish.recover.success',
+            status: 'success',
+            filtersKey: filterKey,
+            r2Key,
+            fields: { date, questionsGenerated: exportData.questions.length },
+          })
 
           return {
             success: true,
@@ -113,19 +128,26 @@ export async function handlePublish(
             hash: exportData.meta.hash,
           }
         } catch (error) {
-          console.error(
-            `[Publish] ERROR: Failed to recover missing export for ${date} (filters=${filterKey})`,
+          logEvent(env, 'error', {
+            event: 'publish.recover.fail',
+            status: 'fail',
+            filtersKey: filterKey,
+            fields: { date },
             error,
-          )
+          })
           throw error instanceof Error
             ? error
             : new Error('Failed to recover missing export from existing pick')
         }
       }
 
-      console.log(
-        `[Publish] SKIP: Question set for ${date} already exists (pick_id=${existing.id}, filters=${filterKey})`,
-      )
+      logEvent(env, 'info', {
+        event: 'publish.skip',
+        status: 'success',
+        filtersKey: filterKey,
+        fields: { date, pickId: existing.id },
+        message: 'Question set already exists',
+      })
 
       return {
         success: true,
@@ -238,7 +260,13 @@ export async function handlePublish(
       },
     })
 
-    console.log(`[Publish] R2: Exported to ${r2Key}`)
+    logEvent(env, 'info', {
+      event: 'publish.r2.put',
+      status: 'success',
+      filtersKey: filterKey,
+      r2Key,
+      fields: { date },
+    })
 
     // 11. Save export metadata (INSERT OR REPLACE for idempotency with filters)
     await env.DB.prepare(
@@ -247,8 +275,14 @@ export async function handlePublish(
       .bind(date, r2Key, '1.0.0', hash, filterKey)
       .run()
 
-    console.log(`[Publish] SUCCESS: ${questions.length} questions generated for ${date}`)
-    console.log(`[Publish] Hash: ${hash}`)
+    logEvent(env, 'info', {
+      event: 'publish.success',
+      status: 'success',
+      filtersKey: filterKey,
+      r2Key,
+      hash,
+      fields: { date, questionsGenerated: questions.length },
+    })
 
     return {
       success: true,
@@ -258,7 +292,13 @@ export async function handlePublish(
       hash,
     }
   } catch (error) {
-    console.error(`[Publish] ERROR: Failed for date=${date}`, error)
+    logEvent(env, 'error', {
+      event: 'publish.fail',
+      status: 'fail',
+      filtersKey: filterKey,
+      fields: { date },
+      error,
+    })
     return {
       success: false,
       date,

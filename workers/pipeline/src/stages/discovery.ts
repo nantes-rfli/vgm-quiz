@@ -1,6 +1,7 @@
 import curatedData from '../../../data/curated.json'
 import type { Env } from '../../../shared/types/env'
 import type { CuratedData, Track } from '../../../shared/types/track'
+import { logEvent } from '../../../shared/lib/observability'
 
 interface DiscoveryResult {
   success: boolean
@@ -18,7 +19,11 @@ export async function handleDiscovery(env: Env): Promise<DiscoveryResult> {
   let inserted = 0
   let updated = 0
 
-  console.log(`[Discovery] START: Processing ${data.tracks.length} tracks from curated.json`)
+  logEvent(env, 'info', {
+    event: 'discovery.start',
+    status: 'start',
+    fields: { tracks: data.tracks.length },
+  })
 
   for (const track of data.tracks) {
     try {
@@ -40,14 +45,28 @@ export async function handleDiscovery(env: Env): Promise<DiscoveryResult> {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
       errors.push(`Track ${track.id}: ${message}`)
-      console.error(`[Discovery] ERROR: Failed to upsert track ${track.id}:`, error)
+      logEvent(env, 'error', {
+        event: 'discovery.error',
+        status: 'fail',
+        message: `Failed to upsert track ${track.id}`,
+        error,
+      })
     }
   }
 
   if (errors.length > 0) {
-    console.error(`[Discovery] FAILURE: ${errors.length} errors occurred`)
+    logEvent(env, 'error', {
+      event: 'discovery.end',
+      status: 'fail',
+      message: `${errors.length} errors occurred`,
+      fields: { errors: errors.slice(0, 10) },
+    })
   } else {
-    console.log(`[Discovery] SUCCESS: ${inserted} inserted, ${updated} updated`)
+    logEvent(env, 'info', {
+      event: 'discovery.end',
+      status: 'success',
+      fields: { inserted, updated },
+    })
   }
 
   return {
