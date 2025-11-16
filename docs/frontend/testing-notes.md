@@ -122,6 +122,22 @@
 
 ※ Lighthouse CI ワークフロー (#76) が入れば、これらを CI で自動収集する予定。
 
+### 7.4 Lighthouse CI の回し方（CI/ローカル）
+
+- CI: `.github/workflows/lighthouse.yml` が PR / main push で走り、`web/lighthouse-report` を artifact 化。
+- しきい値（失敗条件）
+  - Performance >= 0.80
+  - Accessibility >= 0.95
+  - Best Practices / SEO >= 0.90
+- ローカル手順（モック API 前提）
+  ```bash
+  cd web
+  NEXT_PUBLIC_API_MOCK=1 NEXT_PUBLIC_PLAY_AUTOSTART=1 npm run build
+  npm run test:lhci
+  ls lighthouse-report  # HTML/JSON レポート
+  ```
+  ※ `lighthouserc.json` の `startServerCommand` で `npm run start` を自動起動するため、別途 `serve` は不要。
+
 ---
 
 ## 参考リンク
