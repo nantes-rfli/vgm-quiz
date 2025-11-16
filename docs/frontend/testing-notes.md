@@ -1,7 +1,7 @@
 # Frontend Testing Notes
 
 - Status: Draft
-- Last Updated: 2025-09-28 (web vitals instrumentation)
+- Last Updated: 2025-11-16 (contract tests + CI)
 
 ## この文書の目的
 フロントエンド開発者が、実装変更時にどのテストを実行し、どの観点を確認すべきかを素早く把握するためのメモです。`docs/quality/e2e-plan.md` で定義している公式な E2E 運用と補完関係にあり、より実務的な注意点や手動検証手順をまとめます。
@@ -44,7 +44,20 @@
 
 ---
 
-## 3. Playwright 実行メモ
+## 3. Contract Tests (API Guardrails)
+
+| コマンド | 用途 |
+| --- | --- |
+| `npm run contract` | 契約テストのフルスイート（Vitest + Playwright）。CI で必須チェック。 |
+| `npm run contract -- --filter <keyword>` | 特定のケースのみ実行（Vitest は `--filter`, Playwright は `--grep` にマッピング）。 |
+| `npm run contract:vitest` | 契約系 Vitest のみ（metrics/reveal シリアライズ）。 |
+| `npm run contract:pw` | Playwright/MSW を使った API 契約テストのみ。 |
+
+- Playwright 側は MSW が立ち上がるまで `/` へ遷移して待機しているので、ローカルでも API モックが取得できる。
+- 失敗時の JSON は `test-results/contract-artifacts/<timestamp>/` に保存され、CI では Actions Artifact としてダウンロード可能。
+- 追加ケースを書くときは `tests/contract/*.contract.spec.ts`（Playwright）か `tests/unit/*contract.spec.ts`（Vitest）に置く。
+
+## 4. Playwright 実行メモ
 
 | コマンド | 用途 |
 | --- | --- |
@@ -59,7 +72,7 @@
 
 ---
 
-## 4. 手動検証のポイント
+## 5. 手動検証のポイント
 
 | 観点 | 手順 | 補足 |
 | --- | --- | --- |
@@ -70,7 +83,7 @@
 
 ---
 
-## 5. ドキュメント更新の流れ
+## 6. ドキュメント更新の流れ
 
 1. 変更対象に関連する仕様ドキュメントを確認（例: `docs/frontend/play-flow.md`, `docs/product/embed-policy.md`）。
 2. 振る舞いを変更した場合は該当ドキュメントも同じ PR で更新。
@@ -79,7 +92,7 @@
 
 ---
 
-## 6. パフォーマンス計測メモ
+## 7. パフォーマンス計測メモ
 
 | 項目 | 手順 | 備考 |
 | --- | --- | --- |
@@ -99,7 +112,6 @@
 - `docs/frontend/play-flow.md` — `/play` の状態遷移と副作用
 - `docs/frontend/metrics-client.md` — メトリクス送信の仕組み
 - `docs/quality/a11y-play-result.md` — アクセシビリティ監査ログ
-- `docs/product/embed-policy.md` — 埋め込み/リンクのガイドライン
 - `docs/product/embed-policy.md` — 埋め込み/リンクのガイドライン
 
 > 更新の際は最終更新日 (`Last Updated`) を忘れずに書き換えてください。

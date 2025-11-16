@@ -99,4 +99,12 @@ describe('reveal contracts', () => {
     expect(validatedLast.links?.[1]).toMatchObject({ provider: 'spotify' });
     expect(validatedLast.meta).toMatchObject({ workTitle: 'Battle Theme', composer: 'N. Uematsu' });
   });
+
+  it('flags unsupported providers in reveal payload', () => {
+    expect(() =>
+      RevealSchema.parse({
+        links: [{ provider: 'invalid', url: 'https://example.com' }],
+      }),
+    ).toThrow();
+  });
 });

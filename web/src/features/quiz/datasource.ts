@@ -4,7 +4,7 @@
 import type { RoundStartRequest, Manifest } from './api/manifest';
 import type { Phase1StartResponse, Phase1NextResponse } from './api/types';
 import { ApiError, ensureApiError, delay, isNavigatorOffline } from './api/errors';
-import { Phase1StartResponseSchema, Phase1NextResponseSchema, ManifestSchema } from './api/schemas';
+import { Phase1StartResponseSchema, Phase1NextResponseSchema, ManifestSchema, ensureApiResponse } from './api/schemas';
 import type { ZodType } from 'zod';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
@@ -99,15 +99,7 @@ async function fetchJson<T>(path: string, options: RequestOptions<T>): Promise<T
       }
 
       if (schema) {
-        const validated = schema.safeParse(parsed);
-        if (!validated.success) {
-          throw new ApiError('decode', 'Unexpected response shape from server', {
-            cause: validated.error,
-            details: validated.error.format(),
-            retryable: false,
-          });
-        }
-        return validated.data;
+        return ensureApiResponse(parsed, schema);
       }
 
       return parsed as T;

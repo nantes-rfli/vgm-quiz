@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ApiError } from './errors'
 import type { Phase1Choice, Phase1Question, Phase1Reveal, Phase1StartResponse, Phase1NextResponse } from './types'
 
 const DIFFICULTY_VALUES = ['easy', 'normal', 'hard', 'mixed'] as const
@@ -97,3 +98,15 @@ export const Phase1NextResponseSchema: z.ZodType<Phase1NextResponse> = z.object(
   progress: RoundProgressSchema.optional(),
   finished: z.boolean(),
 })
+
+export function ensureApiResponse<T>(payload: unknown, schema: z.ZodType<T>): T {
+  const parsed = schema.safeParse(payload)
+  if (!parsed.success) {
+    throw new ApiError('decode', 'Unexpected response shape from server', {
+      cause: parsed.error,
+      details: parsed.error.format(),
+      retryable: false,
+    })
+  }
+  return parsed.data
+}
