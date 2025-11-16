@@ -14,6 +14,7 @@ export const ModeSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   defaultTotal: z.number().int().min(1).max(100),
+  locale: z.string().min(2).optional(),
 })
 
 export const FacetsSchema = z.object({
