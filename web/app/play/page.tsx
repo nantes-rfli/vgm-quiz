@@ -73,6 +73,10 @@ function PlayPageContent() {
   const isMountedRef = React.useRef(true);
   React.useEffect(() => () => { isMountedRef.current = false; }, []);
 
+  React.useEffect(() => {
+    mark('quiz:autostart-ready', { auto: queryAutoStartValue });
+  }, [queryAutoStartValue]);
+
   const [toast, setToast] = React.useState<ToastState | null>(null);
   const pendingRetryRef = React.useRef<(() => void) | null>(null);
   const activeFiltersRef = React.useRef<Partial<RoundStartRequest> | undefined>(undefined);
@@ -222,10 +226,14 @@ function PlayPageContent() {
         },
       });
       mark('quiz:first-question-visible', { questionId: question.id });
+      measure('quiz:autostart-to-first-question', 'quiz:autostart-ready', 'quiz:first-question-visible', {
+        auto: queryAutoStartValue,
+        questionId: question.id,
+      });
       measure('quiz:navigation-to-first-question', 'navigationStart', 'quiz:first-question-visible');
       pendingRetryRef.current = null;
       closeToast();
-    } catch (e: unknown) {
+      } catch (e: unknown) {
       if (!isMountedRef.current) return;
       const apiError = ensureApiError(e);
       let errorMessage = mapApiErrorToMessage(apiError);
@@ -239,7 +247,7 @@ function PlayPageContent() {
       });
     }
     },
-    [safeDispatch, closeToast, scheduleRetry, t],
+    [safeDispatch, closeToast, scheduleRetry, t, queryAutoStartValue],
   );
 
   // bootstrap (autostart mode)
