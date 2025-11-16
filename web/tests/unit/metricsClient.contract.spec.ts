@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { STORAGE_KEY_EVENTS } from '@/src/lib/metrics/constants';
+import { MetricsBatchSchema, PendingEventSchema } from '@/src/lib/metrics/schemas';
+import type { MetricsEventName } from '@/src/lib/metrics/types';
 
 let recordMetricsEvent: typeof import('@/src/lib/metrics/metricsClient').recordMetricsEvent;
 let flushMetrics: typeof import('@/src/lib/metrics/metricsClient').flushMetrics;
@@ -20,7 +22,7 @@ beforeEach(() => {
 });
 
 describe('metricsClient contract', () => {
-  it('stores events with required fields', async () => {
+  it('stores events that satisfy the pending event schema', async () => {
     await loadClient();
     recordMetricsEvent('answer_result', {
       roundId: 'round-1',
@@ -34,12 +36,13 @@ describe('metricsClient contract', () => {
     const queue = getQueue();
     expect(queue).toHaveLength(1);
     const event = queue[0];
-    expect(event?.name).toBe('answer_result');
-    expect(typeof event?.id).toBe('string');
-    expect(typeof event?.ts).toBe('string');
-    expect(event?.round_id).toBe('round-1');
-    expect(event?.question_idx).toBe(2);
-    expect(event?.attrs).toMatchObject({ outcome: 'correct', remainingSeconds: 9 });
+    const validated = PendingEventSchema.parse(event);
+    expect(validated.name).toBe('answer_result');
+    expect(validated.round_id).toBe('round-1');
+    expect(validated.question_idx).toBe(2);
+    expect(validated.retryCount).toBe(0);
+    expect(typeof validated.idempotencyKey).toBe('string');
+    expect(validated.attrs).toMatchObject({ outcome: 'correct', remainingSeconds: 9 });
   });
 
   it('builds payload with client metadata when flushing', async () => {
@@ -70,13 +73,13 @@ describe('metricsClient contract', () => {
 
     const [, init] = fetchMock.mock.calls[0];
     const body = JSON.parse((init?.body as string) ?? '{}');
-    expect(body.client).toMatchObject({
+    const parsed = MetricsBatchSchema.parse(body);
+    expect(parsed.client).toMatchObject({
       client_id: expect.any(String),
       app_version: expect.any(String),
       tz: expect.stringContaining('+'),
     });
-    expect(Array.isArray(body.events)).toBe(true);
-    const lastEvent = body.events.at(-1);
+    const lastEvent = parsed.events.at(-1);
     expect(lastEvent).toMatchObject({
       name: 'answer_select',
       round_id: 'round-2',
@@ -87,6 +90,18 @@ describe('metricsClient contract', () => {
     await vi.waitFor(() => {
       expect(localStorage.getItem(STORAGE_KEY_EVENTS)).toBeNull();
     });
+  });
+
+  it('rejects events that fall outside the shared schema', async () => {
+    await loadClient();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    recordMetricsEvent('invalid_event' as MetricsEventName, {
+      attrs: { shouldDrop: true },
+    });
+
+    expect(getQueue()).toHaveLength(0);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Invalid pending metrics event (enqueue)'));
   });
 
   it('omits attributes that cannot be serialized', async () => {
