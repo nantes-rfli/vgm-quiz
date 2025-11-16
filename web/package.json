@@ -14,8 +14,8 @@
     "test:a11y": "playwright test tests/e2e/accessibility.spec.ts",
     "test:unit": "vitest run",
     "contract": "node ./scripts/run-contract.mjs",
-    "contract:pw": "playwright test -c playwright.contract.config.ts",
-    "contract:vitest": "vitest run tests/unit/metricsClient.contract.spec.ts tests/unit/reveal.contract.spec.ts",
+    "contract:pw": "node ./scripts/run-contract.mjs --pw-only",
+    "contract:vitest": "node ./scripts/run-contract.mjs --vitest-only",
     "test:lhci": "lhci autorun --config=./lighthouserc.json"
   },
   "dependencies": {

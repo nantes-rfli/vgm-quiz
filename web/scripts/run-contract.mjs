@@ -38,6 +38,8 @@ const unitContractTests = collectContractTests(unitTestDir).map((abs) =>
 
 const argv = process.argv.slice(2)
 let filter
+let vitestOnly = false
+let playwrightOnly = false
 const passthrough = []
 
 for (let i = 0; i < argv.length; i += 1) {
@@ -45,17 +47,30 @@ for (let i = 0; i < argv.length; i += 1) {
   if (arg === '--filter' && argv[i + 1]) {
     filter = argv[i + 1]
     i += 1
+  } else if (arg === '--vitest-only') {
+    vitestOnly = true
+  } else if (arg === '--pw-only') {
+    playwrightOnly = true
   } else {
     passthrough.push(arg)
   }
 }
 
-const vitestArgs = ['run', ...unitContractTests]
-if (filter) vitestArgs.push('--filter', filter)
-vitestArgs.push(...passthrough)
-run('vitest', vitestArgs)
+if (playwrightOnly && vitestOnly) {
+  console.error('Cannot combine --vitest-only and --pw-only')
+  process.exit(1)
+}
 
-const playwrightArgs = ['test', '-c', 'playwright.contract.config.ts']
-if (filter) playwrightArgs.push('--grep', filter)
-playwrightArgs.push(...passthrough)
-run('playwright', playwrightArgs)
+if (!playwrightOnly) {
+  const vitestArgs = ['run', ...unitContractTests]
+  if (filter) vitestArgs.push('--testNamePattern', filter)
+  vitestArgs.push(...passthrough)
+  run('vitest', vitestArgs)
+}
+
+if (!vitestOnly) {
+  const playwrightArgs = ['test', '-c', 'playwright.contract.config.ts']
+  if (filter) playwrightArgs.push('--grep', filter)
+  playwrightArgs.push(...passthrough)
+  run('playwright', playwrightArgs)
+}
