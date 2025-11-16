@@ -10,6 +10,7 @@ import {
 import { loadQueue, saveQueue } from './storage';
 import { getClientId, createUuid } from './clientId';
 import type { MetricsBatch, MetricsEventName, PendingEvent } from './types';
+import { MetricsBatchSchema, PendingEventSchema } from './schemas';
 
 const APP_VERSION =
   typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_APP_VERSION
@@ -34,13 +35,101 @@ function readyFilter(event: PendingEvent, now: number): boolean {
   return event.nextAttempt <= now;
 }
 
+type AttrValue = string | number | boolean | null | AttrValue[] | { [key: string]: AttrValue };
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === null || proto === Object.prototype;
+}
+
+function normalizeAttrValue(value: unknown): AttrValue | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : undefined;
+  }
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'bigint') {
+    const asNumber = Number(value);
+    return Number.isFinite(asNumber) ? asNumber : undefined;
+  }
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value.toISOString();
+  }
+  if (Array.isArray(value)) {
+    const normalized: AttrValue[] = [];
+    for (const entry of value) {
+      const next = normalizeAttrValue(entry);
+      if (next !== undefined) normalized.push(next);
+    }
+    return normalized.length ? normalized : undefined;
+  }
+  if (isPlainObject(value)) {
+    const entries = Object.entries(value as Record<string, unknown>);
+    const normalizedEntries: Array<[string, AttrValue]> = [];
+    for (const [key, entry] of entries) {
+      const next = normalizeAttrValue(entry);
+      if (next !== undefined) normalizedEntries.push([key, next]);
+    }
+    return normalizedEntries.length ? Object.fromEntries(normalizedEntries) : undefined;
+  }
+  return undefined;
+}
+
+function sanitizeAttributes(attrs?: Record<string, unknown>): Record<string, AttrValue> | undefined {
+  if (!attrs) return undefined;
+  const normalizedEntries: Array<[string, AttrValue]> = [];
+  for (const [key, value] of Object.entries(attrs)) {
+    const normalized = normalizeAttrValue(value);
+    if (normalized !== undefined) {
+      normalizedEntries.push([key, normalized]);
+    }
+  }
+  if (!normalizedEntries.length) return undefined;
+  return Object.fromEntries(normalizedEntries);
+}
+
 function normalizeEvent(event: PendingEvent): PendingEvent {
   return {
     ...event,
+    attrs: sanitizeAttributes(event.attrs),
     retryCount: event.retryCount ?? 0,
     nextAttempt: event.nextAttempt ?? 0,
     idempotencyKey: event.idempotencyKey ?? createUuid(),
   };
+}
+
+function logMetricsWarning(message: string, error?: unknown) {
+  if (typeof console === 'undefined' || typeof console.warn !== 'function') return;
+  if (error instanceof Error) {
+    console.warn(`[metrics] ${message}: ${error.message}`);
+    return;
+  }
+  if (error) {
+    console.warn(`[metrics] ${message}`, error);
+    return;
+  }
+  console.warn(`[metrics] ${message}`);
+}
+
+function validatePendingEvent(event: PendingEvent, context: string): PendingEvent | null {
+  const parsed = PendingEventSchema.safeParse(event);
+  if (parsed.success) {
+    return parsed.data;
+  }
+  logMetricsWarning(`Invalid pending metrics event (${context})`, parsed.error);
+  return null;
+}
+
+function validateBatch(batch: MetricsBatch): MetricsBatch | null {
+  const parsed = MetricsBatchSchema.safeParse(batch);
+  if (parsed.success) {
+    return parsed.data;
+  }
+  logMetricsWarning('Invalid metrics batch payload', parsed.error);
+  return null;
 }
 
 export type RecordOptions = {
@@ -60,7 +149,11 @@ class MetricsClient {
   start(): void {
     if (this.started || typeof window === 'undefined') return;
     this.started = true;
-    this.queue = loadQueue().map(normalizeEvent);
+    this.queue = loadQueue()
+      .map(normalizeEvent)
+      .map((event) => validatePendingEvent(event, 'hydrate'))
+      .filter((event): event is PendingEvent => Boolean(event));
+    saveQueue(this.queue);
     this.clientId = getClientId();
     this.installLifecycleHandlers();
     this.scheduleFlush(BASE_RETRY_MS);
@@ -76,7 +169,7 @@ class MetricsClient {
       ts: new Date().toISOString(),
       round_id: options.roundId,
       question_idx: options.questionIdx,
-      attrs: options.attrs,
+      attrs: sanitizeAttributes(options.attrs),
       retryCount: 0,
       nextAttempt: nowMs(),
       idempotencyKey: createUuid(),
@@ -101,7 +194,12 @@ class MetricsClient {
     const ready = this.queue.filter((event) => readyFilter(event, now)).slice(0, FLUSH_BATCH_SIZE);
     if (!ready.length) return;
     const payload = this.buildBatch(ready);
-    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    const validatedPayload = validateBatch(payload);
+    if (!validatedPayload) {
+      this.discardEvents(ready, 'payload validation failed');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(validatedPayload)], { type: 'application/json' });
     const ok = navigator.sendBeacon(METRICS_ENDPOINT, blob);
     if (ok) {
       const readyIds = new Set(ready.map((event) => event.id));
@@ -113,10 +211,13 @@ class MetricsClient {
   }
 
   private enqueue(event: PendingEvent): void {
+    const normalized = normalizeEvent(event);
+    const validated = validatePendingEvent(normalized, 'enqueue');
+    if (!validated) return;
     if (this.queue.length >= MAX_QUEUE_SIZE) {
       this.queue.shift();
     }
-    this.queue.push(event);
+    this.queue.push(validated);
     saveQueue(this.queue);
     this.scheduleFlush(0);
   }
@@ -132,12 +233,19 @@ class MetricsClient {
 
     this.isFlushing = true;
     const payload = this.buildBatch(ready);
+    const validatedPayload = validateBatch(payload);
+    if (!validatedPayload) {
+      this.discardEvents(ready, 'payload validation failed');
+      this.isFlushing = false;
+      if (this.queue.length) this.scheduleFlush(BASE_RETRY_MS);
+      return;
+    }
 
     try {
       const res = await fetch(METRICS_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(validatedPayload),
         keepalive: ready.length <= FLUSH_BATCH_SIZE,
       });
 
@@ -234,6 +342,14 @@ class MetricsClient {
       window.addEventListener('online', () => this.scheduleFlush(0));
       window.addEventListener('pagehide', () => this.flushWithBeacon());
     }
+  }
+
+  private discardEvents(events: PendingEvent[], reason: string): void {
+    if (!events.length) return;
+    logMetricsWarning(`Discarding ${events.length} metrics event(s): ${reason}`);
+    const invalidIds = new Set(events.map((event) => event.id));
+    this.queue = this.queue.filter((event) => !invalidIds.has(event.id));
+    saveQueue(this.queue);
   }
 }
 
