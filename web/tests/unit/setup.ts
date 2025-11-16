@@ -26,7 +26,12 @@ function createMemoryStorage(): Storage {
 
 function ensureStorage(target: 'localStorage' | 'sessionStorage'): Storage {
   const globalTarget = globalThis as Record<string, unknown>;
-  const existing = globalTarget[target] as Storage | undefined;
+  let existing: Storage | undefined;
+  try {
+    existing = globalTarget[target] as Storage | undefined;
+  } catch {
+    existing = undefined;
+  }
   if (existing && typeof existing.clear === 'function') {
     return existing;
   }

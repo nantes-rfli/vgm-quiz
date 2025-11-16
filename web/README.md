@@ -27,6 +27,7 @@ npm install
 | `npm run validate:fixtures` | `docs/api/schemas` とフィクスチャの整合を Ajv で検証。 |
 | `npm run test:e2e` | Playwright E2E (Chromium)。CI でも使用。 |
 | `npm run test:e2e:ui` | Playwright UI モード。ローカルデバッグ用。 |
+| `npm run test:unit` | Vitest ユニット/契約テスト（`metricsClient`/`reveal` など）。 |
 
 ## ディレクトリ構成
 
@@ -59,6 +60,7 @@ npm install
 
 - スモーク: `tests/e2e/play-smoke.spec.ts`
 - 詳細検証: `tests/e2e/play-features.spec.ts`
+- 契約テスト: `npm run test:unit -- tests/unit/metricsClient.contract.spec.ts` と `tests/unit/reveal.contract.spec.ts` をピンポイントで実行し、メトリクス/Reveal payload の破壊的変更を検出します。
 - MSW フィクスチャは `mocks/fixtures` 内で一元管理し、`npm run validate:fixtures` でスキーマ整合を保証します。
 
 ## リンク集
