@@ -130,7 +130,7 @@ Outbound Rate = reveal_open_external イベント数 / answer_result イベン�
 
 **計算式**
 ```
-Embed Fallback Rate = embed_fallback_to_link イベント数 / (reveal_view 数) × 100%
+Embed Fallback Rate = embed_fallback_to_link イベント数 / answer_result イベント数 × 100%
 ```
 
 **詳細**
@@ -138,7 +138,7 @@ Embed Fallback Rate = embed_fallback_to_link イベント数 / (reveal_view 数)
 | 項目 | 値 |
 |------|-----|
 | 分子 | `embed_fallback_to_link` イベント数（reason = 'no_embed_available'） |
-| 分母 | Reveal View 推定数（`quiz_complete` + `embed_error` + `embed_fallback_to_link`） |
+| 分母 | Reveal 表示回数の代理: `answer_result` イベント数（設問ごとに必ず 1 回送信） |
 | 集計粒度 | 日次、提供元別（provider: youtube/spotify/appleMusic） |
 | 計測期間 | 7 日（週次レビュー） |
 
@@ -149,7 +149,8 @@ Embed Fallback Rate = embed_fallback_to_link イベント数 / (reveal_view 数)
 - 原因: URL が youtube.com/watch?v=<ID> または youtu.be/<ID> 形式でない、または URL パース失敗
 
 **分母の定義**
-- **Reveal View**: [Outbound Rate](#outbound-rate--外部遷移率) と同じ代理イベント
+- イベント: `answer_result`（各設問で必ず送信され、直後に Reveal が表示される）
+- 集計: `COUNT(DISTINCT round_id || ':' || question_idx)`
 
 **目標値と閾値**
 

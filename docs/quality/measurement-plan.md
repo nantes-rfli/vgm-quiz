@@ -143,21 +143,32 @@ if (res.finished === true) {
 
 **集計ロジック（SQL 例）**
 
+> 補足: 「開始したセッション」は `/v1/rounds/start` 成功件数で測る必要があり、フロント側のメトリクスイベントでは未送信です。Cloudflare Logpush などで API リクエストを別途集計する想定の例を示します。
+
 ```sql
--- Completion Rate = Complete / Started × 100% (D1/SQLite)
+-- Completion Rate = Completed Rounds / Started Rounds × 100%
+-- round starts are counted from API access logs; completes from metrics_events
+WITH round_starts AS (
+  SELECT DATE(start_time) AS date, COUNT(*) AS started
+  FROM api_request_logs
+  WHERE path = '/v1/rounds/start' AND status = 200
+  GROUP BY DATE(start_time)
+),
+completes AS (
+  SELECT DATE(event_ts) AS date,
+         COUNT(DISTINCT round_id) AS completed
+  FROM metrics_events
+  WHERE event_name = 'quiz_complete'
+  GROUP BY DATE(event_ts)
+)
 SELECT
-  DATE(event_ts) as date,
-  COUNT(DISTINCT CASE WHEN event_name = 'quiz_complete' THEN round_id END) as completed,
-  COUNT(DISTINCT round_id) as started,
-  ROUND(
-    COUNT(DISTINCT CASE WHEN event_name = 'quiz_complete' THEN round_id END)
-    * 100.0 / COUNT(DISTINCT round_id),
-    2
-  ) as completion_rate_pct
-FROM metrics_events
-WHERE event_name IN ('quiz_complete', 'answer_result')
-GROUP BY DATE(event_ts)
-ORDER BY date DESC;
+  s.date,
+  s.started,
+  COALESCE(c.completed, 0) AS completed,
+  ROUND(COALESCE(c.completed, 0) * 100.0 / NULLIF(s.started, 0), 2) AS completion_rate_pct
+FROM round_starts s
+LEFT JOIN completes c ON s.date = c.date
+ORDER BY s.date DESC;
 ```
 
 **再送条件**
@@ -279,37 +290,36 @@ React.useEffect(() => {
 **集計ロジック（SQL 例）**
 
 ```sql
--- Embed Fallback Rate = Fallback Events / Total Reveals × 100% (D1/SQLite)
-WITH reveals AS (
+-- Embed Fallback Rate = Fallback Events / Answer Results × 100% (D1/SQLite)
+-- 分母を per-question の `answer_result` に合わせ、成功した埋め込みもカウントする
+WITH answered AS (
   SELECT
     DATE(event_ts) as date,
-    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_reveals
+    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_answered
   FROM metrics_events
-  WHERE event_name IN (
-    'quiz_complete', 'embed_error', 'embed_fallback_to_link'
-  )
+  WHERE event_name = 'answer_result'
   GROUP BY DATE(event_ts)
 ),
 fallback AS (
   SELECT
     DATE(event_ts) as date,
-    COUNT(*) as fallback_events
+    COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as fallback_events
   FROM metrics_events
   WHERE event_name = 'embed_fallback_to_link'
     AND json_extract(attrs, '$.reason') = 'no_embed_available'
   GROUP BY DATE(event_ts)
 )
 SELECT
-  r.date,
-  r.total_reveals,
+  a.date,
+  a.total_answered,
   COALESCE(f.fallback_events, 0) as fallback_events,
   ROUND(
-    COALESCE(f.fallback_events, 0) * 100.0 / r.total_reveals,
+    COALESCE(f.fallback_events, 0) * 100.0 / NULLIF(a.total_answered, 0),
     2
   ) as fallback_rate_pct
-FROM reveals r
-LEFT JOIN fallback f ON r.date = f.date
-ORDER BY r.date DESC;
+FROM answered a
+LEFT JOIN fallback f ON a.date = f.date
+ORDER BY a.date DESC;
 ```
 
 **再送条件**
