@@ -379,12 +379,12 @@ fallback AS (
 ),
 errors AS (
   SELECT
-    DATE(ts) as date,
+    DATE(event_ts) as date,
     COUNT(*) as error_count
   FROM metrics_events
   WHERE event_name = 'embed_error'
     AND json_extract(attrs, '$.reason') = 'load_error'
-  GROUP BY DATE(ts)
+  GROUP BY DATE(event_ts)
 )
 SELECT
   a.date,
