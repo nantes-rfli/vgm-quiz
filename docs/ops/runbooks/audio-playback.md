@@ -114,7 +114,7 @@ Reveal Card で以下のイベントを記録：
    - MSW モック内で YouTube 埋め込みを強制失敗させ、エラーハンドラが動作するか確認
    - 本番環境の場合: CORS/CSP ポリシーが iframe.src ブロックしていないか確認
      - web/next.config.ts の Security Headers を確認
-     - iframe allow 属性が必要な権限を許可しているか確認（[RevealCard.tsx](../../web/src/components/RevealCard.tsx) 参照）
+     - iframe allow 属性が必要な権限を許可しているか確認（[RevealCard.tsx](../../../web/src/components/RevealCard.tsx) 参照）
 
 **対応**
 - 削除/制限された動画: curated.json から URL 削除、別リンクに置き換え
@@ -174,7 +174,7 @@ Reveal Card で以下のイベントを記録：
    ```
 
 4. **フロントエンド MSW モック更新**
-   - [meta.ts](../../web/mocks/fixtures/rounds/meta.ts) も同期
+   - [meta.ts](../../../web/mocks/fixtures/rounds/meta.ts) も同期
    ```bash
    cd web
    npm run build && npm run test:e2e
@@ -251,9 +251,9 @@ Reveal Card で以下のイベントを記録：
 
 ## 関連ドキュメント・リソース
 
-- [RevealCard コンポーネント](../../web/src/components/RevealCard.tsx) - 埋め込み実装
-- [メトリクスクライアント](../../web/src/lib/metrics/metricsClient.ts) - イベント送信
-- [curated.json](../../workers/data/curated.json) - マスターデータ
+- [RevealCard コンポーネント](../../../web/src/components/RevealCard.tsx) - 埋め込み実装
+- [メトリクスクライアント](../../../web/src/lib/metrics/metricsClient.ts) - イベント送信
+- [curated.json](../../../workers/data/curated.json) - マスターデータ
 - [API 仕様 - /v1/metrics](../../../api/api-spec.md) - メトリクス受け入れスキーマ
 - [Observability & Alerts](../observability.md) - ダッシュボード・アラート設定
 
