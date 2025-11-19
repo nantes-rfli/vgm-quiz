@@ -13,9 +13,11 @@
     "test": "vitest run",
     "validate:curated": "tsx scripts/validate-curated.ts",
     "validate:facet-distribution": "tsx scripts/validate-facet-distribution.ts",
-    "observability:test": "tsx scripts/observability-test.ts"
+    "observability:test": "tsx scripts/observability-test.ts",
+    "export:snapshot": "tsx scripts/export-snapshot.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.934.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

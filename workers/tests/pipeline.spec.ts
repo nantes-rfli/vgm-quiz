@@ -1,9 +1,9 @@
-import { Buffer } from 'node:buffer'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { handleDiscovery } from '../pipeline/src/stages/discovery'
 import { handlePublish } from '../pipeline/src/stages/publish'
 import type { Env } from '../shared/types/env'
 import type { Question } from '../shared/types/export'
+import { InMemoryR2Bucket } from './helpers/in-memory-r2'
 
 type Nullable<T> = T | null
 
@@ -468,47 +468,6 @@ class FakeD1Database {
   }
 }
 
-class InMemoryR2Object {
-  constructor(private readonly value: string) {}
-
-  async text(): Promise<string> {
-    return this.value
-  }
-}
-
-class InMemoryR2Bucket {
-  #store = new Map<string, string>()
-
-  async put(key: string, value: string | ArrayBuffer | ArrayBufferView): Promise<R2ObjectBody> {
-    let text: string
-
-    if (typeof value === 'string') {
-      text = value
-    } else if (value instanceof ArrayBuffer) {
-      text = Buffer.from(value).toString()
-    } else {
-      const view = value as ArrayBufferView
-      text = Buffer.from(view.buffer, view.byteOffset, view.byteLength).toString()
-    }
-
-    this.#store.set(key, text)
-    return { key } as R2ObjectBody
-  }
-
-  async head(key: string): Promise<R2Object | null> {
-    return this.#store.has(key) ? ({ key } as R2Object) : null
-  }
-
-  async get(key: string): Promise<R2ObjectBody | null> {
-    const value = this.#store.get(key)
-    return value ? (new InMemoryR2Object(value) as unknown as R2ObjectBody) : null
-  }
-
-  dump(): Map<string, string> {
-    return this.#store
-  }
-}
-
 describe('pipeline facets integration', () => {
   let db: FakeD1Database
   let storage: InMemoryR2Bucket
@@ -558,6 +517,40 @@ describe('pipeline facets integration', () => {
     expect(target?.facets?.genres).toEqual(['platformer', 'action'])
     expect(target?.facets?.seriesTags).toEqual(['sonic'])
     expect(target?.facets?.era).toBe('90s')
+  })
+
+  it('stores canonical exports under backup prefix and prunes beyond retention window', async () => {
+    env.BACKUP_PREFIX = 'backups/daily'
+    env.BACKUP_EXPORT_DAYS = '2'
+    await handleDiscovery(env)
+
+    await handlePublish(env, '2025-01-10')
+    await handlePublish(env, '2025-01-11')
+    await handlePublish(env, '2025-01-12')
+
+    const dump = storage.dump()
+    expect(dump.has('backups/daily/2025-01-12.json')).toBe(true)
+    expect(dump.has('backups/daily/2025-01-11.json')).toBe(true)
+    expect(dump.has('backups/daily/2025-01-10.json')).toBe(false)
+  })
+
+  it('skips backup replication for filtered exports', async () => {
+    env.BACKUP_PREFIX = 'backups/daily'
+    await handleDiscovery(env)
+
+    const canonicalResult = await handlePublish(env, '2025-01-13')
+    expect(canonicalResult.success).toBe(true)
+
+    const filteredResult = await handlePublish(env, '2025-01-13', { difficulty: 'easy' })
+
+    if (filteredResult.success && filteredResult.r2Key) {
+      const filteredFileName = filteredResult.r2Key.split('/').pop()
+      if (!filteredFileName) {
+        throw new Error('filtered export missing filename segment')
+      }
+      const expectedBackupKey = `backups/daily/${filteredFileName}`
+      expect(storage.dump().has(expectedBackupKey)).toBe(false)
+    }
   })
 
   it('samples tracks with difficulty filter', async () => {

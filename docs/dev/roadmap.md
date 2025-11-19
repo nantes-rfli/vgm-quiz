@@ -1,7 +1,7 @@
 # プロダクトロードマップ — vgm-quiz
 
 - **Status**: Living Document
-- **Last Updated**: 2025-11-16
+- **Last Updated**: 2025-11-19
 - **目的**: プロジェクトの各フェーズにおける機能実装を追跡
 
 ---
@@ -96,7 +96,7 @@
 
 **ゴール**: 完全自動クイズ生成へ進む前に、現行フィルタ配信を計測・監視可能にし、失敗時でも即復旧できる体制を築く。手動介入ゼロで安定運用できる仕組みを整備する。
 
-**ステータス**: Phase 3A/3B 完了、3C/3D 計画中（2025-11-16 時点）
+**ステータス**: Phase 3A〜3D 完了（2025-11-19 クローズ）
 
 **開始予定**: Phase 2 安定確認後すぐ（2025-11 下旬見込み）
 
@@ -112,15 +112,15 @@
 - ✅ #77 FE: Contract tests for metrics/reveal payloads（P2, area:fe、2025-11-16 クローズ）
 - ✅ #135 FE-Guardrails: Enforce contract tests in CI（P2, area:fe、2025-11-16 クローズ）
 
-#### Phase 3C - Runbook & Metrics Docs（計画中）
-- [ ] #32 DOCS-01: quality/metrics.md（P2, area:docs）
-- [ ] #33 DOCS-02: measurement-plan.md（P2, area:docs）
-- [ ] #35 DOCS-04: audio-playback runbook（P2, area:docs）
-- [ ] #37 OPS-02: レート制限/署名鍵ローテーション運用メモ（P3, area:ops）
+#### Phase 3C - Runbook & Metrics Docs（完了 ✅）
+- ✅ #32 DOCS-01: quality/metrics.md（P2, area:docs、2025-11-18 クローズ）
+- ✅ #33 DOCS-02: measurement-plan.md（P2, area:docs、2025-11-18 クローズ）
+- ✅ #35 DOCS-04: audio-playback runbook（P2, area:docs、2025-11-16 クローズ）
+- ✅ #37 OPS-02: レート制限/署名鍵ローテーション運用メモ（P3, area:ops、2025-11-18 クローズ）
 
-#### Phase 3D - データ冗長性（計画中）
-- [ ] #31 DATA-03: バックアップ在庫追加（P3, area:data）
-- [ ] #136 DATA-Backup-Automation: retain 14d of daily presets（P2, area:data）
+#### Phase 3D - データ冗長性（完了 ✅）
+- ✅ #31 DATA-03: バックアップ在庫追加（P3, area:data、2025-11-19 クローズ）
+- ✅ #136 DATA-Backup-Automation: retain 14d of daily presets（P2, area:data、2025-11-19 クローズ）
 
 ### 成功基準
 - Lighthouse/Perf smoke がCIで自動実行され、しきい値超過時にアラート/ブロックできる

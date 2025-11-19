@@ -1,7 +1,7 @@
 # R2 Cache Strategy – vgm-quiz Backend
 
 - **Status**: Draft
-- **Last Updated**: 2025-10-13
+- **Last Updated**: 2025-11-19
 - **Purpose**: R2 storage strategy for daily question set exports
 
 ## Overview
@@ -14,11 +14,14 @@ Pipeline Worker generates daily question sets and exports them to Cloudflare R2.
 
 ```
 exports/daily/YYYY-MM-DD.json
+backups/daily/YYYY-MM-DD.json
 ```
 
 **Examples:**
 - `exports/daily/2025-10-13.json`
-- `exports/daily/2025-10-14.json`
+- `backups/daily/2025-10-13.json`
+
+バックアップは canonical export と同じ日付サフィックスを共有し、`customMetadata.source = "daily"` を付与して R2 側で識別できる。`BACKUP_PREFIX`（既定: `backups/daily`）を変更すると階層全体が切り替わる。
 
 ### File Format
 
@@ -50,17 +53,23 @@ Each export file contains:
 - This is acceptable because question sets are deterministic (same date → same random seed → same selection)
 - Hash verification ensures data integrity
 
-**Implementation**: [workers/pipeline/src/stages/publish.ts:154-160](../../workers/pipeline/src/stages/publish.ts#L154-L160)
+**Implementation**: [workers/pipeline/src/stages/publish.ts](../../workers/pipeline/src/stages/publish.ts)
 
 ```typescript
-// 10. Export to R2 (PUT operation is naturally idempotent - overwrites existing)
-const r2Key = `exports/daily/${date}.json`
-await env.STORAGE.put(r2Key, JSON.stringify(exportData, null, 2), {
-  httpMetadata: {
-    contentType: 'application/json',
-  },
-})
+const r2Key = buildExportR2Key(date, CANONICAL_FILTER_KEY)
+await env.STORAGE.put(r2Key, exportJsonPretty, { httpMetadata: { contentType: 'application/json' } })
+
+if (filterKey === CANONICAL_FILTER_KEY) {
+  await replicateCanonicalBackup(env, {
+    canonicalKey: r2Key,
+    exportJson: exportJsonPretty,
+    date,
+    hash,
+  })
+}
 ```
+
+`replicateCanonicalBackup` は `BACKUP_PREFIX` プレフィックスへコピーし、`BACKUP_EXPORT_DAYS` を下回る古いバックアップを自動削除する。
 
 ### D1 Consistency Check
 
@@ -91,45 +100,17 @@ ETag: "<hash>"
 
 **Note**: Cache-Control implementation is future work (not yet implemented in API Worker).
 
-## Deletion Policy
+## Deletion & Retention Policy
 
-### Phase 1 (MVP): Manual Deletion Only
+- `exports/daily/*`: アーカイブ用途があるため自動削除は行わない。将来的なクリーンアップは別ジョブ（未実装）で検討する。
+- `backups/daily/*`: Pipeline Worker が `BACKUP_EXPORT_DAYS`（既定 14 日）を下回らないように削除し、R2 Lifecycle ルールで 30 日を上限にした自動削除を構成する。
 
-**Current state**: No automatic deletion.
+**Lifecycle Configuration Example**
 
-**Rationale**:
-- R2 storage is cheap (~$0.015/GB/month)
-- Historical exports may be useful for analytics or debugging
-- Deletion can be performed manually via Wrangler CLI or Cloudflare Dashboard
-
-### Future: Automatic Cleanup (Phase 2+)
-
-**Proposal**: Keep last 60 days, delete older exports.
-
-**Implementation approach**:
-1. Add cleanup task to scheduled handler (runs weekly)
-2. List objects older than 60 days: `env.STORAGE.list({ prefix: 'exports/' })`
-3. Delete objects: `env.STORAGE.delete(key)`
-
-**Example (future):**
-```typescript
-async function cleanupOldExports(env: Env): Promise<void> {
-  const cutoffDate = new Date()
-  cutoffDate.setDate(cutoffDate.getDate() - 60) // 60 days ago
-
-  const list = await env.STORAGE.list({ prefix: 'exports/' })
-
-  for (const object of list.objects) {
-    const dateMatch = object.key.match(/exports\/(\d{4}-\d{2}-\d{2})\.json/)
-    if (dateMatch) {
-      const fileDate = new Date(dateMatch[1])
-      if (fileDate < cutoffDate) {
-        await env.STORAGE.delete(object.key)
-        console.log(`[Cleanup] Deleted old export: ${object.key}`)
-      }
-    }
-  }
-}
+```bash
+wrangler r2 bucket lifecycle put vgm-quiz-storage --rules '[
+  {"ID":"backups-30d","Prefix":"backups/","Status":"Enabled","Expiration":{"Days":30}}
+]'
 ```
 
 ## Monitoring
@@ -153,18 +134,21 @@ View R2 bucket usage:
 
 ```bash
 wrangler r2 object list vgm-quiz-storage --prefix exports/
+wrangler r2 object list vgm-quiz-storage --prefix backups/daily/
 ```
 
 ### Download Specific Export
 
 ```bash
 wrangler r2 object get vgm-quiz-storage/exports/daily/2025-10-13.json
+wrangler r2 object get vgm-quiz-storage/backups/daily/2025-10-13.json
 ```
 
 ### Delete Specific Export
 
 ```bash
 wrangler r2 object delete vgm-quiz-storage/exports/daily/2025-10-13.json
+wrangler r2 object delete vgm-quiz-storage/backups/daily/2025-10-13.json
 ```
 
 ### Verify D1 Consistency
@@ -175,7 +159,24 @@ wrangler d1 execute vgm-quiz-db --remote --command "SELECT date FROM picks ORDER
 
 # Check if R2 file exists for specific date
 wrangler r2 object head vgm-quiz-storage/exports/daily/2025-10-13.json
+wrangler r2 object head vgm-quiz-storage/backups/daily/2025-10-13.json
 ```
+
+### Snapshot & Recovery Script
+
+- `npm run export:snapshot -- --start 2025-11-01 --end 2025-11-05` — D1 `picks` (`filters_json='{}'`) から canonical export を取得し、`exports/daily/` に PUT。R2 認証には `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` を使用する。
+- `npm run export:snapshot -- --start 2025-11-01 --end 2025-11-05 --source backup --force` — `backups/daily/` から `exports/daily/` へサーバーサイドコピー（`CopyObject`）。
+
+**必須環境変数**:
+
+| Name | Purpose |
+|------|---------|
+| `CLOUDFLARE_ACCOUNT_ID` | API / R2 endpoint selection |
+| `CLOUDFLARE_D1_DATABASE_ID` | D1 target DB (source=d1) |
+| `CLOUDFLARE_API_TOKEN` | D1 raw query API token |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | S3-compatible credentials |
+| `R2_BUCKET_NAME` | Target R2 bucket (e.g., `vgm-quiz-storage`) |
+| `BACKUP_PREFIX` | Optional. Defaults to `backups/daily` |
 
 ## Error Handling
 
@@ -185,8 +186,10 @@ wrangler r2 object head vgm-quiz-storage/exports/daily/2025-10-13.json
 
 **Recovery**:
 1. Check Cloudflare Workers logs for R2 errors
-2. Re-run publish: `POST /trigger/publish?date=YYYY-MM-DD`
-3. Pipeline Worker will skip D1 insert (idempotent) and retry R2 PUT
+2. 暫定提供が必要な場合は `GET /daily?date=YYYY-MM-DD&backup=1` でバックアップを即時配信する
+3. `npm run export:snapshot -- --start YYYY-MM-DD --end YYYY-MM-DD` で D1 から再出力
+4. もしくは Pipeline Worker を再実行: `POST /trigger/publish?date=YYYY-MM-DD`
+5. Pipeline Worker は D1 をスキップし、R2/backup の両方へ再 PUT する
 
 ### Scenario 2: D1 INSERT Fails, R2 PUT Succeeds
 

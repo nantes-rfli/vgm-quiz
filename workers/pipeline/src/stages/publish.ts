@@ -1,6 +1,17 @@
+import {
+  buildBackupKey,
+  getBackupPrefix,
+  getBackupRetentionDays,
+  parseDateFromKey,
+} from '../../../shared/lib/backups'
 import { generateChoices } from '../../../shared/lib/choices'
 import { getTodayJST } from '../../../shared/lib/date'
-import { buildExportR2Key, createFilterKey, normalizeFilters } from '../../../shared/lib/filters'
+import {
+  CANONICAL_FILTER_KEY,
+  buildExportR2Key,
+  createFilterKey,
+  normalizeFilters,
+} from '../../../shared/lib/filters'
 import { sha256 } from '../../../shared/lib/hash'
 import { logEvent } from '../../../shared/lib/observability'
 import type { Env } from '../../../shared/types/env'
@@ -110,6 +121,17 @@ export async function handlePublish(
           )
             .bind(date, r2Key, exportData.meta.version ?? '1.0.0', exportData.meta.hash, filterKey)
             .run()
+
+          if (filterKey === CANONICAL_FILTER_KEY) {
+            await replicateCanonicalBackup(env, {
+              filtersKey: filterKey,
+              canonicalKey: r2Key,
+              exportJson,
+              date,
+              hash: exportData.meta.hash,
+              version: exportData.meta.version ?? '1.0.0',
+            })
+          }
 
           logEvent(env, 'info', {
             event: 'publish.recover.success',
@@ -233,6 +255,8 @@ export async function handlePublish(
       },
     }
 
+    const exportJsonPretty = JSON.stringify(exportData, null, 2)
+
     // 8. Save to picks table (INSERT OR REPLACE for idempotency with filters)
     await env.DB.prepare(
       'INSERT OR REPLACE INTO picks (date, items, status, filters_json) VALUES (?, ?, ?, ?)',
@@ -254,7 +278,7 @@ export async function handlePublish(
 
     // 10. Export to R2 (use filter-aware key)
     const r2Key = buildExportR2Key(date, filterKey)
-    await env.STORAGE.put(r2Key, JSON.stringify(exportData, null, 2), {
+    await env.STORAGE.put(r2Key, exportJsonPretty, {
       httpMetadata: {
         contentType: 'application/json',
       },
@@ -267,6 +291,17 @@ export async function handlePublish(
       r2Key,
       fields: { date },
     })
+
+    if (filterKey === CANONICAL_FILTER_KEY) {
+      await replicateCanonicalBackup(env, {
+        filtersKey: filterKey,
+        canonicalKey: r2Key,
+        exportJson: exportJsonPretty,
+        date,
+        hash,
+        version: exportData.meta.version,
+      })
+    }
 
     // 11. Save export metadata (INSERT OR REPLACE for idempotency with filters)
     await env.DB.prepare(
@@ -367,6 +402,119 @@ async function getAllGameTitles(db: D1Database): Promise<string[]> {
     .all<{ game: string }>()
 
   return (result.results || []).map((r) => r.game)
+}
+
+interface BackupParams {
+  filtersKey: string
+  canonicalKey: string
+  exportJson: string
+  date: string
+  hash: string
+  version: string
+}
+
+async function replicateCanonicalBackup(env: Env, params: BackupParams): Promise<void> {
+  const prefix = getBackupPrefix(env)
+  if (!prefix) return
+
+  const backupKey = buildBackupKey(prefix, params.canonicalKey)
+  if (!backupKey) {
+    logEvent(env, 'warn', {
+      event: 'publish.backup.skip',
+      status: 'fail',
+      filtersKey: params.filtersKey,
+      message: 'Unable to derive backup key from canonical export',
+      r2Key: params.canonicalKey,
+    })
+    return
+  }
+  try {
+    await env.STORAGE.put(backupKey, params.exportJson, {
+      httpMetadata: {
+        contentType: 'application/json',
+      },
+      customMetadata: {
+        source: 'daily',
+        hash: params.hash,
+        version: params.version,
+      },
+    })
+
+    logEvent(env, 'info', {
+      event: 'publish.backup.put',
+      status: 'success',
+      filtersKey: params.filtersKey,
+      r2Key: backupKey,
+      fields: { date: params.date },
+    })
+  } catch (error) {
+    logEvent(env, 'warn', {
+      event: 'publish.backup.put',
+      status: 'fail',
+      filtersKey: params.filtersKey,
+      r2Key: backupKey,
+      error,
+    })
+    return
+  }
+
+  const retentionDays = getBackupRetentionDays(env)
+  if (retentionDays <= 0) {
+    return
+  }
+
+  try {
+    await pruneExpiredBackups(env, prefix, retentionDays, params.filtersKey)
+  } catch (error) {
+    logEvent(env, 'warn', {
+      event: 'publish.backup.prune.fail',
+      status: 'fail',
+      filtersKey: params.filtersKey,
+      r2Key: backupKey,
+      error,
+    })
+  }
+}
+
+async function pruneExpiredBackups(
+  env: Env,
+  prefix: string,
+  retentionDays: number,
+  filtersKey: string,
+): Promise<void> {
+  const listResult = await env.STORAGE.list({ prefix: `${prefix}/` })
+  if (!listResult.objects || listResult.objects.length === 0) {
+    return
+  }
+
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - retentionDays)
+  const cutoffIso = cutoff.toISOString().split('T')[0]
+
+  for (const object of listResult.objects) {
+    const objectDate = parseDateFromKey(object.key)
+    if (!objectDate) {
+      logEvent(env, 'warn', {
+        event: 'publish.backup.prune.skip',
+        status: 'fail',
+        filtersKey,
+        r2Key: object.key,
+        message: 'Unable to derive date from backup key',
+      })
+      continue
+    }
+
+    if (objectDate < cutoff) {
+      await env.STORAGE.delete(object.key)
+      logEvent(env, 'info', {
+        event: 'publish.backup.prune',
+        status: 'success',
+        filtersKey,
+        r2Key: object.key,
+        fields: { cutoff: cutoffIso },
+      })
+    }
+  }
 }
 
 function parseFacetArray(value: string | null): string[] {
