@@ -14,6 +14,7 @@ import { TIMEOUT_CHOICE_ID, SKIP_CHOICE_ID, type PlayAction } from './playReduce
 import type { Outcome, ScoreBreakdown, QuestionRecord } from '@/src/lib/resultStorage';
 import type { Reveal } from './api/types';
 import type { ProgressInfo } from './playReducer';
+import { getInlinePlayback } from '@/src/lib/inlinePlayback';
 
 type AnswerMode = { kind: 'answer' | 'timeout' | 'skip'; choiceId?: string };
 
@@ -140,6 +141,8 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         const updatedHistory = [...history, questionRecord];
         const updatedTally = rollupTally(tally, outcome, points);
 
+        const inlineEnabled = getInlinePlayback();
+
         recordMetricsEvent('answer_result', {
           roundId: continuationToken,
           questionIdx: progress?.index,
@@ -151,6 +154,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
             choiceId: questionRecord.choiceId,
             correctChoiceId: questionRecord.correctChoiceId,
             elapsedMs,
+            inlineEnabled,
           },
         });
 

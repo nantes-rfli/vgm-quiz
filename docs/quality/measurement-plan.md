@@ -17,11 +17,14 @@
 | イベント | 送信元コンポーネント | 発火条件 | 属性 | 指標への使用 |
 |---------|------------------|--------|------|-----------|
 | `quiz_complete` | [useAnswerProcessor.ts](../../web/src/features/quiz/useAnswerProcessor.ts) | 最後の問題に回答した時点 | roundId, attrs{total, points, correct, wrong, timeout, skip, durationMs} | Completion Rate 分子 |
+| `answer_result` | [useAnswerProcessor.ts](../../web/src/features/quiz/useAnswerProcessor.ts) | 各問題の回答送信直後 | roundId, questionIdx, attrs{questionId, outcome, points, remainingSeconds, choiceId, correctChoiceId, elapsedMs, inlineEnabled} | Outbound/Fallback/Load 分母 |
 | `reveal_open_external` | [RevealCard.tsx](../../web/src/components/RevealCard.tsx) | ユーザーが「Open in X」をクリック | roundId, questionIdx, attrs{questionId, provider} | Outbound Rate 分子 |
 | `embed_fallback_to_link` | [RevealCard.tsx](../../web/src/components/RevealCard.tsx) | インライン再生有効 + URL 変換失敗 | roundId, questionIdx, attrs{questionId, provider, reason: 'no_embed_available'} | Embed Fallback Rate 分子 |
 | `embed_error` | [RevealCard.tsx](../../web/src/components/RevealCard.tsx) | iframe.onError 発火 | roundId, questionIdx, attrs{questionId, provider, reason: 'load_error'} | Embed Load Error Rate 分子 |
 
 ---
+
+> `answer_result.attrs.inlineEnabled` には、その問題の Reveal 表示時にインライン再生が有効だったかどうかを boolean で記録する。インライン系 KPI の分母は必ずこのフラグでフィルタする。
 
 ## 計測フロー図
 
@@ -179,7 +182,25 @@ ORDER BY s.date DESC;
 
 ---
 
-### 2. reveal_open_external イベント
+### 2. answer_result イベント（分母代理）
+
+**役割**: Reveal 表示直後に必ず送信されるため、per-question の KPI 分母となる。
+
+**主な属性**
+
+| 属性 | 型 | 例 | 用途 |
+|------|-----|-----|------|
+| roundId | string | "550e8400-..." | セッション特定 |
+| questionIdx | number | 5 | 問題位置 |
+| attrs.inlineEnabled | boolean | true | インライン再生トグルが ON かどうかを記録 |
+
+**備考**
+- `inlineEnabled` は `getInlinePlayback()` の現在値をコピーする。デフォルト false のため、ユーザーが ON にした設問のみ true。
+- SQL で分母を計算する際は `json_extract(attrs, '$.inlineEnabled') = 1` のフィルタを必須とする。
+
+---
+
+### 3. reveal_open_external イベント
 
 **発火ポイント**: `RevealCard.tsx` の `handleExternalClick()` → ユーザーアクション
 
@@ -218,6 +239,7 @@ WITH answered AS (
     COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_answered
   FROM metrics_events
   WHERE event_name = 'answer_result'
+    AND json_extract(attrs, '$.inlineEnabled') = 1
   GROUP BY DATE(event_ts)
 ),
 outbound AS (
@@ -247,7 +269,7 @@ ORDER BY a.date DESC;
 
 ---
 
-### 3. embed_fallback_to_link イベント
+### 4. embed_fallback_to_link イベント
 
 **発火ポイント**: `RevealCard.tsx` の useEffect → コンポーネント初期化時
 
@@ -286,6 +308,7 @@ React.useEffect(() => {
 - インライン再生が有効（localStorage `vgm2.settings.inlinePlayback = 1`）
 - URL が `toYouTubeEmbed()` で埋め込み URL に変換できない
 - 同じ question に対して 1 回のみ送信（`fallbackLogged` フラグで制御）
+- KPI では `answer_result` のうち `inlineEnabled = true` の設問のみを分母に含める
 
 **集計ロジック（SQL 例）**
 
@@ -298,6 +321,7 @@ WITH answered AS (
     COUNT(DISTINCT round_id || ':' || COALESCE(question_idx, '')) as total_answered
   FROM metrics_events
   WHERE event_name = 'answer_result'
+    AND json_extract(attrs, '$.inlineEnabled') = 1
   GROUP BY DATE(event_ts)
 ),
 fallback AS (
@@ -328,7 +352,7 @@ ORDER BY a.date DESC;
 
 ---
 
-### 4. embed_error イベント
+### 5. embed_error イベント
 
 **発火ポイント**: `RevealCard.tsx` の `handleEmbedError()` → iframe.onError コールバック
 
@@ -365,6 +389,7 @@ const handleEmbedError = useCallback(() => {
 - iframe が作成され、src が設定された
 - iframe.onError がブラウザで発火（動画削除、年齢制限、地域制限、network エラーなど）
 - 同じ question に対して 1 回のみ送信（`errorLogged` フラグで制御）
+- KPI の分母は `answer_result` で `inlineEnabled = true` の設問から fallback を除いた件数
 
 **集計ロジック（SQL 例）**
 

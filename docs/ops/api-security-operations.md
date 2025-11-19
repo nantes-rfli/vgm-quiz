@@ -119,13 +119,9 @@ export async function verifyJWSTokenDualKey(
    JWT_SECRET="[新鍵]" JWT_SECRET_NEW="[新鍵]" npm run test
    ```
 
-3. **ステージング環境でのテスト**
-   ```bash
-   # ステージング環境に新鍵を試験的に配置
-   wrangler secret put JWT_SECRET_NEW --env staging
-   # API デプロイ（dual-key 検証コード有効）
-   wrangler deploy --env staging
-   ```
+3. **検証環境でのテスト（任意）**
+   - リポジトリの `wrangler.toml` には単一環境のみ定義されているため、デフォルトでは `wrangler secret put JWT_SECRET_NEW` → `wrangler deploy` でそのまま検証する。
+   - チームで追加の Cloudflare Workers 環境（例: staging）を用意している場合のみ、`--env <environment>` を付与して同じ手順を実施する。
 
 #### Phase 1: 新鍵を並行配置（猶予期間開始）
 

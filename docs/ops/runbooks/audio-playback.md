@@ -26,19 +26,21 @@ Reveal Card で以下のイベントを記録：
 
 ### ダッシュボード・アラートの設定例
 
-1. **Embed Fallback Rate** (`embed_fallback_to_link` / `reveal_view`)
+1. **Embed Fallback Rate** (`embed_fallback_to_link` / `answer_result (inlineEnabled=1)`)
    - 目標: < 5% per day
    - しきい値: 5% 以上で Slack #vgm-ops に注意通知
    - アクション: データ品質チェック（URL 修正が必要か確認）
 
-2. **Embed Load Error Rate** (`embed_error` / `embed_attempt`)
+2. **Embed Load Error Rate** (`embed_error` / `embed_attempt` = `inlineEnabled answer_result` − `embed_fallback_to_link`)
    - 目標: < 2% per day
    - しきい値: 3% 以上で Slack #vgm-ops に警告通知
    - アクション: YouTube 動画の可用性確認（削除/制限）
 
-3. **External Open Rate** (`reveal_open_external` / `reveal_view`)
+3. **External Open Rate** (`reveal_open_external` / `answer_result`)
    - 参考指標（必ずしも問題ではない）
    - > 80% が外部へ遷移している場合: インライン再生設定の確認
+
+> `answer_result` では `attrs.inlineEnabled` を送信しており、インライン再生が ON の設問だけを分母に含められる。メトリクス設計の詳細は `docs/quality/measurement-plan.md` を参照。
 
 ---
 

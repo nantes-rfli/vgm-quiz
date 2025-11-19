@@ -138,7 +138,7 @@ Embed Fallback Rate = embed_fallback_to_link イベント数 / answer_result イ
 | 項目 | 値 |
 |------|-----|
 | 分子 | `embed_fallback_to_link` イベント数（reason = 'no_embed_available'） |
-| 分母 | Reveal 表示回数の代理: `answer_result` イベント数（設問ごとに必ず 1 回送信） |
+| 分母 | インライン再生が有効だった Reveal 回数: `answer_result` (attrs.inlineEnabled = true) |
 | 集計粒度 | 日次、提供元別（provider: youtube/spotify/appleMusic） |
 | 計測期間 | 7 日（週次レビュー） |
 
@@ -149,7 +149,8 @@ Embed Fallback Rate = embed_fallback_to_link イベント数 / answer_result イ
 - 原因: URL が youtube.com/watch?v=<ID> または youtu.be/<ID> 形式でない、または URL パース失敗
 
 **分母の定義**
-- イベント: `answer_result`（各設問で必ず送信され、直後に Reveal が表示される）
+- イベント: `answer_result`
+- フィルタ: `attrs.inlineEnabled = true`（インライン再生 ON の設問のみ）
 - 集計: `COUNT(DISTINCT round_id || ':' || question_idx)`
 
 **目標値と閾値**
@@ -187,7 +188,7 @@ Embed Load Error Rate = embed_error イベント数 / (embed_attempt 数) × 100
 | 項目 | 値 |
 |------|-----|
 | 分子 | `embed_error` イベント数（reason = 'load_error'） |
-| 分母 | 埋め込み試行数（= reveal 表示数 - fallback 数）|
+| 分母 | インライン再生 ON の埋め込み試行数（= inlineEnabled `answer_result` 数 - fallback 数）|
 | 集計粒度 | 日次、ジャンル別・難易度別（メタデータ join） |
 | 計測期間 | 7 日（週次レビュー） |
 
@@ -198,8 +199,8 @@ Embed Load Error Rate = embed_error イベント数 / (embed_attempt 数) × 100
 - 原因: 動画削除、非公開化、年齢制限、地域制限、ネットワークエラーなど
 
 **分母の定義**
-- **Embed Attempt**: 各設問の reveal で「埋め込みを試行した回数」の代理
-  - proxy: `answer_result` の設問数 − `embed_fallback_to_link`（URL 変換できず試行しなかった分を除外）
+- **Embed Attempt**: `answer_result` (attrs.inlineEnabled = true) から `embed_fallback_to_link` を差し引いた値
+  - フィルタ: `attrs.inlineEnabled = true`
   - 集計: `COUNT(DISTINCT round_id || ':' || question_idx)` をベースに計算
 
 **目標値と閾値**
