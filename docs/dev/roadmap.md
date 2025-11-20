@@ -146,6 +146,7 @@
 - ライセンス/レート制限/OAuth を Runbook 化し、失敗検知・リトライ・ロールバックをPhase 3基盤に接続
 - 成功指標: 追加トラック数/週、重複率、失敗率、MTTR、取り込み後の品質監査パス率
 - ソース優先順位: YouTube → Spotify → Apple Music（公式チャンネルを優先、次にレーベル系、高品質プレイリストでフェイルオーバー）。収集クォータ枯渇時は翌日リトライと対象縮小で回避
+- 2025-11-20 現在の進捗: YouTube(Final Fantasy X OST) 88/88 pass、Spotify(Nobuo Uematsu artist top-tracks, market=JP) 10/10 pass を本番しきい値で確認し pipeline cron デプロイ済み。未実装のハードニング項目（音声計測、近傍一致 dedup、指数バックオフ、昇格フロー整備）は Issue「Phase 4A Hardening: Audio metrics, fuzzy dedup, retry/backoff, batch promotion」で管理。
 
 #### Phase 4B - 適応型ゲームプレイ (Adaptive Gameplay MLP)
 - 行動データを用いた難易度オートチューニングの最小実装＋新モード1種（例: 作曲者モード or 年代モード）
