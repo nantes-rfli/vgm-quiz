@@ -63,8 +63,10 @@
 - Apple Music intake: `APPLE_ENABLED=true` かつ Developer Token (`APPLE_MUSIC_TOKEN`), `APPLE_STOREFRONT` (デフォルト us) を設定し、playlist tracks を取得して guard/dedup へ流す（実カタログで検証要）。
 - Spotify intake: `SPOTIFY_ENABLED=true` かつ Client ID/Secret 設定で playlist を取得し guard/dedup へ流す。Composer=先頭 Artist、Game=Album 名を暫定利用（要レビュー）。  
 - Spotify artist: provider=spotify, kind=artist で top-tracks を取得し guard/dedup。マーケットは `SPOTIFY_MARKET`（未設定時 US）。
-- Audio/LUFS 計測を後段で追加し、Guard しきい値再調整を予定。
+- Audio/LUFS 計測は未実装。外部計測フックを後段で追加予定。
 - Guard/Dedup 超過時の通知: guardFailRate または duplicateRate が 0.2 以上で Slack 通知（`intake` ステージ内 `maybeAlertOnRates`）。- Guard/Dedup 超過時の通知: guardFailRate または duplicateRate が 0.2 以上で Slack 通知（`intake` ステージ内 `maybeAlertOnRates`）。
 - Prod ガードの並走評価（任意）: `INTAKE_EVAL_PROD=true` で staging ガード後に prod しきい値（title+game+composer / 30s〜8m）を非同期評価し、`intake.guard_eval_prod` ログで pass/fail を確認（処理をブロックしない）。
 - GuardFail 理由の集計を warn ログ出力（上位5件＋サンプル3件）。`intake.guard_fail` を確認し、欠損メタや duration 異常を優先的に補完する。
 - Prod ガード並走評価: 常時 prod しきい値（title+game+composer / 30s〜8m）でも評価し、結果を `intake.guard_eval_prod` ログに記録（処理には影響させない）。
+
+- API リトライ/指数バックオフは未実装（現状はログ＋スキップ）。429/ネットワーク一時障害は次回 Cron で再試行。

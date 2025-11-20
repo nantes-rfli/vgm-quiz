@@ -87,7 +87,7 @@
 - [x] Spotify 適用：artist top-tracks (market=JP) を本番しきい値で通過確認、フェイルオーバーは次サイクルで調整予定
 - [ ] Apple Music intake 実装・検証
 - [x] Runbook 初版（クォータ枯渇・権利警告・ロールバック）
-- [ ] 日次スケジュール試験：staging フラグ付きで 2〜3 日連続実行し、指標トラッキングを確認
+- [ ] 日次スケジュール試験：staging フラグ付きで 2〜3 日連続実行し、指標トラッキングを確認（Cron デプロイ済み、観測待ち）
 
 ### 進捗メモ
 - ガード判定の共通ユーティリティを `workers/shared/lib/intake.ts` に追加（LUFS/無音率/クリップ率/長さ/メタ完整度のスコアリング）。今後の Guard ステージで再利用する。
@@ -102,8 +102,15 @@
 - staging では必須フィールドを title のみに緩和し、playlist 名を game、channelTitle を composer にフォールバックさせて通過率を確認済み（89件中88件 pass）。prod では元の閾値 0.8・必須 title+game+composer に戻す予定。
 - GuardFail 理由の上位5件＋サンプル3件を warn ログに記録するようにし、補完/しきい値調整の判断材料を残す。
 - Duration しきい値（staging）を 10s〜12m に緩和し、短尺で落ちていた 1 曲を許容。prod は 30s〜8m のまま。
+- 2025-11-20: 本番しきい値で YouTube (FFX OST) 88/88 pass、Spotify (Nobuo Uematsu artist top-tracks, market=JP) 10/10 pass を確認し、pipeline cron をデプロイ済み。
 
 ## 決めたいこと（レビュー用）
 - LUFS/無音率しきい値の最終値を誰が承認するか
 - R2/D1 ステージングのデータ保持期間（提案: 14 日）
 - Publish 前の人手レビューを続けるか、バッチ単位で自動昇格するか
+
+### 既知の未着手/課題
+- 音声品質チェック（LUFS/無音率/クリップ率）は計測値未取得のため現状は pass 扱い。外部計測フックが必要。
+- Dedup の複合キーは完全一致のみ（計画の Levenshtein 近傍一致は未実装）。
+- API リトライ/指数バックオフは未実装（現状はログ出力＋次ソースへスキップ、Cron 再実行頼り）。
+- Apple Music intake は鍵なしのため保留。
