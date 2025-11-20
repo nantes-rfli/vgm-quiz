@@ -1,4 +1,8 @@
-import { logEvent, isObservabilityEnabled, sendSlackNotification } from '../shared/lib/observability'
+import {
+  isObservabilityEnabled,
+  logEvent,
+  sendSlackNotification,
+} from '../shared/lib/observability'
 import type { Env } from '../shared/types/env'
 
 // Minimal env stub for local/CI dry-run. DB/STORAGE are not used here.

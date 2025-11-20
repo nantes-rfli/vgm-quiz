@@ -1,7 +1,7 @@
 import curatedData from '../../../data/curated.json'
+import { logEvent } from '../../../shared/lib/observability'
 import type { Env } from '../../../shared/types/env'
 import type { CuratedData, Track } from '../../../shared/types/track'
-import { logEvent } from '../../../shared/lib/observability'
 
 interface DiscoveryResult {
   success: boolean

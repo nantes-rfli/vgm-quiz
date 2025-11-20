@@ -2,6 +2,12 @@ name = "vgm-quiz-pipeline"
 main = "src/index.ts"
 compatibility_date = "2025-10-10"
 
+[vars]
+# JWT secret is unused by pipeline today but required for shared Env type
+JWT_SECRET = "dev-secret-key-please-replace-in-production-with-strong-random-value"
+BACKUP_PREFIX = "backups/daily"
+BACKUP_EXPORT_DAYS = "14"
+
 [observability]
 enabled = true
 

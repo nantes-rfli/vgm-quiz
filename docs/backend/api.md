@@ -1,7 +1,7 @@
 # API Specification – vgm-quiz Backend
 
 - **Status**: Draft
-- **Last Updated**: 2025-10-10
+- **Last Updated**: 2025-11-19
 
 ## Overview
 
@@ -31,6 +31,7 @@ Host: api.vgm-quiz.example.com
 
 **Query Parameters**:
 - `date` (optional): YYYY-MM-DD 形式。省略時は今日 (JST) の問題セット。
+- `backup` (optional): `1` または `true` を指定すると、canonical (`exports/daily/`) が欠損している場合に `backups/daily/` を参照し `X-VGM-Daily-Source: backup` を返す。
 
 #### Response (200 OK)
 
@@ -73,72 +74,67 @@ Host: api.vgm-quiz.example.com
 }
 ```
 
+**Response Headers**
+- `X-VGM-Daily-Source: primary | backup`
+
 #### Response (404 Not Found)
 
 ```json
 {
   "error": "Not found",
-  "message": "No question set available for date 2025-10-10"
+  "message": "No backup export for 2025-10-10"
 }
 ```
+※ `backup` パラメータを付与しない場合は `"No question set for ..."` になる。
 
 #### Implementation
 
 ```typescript
-// workers/api/src/routes/daily.ts
-export async function handleDailyRequest(
-  request: Request,
-  env: Env
-): Promise<Response> {
+export async function handleDailyRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url)
   const date = url.searchParams.get('date') || getTodayJST()
+  const backupRequested = url.searchParams.get('backup') === '1'
 
-  // Validate date format
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  if (!isValidDateFormat(date)) {
     return new Response(
       JSON.stringify({ error: 'Invalid date format', message: 'Use YYYY-MM-DD' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
     )
   }
 
-  // 1. Try R2 first (cache hit)
-  const r2Key = `exports/daily/${date}.json`
-  const obj = await env.STORAGE.get(r2Key)
+  let payload = await fetchDailyQuestions(env, date)
+  let source: 'primary' | 'backup' = 'primary'
 
-  if (obj) {
-    return new Response(await obj.text(), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600',
-        'Access-Control-Allow-Origin': '*',
-      },
+  if (!payload && backupRequested) {
+    payload = await fetchBackupDaily(env, date)
+    if (payload) {
+      source = 'backup'
+      logEvent(env, 'info', {
+        event: 'api.daily.backup',
+        status: 'success',
+        fields: { date },
+      })
+    }
+  }
+
+  if (!payload) {
+    const message = backupRequested
+      ? `No backup export for ${date}`
+      : `No question set for ${date}`
+    return new Response(JSON.stringify({ error: 'Not found', message }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
     })
   }
 
-  // 2. Fallback: Generate from D1 (cache miss)
-  const pick = await env.DB.prepare('SELECT items FROM picks WHERE date = ?')
-    .bind(date)
-    .first()
-
-  if (!pick) {
-    return new Response(
-      JSON.stringify({ error: 'Not found', message: `No question set for ${date}` }),
-      { status: 404, headers: { 'Content-Type': 'application/json' } }
-    )
-  }
-
-  return new Response(pick.items, {
+  return new Response(JSON.stringify(payload), {
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=3600',
       'Access-Control-Allow-Origin': '*',
+      'X-VGM-Daily-Source': source,
     },
   })
-}
-
-function getTodayJST(): string {
-  const now = new Date()
-  const jst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
-  return jst.toISOString().split('T')[0]
 }
 ```
 

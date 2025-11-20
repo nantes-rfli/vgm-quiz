@@ -1,3 +1,4 @@
+import { buildBackupKey, getBackupPrefix } from '../../../shared/lib/backups'
 import { getTodayJST } from '../../../shared/lib/date'
 import {
   CANONICAL_FILTER_KEY,
@@ -97,4 +98,33 @@ export async function fetchRoundByToken(
 
 export async function fetchDailyQuestions(env: Env, date: string): Promise<DailyExport | null> {
   return fetchRoundExport(env, date, CANONICAL_FILTER_KEY)
+}
+
+export async function fetchBackupDaily(env: Env, date: string): Promise<DailyExport | null> {
+  const prefix = getBackupPrefix(env)
+  const primaryBackupKey = buildBackupKey(prefix, buildExportR2Key(date, CANONICAL_FILTER_KEY))
+  const legacyPrefix = prefix.replace(/\/daily$/, '')
+  const legacyBackupKey =
+    legacyPrefix !== prefix
+      ? buildBackupKey(legacyPrefix, buildLegacyCanonicalR2Key(date))
+      : buildBackupKey(prefix, buildLegacyCanonicalR2Key(date))
+  const keys = [primaryBackupKey, legacyBackupKey].filter((value): value is string =>
+    Boolean(value),
+  )
+
+  for (const key of keys) {
+    const object = await env.STORAGE.get(key)
+    if (!object) {
+      continue
+    }
+
+    try {
+      const raw = await object.text()
+      return JSON.parse(raw) as DailyExport
+    } catch (error) {
+      console.error('[DailyBackup] Failed to parse backup export', { key, error })
+    }
+  }
+
+  return null
 }

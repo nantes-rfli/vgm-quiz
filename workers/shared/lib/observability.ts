@@ -25,7 +25,11 @@ export function isObservabilityEnabled(env: Env): boolean {
   return env.OBS_ENABLED === 'true' || env.OBS_ENABLED === '1'
 }
 
-export function logEvent(env: Env, level: LogLevel, options: LogEventOptions): Record<string, unknown> {
+export function logEvent(
+  env: Env,
+  level: LogLevel,
+  options: LogEventOptions,
+): Record<string, unknown> {
   const payload = {
     ts: new Date().toISOString(),
     level,
