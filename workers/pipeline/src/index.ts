@@ -29,21 +29,23 @@ export default {
     })
 
     // Optional Phase 4A intake (external sources)
+    let intakeFailed = false
     const intakeResult = await handleIntake(env)
     if (!intakeResult.success) {
+      intakeFailed = true
       const message = `Intake stage failed: ${intakeResult.errors.join(', ')}`
-      logEvent(env, 'error', {
+      logEvent(env, 'warn', {
         event: 'cron.intake',
         status: 'fail',
         message,
         fields: { errors: intakeResult.errors.slice(0, 5) },
       })
-      await maybeNotifySlack(env, 'Cron intake failed', {
+      await maybeNotifySlack(env, 'Cron intake failed (continuing discovery/publish)', {
         targetDate: executionDate,
         cron: event.cron,
         errors: intakeResult.errors.slice(0, 5).join('; '),
       })
-      throw new Error(message)
+      // continue to discovery/publish even if intake failed
     }
 
     // Run discovery first to sync latest curated.json
