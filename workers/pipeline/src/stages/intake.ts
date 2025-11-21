@@ -47,11 +47,6 @@ function isTransientIntakeError(error: unknown): error is { transient?: boolean;
   return Boolean(error && typeof error === 'object' && (error as { transient?: boolean }).transient)
 }
 
-function isRetriableStatus(status?: number): boolean {
-  if (status === undefined) return false
-  return status === 429 || (status >= 500 && status < 600)
-}
-
 async function fetchWithRetry(
   env: Env,
   requestFactory: () => Promise<Response>,
@@ -59,7 +54,6 @@ async function fetchWithRetry(
 ): Promise<Response> {
   let lastStatus: number | undefined
   let lastError: unknown
-  let lastRetriable = false
 
   for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
     if (attempt > 0) await sleep(RETRY_DELAYS_MS[attempt])
@@ -70,11 +64,8 @@ async function fetchWithRetry(
       lastStatus = res.status
       const retriable = res.status === 429 || (res.status >= 500 && res.status < 600)
       if (!retriable) {
-        const hardError = new Error(`${opts.label} ${res.status}`) as Error & { status?: number }
-        hardError.status = res.status
-        throw hardError
+        throw new Error(`${opts.label} ${res.status}`)
       }
-      lastRetriable = true
 
       logEvent(env, 'warn', {
         event: 'intake.retry',
@@ -89,13 +80,6 @@ async function fetchWithRetry(
       })
     } catch (error) {
       lastError = error
-      const status = (error as { status?: number }).status
-      if (status !== undefined) lastStatus = status
-      lastRetriable = isRetriableStatus(status) || error instanceof TypeError
-      if (!lastRetriable) {
-        // Non-retriable: surface immediately to stop backoff loop
-        throw error
-      }
       logEvent(env, 'warn', {
         event: 'intake.retry',
         status: 'warn',
@@ -115,7 +99,7 @@ async function fetchWithRetry(
     status?: number
     attempts?: number
   }
-  err.transient = lastRetriable
+  err.transient = true
   err.status = lastStatus
   err.attempts = RETRY_DELAYS_MS.length
   err.cause = lastError
