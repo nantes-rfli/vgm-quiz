@@ -92,7 +92,8 @@ export function buildDedupKeys(ids: CandidateTrackId, meta: CandidateTrackMeta =
   const youtubeId = ids.youtubeId ?? parseYouTubeIdFromUrl(ids.youtubeUrl)
   const spotifyId = ids.spotifyId ?? parseSpotifyIdFromUrl(ids.spotifyUrl)
   const appleParsed = parseAppleIdFromUrl(ids.appleMusicUrl)
-  const appleId = ids.appleId ?? appleParsed.trackId ?? appleParsed.albumId
+  // Use per-track id when available; avoid collapsing whole albums into one key
+  const appleId = ids.appleId ?? appleParsed.trackId
 
   return {
     externalId: ids.externalId,
