@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import {
   CopyObjectCommand,
   HeadObjectCommand,
@@ -304,7 +305,9 @@ async function main(): Promise<void> {
   }
 }
 
-if (import.meta.main) {
+const isMain = process.argv[1] === fileURLToPath(import.meta.url)
+
+if (isMain) {
   main().catch((error) => {
     console.error('[fatal] export-snapshot failed:', error)
     process.exit(1)
