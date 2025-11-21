@@ -64,6 +64,19 @@ export function parseSpotifyIdFromUrl(url?: string): string | undefined {
   }
 }
 
+export function parseAppleIdFromUrl(url?: string): { albumId?: string; trackId?: string } {
+  if (!url) return {}
+  try {
+    const u = new URL(url)
+    const parts = u.pathname.split('/')
+    const albumId = parts.pop() || parts.pop() // /album/<name>/<albumId>
+    const trackId = u.searchParams.get('i') || undefined // ?i=<trackId>
+    return { albumId: albumId || undefined, trackId }
+  } catch {
+    return {}
+  }
+}
+
 export function buildCompositeKey(meta: CandidateTrackMeta): string | undefined {
   const title = normalize(meta.title)
   const game = normalize(meta.game)
@@ -78,7 +91,8 @@ export function buildCompositeKey(meta: CandidateTrackMeta): string | undefined 
 export function buildDedupKeys(ids: CandidateTrackId, meta: CandidateTrackMeta = {}): DedupKeys {
   const youtubeId = ids.youtubeId ?? parseYouTubeIdFromUrl(ids.youtubeUrl)
   const spotifyId = ids.spotifyId ?? parseSpotifyIdFromUrl(ids.spotifyUrl)
-  const appleId = ids.appleId ?? parseSpotifyIdFromUrl(ids.appleMusicUrl) // structure similar
+  const appleParsed = parseAppleIdFromUrl(ids.appleMusicUrl)
+  const appleId = ids.appleId ?? appleParsed.trackId ?? appleParsed.albumId
 
   return {
     externalId: ids.externalId,
