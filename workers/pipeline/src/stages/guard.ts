@@ -96,6 +96,9 @@ function extractId(url: string): string | undefined {
       return parts.pop() || parts.pop()
     }
     if (u.hostname.includes('apple.com')) {
+      // Apple Music track URLs often have ?i=<trackId>; fall back to last path (album) if missing
+      const trackId = u.searchParams.get('i')
+      if (trackId) return trackId
       const parts = u.pathname.split('/')
       return parts.pop() || undefined
     }
