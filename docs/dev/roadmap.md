@@ -142,10 +142,11 @@
 ### サブフェーズ別計画（優先順）
 
 #### Phase 4A - マルチソース自動収集 (Content Acquisition Automation)
-- 1〜2ソース（候補: Spotify / YouTube）で Discovery → Harvest → Guard → Dedup のPoCを実装し、R2/D1への安全な取り込み枠を確立
-- ライセンス/レート制限/OAuth を Runbook 化し、失敗検知・リトライ・ロールバックをPhase 3基盤に接続
-- 成功指標: 追加トラック数/週、重複率、失敗率、MTTR、取り込み後の品質監査パス率
-- ソース優先順位: YouTube → Spotify → Apple Music（公式チャンネルを優先、次にレーベル系、高品質プレイリストでフェイルオーバー）。収集クォータ枯渇時は翌日リトライと対象縮小で回避
+- [x] PoC: YouTube/Spotify intake、Guard/Dedup、prod しきい値で本番 cron デプロイ済み（2025-11-20）
+- [ ] ハードニング: 音声計測・近傍一致 dedup・指数バックオフ・昇格フロー整備（Issue #151）
+- [ ] Apple Music intake（鍵なしのため保留）
+  - 成功指標: 追加トラック数/週、重複率、失敗率、MTTR、取り込み後の品質監査パス率
+  - ソース優先順位: YouTube → Spotify → Apple Music（クォータ枯渇時は翌日リトライと対象縮小）
 
 #### Phase 4B - 適応型ゲームプレイ (Adaptive Gameplay MLP)
 - 行動データを用いた難易度オートチューニングの最小実装＋新モード1種（例: 作曲者モード or 年代モード）

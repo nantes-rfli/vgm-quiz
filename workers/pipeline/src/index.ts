@@ -6,6 +6,7 @@ import {
 } from '../../shared/lib/observability'
 import type { Env } from '../../shared/types/env'
 import type { FilterOptions } from '../../shared/types/filters'
+import { handleIntake } from './stages/intake'
 import { handleDiscovery } from './stages/discovery'
 import { handlePublish } from './stages/publish'
 
@@ -26,6 +27,24 @@ export default {
         targetDateJst: executionDate,
       },
     })
+
+    // Optional Phase 4A intake (external sources)
+    const intakeResult = await handleIntake(env)
+    if (!intakeResult.success) {
+      const message = `Intake stage failed: ${intakeResult.errors.join(', ')}`
+      logEvent(env, 'warn', {
+        event: 'cron.intake',
+        status: 'fail',
+        message,
+        fields: { errors: intakeResult.errors.slice(0, 5) },
+      })
+      await maybeNotifySlack(env, 'Cron intake failed (continuing discovery/publish)', {
+        targetDate: executionDate,
+        cron: event.cron,
+        errors: intakeResult.errors.slice(0, 5).join('; '),
+      })
+      // continue to discovery/publish even if intake failed
+    }
 
     // Run discovery first to sync latest curated.json
     logEvent(env, 'info', {
@@ -126,6 +145,14 @@ export default {
       // Discovery endpoint
       if (url.pathname === '/trigger/discovery' && request.method === 'POST') {
         const result = await handleDiscovery(env)
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Intake endpoint (Phase 4A)
+      if (url.pathname === '/trigger/intake' && request.method === 'POST') {
+        const result = await handleIntake(env)
         return new Response(JSON.stringify(result), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })

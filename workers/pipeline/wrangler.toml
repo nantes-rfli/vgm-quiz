@@ -16,10 +16,12 @@ binding = "DB"
 database_name = "vgm-quiz-db"
 database_id = "718334d1-16a3-44be-8f3d-10b8cd7f9288"
 migrations_dir = "../migrations"
+preview_database_id = "fe145a68-1816-4359-bc83-2ddfc33f3ef6"
 
 [[r2_buckets]]
 binding = "STORAGE"
 bucket_name = "vgm-quiz-storage"
+preview_bucket_name = "vgm-quiz-storage-preview"
 
 [triggers]
 crons = ["0 15 * * *"]  # Daily at 15:00 UTC = 00:00 JST (next day)
