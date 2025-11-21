@@ -64,17 +64,18 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       }
     }
   } else {
-    logEvent(env, 'warn', {
+    const message = 'SOURCE_CATALOG_JSON not provided; intake cannot run'
+    logEvent(env, 'error', {
       event: 'intake.catalog.missing',
       status: 'fail',
-      message: 'SOURCE_CATALOG_JSON not provided; skipping intake',
+      message,
     })
     return {
-      success: true,
-      skipped: true,
+      success: false,
+      skipped: false,
       sourcesProcessed,
       candidatesDiscovered,
-      errors,
+      errors: [message],
     }
   }
 
