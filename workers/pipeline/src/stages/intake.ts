@@ -91,6 +91,7 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
   const spotifyId = env.SPOTIFY_CLIENT_ID
   const spotifySecret = env.SPOTIFY_CLIENT_SECRET
   const spotifyMarket = env.SPOTIFY_MARKET || 'US'
+  const evalProd = env.INTAKE_EVAL_PROD === 'true' || env.INTAKE_EVAL_PROD === '1'
   if (spotifyEnabled && (!spotifyId || !spotifySecret)) {
     logEvent(env, 'warn', {
       event: 'intake.spotify.skip',
@@ -144,6 +145,21 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
           durationFilteredStage.length > 0
             ? await guardAndDedup(env, durationFilteredStage, stageLabel)
             : undefined
+
+        if (evalProd && durationFilteredStage.length > 0) {
+          const prodResult = await guardAndDedup(env, durationFilteredStage, 'production')
+          logEvent(env, 'info', {
+            event: 'intake.guard_eval_prod',
+            status: 'success',
+            fields: {
+              source: source.name || source.id,
+              total: prodResult.stats.total,
+              guardPass: prodResult.stats.guardPass,
+              guardFail: prodResult.stats.guardFail,
+              duplicates: prodResult.stats.duplicates,
+            },
+          })
+        }
 
         if (guardResult?.failedGuard?.length) {
           const reasonsCount: Record<string, number> = {}
@@ -229,6 +245,21 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
         }
         const guardResult =
           candidates.length > 0 ? await guardAndDedup(env, candidates) : undefined
+
+        if (evalProd && candidates.length > 0) {
+          const prodResult = await guardAndDedup(env, candidates, 'production')
+          logEvent(env, 'info', {
+            event: 'intake.guard_eval_prod',
+            status: 'success',
+            fields: {
+              source: source.name || source.id,
+              total: prodResult.stats.total,
+              guardPass: prodResult.stats.guardPass,
+              guardFail: prodResult.stats.guardFail,
+              duplicates: prodResult.stats.duplicates,
+            },
+          })
+        }
 
         sourcesProcessed += 1
         candidatesDiscovered += count
@@ -346,6 +377,21 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
           durationFilteredStage.length > 0
             ? await guardAndDedup(env, durationFilteredStage, stageLabel)
             : undefined
+
+        if (evalProd && durationFilteredStage.length > 0) {
+          const prodResult = await guardAndDedup(env, durationFilteredStage, 'production')
+          logEvent(env, 'info', {
+            event: 'intake.guard_eval_prod',
+            status: 'success',
+            fields: {
+              source: source.name || source.id,
+              total: prodResult.stats.total,
+              guardPass: prodResult.stats.guardPass,
+              guardFail: prodResult.stats.guardFail,
+              duplicates: prodResult.stats.duplicates,
+            },
+          })
+        }
 
         sourcesProcessed += 1
         candidatesDiscovered += count

@@ -29,10 +29,8 @@ export default {
     })
 
     // Optional Phase 4A intake (external sources)
-    let intakeFailed = false
     const intakeResult = await handleIntake(env)
     if (!intakeResult.success) {
-      intakeFailed = true
       const message = `Intake stage failed: ${intakeResult.errors.join(', ')}`
       logEvent(env, 'warn', {
         event: 'cron.intake',
