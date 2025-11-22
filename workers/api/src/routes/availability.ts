@@ -55,10 +55,19 @@ function validateFilters(filters: unknown): FilterOptions | null {
 /**
  * Count available tracks matching the given filters
  */
-async function countAvailableTracks(db: D1Database, filters?: FilterOptions): Promise<number> {
+async function countAvailableTracks(
+  db: D1Database,
+  modeId: string,
+  filters?: FilterOptions,
+): Promise<number> {
   // Build WHERE clause with optional facet filters
   const whereClauses = ['p.state = ?']
   const bindings: Array<string | number> = ['available']
+
+  // For composer mode, require composer metadata to exist
+  if (modeId === 'vgm_composer-ja') {
+    whereClauses.push('t.composer IS NOT NULL AND t.composer != ""')
+  }
 
   // Handle difficulty filter (array of difficulty levels)
   // "mixed" in the array means "no filtering for this facet" - skip the entire filter if present
@@ -161,7 +170,7 @@ export async function handleAvailabilityRequest(request: Request, env: Env): Pro
     }
 
     // Count available tracks
-    const available = await countAvailableTracks(env.DB, validatedFilters)
+    const available = await countAvailableTracks(env.DB, body.mode, validatedFilters)
 
     return new Response(JSON.stringify({ available }), {
       headers: {
