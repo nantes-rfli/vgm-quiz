@@ -163,7 +163,7 @@ async function enableStartErrorInterceptor(page: Page) {
 test.describe('Play page features', () => {
 
   test('composer mode selection sends mode param and shows composer prompt', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     // Select composer mode (manifest enables it in MSW)
     const modeRadio = page.getByTestId('mode-vgm_composer-ja');
@@ -205,7 +205,7 @@ test.describe('Play page features', () => {
   });
 
   test('reveal view exposes external link metadata', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     await waitForQuestion(page, 0);
 
@@ -228,7 +228,7 @@ test.describe('Play page features', () => {
   });
 
   test('result summary reflects mixed outcomes', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     for (const [index, questionId] of QUESTION_IDS.entries()) {
       await waitForQuestion(page, index);
