@@ -1,6 +1,7 @@
 export const METRICS_EVENT_NAMES = [
   'answer_select',
   'answer_result',
+  'quiz_start',
   'quiz_complete',
   'reveal_open_external',
   'embed_error',

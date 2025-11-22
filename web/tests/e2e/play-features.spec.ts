@@ -608,7 +608,11 @@ test.describe('Play page features', () => {
     });
 
     expect(result.attempts).toBeGreaterThanOrEqual(2);
+    const start = result.events.find((event) => event.name === 'quiz_start');
     const answer = result.events.find((event) => event.name === 'answer_result');
+    expect(start).toBeTruthy();
+    expect(typeof start?.attrs?.mode).toBe('string');
+    expect(['treatment', 'control']).toContain(String(start?.attrs?.arm ?? ''));
     expect(answer).toBeTruthy();
     expect(typeof answer?.attrs?.mode).toBe('string');
     expect(['treatment', 'control']).toContain(String(answer?.attrs?.arm ?? '')); 

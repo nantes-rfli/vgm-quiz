@@ -189,6 +189,16 @@ function PlayPageContent() {
           }
         }
 
+        // Metrics: emit quiz_start when start succeeds
+        recordMetricsEvent('quiz_start', {
+          roundId: res.round?.id || res.continuationToken,
+          attrs: {
+            mode: res.round?.mode || params?.mode,
+            arm: (res as any).round?.arm,
+            total: res.progress?.total ?? 10,
+          },
+        });
+
         // Filters are persisted when a run successfully completes (see useAnswerProcessor)
 
       if (!isMountedRef.current) return;
