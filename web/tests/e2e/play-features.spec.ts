@@ -608,7 +608,12 @@ test.describe('Play page features', () => {
     });
 
     expect(result.attempts).toBeGreaterThanOrEqual(2);
-    expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
+    const answer = result.events.find((event) => event.name === 'answer_result');
+    expect(answer).toBeTruthy();
+    expect(typeof answer?.attrs?.mode).toBe('string');
+    expect(['treatment', 'control']).toContain(String(answer?.attrs?.arm ?? '')); 
+    expect(typeof answer?.attrs?.remainingSeconds).toBe('number');
+    expect(typeof answer?.attrs?.elapsedMs).toBe('number');
   });
 
   test('resends metrics after network failures', async ({ page }) => {
@@ -719,7 +724,12 @@ test.describe('Play page features', () => {
     });
 
     expect(result.attempts).toBeGreaterThanOrEqual(3);
-    expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
+    const answer = result.events.find((event) => event.name === 'answer_result');
+    expect(answer).toBeTruthy();
+    expect(typeof answer?.attrs?.mode).toBe('string');
+    expect(['treatment', 'control']).toContain(String(answer?.attrs?.arm ?? ''));
+    expect(typeof answer?.attrs?.remainingSeconds).toBe('number');
+    expect(typeof answer?.attrs?.elapsedMs).toBe('number');
   });
 });
 
