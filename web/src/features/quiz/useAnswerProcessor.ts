@@ -21,6 +21,7 @@ type AnswerMode = { kind: 'answer' | 'timeout' | 'skip'; choiceId?: string };
 type ProcessAnswerParams = {
   phase: 'question' | 'reveal';
   continuationToken?: string; // Phase 1: token → continuationToken
+  roundId?: string;
   question?: Question;
   remainingMs: number;
   beganAt?: number;
@@ -42,6 +43,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
   const {
     phase,
     continuationToken,
+    roundId,
     question,
     remainingMs,
     beganAt,
@@ -144,7 +146,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         const inlineEnabled = getInlinePlayback();
 
         recordMetricsEvent('answer_result', {
-          roundId: continuationToken,
+          roundId: roundId || continuationToken,
           questionIdx: progress?.index,
           attrs: {
             questionId: question.id,
@@ -180,7 +182,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
           );
 
           recordMetricsEvent('quiz_complete', {
-            roundId: continuationToken,
+            roundId: roundId || continuationToken,
             attrs: {
               mode: question.mode,
               arm: question.arm,
