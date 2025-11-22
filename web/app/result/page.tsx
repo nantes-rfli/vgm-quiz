@@ -12,6 +12,7 @@ import type { Reveal } from '@/src/features/quiz/api/types';
 import { msToSeconds } from '@/src/lib/timeUtils';
 import { getOutcomeDisplay } from '@/src/lib/outcomeUtils';
 import { loadAppliedFilters } from '@/src/lib/appliedFiltersStorage';
+import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
 
 export default function ResultPage() {
   const { t } = useI18n();

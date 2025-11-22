@@ -34,13 +34,14 @@ export function createFilterKey(filters?: FilterOptions | null, modeId?: string)
   const normalized = normalizeFilters(filters)
   const payload: Record<string, unknown> = {}
 
-  if (modeId) {
-    payload.mode = modeId
-  }
-
   const sortedKeys = Object.keys(normalized).sort()
+  const allKeys = modeId ? [...sortedKeys, 'mode'].sort() : sortedKeys
 
-  for (const key of sortedKeys) {
+  for (const key of allKeys) {
+    if (key === 'mode') {
+      payload.mode = modeId
+      continue
+    }
     const value = normalized[key as keyof FilterOptions]
     if (Array.isArray(value)) {
       payload[key] = value.slice().sort()
