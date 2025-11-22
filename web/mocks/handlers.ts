@@ -1,7 +1,7 @@
 // MSW handlers for Phase 1 (Base64 tokens) and Phase 2B (JWS tokens)
 // During development, both token formats are supported for backward compatibility
 import { http, HttpResponse } from 'msw';
-import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByFilters, getFirstQuestionByMode } from './fixtures/rounds/index';
+import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByMode } from './fixtures/rounds/index';
 import { ANSWERS, FILTER_ANSWERS } from './fixtures/rounds/answers';
 import { META } from './fixtures/rounds/meta';
 import { encodeBase64url, decodeBase64url, type Phase1Token } from '@/src/lib/base64url';
@@ -168,7 +168,8 @@ export const handlers = [
       // Create Phase 2B JWS token with filter info
       const roundId = generateUUID();
       const seed = generateUUID().replace(/-/g, '').substring(0, 16);
-      const filterKey = createFilterKey(filters, body.mode ?? 'vgm_v1-ja');
+      const filterKeyMode = body.mode === 'vgm_composer-ja' ? body.mode : undefined;
+      const filterKey = createFilterKey(filters, filterKeyMode);
       const filtersHash = hashFilterKey(filterKey);
       const date = new Date().toISOString().split('T')[0];
 
@@ -302,26 +303,20 @@ export const handlers = [
       let currentQuestion;
       if (isPhase2 && phase2Token && token.currentIndex === 0) {
         // First question: restore filters from filtersHash and retrieve question with same filter
-        const filtersStr = phase2Token.filtersHash;
-        if (filtersStr !== 'canonical-daily' && filtersStr) {
-          // Parse key=value|key=value format
-          let difficulty: Difficulty | undefined;
-          let era: Era | undefined;
-          let series: string[] | undefined;
-
-          const filterPairs = filtersStr.split('|');
-          for (const pair of filterPairs) {
-            const [key, value] = pair.split('=');
-            if (key === 'difficulty' && value) {
-              difficulty = value as Difficulty;
-            } else if (key === 'era' && value) {
-              era = value as Era;
-            } else if (key === 'series' && value) {
-              series = value.split(',');
-            }
+        const filtersKey = phase2Token.filtersKey;
+        if (filtersKey && filtersKey !== CANONICAL_FILTER_KEY) {
+          try {
+            const parsed = JSON.parse(filtersKey) as Record<string, unknown>;
+            const difficulty = parsed.difficulty as Difficulty | undefined;
+            const era = parsed.era as Era | undefined;
+            const series = Array.isArray(parsed.series)
+              ? (parsed.series as string[])
+              : undefined;
+            const modeFromKey = typeof parsed.mode === 'string' ? parsed.mode : mode;
+            currentQuestion = getFirstQuestionByMode(modeFromKey, difficulty, era, series ?? []);
+          } catch {
+            currentQuestion = getQuestionByIndex(token.currentIndex + 1);
           }
-
-          currentQuestion = getFirstQuestionByFilters(difficulty, era, series);
         } else {
           currentQuestion = getQuestionByIndex(token.currentIndex + 1);
         }
