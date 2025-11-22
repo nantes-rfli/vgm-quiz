@@ -1,7 +1,7 @@
 // MSW handlers for Phase 1 (Base64 tokens) and Phase 2B (JWS tokens)
 // During development, both token formats are supported for backward compatibility
 import { http, HttpResponse } from 'msw';
-import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByFilters } from './fixtures/rounds/index';
+import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByFilters, getFirstQuestionByMode } from './fixtures/rounds/index';
 import { ANSWERS, FILTER_ANSWERS } from './fixtures/rounds/answers';
 import { META } from './fixtures/rounds/meta';
 import { encodeBase64url, decodeBase64url, type Phase1Token } from '@/src/lib/base64url';
@@ -75,14 +75,15 @@ function normalizeFilters(filters?: StartFilters): StartFilters {
   return normalized;
 }
 
-function createFilterKey(filters?: StartFilters): string {
+function createFilterKey(filters?: StartFilters, modeId?: string): string {
   const normalized = normalizeFilters(filters);
-  if (Object.keys(normalized).length === 0) {
-    return CANONICAL_FILTER_KEY;
+  const payload: Record<string, unknown> = {};
+
+  if (modeId) {
+    payload.mode = modeId;
   }
 
   const sortedKeys = Object.keys(normalized).sort();
-  const payload: Record<string, unknown> = {};
 
   for (const key of sortedKeys) {
     const value = normalized[key as keyof StartFilters];
@@ -91,6 +92,10 @@ function createFilterKey(filters?: StartFilters): string {
     } else if (value !== undefined) {
       payload[key] = value;
     }
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return CANONICAL_FILTER_KEY;
   }
 
   return JSON.stringify(payload);
@@ -117,6 +122,11 @@ export const handlers = [
           title: 'VGM Quiz Vol.1 (JA)',
           defaultTotal: 10,
         },
+        {
+          id: 'vgm_composer-ja',
+          title: '作曲者モード (JA)',
+          defaultTotal: 10,
+        },
       ],
       facets: {
         difficulty: ['easy', 'normal', 'hard', 'mixed'],
@@ -126,6 +136,7 @@ export const handlers = [
       features: {
         inlinePlaybackDefault: false,
         imageProxyEnabled: false,
+        composerModeEnabled: true,
       },
     };
 
@@ -144,9 +155,9 @@ export const handlers = [
 
       const total = body.total && Number.isInteger(body.total) ? Math.min(body.total, ROUND_TOTAL) : ROUND_TOTAL;
 
-      // Get first question based on filters (Phase 2B)
-      // If filters specified, use filter-specific fixture; otherwise use default
-      const firstQuestion = getFirstQuestionByFilters(difficulty, era, series);
+      // Get first question based on mode/filters (Phase 2B)
+      // If composer mode, return composer fixture; else filter-specific/default
+      const firstQuestion = getFirstQuestionByMode(body.mode, difficulty, era, series);
       if (!firstQuestion) {
         return HttpResponse.json(
           { error: 'no_questions', message: 'No questions available for the selected filters' },
@@ -157,7 +168,7 @@ export const handlers = [
       // Create Phase 2B JWS token with filter info
       const roundId = generateUUID();
       const seed = generateUUID().replace(/-/g, '').substring(0, 16);
-      const filterKey = createFilterKey(filters);
+      const filterKey = createFilterKey(filters, body.mode ?? 'vgm_v1-ja');
       const filtersHash = hashFilterKey(filterKey);
       const date = new Date().toISOString().split('T')[0];
 

@@ -81,6 +81,17 @@ async function waitForStartRequest(page: Page, trigger: () => Promise<void>) {
   return requestPromise;
 }
 
+async function ensureFilterVisibleAndStart(page: Page) {
+  const filterTitle = page.getByTestId('filter-selector-title');
+  const filterVisible = await filterTitle.isVisible({ timeout: 1000 }).catch(() => false);
+  if (!filterVisible) return false;
+  const startButton = page.getByTestId('filter-start-button');
+  await startButton.waitFor({ state: 'visible', timeout: 10_000 });
+  await expect(startButton).toBeEnabled({ timeout: 10_000 });
+  await startButton.click();
+  return true;
+}
+
 async function completeQuizAndNavigateToResult(page: Page) {
   const maxQuestions = 20;
   for (let i = 0; i < maxQuestions; i += 1) {
@@ -150,6 +161,37 @@ async function enableStartErrorInterceptor(page: Page) {
 }
 
 test.describe('Play page features', () => {
+
+  test('composer mode selection sends mode param and shows composer prompt', async ({ page }) => {
+    await page.goto('/play');
+
+    // Select composer mode if mode selector is present
+    const modeRadio = page.getByTestId('mode-vgm_composer-ja');
+    const hasModeSelector = await modeRadio.isVisible({ timeout: 1000 }).catch(() => false);
+
+    if (hasModeSelector) {
+      await modeRadio.check();
+    }
+
+    const request = await waitForStartRequest(page, async () => {
+      const started = await ensureFilterVisibleAndStart(page);
+      if (!started) {
+        // fallback: click CTA Start if filter not visible
+        const ctaStart = page.getByRole('button', { name: /Start/i }).first();
+        await expect(ctaStart).toBeEnabled({ timeout: 5_000 });
+        await ctaStart.click();
+      }
+    });
+
+    const payload = parseStartRequest(request);
+    if (hasModeSelector) {
+      expect(payload.mode).toBe('vgm_composer-ja');
+    }
+
+    await page.getByTestId('question-prompt').waitFor({ timeout: 60_000 });
+    const promptText = await page.getByTestId('question-prompt').innerText();
+    expect(promptText).toContain('作曲者');
+  });
 
   test('inline playback toggle persists across reload', async ({ page }) => {
     await page.goto('/play?autostart=1');

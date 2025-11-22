@@ -13,9 +13,9 @@ import {
   normalizeFilters,
 } from '../../../shared/lib/filters'
 import { sha256 } from '../../../shared/lib/hash'
-import { logEvent } from '../../../shared/lib/observability'
+import { isObservabilityEnabled, logEvent, sendSlackNotification } from '../../../shared/lib/observability'
 import type { Env } from '../../../shared/types/env'
-import type { DailyExport, Question, QuestionFacets } from '../../../shared/types/export'
+import type { Choice, DailyExport, Question, QuestionFacets } from '../../../shared/types/export'
 import type { FilterOptions } from '../../../shared/types/filters'
 
 interface PublishResult {
@@ -44,6 +44,25 @@ interface TrackRow {
   genres: string | null
   series_tags: string | null
   era: string | null
+  composer: string | null
+}
+
+const COVERAGE_ALERT_THRESHOLD = 0.05
+const COVERAGE_SLACK_TITLE = 'Composer coverage alert (Phase4B)'
+
+function computeDifficultyScore(track: TrackRow): number {
+  // simple heuristic: map normalized difficulty facet to percentile
+  // fall back to 50 when unknown or missing
+  switch (track.difficulty) {
+    case 'easy':
+      return 30
+    case 'normal':
+      return 50
+    case 'hard':
+      return 70
+    default:
+      return 50
+  }
 }
 
 /**
@@ -63,10 +82,12 @@ export async function handlePublish(
   env: Env,
   dateParam: string | null,
   filters?: FilterOptions,
+  options?: { modeId?: string },
 ): Promise<PublishResult> {
   const date = dateParam || getTodayJST()
   const normalizedFilters = normalizeFilters(filters)
-  const filterKey = createFilterKey(normalizedFilters)
+  const modeId = options?.modeId
+  const filterKey = createFilterKey(normalizedFilters, modeId)
 
   const filterStr =
     Object.keys(normalizedFilters).length > 0
@@ -179,8 +200,37 @@ export async function handlePublish(
       }
     }
 
+    const isComposerMode = modeId === 'vgm_composer-ja'
+
     // 2. Select 10 random available tracks with optional filtering
-    const tracks = await selectTracks(env.DB, 10, normalizedFilters)
+    if (isComposerMode) {
+      const coverage = await getComposerCoverage(env.DB, normalizedFilters)
+      const severity = coverage.missingRate > COVERAGE_ALERT_THRESHOLD ? 'warn' : 'info'
+      const coverageFields = {
+        available: coverage.available,
+        withComposer: coverage.withComposer,
+        missing: coverage.missing,
+        missingRate: coverage.missingRate,
+        threshold: COVERAGE_ALERT_THRESHOLD,
+        filters: normalizedFilters,
+      }
+
+      logEvent(env, severity, {
+        event: 'publish.composer.coverage',
+        status: severity,
+        filtersKey: filterKey,
+        fields: coverageFields,
+        message: 'Composer metadata coverage snapshot',
+      })
+
+      if (severity === 'warn' && isObservabilityEnabled(env)) {
+        await sendSlackNotification(env, `【vgm-quiz】${COVERAGE_SLACK_TITLE}`, coverageFields)
+      }
+    }
+
+    const tracks = await selectTracks(env.DB, 10, normalizedFilters, {
+      requireComposer: isComposerMode,
+    })
 
     if (tracks.length < 10) {
       const filterDesc =
@@ -190,20 +240,25 @@ export async function handlePublish(
       throw new Error(`Not enough tracks available${filterDesc} (need 10, got ${tracks.length})`)
     }
 
-    // 3. Get all game titles for choice generation
+    // 3. Get candidate pools for choice generation
     const allGames = await getAllGameTitles(env.DB)
+    const allComposers = isComposerMode ? await getAllComposers(env.DB) : []
 
     // 4. Generate questions with choices
     const questions: Question[] = tracks.map((track, index) => {
       const questionId = `q_${date}_${index + 1}`
       const facets = buildQuestionFacets(track)
 
+      const choices = isComposerMode
+        ? generateComposerChoices(track.composer || 'Unknown composer', allComposers, questionId)
+        : generateChoices(track.game, allGames, questionId)
+
       return {
         id: questionId,
         track_id: track.track_id,
         title: track.title,
         game: track.game,
-        choices: generateChoices(track.game, allGames, questionId),
+        choices,
         reveal: {
           title: track.title,
           game: track.game,
@@ -217,7 +272,7 @@ export async function handlePublish(
         },
         facets,
         meta: {
-          difficulty: 50, // Phase 1: static score
+          difficulty: computeDifficultyScore(track),
           notability: 50,
           quality: 50,
         },
@@ -349,10 +404,15 @@ async function selectTracks(
   db: D1Database,
   count: number,
   filters?: FilterOptions,
+  options?: { requireComposer?: boolean },
 ): Promise<TrackRow[]> {
   // Build WHERE clause with optional facet filters
   const whereClauses = ['p.state = ?']
   const bindings: Array<string | number> = ['available']
+
+  if (options?.requireComposer) {
+    whereClauses.push('t.composer IS NOT NULL AND t.composer != ""')
+  }
 
   if (filters?.difficulty) {
     whereClauses.push('f.difficulty = ?')
@@ -401,6 +461,121 @@ async function getAllGameTitles(db: D1Database): Promise<string[]> {
     .all<{ game: string }>()
 
   return (result.results || []).map((r) => r.game)
+}
+
+async function getAllComposers(db: D1Database): Promise<string[]> {
+  const result = await db
+    .prepare('SELECT DISTINCT composer FROM tracks_normalized WHERE composer IS NOT NULL AND composer != ""')
+    .all<{ composer: string }>()
+
+  return (result.results || []).map((r) => r.composer)
+}
+
+function generateComposerChoices(
+  correctComposer: string,
+  allComposers: string[],
+  questionId: string,
+): Choice[] {
+  const unique = Array.from(new Set(allComposers.map((c) => c.trim()).filter(Boolean)))
+  const wrongPool = unique.filter((c) => c !== correctComposer)
+
+  if (wrongPool.length < 3) {
+    throw new Error(
+      `Not enough unique composers to generate choices. Need at least 4 unique, got ${unique.length}`,
+    )
+  }
+
+  const shuffledWrong = shuffleArrayComposer(wrongPool, `${questionId}-composer`)
+  const selectedWrong = shuffledWrong.slice(0, 3)
+
+  const choicesWithoutIds = [
+    { text: correctComposer, correct: true },
+    { text: selectedWrong[0], correct: false },
+    { text: selectedWrong[1], correct: false },
+    { text: selectedWrong[2], correct: false },
+  ]
+
+  const shuffledChoices = shuffleArrayComposer(
+    choicesWithoutIds,
+    `${questionId}-composer-shuffle`,
+  )
+  const choiceIds = ['a', 'b', 'c', 'd'] as const
+
+  return shuffledChoices.map((choice, index) => ({
+    id: choiceIds[index],
+    text: choice.text,
+    correct: choice.correct,
+  }))
+}
+
+function shuffleArrayComposer<T>(array: T[], seed: string): T[] {
+  const arr = [...array]
+  const hash = simpleHash(seed)
+
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(seededRandom(hash + i) * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+
+  return arr
+}
+
+function simpleHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i += 1) {
+    const char = str.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash &= hash
+  }
+  return Math.abs(hash)
+}
+
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
+
+async function getComposerCoverage(
+  db: D1Database,
+  filters?: FilterOptions,
+): Promise<{ available: number; withComposer: number; missing: number; missingRate: number }> {
+  const whereClauses = ['p.state = ?']
+  const bindings: Array<string | number> = ['available']
+
+  if (filters?.difficulty) {
+    whereClauses.push('f.difficulty = ?')
+    bindings.push(filters.difficulty)
+  }
+
+  if (filters?.era) {
+    whereClauses.push('f.era = ?')
+    bindings.push(filters.era)
+  }
+
+  if (filters?.series && filters.series.length > 0) {
+    const seriesConditions = filters.series.map(() => 'f.series_tags LIKE ?').join(' OR ')
+    whereClauses.push(`(${seriesConditions})`)
+    bindings.push(...filters.series.map((s) => `%"${s}"%`))
+  }
+
+  const whereClause = whereClauses.join(' AND ')
+  const query = `
+    SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN t.composer IS NOT NULL AND t.composer != '' THEN 1 ELSE 0 END) as withComposer
+    FROM tracks_normalized t
+    INNER JOIN pool p ON t.track_id = p.track_id
+    LEFT JOIN track_facets f ON f.track_id = t.track_id
+    WHERE ${whereClause}
+  `
+
+  const result = await db.prepare(query).bind(...bindings).first<{ total: number; withComposer: number }>()
+  const available = result?.total ?? 0
+  const withComposer = result?.withComposer ?? 0
+  const missing = Math.max(available - withComposer, 0)
+  const missingRate = available > 0 ? missing / available : 1
+
+  return { available, withComposer, missing, missingRate }
 }
 
 interface BackupParams {

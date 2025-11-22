@@ -148,6 +148,8 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
           questionIdx: progress?.index,
           attrs: {
             questionId: question.id,
+            mode: question.mode,
+            arm: question.arm,
             outcome,
             points,
             remainingSeconds: Math.floor(remainingForCalc / 1000),
@@ -178,6 +180,8 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
           recordMetricsEvent('quiz_complete', {
             roundId: continuationToken,
             attrs: {
+              mode: question.mode,
+              arm: question.arm,
               total: totalQuestions,
               points: updatedTally.points,
               correct: updatedTally.correct,
@@ -193,13 +197,15 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         const convertedRes = res.question
           ? {
               ...res,
-              question: {
-                id: res.question.id,
-                prompt: res.question.title,
-                choices: (res.choices ?? []).map(c => ({
-                  id: c.id,
-                  label: c.text,
-                })),
+            question: {
+              id: res.question.id,
+              prompt: res.question.title,
+              mode: res.question.mode,
+              arm: res.question.arm,
+              choices: (res.choices ?? []).map(c => ({
+                id: c.id,
+                label: c.text,
+              })),
                 // MSW fixtures have these fields; real Phase1 API won't, but we'll handle that in Phase2
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 reveal: (res.question as any).reveal,

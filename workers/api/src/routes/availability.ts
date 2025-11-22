@@ -1,5 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
 import type { Env } from '../../../shared/types/env'
+import { getManifest } from '../../../shared/data/manifest'
 
 interface FilterOptions {
   difficulty?: string[]
@@ -114,6 +115,8 @@ export async function handleAvailabilityRequest(request: Request, env: Env): Pro
   try {
     const body = (await request.json()) as AvailabilityRequest
 
+    const manifest = getManifest(env)
+
     // Validate request
     if (!body.mode) {
       return new Response(
@@ -140,6 +143,20 @@ export async function handleAvailabilityRequest(request: Request, env: Env): Pro
           },
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } },
+      )
+    }
+
+    const modeExists = manifest.modes.some((mode) => mode.id === body.mode)
+    if (!modeExists) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 'not_found',
+            message: `mode ${body.mode} not found`,
+            details: { pointer: '/mode' },
+          },
+        }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } },
       )
     }
 

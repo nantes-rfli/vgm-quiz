@@ -1,5 +1,6 @@
 // Auto-generated: cleaned fixtures
 import startRound from '../rounds.start.ok.json';
+import composerStartRound from '../rounds.composer.start.json';
 import next01 from './next.01.json';
 import next02 from './next.02.json';
 import next03 from './next.03.json';
@@ -72,4 +73,17 @@ export function getFirstQuestionByFilters(
 
   // Default: return first question from default fixture
   return getQuestionByIndex(1);
+}
+
+export function getFirstQuestionByMode(
+  modeId: string | undefined,
+  difficulty?: Difficulty,
+  era?: Era,
+  series?: string[],
+): Question | undefined {
+  if (modeId === 'vgm_composer-ja') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return composerStartRound.question as any as Question;
+  }
+  return getFirstQuestionByFilters(difficulty, era, series);
 }

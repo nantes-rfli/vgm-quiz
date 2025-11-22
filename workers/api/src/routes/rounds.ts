@@ -1,7 +1,8 @@
-import { getDefaultMode, isValidFacetValue, manifest } from '../../../shared/data/manifest'
+import { findMode, getManifest, isValidFacetValue } from '../../../shared/data/manifest'
 import { getTodayJST } from '../../../shared/lib/date'
 import { createFilterKey, hashFilterKey, normalizeFilters } from '../../../shared/lib/filters'
 import type { Env } from '../../../shared/types/env'
+import type { Manifest } from '../../../shared/types/manifest'
 import type { DailyExport } from '../../../shared/types/export'
 import type { FilterOptions } from '../../../shared/types/filters'
 import { fetchDailyQuestions, fetchRoundByToken, fetchRoundExport } from '../lib/daily'
@@ -71,7 +72,7 @@ function coerceStringArray(input: unknown): string[] | null {
   return null
 }
 
-function parseFilters(input: StartRequestBody['filters']): FilterOptions | Response {
+function parseFilters(input: StartRequestBody['filters'], manifest: Manifest): FilterOptions | Response {
   if (!input) {
     return {}
   }
@@ -99,7 +100,7 @@ function parseFilters(input: StartRequestBody['filters']): FilterOptions | Respo
   }
   if (difficultyCandidates.length === 1) {
     const candidate = difficultyCandidates[0]
-    if (!isValidFacetValue('difficulty', candidate)) {
+    if (!isValidFacetValue('difficulty', candidate, manifest)) {
       return errorResponse(
         400,
         'bad_request',
@@ -121,7 +122,7 @@ function parseFilters(input: StartRequestBody['filters']): FilterOptions | Respo
   }
   if (eraCandidates.length === 1) {
     const candidate = eraCandidates[0]
-    if (!isValidFacetValue('era', candidate)) {
+    if (!isValidFacetValue('era', candidate, manifest)) {
       return errorResponse(400, 'bad_request', `unknown era: ${candidate}`, '/filters/era')
     }
     filters.era = candidate
@@ -141,7 +142,7 @@ function parseFilters(input: StartRequestBody['filters']): FilterOptions | Respo
     .filter((value, index, arr) => arr.indexOf(value) === index)
 
   if (seriesCandidates.length > 0) {
-    const invalid = seriesCandidates.find((value) => !isValidFacetValue('series', value))
+    const invalid = seriesCandidates.find((value) => !isValidFacetValue('series', value, manifest))
     if (invalid) {
       return errorResponse(400, 'bad_request', `unknown series: ${invalid}`, '/filters/series')
     }
@@ -151,11 +152,32 @@ function parseFilters(input: StartRequestBody['filters']): FilterOptions | Respo
   return filters
 }
 
-function resolveMode(modeId?: string) {
-  if (!modeId) {
-    return getDefaultMode()
+function resolveMode(modeId: string | undefined, manifest: Manifest) {
+  return findMode(modeId, manifest)
+}
+
+function getPromptForMode(modeId?: string): string {
+  if (modeId === 'vgm_composer-ja') {
+    return 'この曲の作曲者は?'
   }
-  return manifest.modes.find((mode) => mode.id === modeId)
+  return 'この曲のゲームタイトルは?'
+}
+
+function resolveTreatmentRatio(env: Env): number {
+  const raw = env.AB_TREATMENT_RATIO
+  if (!raw) return 50
+  const n = Number(raw)
+  if (!Number.isFinite(n)) return 50
+  if (n < 0) return 0
+  if (n > 100) return 100
+  return n
+}
+
+function assignArm(hash: string, ratio: number): string {
+  // ratio: percentage of traffic going to treatment
+  const num = parseInt(hash.slice(0, 8), 16)
+  const bucket = num % 100
+  return bucket < ratio ? 'treatment' : 'control'
 }
 
 /**
@@ -170,18 +192,20 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
     return errorResponse(400, 'bad_request', 'request body must be valid JSON')
   }
 
-  const mode = resolveMode(body.mode)
+  const manifest = getManifest(env)
+
+  const mode = resolveMode(body.mode, manifest)
   if (!mode) {
     return errorResponse(404, 'not_found', `mode ${body.mode} not found`, '/mode')
   }
 
-  const filtersOrError = parseFilters(body.filters)
+  const filtersOrError = parseFilters(body.filters, manifest)
   if (filtersOrError instanceof Response) {
     return filtersOrError
   }
 
   const normalizedFilters = normalizeFilters(filtersOrError)
-  const filterKey = createFilterKey(normalizedFilters)
+  const filterKey = createFilterKey(normalizedFilters, mode.id)
   const requestedTotal = body.total ?? mode.defaultTotal
 
   if (!Number.isInteger(requestedTotal) || requestedTotal <= 0) {
@@ -212,12 +236,16 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
     return errorResponse(503, 'no_questions', 'No questions available for the requested filters')
   }
 
+  const prompt = getPromptForMode(mode.id)
+
   const roundId = generateUUID()
   const seed =
     typeof body.seed === 'string' && body.seed.length > 0
       ? body.seed
       : generateUUID().replace(/-/g, '').substring(0, 16)
   const filtersHash = hashFilterKey(filterKey)
+  const treatmentRatio = resolveTreatmentRatio(env)
+  const arm = assignArm(filtersHash, treatmentRatio)
 
   const token = await createJWSToken(
     {
@@ -228,6 +256,7 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
       filtersHash,
       filtersKey: filterKey,
       mode: mode.id,
+      arm,
       date,
       ver: 1,
       aud: 'rounds',
@@ -241,6 +270,7 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
     round: {
       id: roundId,
       mode: mode.id,
+      arm,
       date,
       filters: normalizedFilters,
       progress: {
@@ -251,7 +281,9 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
     },
     question: {
       id: firstQuestion.id,
-      title: 'この曲のゲームタイトルは?',
+      title: prompt,
+      mode: mode.id,
+      arm,
     },
     choices,
     continuationToken: token,
@@ -405,9 +437,12 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
     response.finished = true
   } else {
     const nextQuestion = daily.questions[nextIndex]
+    const prompt = getPromptForMode(phase2Token?.mode)
     response.question = {
       id: nextQuestion.id,
-      title: 'この曲のゲームタイトルは?',
+      title: prompt,
+      mode: phase2Token?.mode,
+      arm: phase2Token?.arm,
     }
     response.choices = nextQuestion.choices.map((c) => ({ id: c.id, text: c.text }))
 
@@ -434,6 +469,9 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
       }
       if (currentPhase2Token.mode) {
         newPayload.mode = currentPhase2Token.mode
+      }
+      if (currentPhase2Token.arm) {
+        newPayload.arm = currentPhase2Token.arm
       }
       if (currentPhase2Token.date) {
         newPayload.date = currentPhase2Token.date

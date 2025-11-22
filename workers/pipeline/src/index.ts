@@ -115,6 +115,41 @@ export default {
       throw new Error(message)
     }
 
+    // Optional: generate composer mode export when enabled
+    if (env.COMPOSER_MODE_ENABLED) {
+      logEvent(env, 'info', {
+        event: 'cron.publish.composer',
+        status: 'start',
+        fields: { date: executionDate },
+      })
+
+      const composerResult = await handlePublish(env, executionDate, undefined, {
+        modeId: 'vgm_composer-ja',
+      })
+
+      if (!composerResult.success) {
+        const message = `Composer publish failed: ${composerResult.error}`
+        logEvent(env, 'warn', {
+          event: 'cron.publish.composer',
+          status: 'fail',
+          message,
+          fields: { date: composerResult.date },
+        })
+      } else {
+        logEvent(env, 'info', {
+          event: 'cron.publish.composer',
+          status: 'success',
+          fields: {
+            date: composerResult.date,
+            questionsGenerated: composerResult.questionsGenerated,
+            r2Key: composerResult.r2Key,
+            hash: composerResult.hash,
+            skipped: composerResult.skipped,
+          },
+        })
+      }
+    }
+
     logEvent(env, 'info', {
       event: 'cron.end',
       status: 'success',
@@ -161,6 +196,7 @@ export default {
       // Publish endpoint
       if (url.pathname === '/trigger/publish' && request.method === 'POST') {
         const dateParam = url.searchParams.get('date')
+        const modeParam = url.searchParams.get('mode') || undefined
 
         // Parse optional filter parameters
         const filters: FilterOptions = {}
@@ -182,6 +218,7 @@ export default {
           env,
           dateParam,
           Object.keys(filters).length > 0 ? filters : undefined,
+          modeParam ? { modeId: modeParam } : undefined,
         )
         return new Response(JSON.stringify(result), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

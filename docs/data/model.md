@@ -65,7 +65,7 @@
   - フィルタに使用可能なファセット値
   - 例: `{ difficulty: ["easy", "normal", "hard", "mixed"], era: ["80s", "90s", ...], series: ["ff", "dq", ...] }`
 - `features: { [featureName: string]: boolean }`
-  - フロント機能のフラグ（例: `inlinePlaybackDefault`, `imageProxyEnabled`）
+  - フロント機能のフラグ（例: `inlinePlaybackDefault`, `imageProxyEnabled`, `composerModeEnabled`）
 
 ### FilterOptions (ユーザー選択フィルタ)
 

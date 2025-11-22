@@ -9,6 +9,7 @@ import type { Choice } from '@/src/features/quiz/api/types';
 export type QuestionCardProps = {
   questionId?: string;
   prompt: string;
+  mode?: string;
   choices: Choice[];
   selectedId?: string;
   disabled?: boolean;
@@ -19,6 +20,7 @@ export type QuestionCardProps = {
 export default function QuestionCard({
   questionId,
   prompt,
+  mode,
   choices,
   selectedId,
   disabled,
@@ -26,6 +28,7 @@ export default function QuestionCard({
   onSubmit
 }: QuestionCardProps) {
   const { t } = useI18n();
+  const promptText = mode === 'vgm_composer-ja' ? t('quiz.composer.prompt') : prompt;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -36,7 +39,7 @@ export default function QuestionCard({
           data-question-id={questionId}
           id="question-prompt"
         >
-          {prompt}
+          {promptText}
         </h2>
         <div role="radiogroup" aria-labelledby="question-prompt" className="space-y-2">
           {choices.map((c, idx) => {

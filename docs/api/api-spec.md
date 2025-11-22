@@ -166,7 +166,8 @@ GET /v1/manifest
   "schema_version": 2,
   "features": {
     "inlinePlaybackDefault": false,
-    "imageProxyEnabled": false
+    "imageProxyEnabled": false,
+    "composerModeEnabled": false
   },
   "modes": [
     { "id": "vgm_v1-ja", "title": "VGM Quiz Vol.1 (JA)", "defaultTotal": 10, "locale": "ja" }
