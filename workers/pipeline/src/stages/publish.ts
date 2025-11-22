@@ -51,18 +51,41 @@ const COVERAGE_ALERT_THRESHOLD = 0.05
 const COVERAGE_SLACK_TITLE = 'Composer coverage alert (Phase4B)'
 
 function computeDifficultyScore(track: TrackRow): number {
-  // simple heuristic: map normalized difficulty facet to percentile
-  // fall back to 50 when unknown or missing
-  switch (track.difficulty) {
-    case 'easy':
-      return 30
-    case 'normal':
-      return 50
-    case 'hard':
-      return 70
-    default:
-      return 50
-  }
+  // Heuristic v0: facet-based score with era adjustment
+  // - difficulty facet: easy=30, normal=50, hard=70, unknown=50
+  // - era tweak: older BGM は覚えにくい前提で微調整
+  const base = (() => {
+    switch (track.difficulty) {
+      case 'easy':
+        return 30
+      case 'normal':
+        return 50
+      case 'hard':
+        return 70
+      default:
+        return 50
+    }
+  })()
+
+  const eraAdjust = (() => {
+    switch (track.era) {
+      case '80s':
+        return 8
+      case '90s':
+        return 5
+      case '00s':
+        return 2
+      case '10s':
+        return 0
+      case '20s':
+        return -2
+      default:
+        return 0
+    }
+  })()
+
+  const raw = base + eraAdjust
+  return Math.max(1, Math.min(99, raw))
 }
 
 /**
@@ -277,6 +300,25 @@ export async function handlePublish(
           quality: 50,
         },
       }
+    })
+
+    // Difficulty stats for observability / dashboard seeds
+    const difficultyScores = questions.map((q) => q.meta?.difficulty ?? 50)
+    const avgDifficulty = difficultyScores.reduce((a, b) => a + b, 0) / difficultyScores.length
+    const minDifficulty = Math.min(...difficultyScores)
+    const maxDifficulty = Math.max(...difficultyScores)
+
+    logEvent(env, 'info', {
+      event: 'publish.difficulty.stats',
+      status: 'success',
+      filtersKey: filterKey,
+      fields: {
+        avgDifficulty,
+        minDifficulty,
+        maxDifficulty,
+        questions: questions.length,
+        mode: modeId ?? 'canonical',
+      },
     })
 
     // 5. Create export (without hash first)
