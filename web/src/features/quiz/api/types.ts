@@ -106,6 +106,7 @@ export interface Phase1StartResponse {
   round?: {
     id: string;
     mode: string;
+    arm?: string;
     date: string;
     filters?: Record<string, unknown>;
     progress: {

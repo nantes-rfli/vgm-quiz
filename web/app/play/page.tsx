@@ -194,7 +194,7 @@ function PlayPageContent() {
           roundId: res.round?.id || res.continuationToken,
           attrs: {
             mode: res.round?.mode || params?.mode,
-            arm: (res as any).round?.arm,
+            arm: res.round?.arm,
             total: res.progress?.total ?? 10,
           },
         });
