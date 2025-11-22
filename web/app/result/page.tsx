@@ -160,12 +160,13 @@ export default function ResultPage() {
                 const link = Array.isArray(reveal?.links) && reveal.links.length > 0 ? reveal.links[0] : undefined;
                 const meta = reveal?.meta;
                 const outcome = getOutcomeDisplay(record.outcome);
+                const promptText = record.mode === 'vgm_composer-ja' ? t('quiz.composer.prompt') : record.prompt;
                 return (
                   <li key={record.questionId} className="p-4 rounded-xl bg-white dark:bg-card shadow border border-border">
                     <div className="flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-foreground">{t('result.questionNumber', { number: String(idx + 1) })} — {record.prompt}</div>
+                          <div className="text-sm font-semibold text-foreground">{t('result.questionNumber', { number: String(idx + 1) })} — {promptText}</div>
                           <dl className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
                             <div className="flex gap-2">
                               <dt className="sr-only">Outcome</dt>

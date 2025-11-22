@@ -3,6 +3,8 @@ export type Outcome = 'correct' | 'wrong' | 'timeout' | 'skip';
 export type QuestionRecord = {
   questionId: string;
   prompt: string;
+  mode?: string;
+  arm?: string;
   choiceId?: string;
   choiceLabel?: string;
   correctChoiceId?: string;
