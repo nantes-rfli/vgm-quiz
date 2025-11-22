@@ -54,7 +54,9 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
   const [inline] = React.useState<boolean>(getInlinePlayback());
   const primary = pickPrimaryLink(reveal);
 
-  const isComposerMode = reveal?.questionId?.startsWith('composer') || reveal?.meta?.composer;
+  const isComposerMode = Boolean(
+    reveal?.questionId?.startsWith('composer') || reveal?.meta?.composer,
+  );
 
   const embedUrl = primary?.provider === 'youtube' ? toYouTubeEmbed(primary.url) : null;
 
