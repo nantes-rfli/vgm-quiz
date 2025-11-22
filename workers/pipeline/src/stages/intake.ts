@@ -92,6 +92,10 @@ async function fetchWithRetry(
       const status = (error as { status?: number }).status
       if (status !== undefined) lastStatus = status
       lastRetriable = isRetriableStatus(status) || error instanceof TypeError
+      if (!lastRetriable) {
+        // Non-retriable: surface immediately to stop backoff loop
+        throw error
+      }
       logEvent(env, 'warn', {
         event: 'intake.retry',
         status: 'warn',
