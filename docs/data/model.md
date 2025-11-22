@@ -13,6 +13,8 @@
 
 - `id: string`
 - `prompt: string`
+- `mode?: string` — モードID（例: `vgm_v1-ja`, `vgm_composer-ja`）
+- `arm?: string` — A/B 割付（`treatment` / `control`）
 - `choices: { id: string, label: string }[]`
   - **固定4件**。提示順のみクライアントでシャッフル可（内容は固定）
 - `reveal?:` **// 結果表示での紹介用メタ** 
@@ -35,6 +37,7 @@
 ```
 - `backup: boolean`（バックアップ問題か）
 - `meta?: { lengthSec?: number, startSec?: number }`（表示・説明用の最小メタ）
+  - 作曲者モードの場合、 `meta.kind` に `"title_to_composer"` を含む
 
 ### Session (local)
 
@@ -175,6 +178,12 @@ interface FilterOptions {
       "title": "VGM Quiz Vol.1 (JA)",
       "defaultTotal": 10,
       "locale": "ja"
+    },
+    {
+      "id": "vgm_composer-ja",
+      "title": "Composer Mode (JA)",
+      "defaultTotal": 10,
+      "locale": "ja"
     }
   ],
   "facets": {
@@ -184,10 +193,16 @@ interface FilterOptions {
   },
   "features": {
     "inlinePlaybackDefault": false,
-    "imageProxyEnabled": false
+    "imageProxyEnabled": false,
+    "composerModeEnabled": true
   }
 }
 ```
+
+### i18n キー（作曲者モード）
+- `quiz.composer.prompt`: 「この曲の作曲者は？」
+- `quiz.composer.correct`: 正解時の文言。例: `正解！作曲者: {composer}`
+- `quiz.composer.incorrect`: 不正解時の文言。例: `正解は {composer} でした`
 
 ### Round（例）
 

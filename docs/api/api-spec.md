@@ -274,6 +274,7 @@ POST /v1/availability
   "filtersHash": "a1b2c3d4",
   "filtersKey": "{\"difficulty\":\"hard\",\"era\":\"90s\",\"series\":[\"dq\",\"ff\"]}",
   "mode": "vgm_v1-ja",
+  "arm": "treatment",
   "date": "2025-11-03",
   "ver": 1,
   "iat": 1760000000,
@@ -293,6 +294,8 @@ POST /v1/availability
     - アルゴリズム: `hash = (hash << 5) - hash + charCode` （初期値: 0）、32ビット符号付き整数変換後に絶対値を16進数化
   - R2 ストレージキー生成用: `exports/{date}_{filtersHash}.json`
   - トークン検証時に filtersKey との整合性を確認
+- **`mode`** (string): クイズモード ID（例: `vgm_v1-ja`, `vgm_composer-ja`）
+- **`arm`** (string): A/B 割付（例: `treatment` / `control`）。`AB_TREATMENT_RATIO` に基づく決定論的割付。
 
 **その他フィールド**:
 - 署名方式: JWS（HMAC-SHA256） ([workers/shared/lib/token.ts](../../workers/shared/lib/token.ts))
