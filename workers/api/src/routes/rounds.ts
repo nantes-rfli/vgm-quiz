@@ -245,7 +245,8 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
       : generateUUID().replace(/-/g, '').substring(0, 16)
   const filtersHash = hashFilterKey(filterKey)
   const treatmentRatio = resolveTreatmentRatio(env)
-  const arm = assignArm(filtersHash, treatmentRatio)
+  const assignmentHash = hashFilterKey(`${filterKey}:${roundId}`)
+  const arm = assignArm(assignmentHash, treatmentRatio)
 
   const token = await createJWSToken(
     {

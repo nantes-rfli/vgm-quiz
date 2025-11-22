@@ -10,6 +10,12 @@ import { handleDiscovery } from './stages/discovery'
 import { handleIntake } from './stages/intake'
 import { handlePublish } from './stages/publish'
 
+function toBooleanFlag(value?: string): boolean {
+  if (!value) return false
+  const v = value.toLowerCase()
+  return v === '1' || v === 'true' || v === 'on' || v === 'yes'
+}
+
 export default {
   /**
    * Scheduled event handler (Cron Triggers)
@@ -116,7 +122,7 @@ export default {
     }
 
     // Optional: generate composer mode export when enabled
-    if (env.COMPOSER_MODE_ENABLED) {
+    if (toBooleanFlag(env.COMPOSER_MODE_ENABLED)) {
       logEvent(env, 'info', {
         event: 'cron.publish.composer',
         status: 'start',
