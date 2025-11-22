@@ -229,7 +229,7 @@ test.describe('Play page features', () => {
     await expect(externalLink).toHaveAttribute('target', '_blank');
     await expect(externalLink).toHaveAttribute('rel', /noopener/);
     await expect(page.getByText('Work:')).toBeVisible();
-    await expect(page.getByText('Composer:')).toBeVisible();
+    await expect(page.locator('dt', { hasText: 'Composer:' })).toBeVisible();
   });
 
   test('result summary reflects mixed outcomes', async ({ page }) => {

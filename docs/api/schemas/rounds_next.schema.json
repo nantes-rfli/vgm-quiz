@@ -23,6 +23,14 @@
         },
         "progress": {
           "$ref": "#/$defs/Progress"
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "arm": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -91,6 +99,14 @@
         },
         "reveal": {
           "$ref": "#/$defs/Reveal"
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "arm": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
