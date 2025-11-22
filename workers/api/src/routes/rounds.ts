@@ -256,7 +256,8 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
       : generateUUID().replace(/-/g, '').substring(0, 16)
   const filtersHash = hashFilterKey(filterKey)
   const treatmentRatio = resolveTreatmentRatio(env)
-  const assignmentHash = hashFilterKey(`${filtersHash}:${seed}`)
+  // Arm assignment must not be client-controllable; use server-generated roundId as entropy
+  const assignmentHash = hashFilterKey(`${filtersHash}:${roundId}`)
   const arm = assignArm(assignmentHash, treatmentRatio)
 
   const token = await createJWSToken(
