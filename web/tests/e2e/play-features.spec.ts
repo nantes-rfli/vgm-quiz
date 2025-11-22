@@ -165,13 +165,10 @@ test.describe('Play page features', () => {
   test('composer mode selection sends mode param and shows composer prompt', async ({ page }) => {
     await page.goto('/play');
 
-    // Select composer mode if mode selector is present
+    // Select composer mode (manifest enables it in MSW)
     const modeRadio = page.getByTestId('mode-vgm_composer-ja');
-    const hasModeSelector = await modeRadio.isVisible({ timeout: 1000 }).catch(() => false);
-
-    if (hasModeSelector) {
-      await modeRadio.check();
-    }
+    await expect(modeRadio).toBeVisible({ timeout: 5_000 });
+    await modeRadio.check();
 
     const request = await waitForStartRequest(page, async () => {
       const started = await ensureFilterVisibleAndStart(page);
@@ -184,9 +181,7 @@ test.describe('Play page features', () => {
     });
 
     const payload = parseStartRequest(request);
-    if (hasModeSelector) {
-      expect(payload.mode).toBe('vgm_composer-ja');
-    }
+    expect(payload.mode).toBe('vgm_composer-ja');
 
     await page.getByTestId('question-prompt').waitFor({ timeout: 60_000 });
     const promptText = await page.getByTestId('question-prompt').innerText();
