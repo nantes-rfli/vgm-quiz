@@ -78,7 +78,7 @@
 ### Milestone 3: フロントエンド & i18n
 - [x] モード選択 UI に「作曲者モード」を追加（英/日）
 - [x] プロンプト/正解/不正解文言の i18n キー `quiz.composer.prompt|correct|incorrect` を追加
-- [ ] Adaptive 難易度で問題タイトルと Reveal 表示を composer 用に切り替える
+- [x] Adaptive 難易度で問題タイトルと Reveal 表示を composer 用に切り替える
 
 ### Milestone 4: テスト & ガードレール
 - [x] MSW フィクスチャに composer モード用ラウンドを追加
