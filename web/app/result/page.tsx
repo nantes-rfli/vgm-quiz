@@ -36,6 +36,20 @@ export default function ResultPage() {
     measure('quiz:finish-to-result', 'quiz:play-finished', 'quiz:result-ready', {
       answered: summary.answeredCount,
     });
+
+    // Metrics: record revisit/complete summary view
+    recordMetricsEvent('quiz_revisit', {
+      attrs: {
+        mode: summary.mode,
+        arm: summary.arm,
+        total: summary.total,
+        correct: summary.score.correct,
+        wrong: summary.score.wrong,
+        timeout: summary.score.timeout,
+        skip: summary.score.skip,
+        durationMs: summary.durationMs,
+      },
+    });
   }, [ready, summary]);
 
   if (!ready) {

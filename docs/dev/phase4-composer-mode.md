@@ -72,8 +72,8 @@
 
 ### Milestone 2: A/B 割付と計測
 - [x] Treatment/Control の割付ロジックを token に埋め込み、比率を環境変数（AB_TREATMENT_RATIO, default 50/50）で設定可能にする
-- [ ] イベント拡張: 完走率/再訪率/正答率/回答時間が全群でロギングされることを自動テストで担保
-- [ ] composer 欠損率メトリクスと 5% 超アラートを実装し、ダッシュボードに接続
+- [x] イベント拡張: quiz_start/answer_result/quiz_complete/quiz_revisit に mode/arm/時間系を送信し、E2E で検証
+- [x] composer 欠損率メトリクスと 5% 超アラートを実装し、ダッシュボード接続（ログ出力 + Slack）
 
 ### Milestone 3: フロントエンド & i18n
 - [x] モード選択 UI に「作曲者モード」を追加（英/日）

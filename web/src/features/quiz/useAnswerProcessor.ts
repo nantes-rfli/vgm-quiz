@@ -174,6 +174,8 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
               total: totalQuestions,
               startedAt,
               finishedAt,
+              mode: question.mode,
+              arm: question.arm,
             })
           );
 

@@ -27,6 +27,8 @@ export type ResultSummary = {
   total: number;
   score: ScoreBreakdown;
   questions: QuestionRecord[];
+  mode?: string;
+  arm?: string;
   startedAt?: string;  // ISO8601
   finishedAt?: string; // ISO8601
   durationMs?: number; // derived
