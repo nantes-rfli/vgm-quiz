@@ -49,6 +49,8 @@ function normalizeSummary(summary: Partial<ResultSummary> | undefined): ResultSu
     total: summary.total ?? 0,
     score: summary.score ?? { ...EMPTY_SCORE },
     questions: Array.isArray(summary.questions) ? summary.questions : [],
+    mode: summary.mode,
+    arm: summary.arm,
     startedAt: summary.startedAt,
     finishedAt: summary.finishedAt,
     durationMs: summary.durationMs,

@@ -214,6 +214,8 @@ function PlayPageContent() {
       const question = {
         id: res.question.id,
         prompt: res.question.title, // Phase1 uses 'title', we use 'prompt'
+        mode: res.question.mode || res.round?.mode,
+        arm: res.question.arm || res.round?.arm,
         choices: res.choices.map((c) => ({
           id: c.id,
           label: c.text, // Phase1 uses 'text', we use 'label'

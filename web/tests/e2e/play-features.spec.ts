@@ -336,7 +336,7 @@ test.describe('Play page features', () => {
     await expect(timeoutCard.getByText('Timeout')).toBeVisible();
     // After Phase 4 a11y improvements, answer is in <dl> structure
     const answerDl = timeoutCard.locator('dl').filter({ hasText: 'Your answer:' });
-    await expect(answerDl.getByText('Your answer:')).toBeVisible();
+    await expect(answerDl.locator('dt', { hasText: 'Your answer:' })).toBeVisible();
     await expect(answerDl.locator('dd', { hasText: '—' })).toBeVisible();
 
     await page.evaluate(() => {
