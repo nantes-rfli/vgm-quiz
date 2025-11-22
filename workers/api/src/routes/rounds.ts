@@ -207,9 +207,9 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
     return filtersOrError
   }
 
-  const normalizedFilters = normalizeFilters(filtersOrError)
+  let normalizedFilters = normalizeFilters(filtersOrError)
   const filterKeyMode = mode.id === 'vgm_composer-ja' ? mode.id : undefined
-  const filterKey = createFilterKey(normalizedFilters, filterKeyMode)
+  let filterKey = createFilterKey(normalizedFilters, filterKeyMode)
   const requestedTotal = body.total ?? mode.defaultTotal
 
   if (!Number.isInteger(requestedTotal) || requestedTotal <= 0) {
@@ -217,7 +217,14 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
   }
 
   const date = getTodayJST()
-  const exportData = await fetchRoundExport(env, date, filterKey)
+  let exportData = await fetchRoundExport(env, date, filterKey)
+
+  // Fallback: composer mode with filtered export missing → retry with unfiltered composer export
+  if (!exportData && mode.id === 'vgm_composer-ja' && Object.keys(normalizedFilters).length > 0) {
+    normalizedFilters = {}
+    filterKey = createFilterKey(normalizedFilters, filterKeyMode)
+    exportData = await fetchRoundExport(env, date, filterKey)
+  }
 
   if (!exportData || exportData.questions.length === 0) {
     return errorResponse(503, 'no_questions', 'No questions available for the requested filters')
