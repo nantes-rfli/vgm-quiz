@@ -8,7 +8,7 @@
   },
   "question": {
     "id": "q_0001",
-    "prompt": "このBGMの作曲者は？",
+    "prompt": "この曲のゲームタイトルは?",
     "choices": [
       {
         "id": "a",
@@ -44,9 +44,7 @@
       "width": 1024,
       "height": 1024,
       "alt": "Album Art"
-    },
-    "mode": "vgm_composer-ja",
-    "arm": "treatment"
+    }
   },
   "finished": false
 }
