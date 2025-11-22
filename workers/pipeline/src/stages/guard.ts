@@ -1,5 +1,11 @@
-import { buildDedupKeys, buildCompositeKey } from '../../../shared/lib/dedup'
-import { evaluateGuard, type GuardEvaluationInput } from '../../../shared/lib/intake'
+import {
+  buildCompositeKey,
+  buildDedupKeys,
+  buildFuzzyKey,
+  buildGroupKey,
+  isFuzzyNearDuplicate,
+} from '../../../shared/lib/dedup'
+import { type GuardEvaluationInput, evaluateGuard } from '../../../shared/lib/intake'
 import { logEvent } from '../../../shared/lib/observability'
 import type { Env } from '../../../shared/types/env'
 
@@ -36,6 +42,7 @@ interface ExistingKeySets {
   spotifyIds: Set<string>
   appleIds: Set<string>
   composite: Set<string>
+  fuzzy: Map<string, string[]>
 }
 
 function parseId(id?: string): string | undefined {
@@ -61,6 +68,7 @@ async function loadExistingKeys(env: Env): Promise<ExistingKeySets> {
   const spotifyIds = new Set<string>()
   const appleIds = new Set<string>()
   const composite = new Set<string>()
+  const fuzzy = new Map<string, string[]>()
 
   if (rows && Array.isArray(rows.results)) {
     for (const row of rows.results) {
@@ -77,10 +85,25 @@ async function loadExistingKeys(env: Env): Promise<ExistingKeySets> {
         composer: row.composer ?? undefined,
       })
       if (compositeKey) composite.add(compositeKey)
+      const fuzzyKey = buildFuzzyKey({
+        title: row.title ?? undefined,
+        game: row.game ?? undefined,
+        composer: row.composer ?? undefined,
+      })
+      const groupKey = buildGroupKey({
+        title: row.title ?? undefined,
+        game: row.game ?? undefined,
+        composer: row.composer ?? undefined,
+      })
+      if (fuzzyKey && groupKey) {
+        const list = fuzzy.get(groupKey) || []
+        list.push(fuzzyKey)
+        fuzzy.set(groupKey, list)
+      }
     }
   }
 
-  return { externalIds, youtubeIds, spotifyIds, appleIds, composite }
+  return { externalIds, youtubeIds, spotifyIds, appleIds, composite, fuzzy }
 }
 
 function extractId(url: string): string | undefined {
@@ -120,11 +143,16 @@ export async function guardAndDedup(
     spotifyIds: new Set(),
     appleIds: new Set(),
     composite: new Set(),
+    fuzzy: new Map(),
   }
 
   const passed: Candidate[] = []
   const failedGuard: Array<{ candidate: Candidate; reasons: string[] }> = []
   const duplicates: Array<{ candidate: Candidate; reason: string }> = []
+  const warningCounts: Record<string, number> = {}
+  const warningSamples: Array<{ title?: string; reason: string; url?: string }> = []
+  const duplicateCounts: Record<string, number> = {}
+  const duplicateSamples: Array<{ title?: string; reason: string; url?: string }> = []
 
   for (const c of candidates) {
     const guardInput: GuardEvaluationInput = {
@@ -142,6 +170,18 @@ export async function guardAndDedup(
       },
     }
     const evaluation = evaluateGuard(guardInput, { stage })
+    if (evaluation.warnings.length) {
+      for (const w of evaluation.warnings) {
+        warningCounts[w] = (warningCounts[w] || 0) + 1
+      }
+      if (warningSamples.length < 3) {
+        warningSamples.push({
+          title: c.title,
+          url: c.youtubeUrl || c.spotifyUrl || c.appleMusicUrl,
+          reason: evaluation.warnings.join('; '),
+        })
+      }
+    }
     if (!evaluation.pass) {
       failedGuard.push({ candidate: c, reasons: evaluation.reasons })
       continue
@@ -170,6 +210,14 @@ export async function guardAndDedup(
       (keys.compositeKey && existing.composite.has(keys.compositeKey))
     ) {
       duplicates.push({ candidate: c, reason: 'exists_in_db' })
+      duplicateCounts.exists_in_db = (duplicateCounts.exists_in_db || 0) + 1
+      if (duplicateSamples.length < 3) {
+        duplicateSamples.push({
+          title: c.title,
+          url: c.youtubeUrl || c.spotifyUrl || c.appleMusicUrl,
+          reason: 'exists_in_db',
+        })
+      }
       continue
     }
 
@@ -182,7 +230,41 @@ export async function guardAndDedup(
       (keys.compositeKey && seenBatchKeys.composite.has(keys.compositeKey))
     ) {
       duplicates.push({ candidate: c, reason: 'duplicate_in_batch' })
+      duplicateCounts.duplicate_in_batch = (duplicateCounts.duplicate_in_batch || 0) + 1
+      if (duplicateSamples.length < 3) {
+        duplicateSamples.push({
+          title: c.title,
+          url: c.youtubeUrl || c.spotifyUrl || c.appleMusicUrl,
+          reason: 'duplicate_in_batch',
+        })
+      }
       continue
+    }
+
+    const fuzzyKey = keys.fuzzyKey
+    if (fuzzyKey) {
+      const groupKey = buildGroupKey({
+        title: c.title,
+        game: c.game,
+        composer: c.composer,
+      })
+      const existingGroup = groupKey ? existing.fuzzy.get(groupKey) : undefined
+      const batchGroup = groupKey ? seenBatchKeys.fuzzy.get(groupKey) : undefined
+      const fuzzyHit =
+        (existingGroup && isFuzzyNearDuplicate(fuzzyKey, existingGroup)) ||
+        (batchGroup && isFuzzyNearDuplicate(fuzzyKey, batchGroup))
+      if (fuzzyHit) {
+        duplicates.push({ candidate: c, reason: 'duplicate_fuzzy' })
+        duplicateCounts.duplicate_fuzzy = (duplicateCounts.duplicate_fuzzy || 0) + 1
+        if (duplicateSamples.length < 3) {
+          duplicateSamples.push({
+            title: c.title,
+            url: c.youtubeUrl || c.spotifyUrl || c.appleMusicUrl,
+            reason: 'duplicate_fuzzy',
+          })
+        }
+        continue
+      }
     }
 
     // mark as seen
@@ -191,6 +273,18 @@ export async function guardAndDedup(
     if (keys.spotifyId) seenBatchKeys.spotifyIds.add(keys.spotifyId)
     if (keys.appleId) seenBatchKeys.appleIds.add(keys.appleId)
     if (keys.compositeKey) seenBatchKeys.composite.add(keys.compositeKey)
+    if (fuzzyKey) {
+      const groupKey = buildGroupKey({
+        title: c.title,
+        game: c.game,
+        composer: c.composer,
+      })
+      if (groupKey) {
+        const list = seenBatchKeys.fuzzy.get(groupKey) || []
+        list.push(fuzzyKey)
+        seenBatchKeys.fuzzy.set(groupKey, list)
+      }
+    }
 
     passed.push(c)
   }
@@ -205,6 +299,32 @@ export async function guardAndDedup(
       duplicates: duplicates.length,
     },
   })
+
+  if (Object.keys(warningCounts).length > 0) {
+    logEvent(env, 'warn', {
+      event: 'intake.guard_warn',
+      status: 'warn',
+      message: 'Guard warnings (non-blocking)',
+      fields: {
+        stage,
+        warningCounts,
+        samples: warningSamples,
+      },
+    })
+  }
+
+  if (duplicates.length > 0) {
+    logEvent(env, 'warn', {
+      event: 'intake.duplicates',
+      status: 'warn',
+      message: 'Dedup filtered candidates',
+      fields: {
+        stage,
+        duplicateCounts,
+        samples: duplicateSamples,
+      },
+    })
+  }
 
   return {
     passed,

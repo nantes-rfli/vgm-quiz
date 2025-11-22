@@ -1,6 +1,10 @@
-import { isObservabilityEnabled, logEvent, sendSlackNotification } from '../../../shared/lib/observability'
+import {
+  isObservabilityEnabled,
+  logEvent,
+  sendSlackNotification,
+} from '../../../shared/lib/observability'
 import type { Env } from '../../../shared/types/env'
-import { guardAndDedup, type Candidate } from './guard'
+import { type Candidate, guardAndDedup } from './guard'
 
 interface IntakeResult {
   success: boolean
@@ -19,6 +23,105 @@ interface SourceEntry {
   active?: boolean
 }
 
+const RETRY_DELAYS_MS = [0, 2 * 60_000, 4 * 60_000, 8 * 60_000]
+const tierPriority = { L1: 1, L2: 2, L3: 3 } as const
+type TierKey = keyof typeof tierPriority
+
+function getTierPriority(tier?: string): number {
+  if (!tier) return tierPriority.L3
+  if (tierPriority[tier as TierKey]) return tierPriority[tier as TierKey]
+  return tierPriority.L3
+}
+
+function toTierLabel(priority: number): string {
+  if (priority <= 1) return 'L1'
+  if (priority === 2) return 'L2'
+  return 'L3'
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isTransientIntakeError(error: unknown): error is { transient?: boolean; status?: number } {
+  return Boolean(error && typeof error === 'object' && (error as { transient?: boolean }).transient)
+}
+
+function isRetriableStatus(status?: number): boolean {
+  if (status === undefined) return false
+  return status === 429 || (status >= 500 && status < 600)
+}
+
+async function fetchWithRetry(
+  env: Env,
+  requestFactory: () => Promise<Response>,
+  opts: { label: string; source?: SourceEntry },
+): Promise<Response> {
+  let lastStatus: number | undefined
+  let lastError: unknown
+  let lastRetriable = false
+
+  for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) await sleep(RETRY_DELAYS_MS[attempt])
+    try {
+      const res = await requestFactory()
+      if (res.ok) return res
+
+      lastStatus = res.status
+      const retriable = res.status === 429 || (res.status >= 500 && res.status < 600)
+      if (!retriable) {
+        const hardError = new Error(`${opts.label} ${res.status}`) as Error & { status?: number }
+        hardError.status = res.status
+        throw hardError
+      }
+      lastRetriable = true
+
+      logEvent(env, 'warn', {
+        event: 'intake.retry',
+        status: 'warn',
+        message: `${opts.label} retrying`,
+        fields: {
+          attempt: attempt + 1,
+          status: res.status,
+          source: opts.source?.id,
+          tier: opts.source?.tier,
+        },
+      })
+    } catch (error) {
+      lastError = error
+      const status = (error as { status?: number }).status
+      if (status !== undefined) lastStatus = status
+      lastRetriable = isRetriableStatus(status) || error instanceof TypeError
+      if (!lastRetriable) {
+        // Non-retriable: surface immediately to stop backoff loop
+        throw error
+      }
+      logEvent(env, 'warn', {
+        event: 'intake.retry',
+        status: 'warn',
+        message: `${opts.label} retry on failure`,
+        fields: {
+          attempt: attempt + 1,
+          source: opts.source?.id,
+          tier: opts.source?.tier,
+          error: error instanceof Error ? error.message : 'unknown error',
+        },
+      })
+    }
+  }
+
+  const err = new Error(`Retry exhausted for ${opts.label}`) as Error & {
+    transient?: boolean
+    status?: number
+    attempts?: number
+  }
+  err.transient = lastRetriable
+  err.status = lastStatus
+  err.attempts = RETRY_DELAYS_MS.length
+  err.cause = lastError
+  throw err
+}
+
 export async function handleIntake(env: Env): Promise<IntakeResult> {
   const enabled = env.INTAKE_ENABLED === 'true' || env.INTAKE_ENABLED === '1'
   if (!enabled) {
@@ -27,13 +130,20 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       status: 'success',
       message: 'Intake disabled (INTAKE_ENABLED not set)',
     })
-    return { success: true, skipped: true, sourcesProcessed: 0, candidatesDiscovered: 0, errors: [] }
+    return {
+      success: true,
+      skipped: true,
+      sourcesProcessed: 0,
+      candidatesDiscovered: 0,
+      errors: [],
+    }
   }
 
   const errors: string[] = []
   const stage = env.INTAKE_STAGE || 'staging'
   let sourcesProcessed = 0
   let candidatesDiscovered = 0
+  let allowedTierPriority: number = tierPriority.L3
 
   logEvent(env, 'info', {
     event: 'intake.start',
@@ -126,10 +236,21 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
   })
 
   for (const source of catalog) {
+    const sourcePriority = getTierPriority(source.tier)
+    if (sourcePriority > allowedTierPriority) {
+      logEvent(env, 'warn', {
+        event: 'intake.tier.skip',
+        status: 'warn',
+        message: 'Skipping source due to tier downgrade window',
+        fields: { source: source.name || source.id, tier: source.tier, allowedTierPriority },
+      })
+      continue
+    }
+
     if (source.provider === 'youtube' && source.kind === 'playlist') {
       if (!youtubeKey) continue
       try {
-        const { count, candidates } = await fetchYouTubePlaylistItems(source.id, youtubeKey)
+        const { count, candidates } = await fetchYouTubePlaylistItems(env, source, youtubeKey)
         const enriched = candidates.length
           ? await enrichYouTubeMeta(env, candidates, youtubeKey)
           : []
@@ -208,6 +329,24 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'unknown error'
         errors.push(`${source.id}: ${message}`)
+        if (isTransientIntakeError(error)) {
+          const nextAllowed = Math.max(1, sourcePriority - 1)
+          if (nextAllowed < allowedTierPriority) {
+            const prev = allowedTierPriority
+            allowedTierPriority = nextAllowed
+            logEvent(env, 'warn', {
+              event: 'intake.tier.downgrade',
+              status: 'warn',
+              message: 'Transient error; downgrading remaining sources',
+              fields: {
+                source: source.name || source.id,
+                from: toTierLabel(prev),
+                to: toTierLabel(allowedTierPriority),
+                reason: message,
+              },
+            })
+          }
+        }
         logEvent(env, 'error', {
           event: 'intake.discovery',
           status: 'fail',
@@ -231,7 +370,8 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       }
       try {
         const { count, candidates } = await fetchSpotifyPlaylistItems(
-          source.id,
+          env,
+          source,
           spotifyId,
           spotifySecret,
         )
@@ -244,8 +384,7 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
           })
           continue
         }
-        const guardResult =
-          candidates.length > 0 ? await guardAndDedup(env, candidates) : undefined
+        const guardResult = candidates.length > 0 ? await guardAndDedup(env, candidates) : undefined
 
         if (evalProd && candidates.length > 0) {
           const prodResult = await guardAndDedup(env, candidates, 'production')
@@ -283,6 +422,24 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'unknown error'
         errors.push(`${source.id}: ${message}`)
+        if (isTransientIntakeError(error)) {
+          const nextAllowed = Math.max(1, sourcePriority - 1)
+          if (nextAllowed < allowedTierPriority) {
+            const prev = allowedTierPriority
+            allowedTierPriority = nextAllowed
+            logEvent(env, 'warn', {
+              event: 'intake.tier.downgrade',
+              status: 'warn',
+              message: 'Transient error; downgrading remaining sources',
+              fields: {
+                source: source.name || source.id,
+                from: toTierLabel(prev),
+                to: toTierLabel(allowedTierPriority),
+                reason: message,
+              },
+            })
+          }
+        }
         logEvent(env, 'error', {
           event: 'intake.discovery',
           status: 'fail',
@@ -305,12 +462,12 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       }
       try {
         const { count, candidates } = await fetchApplePlaylistItems(
-          source.id,
+          env,
+          source,
           appleToken,
           appleStorefront,
         )
-        const guardResult =
-          candidates.length > 0 ? await guardAndDedup(env, candidates) : undefined
+        const guardResult = candidates.length > 0 ? await guardAndDedup(env, candidates) : undefined
 
         sourcesProcessed += 1
         candidatesDiscovered += count
@@ -333,6 +490,24 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'unknown error'
         errors.push(`${source.id}: ${message}`)
+        if (isTransientIntakeError(error)) {
+          const nextAllowed = Math.max(1, sourcePriority - 1)
+          if (nextAllowed < allowedTierPriority) {
+            const prev = allowedTierPriority
+            allowedTierPriority = nextAllowed
+            logEvent(env, 'warn', {
+              event: 'intake.tier.downgrade',
+              status: 'warn',
+              message: 'Transient error; downgrading remaining sources',
+              fields: {
+                source: source.name || source.id,
+                from: toTierLabel(prev),
+                to: toTierLabel(allowedTierPriority),
+                reason: message,
+              },
+            })
+          }
+        }
         logEvent(env, 'error', {
           event: 'intake.discovery',
           status: 'fail',
@@ -355,7 +530,8 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       }
       try {
         const { count, candidates } = await fetchSpotifyArtistTopTracks(
-          source.id,
+          env,
+          source,
           spotifyId,
           spotifySecret,
           spotifyMarket,
@@ -415,6 +591,24 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'unknown error'
         errors.push(`${source.id}: ${message}`)
+        if (isTransientIntakeError(error)) {
+          const nextAllowed = Math.max(1, sourcePriority - 1)
+          if (nextAllowed < allowedTierPriority) {
+            const prev = allowedTierPriority
+            allowedTierPriority = nextAllowed
+            logEvent(env, 'warn', {
+              event: 'intake.tier.downgrade',
+              status: 'warn',
+              message: 'Transient error; downgrading remaining sources',
+              fields: {
+                source: source.name || source.id,
+                from: toTierLabel(prev),
+                to: toTierLabel(allowedTierPriority),
+                reason: message,
+              },
+            })
+          }
+        }
         logEvent(env, 'error', {
           event: 'intake.discovery',
           status: 'fail',
@@ -447,7 +641,8 @@ export async function handleIntake(env: Env): Promise<IntakeResult> {
 }
 
 async function fetchYouTubePlaylistItems(
-  playlistId: string,
+  env: Env,
+  source: SourceEntry,
   apiKey: string,
 ): Promise<{ count: number; candidates: Candidate[] }> {
   let total = 0
@@ -459,15 +654,14 @@ async function fetchYouTubePlaylistItems(
     const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems')
     url.searchParams.set('part', 'snippet')
     url.searchParams.set('maxResults', '50')
-    url.searchParams.set('playlistId', playlistId)
+    url.searchParams.set('playlistId', source.id)
     url.searchParams.set('key', apiKey)
     if (pageToken) url.searchParams.set('pageToken', pageToken)
 
-    const res = await fetch(url.toString())
-    if (!res.ok) {
-      const body = await res.text()
-      throw new Error(`YouTube API ${res.status}: ${body.slice(0, 200)}`)
-    }
+    const res = await fetchWithRetry(env, () => fetch(url.toString()), {
+      label: 'youtube.playlistItems',
+      source,
+    })
 
     const data = (await res.json()) as {
       nextPageToken?: string
@@ -479,7 +673,16 @@ async function fetchYouTubePlaylistItems(
 
     for (const item of items) {
       if (!item || typeof item !== 'object') continue
-      const snippet = (item as any).snippet
+      const snippet = (
+        item as {
+          snippet?: {
+            title?: string
+            resourceId?: { videoId?: string }
+            videoOwnerChannelTitle?: string
+            channelTitle?: string
+          }
+        }
+      ).snippet
       const title = snippet?.title as string | undefined
       const videoId = snippet?.resourceId?.videoId as string | undefined
       const channelTitle =
@@ -501,24 +704,27 @@ async function fetchYouTubePlaylistItems(
 }
 
 async function fetchSpotifyPlaylistItems(
-  playlistId: string,
+  env: Env,
+  source: SourceEntry,
   clientId: string,
   clientSecret: string,
 ): Promise<{ count: number; candidates: Candidate[] }> {
-  const token = await getSpotifyToken(clientId, clientSecret)
+  const token = await getSpotifyToken(env, clientId, clientSecret, source)
   const candidates: Candidate[] = []
-  let next: string | null = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?fields=items(track(id,name,artists(name),album(name),duration_ms,external_urls,external_ids,is_local)),next,limit,offset,total&limit=100`
+  let next: string | null =
+    `https://api.spotify.com/v1/playlists/${source.id}/tracks?fields=items(track(id,name,artists(name),album(name),duration_ms,external_urls,external_ids,is_local)),next,limit,offset,total&limit=100`
   let total = 0
   let safeguards = 0
 
   while (next && safeguards < 5) {
-    const res = await fetch(next, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (!res.ok) {
-      const body = await res.text()
-      throw new Error(`Spotify API ${res.status}: ${body.slice(0, 200)}`)
-    }
+    const res = await fetchWithRetry(
+      env,
+      () =>
+        fetch(next as string, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      { label: 'spotify.playlist', source },
+    )
     const data = (await res.json()) as {
       items?: Array<{
         track?: {
@@ -561,22 +767,24 @@ async function fetchSpotifyPlaylistItems(
 }
 
 async function fetchSpotifyArtistTopTracks(
-  artistId: string,
+  env: Env,
+  source: SourceEntry,
   clientId: string,
   clientSecret: string,
   market: string,
 ): Promise<{ count: number; candidates: Candidate[] }> {
-  const token = await getSpotifyToken(clientId, clientSecret)
-  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=${encodeURIComponent(
+  const token = await getSpotifyToken(env, clientId, clientSecret, source)
+  const url = `https://api.spotify.com/v1/artists/${source.id}/top-tracks?market=${encodeURIComponent(
     market,
   )}`
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Spotify API ${res.status}: ${body.slice(0, 200)}`)
-  }
+  const res = await fetchWithRetry(
+    env,
+    () =>
+      fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    { label: 'spotify.artist_top_tracks', source },
+  )
   const data = (await res.json()) as {
     tracks?: Array<{
       id?: string
@@ -606,21 +814,27 @@ async function fetchSpotifyArtistTopTracks(
   return { count: tracks.length, candidates }
 }
 
-async function getSpotifyToken(clientId: string, clientSecret: string): Promise<string> {
+async function getSpotifyToken(
+  env: Env,
+  clientId: string,
+  clientSecret: string,
+  source?: SourceEntry,
+): Promise<string> {
   const body = new URLSearchParams()
   body.set('grant_type', 'client_credentials')
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: body.toString(),
-  })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Spotify token failed ${res.status}: ${text.slice(0, 200)}`)
-  }
+  const res = await fetchWithRetry(
+    env,
+    () =>
+      fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+      }),
+    { label: 'spotify.token', source },
+  )
   const data = (await res.json()) as { access_token: string }
   if (!data.access_token) {
     throw new Error('Spotify token response missing access_token')
@@ -629,24 +843,23 @@ async function getSpotifyToken(clientId: string, clientSecret: string): Promise<
 }
 
 async function fetchApplePlaylistItems(
-  playlistId: string,
+  env: Env,
+  source: SourceEntry,
   token: string,
   storefront: string,
 ): Promise<{ count: number; candidates: Candidate[] }> {
   // playlistId expects the Apple Music catalog id (e.g., pl.12345)
-  const url = new URL(
-    `https://api.music.apple.com/v1/catalog/${storefront}/playlists/${playlistId}`,
-  )
+  const url = new URL(`https://api.music.apple.com/v1/catalog/${storefront}/playlists/${source.id}`)
   url.searchParams.set('include', 'tracks')
 
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Apple Music API ${res.status}: ${body.slice(0, 200)}`)
-  }
+  const res = await fetchWithRetry(
+    env,
+    () =>
+      fetch(url.toString(), {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    { label: 'apple.playlist', source },
+  )
 
   const data = (await res.json()) as {
     data?: Array<{
@@ -697,8 +910,7 @@ async function maybeAlertOnRates(
   const guardFailRate = guardResult.stats.guardFail / total
   const duplicateRate = guardResult.stats.duplicates / total
 
-  const warn =
-    guardFailRate >= 0.2 || duplicateRate >= 0.2
+  const warn = guardFailRate >= 0.2 || duplicateRate >= 0.2
 
   if (!warn) return
 
@@ -729,13 +941,23 @@ async function enrichYouTubeMeta(
     url.searchParams.set('id', chunk.join(','))
     url.searchParams.set('key', apiKey)
 
-    const res = await fetch(url.toString())
-    if (!res.ok) {
-      const body = await res.text()
+    let res: Response
+    try {
+      res = await fetchWithRetry(env, () => fetch(url.toString()), {
+        label: 'youtube.videos',
+        source: {
+          id: chunk.join(','),
+          provider: 'youtube',
+          kind: 'playlist',
+          tier: 'L1',
+        } as SourceEntry,
+      })
+    } catch (error) {
       logEvent(env, 'warn', {
         event: 'intake.youtube.enrich',
         status: 'fail',
-        message: `YouTube videos API ${res.status}: ${body.slice(0, 120)}`,
+        message: 'YouTube videos API retry exhausted',
+        error,
       })
       continue
     }
@@ -765,11 +987,12 @@ async function enrichYouTubeMeta(
 
 function iso8601DurationToSeconds(duration: string): number | undefined {
   // Simple parser for PT#H#M#S
-  const match =
-    /P(?:\d+Y)?(?:\d+M)?(?:\d+D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/.exec(duration)
+  const match = /P(?:\d+Y)?(?:\d+M)?(?:\d+D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/.exec(
+    duration,
+  )
   if (!match) return undefined
-  const hours = match[1] ? parseInt(match[1], 10) : 0
-  const minutes = match[2] ? parseInt(match[2], 10) : 0
-  const seconds = match[3] ? parseFloat(match[3]) : 0
+  const hours = match[1] ? Number.parseInt(match[1], 10) : 0
+  const minutes = match[2] ? Number.parseInt(match[2], 10) : 0
+  const seconds = match[3] ? Number.parseFloat(match[3]) : 0
   return hours * 3600 + minutes * 60 + seconds
 }

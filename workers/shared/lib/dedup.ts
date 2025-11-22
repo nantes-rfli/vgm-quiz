@@ -20,6 +20,7 @@ export interface DedupKeys {
   spotifyId?: string
   appleId?: string
   compositeKey?: string
+  fuzzyKey?: string
 }
 
 /**
@@ -85,6 +86,56 @@ export function buildCompositeKey(meta: CandidateTrackMeta): string | undefined 
   return `${title}::${game}::${composer}`
 }
 
+export function buildGroupKey(meta: CandidateTrackMeta): string | undefined {
+  const game = normalize(meta.game)
+  const composer = normalize(meta.composer)
+  if (!game || !composer) return undefined
+  return `${game}::${composer}`
+}
+
+export function buildFuzzyKey(meta: CandidateTrackMeta): string | undefined {
+  const title = normalize(meta.title)
+  if (!title) return undefined
+  return title
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  const matrix: number[][] = []
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i]
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j
+  }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1]
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1,
+        )
+      }
+    }
+  }
+  return matrix[b.length][a.length]
+}
+
+const FUZZY_THRESHOLD_RATIO = 0.12
+
+export function isFuzzyNearDuplicate(target: string, pool: Iterable<string>): boolean {
+  for (const candidate of pool) {
+    const distance = levenshteinDistance(target, candidate)
+    const maxLen = Math.max(target.length, candidate.length)
+    if (maxLen === 0) continue
+    const ratio = distance / maxLen
+    if (ratio <= FUZZY_THRESHOLD_RATIO) return true
+  }
+  return false
+}
+
 /**
  * Build dedup keys from candidate metadata and URLs/IDs.
  */
@@ -101,5 +152,6 @@ export function buildDedupKeys(ids: CandidateTrackId, meta: CandidateTrackMeta =
     spotifyId,
     appleId,
     compositeKey: buildCompositeKey(meta),
+    fuzzyKey: buildFuzzyKey(meta),
   }
 }

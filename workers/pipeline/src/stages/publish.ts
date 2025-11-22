@@ -315,8 +315,7 @@ export async function handlePublish(
       status: 'success',
       filtersKey: filterKey,
       r2Key,
-      hash,
-      fields: { date, questionsGenerated: questions.length },
+      fields: { date, questionsGenerated: questions.length, hash },
     })
 
     return {

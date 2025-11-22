@@ -22,10 +22,12 @@
 - Duration: 30s〜8m  
 - メタ必須: `title`, `game`, `composer`（ISRC は任意だがあれば優先）
 - **実装位置**: `workers/shared/lib/intake.ts` の `GUARD_THRESHOLDS` / `evaluateGuard`
+- 音声メトリクス未計測の場合は guard で WARN ログに `audio:missing_all` 等が記録される（ステージングでは pass だが警告ウォッチ必須）
 
 ## 5. 重複判定
 - キー: `youtubeId`, `spotifyId`, `appleId`, 正規化タイトル+ゲーム名+作曲者の複合キー  
-- 実装: `workers/shared/lib/dedup.ts` (`buildDedupKeys`, `buildCompositeKey`)  
+- 近傍一致: タイトル+ゲーム+作曲者を 20% Levenshtein 閾値で評価し、極近似は `duplicate_fuzzy` として落とす  
+- 実装: `workers/shared/lib/dedup.ts` (`buildDedupKeys`, `buildCompositeKey`, `isFuzzyNearDuplicate`)  
 - 優先度: ID マッチ > 複合キー。複合キーは正規化した文字列で一致した場合のみ採用。  
 - Runbook: 重複率が 5% 超えたらソース優先度を見直し、同一プレイリストを 24h 除外。
 
@@ -40,6 +42,7 @@
 - API クォータ超過: 残ジョブを翌日に繰り越し、L3 → L2 → L1 の順で縮小。  
 - 連続失敗 > 20%: ジョブを停止し、原因が解消するまで再開しない。Slack に ERROR 通知。  
 - ソース単位で 3 回連続失敗した場合、そのソースを 24h ブラックリスト。
+- 実装: 2→4→8 分バックオフ付きリトライ（最大3回）。429/ネットワーク一時障害は tier を 1 段階ダウングレードし、低優先ソースをスキップして翌日へ持ち越す。`intake.tier.downgrade` ログで確認。
 
 ## 5. ロールバック
 - Guard で落としたアイテムは `intake_guard_fail` ログに理由を記録し、再取り込み時に理由が変わらない限りスキップ。  
@@ -56,7 +59,14 @@
 - LUFS 逸脱: しきい値を doc に従って更新し、再取り込み。  
 - メタ欠損（ゲーム名なし等）: VGMdb/IGDB で補完してから再キュー。自動補完はまだ有効化しない。
 
-## 8. 今後の TODO
+## 8. 昇格/ロールバック（Batch ID）
+- CLI: `npm run promote:batch --workspace workers -- --date 2025-11-21 --batch phase4a-pilot-01 --dry-run`
+- 事前準備: `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_SOURCE_BUCKET`, `R2_TARGET_BUCKET` を export。`SOURCE_PREFIX` で staging （デフォルト `staging`）、`TARGET_PREFIX` で本番プレフィックスを指定（デフォルトなし）。
+- 処理内容: R2 `staging/<exports key>` → `exports/daily/<date>.json` へ Copy（メタデータに `batchId` 付与）、`tmp/batch-<id>.sql` に D1 昇格/ロールバック用 SQL を生成。
+- 適用手順: `wrangler d1 execute <DB_NAME> --file tmp/batch-<id>.sql` を本番 DB に流す。ロールバックは SQL 内コメントの DELETE を実行。
+- 追跡: D1 に `promotion_batches` テーブルを作成し、batchId/date/filterKey/r2_key を記録。R2 オブジェクトのメタデータ `batchId` でも確認可能。
+
+## 9. 今後の TODO
 - `source_catalog.json` の定義と管理手順を追加。  
 - R2/D1 ステージング→本番の昇格スクリプトと CLI コマンドを用意。  
 - ブラックリスト/除外リストの永続化場所を決定。  

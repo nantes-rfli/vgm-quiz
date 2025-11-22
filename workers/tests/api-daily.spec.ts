@@ -4,6 +4,7 @@ import { fetchBackupDaily } from '../api/src/lib/daily'
 import { handleDailyRequest } from '../api/src/routes/daily'
 import * as observability from '../shared/lib/observability'
 import type { Env } from '../shared/types/env'
+import type { DailyExport } from '../shared/types/export'
 import { InMemoryR2Bucket } from './helpers/in-memory-r2'
 
 class EmptyStatement {
@@ -77,7 +78,7 @@ describe('daily backup retrieval', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('X-VGM-Daily-Source')).toBe('backup')
 
-    const payload = await response.json()
+    const payload = (await response.json()) as DailyExport
     expect(payload.meta.date).toBe('2025-01-02')
     expect(payload.meta.hash).toBe('hash-2')
   })

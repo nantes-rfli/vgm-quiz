@@ -30,6 +30,7 @@ interface GuardThresholds {
 export interface GuardEvaluationResult {
   pass: boolean
   reasons: string[]
+  warnings: string[]
   scores: {
     metadataCompleteness: number
     lufsOk: boolean
@@ -54,7 +55,10 @@ export const GUARD_THRESHOLDS = {
  * Required: title (+ game/composer 優先だがステージで調整可)
  * Optional but valuable: isrc, year
  */
-export function computeMetadataCompleteness(meta: TrackMetaCandidate, required: Array<keyof TrackMetaCandidate> = ['title', 'game', 'composer']): {
+export function computeMetadataCompleteness(
+  meta: TrackMetaCandidate,
+  required: Array<keyof TrackMetaCandidate> = ['title', 'game', 'composer'],
+): {
   score: number
   missing: string[]
 } {
@@ -66,7 +70,7 @@ export function computeMetadataCompleteness(meta: TrackMetaCandidate, required: 
   const requiredScore = (required.length - missing.length) / required.length
   const optionalScore = (optional.length - optionalMissing.length) / optional.length
 
-  const score = Math.round(((requiredScore * 0.8 + optionalScore * 0.2) + Number.EPSILON) * 100) / 100
+  const score = Math.round((requiredScore * 0.8 + optionalScore * 0.2 + Number.EPSILON) * 100) / 100
 
   return { score, missing: [...missing, ...optionalMissing] }
 }
@@ -80,7 +84,7 @@ export function evaluateGuard(
   opts?: { stage?: string },
 ): GuardEvaluationResult {
   const { meta, audio } = input
-  const isProd = opts?.stage && opts.stage.toLowerCase().startsWith('prod')
+  const isProd = opts?.stage?.toLowerCase().startsWith('prod')
 
   const thresholds: GuardThresholds = isProd
     ? GUARD_THRESHOLDS
@@ -90,10 +94,9 @@ export function evaluateGuard(
         durationMaxSec: 12 * 60, // staging は長尺を緩和
       }
 
-  const requiredFields =
-    isProd
-      ? (['title', 'game', 'composer'] as Array<keyof TrackMetaCandidate>)
-      : (['title'] as Array<keyof TrackMetaCandidate>) // staging 等では title さえあれば許容し、score 閾値を緩める
+  const requiredFields = isProd
+    ? (['title', 'game', 'composer'] as Array<keyof TrackMetaCandidate>)
+    : (['title'] as Array<keyof TrackMetaCandidate>) // staging 等では title さえあれば許容し、score 閾値を緩める
 
   const { score: metaScore, missing } = computeMetadataCompleteness(meta, requiredFields)
 
@@ -109,7 +112,7 @@ export function evaluateGuard(
   const silenceOk = audio?.silenceRatio === undefined || audio.silenceRatio <= thresholds.silenceMax
   const clipOk = audio?.clipRatio === undefined || audio.clipRatio <= thresholds.clipMax
 
-  const minMetaScore = opts?.stage && opts.stage.toLowerCase().startsWith('prod') ? 0.8 : 0.5
+  const minMetaScore = opts?.stage?.toLowerCase().startsWith('prod') ? 0.8 : 0.5
 
   const reasons: string[] = []
   if (metaScore < minMetaScore) reasons.push(`metadata completeness ${metaScore}`)
@@ -119,16 +122,21 @@ export function evaluateGuard(
   if (!silenceOk) reasons.push('silence ratio high')
   if (!clipOk) reasons.push('clipping ratio high')
 
-  const pass =
-    metaScore >= minMetaScore &&
-    durationOk &&
-    lufsOk &&
-    silenceOk &&
-    clipOk
+  const warnings: string[] = []
+  if (!audio) {
+    warnings.push('audio:missing_all')
+  } else {
+    if (audio.lufs === undefined) warnings.push('audio:lufs_missing')
+    if (audio.silenceRatio === undefined) warnings.push('audio:silence_missing')
+    if (audio.clipRatio === undefined) warnings.push('audio:clip_missing')
+  }
+
+  const pass = metaScore >= minMetaScore && durationOk && lufsOk && silenceOk && clipOk
 
   return {
     pass,
     reasons,
+    warnings,
     scores: {
       metadataCompleteness: metaScore,
       lufsOk,

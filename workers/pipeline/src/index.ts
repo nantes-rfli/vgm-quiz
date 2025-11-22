@@ -6,8 +6,8 @@ import {
 } from '../../shared/lib/observability'
 import type { Env } from '../../shared/types/env'
 import type { FilterOptions } from '../../shared/types/filters'
-import { handleIntake } from './stages/intake'
 import { handleDiscovery } from './stages/discovery'
+import { handleIntake } from './stages/intake'
 import { handlePublish } from './stages/publish'
 
 export default {
