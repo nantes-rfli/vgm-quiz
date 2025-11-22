@@ -184,13 +184,13 @@ export default function ResultPage() {
                           </dl>
                           <dl className="mt-2 space-y-1 text-xs text-muted-foreground">
                             <div className="flex gap-2">
-                              <dt className="font-medium">Your answer:</dt>
-                              <dd>{record.choiceLabel ?? '—'}</dd>
+                              <dt className="font-medium sr-only">{t('result.yourAnswerLabel', { answer: '...' })}</dt>
+                              <dd>{t('result.yourAnswerLabel', { answer: record.choiceLabel ?? '—' })}</dd>
                             </div>
                             {record.correctLabel ? (
                               <div className="flex gap-2">
-                                <dt className="font-medium">Correct:</dt>
-                                <dd>{record.correctLabel}</dd>
+                                <dt className="font-medium sr-only">{t('result.correctAnswerLabel', { answer: '...' })}</dt>
+                                <dd>{t('result.correctAnswerLabel', { answer: record.correctLabel })}</dd>
                               </div>
                             ) : null}
                           </dl>
