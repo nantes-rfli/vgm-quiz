@@ -1,6 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import type { Env } from '../../../shared/types/env'
 import { getManifest } from '../../../shared/data/manifest'
+import type { Env } from '../../../shared/types/env'
 
 interface FilterOptions {
   difficulty?: string[]

@@ -1,5 +1,5 @@
-import type { Env } from '../../../shared/types/env'
 import { getManifest } from '../../../shared/data/manifest'
+import type { Env } from '../../../shared/types/env'
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',

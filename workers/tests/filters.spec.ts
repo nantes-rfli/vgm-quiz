@@ -28,7 +28,10 @@ describe('filter utilities', () => {
   })
 
   it('creates stable filter key for complex filters with mode', () => {
-    const key = createFilterKey({ difficulty: 'hard', era: '90s', series: ['zelda', 'ff'] }, 'vgm_v1-ja')
+    const key = createFilterKey(
+      { difficulty: 'hard', era: '90s', series: ['zelda', 'ff'] },
+      'vgm_v1-ja',
+    )
     expect(key).toBe('{"difficulty":"hard","era":"90s","mode":"vgm_v1-ja","series":["ff","zelda"]}')
   })
 

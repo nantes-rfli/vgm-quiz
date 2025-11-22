@@ -2,9 +2,9 @@ import { findMode, getManifest, isValidFacetValue } from '../../../shared/data/m
 import { getTodayJST } from '../../../shared/lib/date'
 import { createFilterKey, hashFilterKey, normalizeFilters } from '../../../shared/lib/filters'
 import type { Env } from '../../../shared/types/env'
-import type { Manifest } from '../../../shared/types/manifest'
 import type { DailyExport } from '../../../shared/types/export'
 import type { FilterOptions } from '../../../shared/types/filters'
+import type { Manifest } from '../../../shared/types/manifest'
 import { fetchDailyQuestions, fetchRoundByToken, fetchRoundExport } from '../lib/daily'
 import {
   type Phase1TokenPayload,
@@ -72,7 +72,10 @@ function coerceStringArray(input: unknown): string[] | null {
   return null
 }
 
-function parseFilters(input: StartRequestBody['filters'], manifest: Manifest): FilterOptions | Response {
+function parseFilters(
+  input: StartRequestBody['filters'],
+  manifest: Manifest,
+): FilterOptions | Response {
   if (!input) {
     return {}
   }
@@ -175,7 +178,7 @@ function resolveTreatmentRatio(env: Env): number {
 
 function assignArm(hash: string, ratio: number): string {
   // ratio: percentage of traffic going to treatment
-  const num = parseInt(hash.slice(0, 8), 16)
+  const num = Number.parseInt(hash.slice(0, 8), 16)
   const bucket = num % 100
   return bucket < ratio ? 'treatment' : 'control'
 }
@@ -205,7 +208,8 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
   }
 
   const normalizedFilters = normalizeFilters(filtersOrError)
-  const filterKey = createFilterKey(normalizedFilters, mode.id)
+  const filterKeyMode = mode.id === 'vgm_composer-ja' ? mode.id : undefined
+  const filterKey = createFilterKey(normalizedFilters, filterKeyMode)
   const requestedTotal = body.total ?? mode.defaultTotal
 
   if (!Number.isInteger(requestedTotal) || requestedTotal <= 0) {
@@ -245,7 +249,7 @@ export async function handleRoundsStart(request: Request, env: Env): Promise<Res
       : generateUUID().replace(/-/g, '').substring(0, 16)
   const filtersHash = hashFilterKey(filterKey)
   const treatmentRatio = resolveTreatmentRatio(env)
-  const assignmentHash = hashFilterKey(`${filterKey}:${roundId}`)
+  const assignmentHash = hashFilterKey(`${filtersHash}:${seed}`)
   const arm = assignArm(assignmentHash, treatmentRatio)
 
   const token = await createJWSToken(
@@ -411,7 +415,7 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
       correctAnswer: string
       reveal: typeof currentQuestion.reveal
     }
-    question?: { id: string; title: string }
+    question?: { id: string; title: string; mode?: string; arm?: string }
     choices?: { id: string; text: string }[]
     continuationToken?: string
     progress?: {

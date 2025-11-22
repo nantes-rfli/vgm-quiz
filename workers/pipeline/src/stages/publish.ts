@@ -13,7 +13,11 @@ import {
   normalizeFilters,
 } from '../../../shared/lib/filters'
 import { sha256 } from '../../../shared/lib/hash'
-import { isObservabilityEnabled, logEvent, sendSlackNotification } from '../../../shared/lib/observability'
+import {
+  isObservabilityEnabled,
+  logEvent,
+  sendSlackNotification,
+} from '../../../shared/lib/observability'
 import type { Env } from '../../../shared/types/env'
 import type { Choice, DailyExport, Question, QuestionFacets } from '../../../shared/types/export'
 import type { FilterOptions } from '../../../shared/types/filters'
@@ -506,7 +510,9 @@ async function getAllGameTitles(db: D1Database): Promise<string[]> {
 
 async function getAllComposers(db: D1Database): Promise<string[]> {
   const result = await db
-    .prepare('SELECT DISTINCT composer FROM tracks_normalized WHERE composer IS NOT NULL AND composer != ""')
+    .prepare(
+      'SELECT DISTINCT composer FROM tracks_normalized WHERE composer IS NOT NULL AND composer != ""',
+    )
     .all<{ composer: string }>()
 
   return (result.results || []).map((r) => r.composer)
@@ -536,10 +542,7 @@ function generateComposerChoices(
     { text: selectedWrong[2], correct: false },
   ]
 
-  const shuffledChoices = shuffleArrayComposer(
-    choicesWithoutIds,
-    `${questionId}-composer-shuffle`,
-  )
+  const shuffledChoices = shuffleArrayComposer(choicesWithoutIds, `${questionId}-composer-shuffle`)
   const choiceIds = ['a', 'b', 'c', 'd'] as const
 
   return shuffledChoices.map((choice, index) => ({
@@ -610,7 +613,10 @@ async function getComposerCoverage(
     WHERE ${whereClause}
   `
 
-  const result = await db.prepare(query).bind(...bindings).first<{ total: number; withComposer: number }>()
+  const result = await db
+    .prepare(query)
+    .bind(...bindings)
+    .first<{ total: number; withComposer: number }>()
   const available = result?.total ?? 0
   const withComposer = result?.withComposer ?? 0
   const missing = Math.max(available - withComposer, 0)
