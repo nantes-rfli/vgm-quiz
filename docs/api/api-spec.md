@@ -81,6 +81,7 @@ POST /v1/rounds/start
   "round": {
     "id": "round_2025-11-03_t8s",
     "mode": "vgm_v1-ja",
+    "arm": "treatment",
     "date": "2025-11-03",
     "filters": {
       "difficulty": "hard",
@@ -92,7 +93,9 @@ POST /v1/rounds/start
   },
   "question": {
     "id": "q_0001",
-    "title": "この曲のゲームタイトルは?"
+    "title": "この曲のゲームタイトルは?",
+    "mode": "vgm_v1-ja",
+    "arm": "treatment"
   },
   "choices": [
     { "id": "a", "text": "Chrono Trigger" },
@@ -138,7 +141,9 @@ POST /v1/rounds/next
   },
   "question": {
     "id": "q_0002",
-    "title": "この曲のゲームタイトルは?"
+    "title": "この曲のゲームタイトルは?",
+    "mode": "vgm_v1-ja",
+    "arm": "treatment"
   },
   "choices": [
     { "id": "a", "text": "Chrono Trigger" },
@@ -232,6 +237,8 @@ POST /v1/availability
 {
   "id": "q_0001",
   "prompt": "このBGMの作曲者は？",
+  "mode": "vgm_composer-ja",
+  "arm": "treatment",
   "choices": [
     { "id": "a", "label": "作曲者A" },
     { "id": "b", "label": "作曲者B" },

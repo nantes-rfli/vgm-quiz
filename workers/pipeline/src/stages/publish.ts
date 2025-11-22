@@ -44,7 +44,6 @@ interface TrackRow {
   genres: string | null
   series_tags: string | null
   era: string | null
-  composer: string | null
 }
 
 const COVERAGE_ALERT_THRESHOLD = 0.05
