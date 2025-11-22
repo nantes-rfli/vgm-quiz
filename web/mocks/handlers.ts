@@ -172,6 +172,8 @@ export const handlers = [
       const filtersHash = hashFilterKey(filterKey);
       const date = new Date().toISOString().split('T')[0];
 
+      const arm = 'treatment';
+
       const token = await createJWSToken(
         {
           rid: roundId,
@@ -181,6 +183,7 @@ export const handlers = [
           filtersHash,
           filtersKey: filterKey,
           mode: body.mode ?? 'vgm_v1-ja',
+          arm,
           date,
           ver: 1,
           aud: 'rounds',
@@ -192,6 +195,7 @@ export const handlers = [
         round: {
           id: roundId,
           mode: body.mode ?? 'vgm_v1-ja',
+          arm,
           date,
           filters,
           progress: {
@@ -203,6 +207,8 @@ export const handlers = [
         question: {
           id: firstQuestion.id,
           title: firstQuestion.prompt,
+          mode: body.mode ?? 'vgm_v1-ja',
+          arm,
         },
         choices: firstQuestion.choices.map((c) => ({
           id: c.id,
@@ -240,6 +246,8 @@ export const handlers = [
       let token: Phase1Token | null = null;
       let isPhase2 = false;
       let phase2Token: Phase2TokenPayload | null = null;
+      let arm = 'treatment';
+      let mode = 'vgm_v1-ja';
 
       if (isJWSToken(continuationToken)) {
         // Phase 2B: JWS token verification
@@ -255,6 +263,8 @@ export const handlers = [
         }
         isPhase2 = true;
         phase2Token = jwtToken;
+        arm = jwtToken.arm ?? arm;
+        mode = jwtToken.mode ?? mode;
         // Convert Phase 2 token to Phase 1 format for internal processing
         token = {
           date: new Date().toISOString().split('T')[0],
@@ -387,9 +397,10 @@ export const handlers = [
             filtersHash: phase2Token.filtersHash,
             filtersKey: phase2Token.filtersKey,
             ver: phase2Token.ver,
+            arm,
+            mode,
             ...(phase2Token.aud && { aud: phase2Token.aud }),
             ...(phase2Token.nbf && { nbf: phase2Token.nbf }),
-            ...(phase2Token.mode && { mode: phase2Token.mode }),
             ...(phase2Token.date && { date: phase2Token.date }),
           },
           JWT_SECRET,
@@ -418,12 +429,20 @@ export const handlers = [
         question: {
           id: nextQuestion.id,
           title: nextQuestion.prompt,
+          mode,
+          arm,
         },
         choices: nextQuestion.choices.map((c) => ({
           id: c.id,
           text: c.label,
         })),
         continuationToken: nextToken,
+        round: isPhase2
+          ? {
+              mode,
+              arm,
+            }
+          : undefined,
         progress: {
           index: nextIndex + 1, // 1-based
           total: token.totalQuestions,
