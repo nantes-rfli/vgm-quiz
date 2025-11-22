@@ -8,8 +8,9 @@ VGM Quiz is a game music quiz application built with Next.js App Router. The mon
 - `web/` — Next.js frontend (React 19, TypeScript 5, Tailwind v4)
 - `workers/` — Cloudflare Workers backend (D1 database, R2 storage)
 - `docs/` — Product requirements, design specs, and operational documentation
+- `automation/` — Quality assurance automation scripts
 
-Phase 1 (MVP) uses Cloudflare Workers for backend with manual curated data. Set `NEXT_PUBLIC_API_MOCK=0` to connect to real backend (default is MSW mocks).
+**Current Phase**: Phase 4A (Autonomous Content Pipeline) — implementing YouTube/Spotify intake with guard/dedup logic and batch promotion workflow. Phases 1-3 are complete. Set `NEXT_PUBLIC_API_MOCK=0` to connect to real backend (default is MSW mocks).
 
 ## Development Commands
 
@@ -25,38 +26,64 @@ npm run test:e2e               # Run Playwright E2E tests (Chromium)
 npm run test:e2e:ui            # E2E tests in UI mode for debugging
 npm run test:unit              # Run Vitest unit tests
 npm run test:a11y              # Run accessibility tests only
+npm run contract               # Run contract tests (Playwright + Vitest)
+npm run contract:pw            # Run Playwright contract tests only
+npm run contract:vitest        # Run Vitest contract tests only
+npm run test:lhci              # Run Lighthouse CI performance tests
 ```
 
-First-time setup: `cd web && npm install`. If using Playwright for the first time, run `npx playwright install`.
+First-time setup:
+- Node.js 24 or higher (see `.nvmrc`)
+- `cd web && npm install`
+- `npx playwright install` for Playwright browsers
 
 Workers backend commands (from `workers/` directory):
 
 ```bash
-npm run dev:api                # Start API Worker locally (http://localhost:8787)
-npm run dev:pipeline           # Start Pipeline Worker locally (http://localhost:8788)
-npm run deploy:api             # Deploy API Worker to production
-npm run deploy:pipeline        # Deploy Pipeline Worker to production
-npm run typecheck              # TypeScript type checking
-npm run lint                   # Biome lint checks
-npm run validate:curated       # Validate curated data file (curated.json)
+npm run dev:api                       # Start API Worker locally (http://localhost:8787)
+npm run dev:pipeline                  # Start Pipeline Worker locally (http://localhost:8788)
+npm run deploy:api                    # Deploy API Worker to production
+npm run deploy:pipeline               # Deploy Pipeline Worker to production
+npm run typecheck                     # TypeScript type checking
+npm run lint                          # Biome lint checks
+npm run test                          # Run Vitest unit tests
+npm run validate:curated              # Validate curated data file (curated.json)
+npm run validate:facet-distribution   # Validate facet metadata distribution
+npm run observability:test            # Test observability/metrics integration
+npm run export:snapshot               # Export R2 snapshot for backup
+npm run promote:batch                 # Promote staging batch to production
 wrangler d1 migrations apply vgm-quiz-db --remote  # Apply DB migrations to production
 ```
 
-First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.md](docs/backend/setup.md) for D1/R2 configuration.
+First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.md](docs/backend/setup.md) for D1/R2 configuration and [docs/ops/runbooks/content-intake.md](docs/ops/runbooks/content-intake.md) for Phase 4A intake setup.
 
 ## Architecture
 
 ### Backend (Cloudflare Workers)
 
-**Phase 2 (Current)**: Dynamic sampling with filters + Manifest-driven UI
+**Current Phase**: Phase 4A (Autonomous Content Pipeline with YouTube/Spotify intake)
 
 **Pipeline Worker** (`vgm-quiz-pipeline.nantos.workers.dev`)
-- **Discovery stage**: Ingests tracks from [workers/data/curated.json](workers/data/curated.json) into D1 (`tracks_normalized` table)
+- **Discovery stage**: Multi-source track ingestion
+  - Manual: [workers/data/curated.json](workers/data/curated.json) → D1 (`tracks_normalized`)
+  - Automated (Phase 4A): YouTube/Spotify API intake with source catalog
   - Supports facet metadata: `difficulty`, `genres`, `seriesTags`, `era`
+- **Harvest stage** (Phase 4A): Fetch metadata from YouTube/Spotify APIs
+- **Guard stage** (Phase 4A): Quality validation (duration, LUFS, silence, clipping, metadata completeness)
+  - Thresholds defined in `workers/shared/lib/intake.ts`
+  - Audio metrics: LUFS (-22 to -10), silence (≤3%), clipping (≤0.1%)
+  - Duration: 30s-8m (prod), 10s-12m (staging)
+- **Dedup stage** (Phase 4A): Duplicate detection with fuzzy matching
+  - ID-based: `youtubeId`, `spotifyId`, `appleId`
+  - Composite key: normalized title+game+composer
+  - Fuzzy matching: Levenshtein distance (20% threshold) for near-duplicates
+  - Implementation: `workers/shared/lib/dedup.ts`
 - **Publish stage**: Generates daily question sets **per filter combination** and exports to R2
   - R2 keys: `exports/{date}.json` (default) or `exports/{date}_{filterHash}.json` (filtered)
   - D1 `picks` table stores JSON as backup
-- Manual trigger via POST endpoints (`/trigger/discovery`, `/trigger/publish?date=YYYY-MM-DD`)
+  - Batch promotion workflow for staging → production
+- Manual trigger via POST endpoints (`/trigger/discovery`, `/trigger/intake`, `/trigger/publish?date=YYYY-MM-DD`)
+- Cron Triggers: Daily automated execution (see [docs/backend/cron-triggers-testing.md](docs/backend/cron-triggers-testing.md))
 
 **API Worker** (`vgm-quiz-api.nantos.workers.dev`)
 - `GET /v1/manifest` - Fetch UI metadata (modes, facets, features, schema_version)
@@ -89,18 +116,54 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
   - `seriesTags`: Series abbreviations (e.g., ["ff", "zelda", "mario"])
   - `era`: Decade classification (80s-20s)
 
-**Phase 2 Status** (Filter-Aware Quiz):
-- Phase 2A: ✅ Data model extended with `difficulty`, `era`, `seriesTags` facets
-- Phase 2B: ✅ Dynamic sampling + JWS token with `filtersKey` + `filtersHash` (custom hash function, 8-char hex)
-- Phase 2C: ✅ Filter UI + Manifest caching + Documentation (current phase)
-- Phase 2D: 🔧 schema_version change detection, Availability API display (planned)
+**Development Status**:
+- Phase 1 (MVP): ✅ Complete — Manual curation + tokenized API + Cron Triggers
+- Phase 2 (Filter-Aware Quiz): ✅ Complete — User filters (difficulty/era/series) + dynamic sampling + Manifest API
+- Phase 3 (Observability & Guardrails): ✅ Complete — Web Vitals, contract tests, Lighthouse CI, runtime validation, runbooks, backup automation
+- Phase 4A (Content Acquisition): 🔧 In Progress — YouTube/Spotify intake with guard/dedup, batch promotion
+  - ✅ PoC deployed with Cron Triggers
+  - ✅ Guard/dedup hardening complete (Issue #151)
+  - ⏸️ Apple Music intake (pending API keys)
+- Phase 4B (Adaptive Gameplay): 📋 Planned — Behavior-based difficulty tuning + new modes
+- Phase 4C (Social & Sharing): 📋 Planned — Challenge links + OGP optimization
 
-**Future Phases** (not yet implemented):
-- Phase 3: Spotify API automation for Discovery/Harvest
-- Phase 4: YouTube integration, audio download, ML quality scoring
-- Phase 5+: Behavioral scoring, automatic scheduling with Cron Triggers
+See [docs/dev/roadmap.md](docs/dev/roadmap.md) for detailed phase breakdown and success criteria.
 
+### Workers Directory Structure
 
+The `workers/` directory is organized as a monorepo with shared code:
+
+```
+workers/
+├── api/                    # API Worker (vgm-quiz-api)
+│   ├── src/
+│   │   ├── index.ts       # Worker entry point
+│   │   ├── routes/        # API route handlers (/v1/*)
+│   │   └── lib/           # API-specific utilities
+│   └── wrangler.toml      # API Worker config
+├── pipeline/              # Pipeline Worker (vgm-quiz-pipeline)
+│   ├── src/
+│   │   ├── index.ts       # Worker entry point + Cron handler
+│   │   └── stages/        # Pipeline stages (discovery, harvest, guard, dedup, publish)
+│   └── wrangler.toml      # Pipeline Worker config
+├── shared/                # Shared code between workers
+│   ├── lib/               # Shared utilities (token, filters, choices, intake, dedup, etc.)
+│   ├── types/             # TypeScript type definitions
+│   └── data/              # Shared data files
+├── scripts/               # Utility scripts (validate, export, promote)
+├── migrations/            # D1 database migrations
+├── data/                  # Curated data (curated.json)
+└── tests/                 # Unit tests for shared code
+```
+
+**Key Implementation Files**:
+- `shared/lib/token.ts` — JWS token generation/validation (HMAC-SHA256)
+- `shared/lib/filters.ts` — Filter normalization and hash calculation
+- `shared/lib/choices.ts` — Choice generation with deterministic shuffling
+- `shared/lib/intake.ts` — Guard thresholds and quality validation (Phase 4A)
+- `shared/lib/dedup.ts` — Duplicate detection with fuzzy matching (Phase 4A)
+- `shared/lib/observability.ts` — Metrics emission and Slack alerts (Phase 3)
+- `shared/lib/backups.ts` — Backup/restore utilities (Phase 3)
 
 ### State Management (Phase 2 Implementation)
 - **Filter State** ([web/src/lib/filter-context.tsx](web/src/lib/filter-context.tsx)): React Context + useState for user-selected filters
@@ -162,10 +225,17 @@ First-time backend setup: `cd workers && npm install`. See [docs/backend/setup.m
 - Implementation in [web/src/lib/metrics/metricsClient.ts](web/src/lib/metrics/metricsClient.ts)
 
 ### Testing
-- E2E tests in `web/tests/e2e/` using Playwright
-- MSW stubs all network calls for deterministic tests
-- Accessibility tests use `@axe-core/playwright`
-- Unit tests with Vitest for utility functions ([web/src/lib/](web/src/lib/))
+- **E2E tests**: `web/tests/e2e/` using Playwright (smoke, feature, durability, accessibility)
+- **Contract tests**: Validate API/metrics payloads against schemas (Playwright + Vitest)
+  - Enforced in CI via `npm run contract` (see `.github/workflows/quality.yml`)
+  - Validates `/v1/rounds/start`, `/v1/rounds/next`, `/v1/metrics` schemas
+- **Unit tests**: Vitest for utility functions ([web/src/lib/](web/src/lib/), [workers/shared/lib/](workers/shared/lib/))
+- **Lighthouse CI**: Performance smoke tests for key routes (home, play, result)
+  - Configured in `web/lighthouserc.json`
+  - Runs in CI on PR and nightly
+- **MSW mocking**: All network calls stubbed for deterministic tests
+- **Accessibility**: `@axe-core/playwright` for WCAG AA compliance
+- **CI/CD**: GitHub Actions workflows for quality gates, E2E, accessibility, Lighthouse, data validation
 
 ## Code Style
 
@@ -211,27 +281,80 @@ Key docs in `docs/`:
 
 **Product & Architecture**
 - [docs/product/requirements.md](docs/product/requirements.md) — Product requirements
-- [docs/dev/roadmap.md](docs/dev/roadmap.md) — Phase 1-5 roadmap (current: Phase 2C)
+- [docs/dev/roadmap.md](docs/dev/roadmap.md) — Phase 1-5 roadmap (current: Phase 4A)
 - [docs/backend/architecture.md](docs/backend/architecture.md) — Backend system design
+- [docs/backend/project-structure.md](docs/backend/project-structure.md) — Workers codebase organization
 
-**Phase 2 (Filter-Aware Quiz)**
+**API & Data Model**
 - [docs/api/api-spec.md](docs/api/api-spec.md) — `/v1/manifest`, `/v1/rounds/start/next`, filter validation
 - [docs/api/rounds-token-spec.md](docs/api/rounds-token-spec.md) — JWS token (HMAC-SHA256), `filtersHash` (custom hash function)
+- [docs/api/error-model.md](docs/api/error-model.md) — Error response format and codes
+- [docs/api/metrics-endpoint.md](docs/api/metrics-endpoint.md) — Metrics endpoint specification
 - [docs/data/model.md](docs/data/model.md) — Manifest, FilterOptions, Round schemas
-- [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Filter selection → Manifest fetch → Quiz flow
-- [docs/frontend/state-management.md](docs/frontend/state-management.md) — useFilter(), useManifest(), FilterContext, localStorage caching
-- [docs/dev/phase2-checklist.md](docs/dev/phase2-checklist.md) — Phase 2C completion items (Phase 2D-Future marked)
-
-**Other Documentation**
-- [docs/frontend/README.md](docs/frontend/README.md) — Frontend overview
-- [docs/frontend/metrics-client.md](docs/frontend/metrics-client.md) — Metrics client implementation
-- [docs/backend/README.md](docs/backend/README.md) — Backend overview
-- [docs/dev/phase1-implementation.md](docs/dev/phase1-implementation.md) — Phase 1 implementation details
 - [docs/backend/database.md](docs/backend/database.md) — D1 schema (sources, tracks_normalized, pool, picks, exports)
 - [docs/backend/curated-data-format.md](docs/backend/curated-data-format.md) — Curated data format (4+ unique games required)
-- [docs/quality/e2e-plan.md](docs/quality/e2e-plan.md) — E2E test plan
 
-**Update Practice**: Docs updated in same PR as code changes (Docs-as-Code). Phase 2C: Documentation synchronized with actual implementation (Issue #118).
+**Frontend**
+- [docs/frontend/README.md](docs/frontend/README.md) — Frontend overview
+- [docs/frontend/play-flow.md](docs/frontend/play-flow.md) — Filter selection → Manifest fetch → Quiz flow
+- [docs/frontend/state-management.md](docs/frontend/state-management.md) — useFilter(), useManifest(), FilterContext, localStorage caching
+- [docs/frontend/metrics-client.md](docs/frontend/metrics-client.md) — Metrics client implementation
+- [docs/frontend/error-handling.md](docs/frontend/error-handling.md) — Error handling patterns
+- [docs/frontend/theme-system.md](docs/frontend/theme-system.md) — Theme system and dark mode
+
+**Pipeline & Content (Phase 4A)**
+- [docs/backend/pipeline/00-overview.md](docs/backend/pipeline/00-overview.md) — Pipeline stages overview
+- [docs/backend/pipeline/01-discovery.md](docs/backend/pipeline/01-discovery.md) — Discovery stage (curated + intake)
+- [docs/backend/pipeline/02-harvest.md](docs/backend/pipeline/02-harvest.md) — Harvest stage (metadata fetch)
+- [docs/backend/pipeline/03-guard.md](docs/backend/pipeline/03-guard.md) — Guard stage (quality validation)
+- [docs/backend/pipeline/04-dedup.md](docs/backend/pipeline/04-dedup.md) — Dedup stage (duplicate detection)
+- [docs/backend/pipeline/06-publish.md](docs/backend/pipeline/06-publish.md) — Publish stage (export generation)
+- [docs/data/source-catalog.md](docs/data/source-catalog.md) — Source catalog format for intake
+
+**Quality & Testing (Phase 3)**
+- [docs/quality/e2e-plan.md](docs/quality/e2e-plan.md) — E2E test plan
+- [docs/quality/e2e-scenarios.md](docs/quality/e2e-scenarios.md) — E2E test scenarios
+- [docs/quality/metrics.md](docs/quality/metrics.md) — Quality metrics and targets
+- [docs/quality/measurement-plan.md](docs/quality/measurement-plan.md) — Measurement plan
+- [docs/quality/a11y-play-result.md](docs/quality/a11y-play-result.md) — Accessibility audit results
+
+**Operations & Runbooks (Phase 3)**
+- [docs/ops/observability.md](docs/ops/observability.md) — Observability dashboard and alerts
+- [docs/ops/api-security-operations.md](docs/ops/api-security-operations.md) — API security, rate limiting, key rotation
+- [docs/ops/frontend-backend-integration.md](docs/ops/frontend-backend-integration.md) — Integration testing and deployment
+- [docs/ops/runbooks/content-intake.md](docs/ops/runbooks/content-intake.md) — Content intake operations (Phase 4A)
+- [docs/ops/runbooks/audio-playback.md](docs/ops/runbooks/audio-playback.md) — Audio playback troubleshooting
+- [docs/ops/runbooks/daily-backup.md](docs/ops/runbooks/daily-backup.md) — Daily backup procedures
+
+**Update Practice**: Docs updated in same PR as code changes (Docs-as-Code). Documentation is synchronized with implementation and reviewed as part of the PR process.
+
+## CI/CD Pipeline
+
+GitHub Actions workflows in `.github/workflows/`:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| **quality.yml** | PR, push to main | Lint, typecheck, build, fixtures validation, contract tests |
+| **e2e-smoke.yml** | PR | Quick E2E smoke tests (critical paths) |
+| **e2e-feature.yml** | PR | Full E2E feature tests |
+| **e2e-durability.yml** | PR | Long-running durability tests |
+| **e2e-smoke-nightly.yml** | Daily (cron) | Nightly smoke tests against production |
+| **a11y-smoke.yml** | PR | Accessibility tests with axe-core |
+| **lighthouse.yml** | PR, push to main | Lighthouse performance audits |
+| **validate-data.yml** | PR (on data changes) | Validate curated.json and facet distribution |
+
+**Quality Gates** (must pass for merge):
+- ✅ ESLint + TypeScript typecheck (zero errors)
+- ✅ Build succeeds (Next.js production build)
+- ✅ Contract tests pass (API/metrics schema validation)
+- ✅ E2E smoke tests pass (critical user flows)
+- ✅ Lighthouse performance meets thresholds
+- ✅ Accessibility audit passes (WCAG AA)
+
+**Caching Strategy**:
+- npm dependencies cached by `setup-node` action
+- Playwright browsers cached automatically
+- Build artifacts uploaded on failure for debugging
 
 ## Workflow
 
@@ -255,16 +378,23 @@ This is a solo project. When implementing features or fixes, follow this workflo
 
    Frontend changes (from `web/` directory):
    ```bash
-   npm run lint && npm run typecheck && npm run test:e2e
+   npm run lint && npm run typecheck && npm run test:e2e && npm run contract
    ```
 
    Backend changes (from `workers/` directory):
    ```bash
-   npm run lint && npm run typecheck
+   npm run lint && npm run typecheck && npm run test
+   ```
+
+   Data changes (curated.json or source catalog):
+   ```bash
+   npm run validate:curated && npm run validate:facet-distribution  # from workers/
    ```
 
 5. Push branch: `git push -u origin feat/feature-name`
 6. Create PR via GitHub UI (or `gh pr create` if using GitHub CLI)
+   - CI will run quality gates, E2E, contract, and Lighthouse tests
+   - All checks must pass before merge
 7. Squash merge via GitHub UI
 8. Clean up after merge:
    ```bash
@@ -290,6 +420,70 @@ Include in PR description:
 - Test results (output from lint/typecheck/test commands)
 - Updated documentation (if any)
 - Screenshots (for UI changes)
+
+## Phase 4A Specific Patterns
+
+### Content Intake Pipeline
+The intake pipeline follows a strict staging → production promotion workflow:
+
+**Staging Flow** (default for development):
+1. Set `INTAKE_STAGE=staging` in environment
+2. Run intake: `POST /trigger/intake` or via Cron
+3. Tracks written to staging tables in D1 with `batch_id`
+4. Exports written to R2 with staging prefix
+5. Review metrics in observability dashboard
+
+**Production Promotion**:
+1. Validate staging batch quality (via observability dashboard)
+2. Run promotion script: `npm run promote:batch -- --batch-id=<id>` (from `workers/`)
+3. Script copies staging → production tables and R2 exports
+4. Rollback available via same script with `--rollback` flag
+
+**Guard/Dedup Configuration**:
+- Thresholds defined in `workers/shared/lib/intake.ts` (`GUARD_THRESHOLDS`)
+- Staging uses relaxed thresholds to catch edge cases
+- Production uses strict thresholds (30s-8m duration, -22 to -10 LUFS, ≤3% silence)
+- Missing audio metrics generate WARN logs in staging, ERROR in production
+
+**Retry & Backoff** (Phase 4A hardening):
+- API calls (YouTube/Spotify) use exponential backoff: 2s, 4s, 8s (max 3 retries)
+- 429 quota errors trigger tier downgrade (L3→L2→L1) or next-day retry
+- Network failures are transient and retry automatically
+- Non-retriable errors (401, 404) skip retry and log to `intake_guard_fail`
+
+**Observability** (Phase 3 integration):
+- All intake events emit structured logs with `intake_*` prefixes
+- Metrics sent to Slack via webhook when `OBS_ENABLED=true`
+- Dashboard tracks: success rate, duplicate rate, guard failures, API quota usage
+- Implementation: `workers/shared/lib/observability.ts`
+
+### Secrets Management
+Never commit secrets to Git. Use Wrangler secrets:
+
+```bash
+# Set secrets for workers
+wrangler secret put YOUTUBE_API_KEY --config workers/api/wrangler.toml
+wrangler secret put SPOTIFY_CLIENT_ID --config workers/pipeline/wrangler.toml
+wrangler secret put OBS_SLACK_WEBHOOK_URL --config workers/pipeline/wrangler.toml
+
+# Local development: use .dev.vars (gitignored)
+# See docs/backend/setup.md for details
+```
+
+### Backup & Redundancy
+- Daily R2 snapshots retained for 14 days (configurable via `BACKUP_RETENTION_DAYS`)
+- Export snapshots: `npm run export:snapshot` (from `workers/`)
+- Manual backup creation documented in [docs/ops/runbooks/daily-backup.md](docs/ops/runbooks/daily-backup.md)
+- Redundancy ensures 14 days of new rounds even if intake pipeline fails
+
+## MCP Server Integration
+
+This project uses MCP (Model Context Protocol) servers for enhanced capabilities:
+
+- **playwright**: Browser automation for E2E testing and web scraping
+- **context7**: Library documentation lookup for dependencies
+
+MCP servers configured in `.mcp.json` and enabled in `.claude/settings.local.json`.
 
 ## License
 
