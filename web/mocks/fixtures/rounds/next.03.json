@@ -44,7 +44,9 @@
           "url": "https://music.apple.com/jp/album/xyz/123"
         }
       ]
-    }
+    },
+    "mode": "vgm_composer-ja",
+    "arm": "treatment"
   },
   "finished": false
 }
