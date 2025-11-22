@@ -143,7 +143,7 @@
 
 #### Phase 4A - マルチソース自動収集 (Content Acquisition Automation)
 - [x] PoC: YouTube/Spotify intake、Guard/Dedup、prod しきい値で本番 cron デプロイ済み（2025-11-20）
-- [ ] ハードニング: 音声計測・近傍一致 dedup・指数バックオフ・昇格フロー整備（Issue #151）
+- [x] ハードニング: 音声計測・近傍一致 dedup・指数バックオフ・昇格フロー整備（Issue #151, 2025-11-22 クローズ）
 - [ ] Apple Music intake（鍵なしのため保留）
   - 成功指標: 追加トラック数/週、重複率、失敗率、MTTR、取り込み後の品質監査パス率
   - ソース優先順位: YouTube → Spotify → Apple Music（クォータ枯渇時は翌日リトライと対象縮小）
