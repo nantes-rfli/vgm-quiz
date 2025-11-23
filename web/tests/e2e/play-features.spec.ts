@@ -251,7 +251,7 @@ test.describe('Play page features', () => {
     await expect(page.getByText('✓ 9', { exact: true })).toBeVisible();
     await expect(page.getByText(/Answered: 10/)).toBeVisible();
 
-    const firstCard = page.locator('li', { hasText: '#1 — このBGMの作曲者は？' }).first();
+    const firstCard = page.locator('li', { hasText: '#1 — この曲のゲームタイトルは?' }).first();
     await expect(firstCard).toBeVisible();
     await expect(firstCard.getByText('Wrong')).toBeVisible();
   });
@@ -327,7 +327,7 @@ test.describe('Play page features', () => {
     await page.waitForURL('**/result');
     await expect(page.getByText('? 1', { exact: true })).toBeVisible();
 
-    const timeoutCard = page.locator('li', { hasText: '#1 — このBGMの作曲者は？' }).first();
+    const timeoutCard = page.locator('li', { hasText: '#1 — この曲のゲームタイトルは?' }).first();
     await expect(timeoutCard.getByText('Timeout')).toBeVisible();
     // After Phase 4 a11y improvements, answer is in <dl> structure
     const answerDl = timeoutCard.locator('dl').filter({ hasText: 'Your answer:' });

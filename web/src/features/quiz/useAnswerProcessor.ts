@@ -231,6 +231,6 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         onError?.(apiError, retry);
       }
     },
-    [phase, continuationToken, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt, onError, getActiveFilters]
+    [phase, continuationToken, roundId, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt, onError, getActiveFilters]
   );
 }
