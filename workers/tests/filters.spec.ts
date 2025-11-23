@@ -18,13 +18,21 @@ describe('filter utilities', () => {
     expect(normalizeFilters(filters)).toEqual({ series: ['dq', 'ff', 'zelda'] })
   })
 
-  it('creates canonical key for empty filters', () => {
+  it('creates canonical key for empty filters and no mode', () => {
     expect(createFilterKey(undefined)).toBe(CANONICAL_FILTER_KEY)
   })
 
-  it('creates stable filter key for complex filters', () => {
-    const key = createFilterKey({ difficulty: 'hard', era: '90s', series: ['zelda', 'ff'] })
-    expect(key).toBe('{"difficulty":"hard","era":"90s","series":["ff","zelda"]}')
+  it('includes mode in filter key when provided', () => {
+    const key = createFilterKey(undefined, 'vgm_composer-ja')
+    expect(key).toBe('{"mode":"vgm_composer-ja"}')
+  })
+
+  it('creates stable filter key for complex filters with mode', () => {
+    const key = createFilterKey(
+      { difficulty: 'hard', era: '90s', series: ['zelda', 'ff'] },
+      'vgm_v1-ja',
+    )
+    expect(key).toBe('{"difficulty":"hard","era":"90s","mode":"vgm_v1-ja","series":["ff","zelda"]}')
   })
 
   it('hashes filter key deterministically', () => {

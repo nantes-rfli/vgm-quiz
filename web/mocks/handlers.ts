@@ -1,7 +1,7 @@
 // MSW handlers for Phase 1 (Base64 tokens) and Phase 2B (JWS tokens)
 // During development, both token formats are supported for backward compatibility
 import { http, HttpResponse } from 'msw';
-import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByFilters } from './fixtures/rounds/index';
+import { TOTAL as ROUND_TOTAL, getQuestionByIndex, getFirstQuestionByMode } from './fixtures/rounds/index';
 import { ANSWERS, FILTER_ANSWERS } from './fixtures/rounds/answers';
 import { META } from './fixtures/rounds/meta';
 import { encodeBase64url, decodeBase64url, type Phase1Token } from '@/src/lib/base64url';
@@ -75,14 +75,15 @@ function normalizeFilters(filters?: StartFilters): StartFilters {
   return normalized;
 }
 
-function createFilterKey(filters?: StartFilters): string {
+function createFilterKey(filters?: StartFilters, modeId?: string): string {
   const normalized = normalizeFilters(filters);
-  if (Object.keys(normalized).length === 0) {
-    return CANONICAL_FILTER_KEY;
+  const payload: Record<string, unknown> = {};
+
+  if (modeId) {
+    payload.mode = modeId;
   }
 
   const sortedKeys = Object.keys(normalized).sort();
-  const payload: Record<string, unknown> = {};
 
   for (const key of sortedKeys) {
     const value = normalized[key as keyof StartFilters];
@@ -91,6 +92,10 @@ function createFilterKey(filters?: StartFilters): string {
     } else if (value !== undefined) {
       payload[key] = value;
     }
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return CANONICAL_FILTER_KEY;
   }
 
   return JSON.stringify(payload);
@@ -117,6 +122,11 @@ export const handlers = [
           title: 'VGM Quiz Vol.1 (JA)',
           defaultTotal: 10,
         },
+        {
+          id: 'vgm_composer-ja',
+          title: '作曲者モード (JA)',
+          defaultTotal: 10,
+        },
       ],
       facets: {
         difficulty: ['easy', 'normal', 'hard', 'mixed'],
@@ -126,6 +136,7 @@ export const handlers = [
       features: {
         inlinePlaybackDefault: false,
         imageProxyEnabled: false,
+        composerModeEnabled: true,
       },
     };
 
@@ -144,9 +155,9 @@ export const handlers = [
 
       const total = body.total && Number.isInteger(body.total) ? Math.min(body.total, ROUND_TOTAL) : ROUND_TOTAL;
 
-      // Get first question based on filters (Phase 2B)
-      // If filters specified, use filter-specific fixture; otherwise use default
-      const firstQuestion = getFirstQuestionByFilters(difficulty, era, series);
+      // Get first question based on mode/filters (Phase 2B)
+      // If composer mode, return composer fixture; else filter-specific/default
+      const firstQuestion = getFirstQuestionByMode(body.mode, difficulty, era, series);
       if (!firstQuestion) {
         return HttpResponse.json(
           { error: 'no_questions', message: 'No questions available for the selected filters' },
@@ -157,9 +168,12 @@ export const handlers = [
       // Create Phase 2B JWS token with filter info
       const roundId = generateUUID();
       const seed = generateUUID().replace(/-/g, '').substring(0, 16);
-      const filterKey = createFilterKey(filters);
+      const filterKeyMode = body.mode === 'vgm_composer-ja' ? body.mode : undefined;
+      const filterKey = createFilterKey(filters, filterKeyMode);
       const filtersHash = hashFilterKey(filterKey);
       const date = new Date().toISOString().split('T')[0];
+
+      const arm = 'treatment';
 
       const token = await createJWSToken(
         {
@@ -170,6 +184,7 @@ export const handlers = [
           filtersHash,
           filtersKey: filterKey,
           mode: body.mode ?? 'vgm_v1-ja',
+          arm,
           date,
           ver: 1,
           aud: 'rounds',
@@ -181,6 +196,7 @@ export const handlers = [
         round: {
           id: roundId,
           mode: body.mode ?? 'vgm_v1-ja',
+          arm,
           date,
           filters,
           progress: {
@@ -192,6 +208,8 @@ export const handlers = [
         question: {
           id: firstQuestion.id,
           title: firstQuestion.prompt,
+          mode: body.mode ?? 'vgm_v1-ja',
+          arm,
         },
         choices: firstQuestion.choices.map((c) => ({
           id: c.id,
@@ -229,6 +247,8 @@ export const handlers = [
       let token: Phase1Token | null = null;
       let isPhase2 = false;
       let phase2Token: Phase2TokenPayload | null = null;
+      let arm = 'treatment';
+      let mode = 'vgm_v1-ja';
 
       if (isJWSToken(continuationToken)) {
         // Phase 2B: JWS token verification
@@ -244,6 +264,8 @@ export const handlers = [
         }
         isPhase2 = true;
         phase2Token = jwtToken;
+        arm = jwtToken.arm ?? arm;
+        mode = jwtToken.mode ?? mode;
         // Convert Phase 2 token to Phase 1 format for internal processing
         token = {
           date: new Date().toISOString().split('T')[0],
@@ -281,26 +303,20 @@ export const handlers = [
       let currentQuestion;
       if (isPhase2 && phase2Token && token.currentIndex === 0) {
         // First question: restore filters from filtersHash and retrieve question with same filter
-        const filtersStr = phase2Token.filtersHash;
-        if (filtersStr !== 'canonical-daily' && filtersStr) {
-          // Parse key=value|key=value format
-          let difficulty: Difficulty | undefined;
-          let era: Era | undefined;
-          let series: string[] | undefined;
-
-          const filterPairs = filtersStr.split('|');
-          for (const pair of filterPairs) {
-            const [key, value] = pair.split('=');
-            if (key === 'difficulty' && value) {
-              difficulty = value as Difficulty;
-            } else if (key === 'era' && value) {
-              era = value as Era;
-            } else if (key === 'series' && value) {
-              series = value.split(',');
-            }
+        const filtersKey = phase2Token.filtersKey;
+        if (filtersKey && filtersKey !== CANONICAL_FILTER_KEY) {
+          try {
+            const parsed = JSON.parse(filtersKey) as Record<string, unknown>;
+            const difficulty = parsed.difficulty as Difficulty | undefined;
+            const era = parsed.era as Era | undefined;
+            const series = Array.isArray(parsed.series)
+              ? (parsed.series as string[])
+              : undefined;
+            const modeFromKey = typeof parsed.mode === 'string' ? parsed.mode : mode;
+            currentQuestion = getFirstQuestionByMode(modeFromKey, difficulty, era, series ?? []);
+          } catch {
+            currentQuestion = getQuestionByIndex(token.currentIndex + 1);
           }
-
-          currentQuestion = getFirstQuestionByFilters(difficulty, era, series);
         } else {
           currentQuestion = getQuestionByIndex(token.currentIndex + 1);
         }
@@ -376,9 +392,10 @@ export const handlers = [
             filtersHash: phase2Token.filtersHash,
             filtersKey: phase2Token.filtersKey,
             ver: phase2Token.ver,
+            arm,
+            mode,
             ...(phase2Token.aud && { aud: phase2Token.aud }),
             ...(phase2Token.nbf && { nbf: phase2Token.nbf }),
-            ...(phase2Token.mode && { mode: phase2Token.mode }),
             ...(phase2Token.date && { date: phase2Token.date }),
           },
           JWT_SECRET,
@@ -407,12 +424,20 @@ export const handlers = [
         question: {
           id: nextQuestion.id,
           title: nextQuestion.prompt,
+          mode,
+          arm,
         },
         choices: nextQuestion.choices.map((c) => ({
           id: c.id,
           text: c.label,
         })),
         continuationToken: nextToken,
+        round: isPhase2
+          ? {
+              mode,
+              arm,
+            }
+          : undefined,
         progress: {
           index: nextIndex + 1, // 1-based
           total: token.totalQuestions,

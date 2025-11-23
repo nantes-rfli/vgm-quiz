@@ -8,7 +8,7 @@
   },
   "question": {
     "id": "q_0001",
-    "prompt": "このBGMの作曲者は？",
+    "prompt": "この曲のゲームタイトルは?",
     "choices": [
       {
         "id": "a",

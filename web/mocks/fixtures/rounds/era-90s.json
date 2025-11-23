@@ -45,7 +45,9 @@
           "url": "https://www.youtube.com/watch?v=90s123"
         }
       ]
-    }
+    },
+    "mode": "vgm_v1-ja",
+    "arm": "treatment"
   },
   "finished": false
 }

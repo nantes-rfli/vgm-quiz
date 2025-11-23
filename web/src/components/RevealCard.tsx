@@ -49,7 +49,17 @@ type RevealTelemetry = {
   questionId?: string;
 };
 
-export default function RevealCard({ reveal, result, telemetry }: { reveal?: Reveal; result?: ResultInfo; telemetry?: RevealTelemetry }) {
+export default function RevealCard({
+  reveal,
+  result,
+  telemetry,
+  isComposerMode = false,
+}: {
+  reveal?: Reveal;
+  result?: ResultInfo;
+  telemetry?: RevealTelemetry;
+  isComposerMode?: boolean;
+}) {
   const { t } = useI18n();
   const [inline] = React.useState<boolean>(getInlinePlayback());
   const primary = pickPrimaryLink(reveal);
@@ -60,6 +70,14 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
   const outcome = result ? getOutcomeDisplay(result.outcome) : undefined;
   const [fallbackLogged, setFallbackLogged] = React.useState(false);
   const [errorLogged, setErrorLogged] = React.useState(false);
+  const composerLine = React.useMemo(() => {
+    if (!isComposerMode || !meta?.composer) return null;
+    if (!result) return t('quiz.composer.prompt');
+    const isCorrect = result.outcome === 'correct';
+    return isCorrect
+      ? t('quiz.composer.correct', { composer: meta.composer })
+      : t('quiz.composer.incorrect', { composer: meta.composer });
+  }, [isComposerMode, meta?.composer, result, t]);
 
   React.useEffect(() => {
     setFallbackLogged(false);
@@ -149,7 +167,12 @@ export default function RevealCard({ reveal, result, telemetry }: { reveal?: Rev
         <div className="mb-3 text-sm text-card-foreground">
           {meta.workTitle ? <div><span className="font-medium">{t('reveal.work')}:</span> {meta.workTitle}</div> : null}
           {meta.trackTitle ? <div><span className="font-medium">{t('reveal.track')}:</span> {meta.trackTitle}</div> : null}
-          {meta.composer ? <div><span className="font-medium">{t('reveal.composer')}:</span> {meta.composer}</div> : null}
+          {meta.composer ? (
+            <div>
+              <span className="font-medium">{t('reveal.composer')}:</span> {meta.composer}
+            </div>
+          ) : null}
+          {composerLine ? <div className="text-muted-foreground">{composerLine}</div> : null}
         </div>
       ) : null}
       {primary ? (

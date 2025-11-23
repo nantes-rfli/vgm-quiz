@@ -16,7 +16,7 @@ export default function FilterSelector({
   disabled = false,
 }: FilterSelectorProps) {
   const { t } = useI18n()
-  const { filters, setDifficulty, setEra, setSeries, reset, isDefault } = useFilter()
+  const { filters, setDifficulty, setEra, setSeries, setMode, reset, isDefault } = useFilter()
   const { data: manifest, isLoading: isManifestLoading } = useManifest()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -38,6 +38,13 @@ export default function FilterSelector({
   const handleReset = () => {
     reset()
   }
+
+  React.useEffect(() => {
+    if (!manifest) return
+    if (filters.mode && !manifest.modes.some((m) => m.id === filters.mode)) {
+      setMode(undefined)
+    }
+  }, [manifest, filters.mode, setMode])
 
   // Auto-reset invalid filters when manifest is updated (e.g., from background fetch)
   // This prevents UI showing all unselected radio buttons when a selected option disappears
@@ -74,6 +81,11 @@ export default function FilterSelector({
       if (!manifest) return
 
       const params: Partial<RoundStartRequest> = {}
+
+      const resolvedMode = filters.mode ?? manifest.modes[0]?.id
+      if (resolvedMode) {
+        params.mode = resolvedMode
+      }
 
       // Only include non-default values that exist in current manifest
       // This guards against stale cache where manifest may have changed since filter was selected
@@ -118,6 +130,9 @@ export default function FilterSelector({
   const difficultyOptions = manifest.facets.difficulty.filter((d) => d !== 'mixed')
   const eraOptions = manifest.facets.era.filter((e) => e !== 'mixed')
   const seriesOptions = manifest.facets.series.filter((s) => s !== 'mixed')
+  const modeOptions = manifest.modes
+  const showModeSelector = manifest.features.composerModeEnabled && modeOptions.length > 1
+  const selectedMode = filters.mode ?? modeOptions[0]?.id
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -126,6 +141,34 @@ export default function FilterSelector({
           {t('filter.title')}
         </h2>
         <p className="text-sm text-muted-foreground mb-6">{t('filter.description')}</p>
+
+        {/* Mode Section (feature-flagged) */}
+        {showModeSelector ? (
+          <fieldset className="mb-8">
+            <legend id="mode-legend" className="block text-lg font-medium mb-3 text-card-foreground">
+              {t('filter.mode.label')}
+            </legend>
+            <p className="text-sm text-muted-foreground mb-3">{t('filter.mode.description')}</p>
+            <div className="flex gap-3 flex-wrap" role="group" aria-labelledby="mode-legend">
+              {modeOptions.map((m) => (
+                <label key={m.id} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="mode"
+                    value={m.id}
+                    data-testid={`mode-${m.id}`}
+                    checked={selectedMode === m.id}
+                    onChange={() => setMode(m.id)}
+                    disabled={disabled || isLoading}
+                    aria-label={m.title}
+                    className="w-4 h-4 accent-primary"
+                  />
+                  <span className="text-sm">{m.title}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
 
         {/* Difficulty Section */}
         <fieldset className="mb-8">

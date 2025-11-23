@@ -109,11 +109,24 @@
       "pokemon": "Pokémon",
       "mixed": "All"
     },
+    "mode": {
+      "label": "Mode",
+      "description": "Choose how you want to play",
+      "default": "Standard",
+      "composer": "Composer mode"
+    },
     "preset": {
       "daily": "Daily (All)"
     },
     "availability": "Available questions: {{count}}",
     "insufficient": "Not enough questions available for this condition",
     "start": "Start"
+  },
+  "quiz": {
+    "composer": {
+      "prompt": "Who composed this track?",
+      "correct": "Correct! Composer: {composer}",
+      "incorrect": "The composer was {composer}"
+    }
   }
 }

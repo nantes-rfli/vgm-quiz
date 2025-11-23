@@ -53,6 +53,7 @@ const DEFAULT_MANIFEST: Manifest = {
   features: {
     inlinePlaybackDefault: false,
     imageProxyEnabled: false,
+    composerModeEnabled: false,
   },
 }
 
