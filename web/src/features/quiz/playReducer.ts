@@ -131,9 +131,7 @@ export function playReducer(state: PlayState, action: PlayAction): PlayState {
         ? (qn as Phase1NextResponse).continuationToken ?? state.token
         : (qn as RoundsNextResponse).round?.token ?? state.token;
 
-      const nextRoundId = isPhase1
-        ? state.roundId
-        : (qn as RoundsNextResponse).round?.id ?? state.roundId;
+      const nextRoundId = state.roundId;
 
       // Phase 1: question has been converted to Question format by useAnswerProcessor
       // Safe to use qn.question directly

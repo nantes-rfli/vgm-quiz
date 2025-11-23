@@ -470,6 +470,7 @@ function PlayPageContent() {
                       questionIdx: progress?.index,
                       questionId: latestRecord?.questionId ?? question?.id,
                     }}
+                    isComposerMode={question?.mode === 'vgm_composer-ja'}
                   />
                   <div className="mt-4 text-right">
                     <button

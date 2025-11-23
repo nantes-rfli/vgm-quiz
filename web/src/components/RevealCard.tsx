@@ -49,14 +49,20 @@ type RevealTelemetry = {
   questionId?: string;
 };
 
-export default function RevealCard({ reveal, result, telemetry }: { reveal?: Reveal; result?: ResultInfo; telemetry?: RevealTelemetry }) {
+export default function RevealCard({
+  reveal,
+  result,
+  telemetry,
+  isComposerMode = false,
+}: {
+  reveal?: Reveal;
+  result?: ResultInfo;
+  telemetry?: RevealTelemetry;
+  isComposerMode?: boolean;
+}) {
   const { t } = useI18n();
   const [inline] = React.useState<boolean>(getInlinePlayback());
   const primary = pickPrimaryLink(reveal);
-
-  const isComposerMode = Boolean(
-    reveal?.questionId?.startsWith('composer') || reveal?.meta?.composer,
-  );
 
   const embedUrl = primary?.provider === 'youtube' ? toYouTubeEmbed(primary.url) : null;
 

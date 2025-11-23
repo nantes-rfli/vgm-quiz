@@ -114,6 +114,7 @@ export async function handlePublish(
   const normalizedFilters = normalizeFilters(filters)
   const modeId = options?.modeId
   const filterKey = createFilterKey(normalizedFilters, modeId)
+  const shouldPersistToD1 = !modeId || modeId === 'vgm_v1-ja'
 
   const filterStr =
     Object.keys(normalizedFilters).length > 0
@@ -357,23 +358,27 @@ export async function handlePublish(
 
     const exportJsonPretty = JSON.stringify(exportData, null, 2)
 
-    // 8. Save to picks table (INSERT OR REPLACE for idempotency with filters)
-    await env.DB.prepare(
-      'INSERT OR REPLACE INTO picks (date, items, status, filters_json) VALUES (?, ?, ?, ?)',
-    )
-      .bind(date, JSON.stringify(exportData), 'published', filterKey)
-      .run()
+    // 8. Save to picks table (skip for non-canonical modes to avoid overwriting daily rows)
+    if (shouldPersistToD1) {
+      await env.DB.prepare(
+        'INSERT OR REPLACE INTO picks (date, items, status, filters_json) VALUES (?, ?, ?, ?)',
+      )
+        .bind(date, JSON.stringify(exportData), 'published', filterKey)
+        .run()
+    }
 
     // 9. Update pool (mark as picked)
-    for (const track of tracks) {
-      await env.DB.prepare(
-        `UPDATE pool
-         SET last_picked_at = CURRENT_TIMESTAMP,
-             times_picked = times_picked + 1
-         WHERE track_id = ?`,
-      )
-        .bind(track.track_id)
-        .run()
+    if (shouldPersistToD1) {
+      for (const track of tracks) {
+        await env.DB.prepare(
+          `UPDATE pool
+           SET last_picked_at = CURRENT_TIMESTAMP,
+               times_picked = times_picked + 1
+           WHERE track_id = ?`,
+        )
+          .bind(track.track_id)
+          .run()
+      }
     }
 
     // 10. Export to R2 (use filter-aware key)
@@ -404,11 +409,13 @@ export async function handlePublish(
     }
 
     // 11. Save export metadata (INSERT OR REPLACE for idempotency with filters)
-    await env.DB.prepare(
-      'INSERT OR REPLACE INTO exports (date, r2_key, version, hash, filters_json) VALUES (?, ?, ?, ?, ?)',
-    )
-      .bind(date, r2Key, '1.0.0', hash, filterKey)
-      .run()
+    if (shouldPersistToD1) {
+      await env.DB.prepare(
+        'INSERT OR REPLACE INTO exports (date, r2_key, version, hash, filters_json) VALUES (?, ?, ?, ?, ?)',
+      )
+        .bind(date, r2Key, '1.0.0', hash, filterKey)
+        .run()
+    }
 
     logEvent(env, 'info', {
       event: 'publish.success',
