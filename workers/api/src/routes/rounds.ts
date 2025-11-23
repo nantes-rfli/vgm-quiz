@@ -430,6 +430,16 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
       index: number
       total: number
     }
+    round?: {
+      id?: string
+      token: string
+      progress: {
+        index: number
+        total: number
+      }
+      mode?: string
+      arm?: string
+    }
     finished: boolean
   } = {
     result: {
@@ -490,12 +500,12 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
         newPayload.date = currentPhase2Token.date
       }
 
-      response.continuationToken = await createJWSToken(newPayload, env.JWT_SECRET)
-    } else {
-      // Phase 1: Create Base64 token
-      const phase1Token = token as Phase1TokenPayload | null
-      if (phase1Token) {
-        response.continuationToken = await createContinuationToken({
+    response.continuationToken = await createJWSToken(newPayload, env.JWT_SECRET)
+  } else {
+    // Phase 1: Create Base64 token
+    const phase1Token = token as Phase1TokenPayload | null
+    if (phase1Token) {
+      response.continuationToken = await createContinuationToken({
           date: phase1Token.date,
           currentIndex: nextIndex,
           totalQuestions: phase1Token.totalQuestions,
@@ -504,6 +514,19 @@ export async function handleRoundsNext(request: Request, env: Env): Promise<Resp
     }
 
     response.finished = false
+  }
+
+  // Attach round metadata for correlation (prefer stable round id when available)
+  const nextProgress = response.progress ?? {
+    index: Math.min(nextIndex + 1, totalQuestions),
+    total: totalQuestions,
+  }
+  response.round = {
+    id: isPhase2 && phase2Token ? phase2Token.rid : undefined,
+    token: response.continuationToken ?? continuationToken,
+    progress: nextProgress,
+    mode: isPhase2 ? phase2Token?.mode : undefined,
+    arm: isPhase2 ? phase2Token?.arm : undefined,
   }
 
   return new Response(JSON.stringify(response), {

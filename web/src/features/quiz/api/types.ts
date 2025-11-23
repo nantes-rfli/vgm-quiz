@@ -44,6 +44,7 @@ export interface Question {
 export interface Progress { index: number; total: number; }
 
 export interface RoundMeta {
+  id?: string;
   token: string;
   progress: Progress;
   mode?: string;
