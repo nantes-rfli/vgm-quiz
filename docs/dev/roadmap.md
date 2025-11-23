@@ -1,7 +1,7 @@
 # プロダクトロードマップ — vgm-quiz
 
 - **Status**: Living Document
-- **Last Updated**: 2025-11-20
+- **Last Updated**: 2025-11-23
 - **目的**: プロジェクトの各フェーズにおける機能実装を追跡
 
 ---
@@ -148,11 +148,12 @@
   - 成功指標: 追加トラック数/週、重複率、失敗率、MTTR、取り込み後の品質監査パス率
   - ソース優先順位: YouTube → Spotify → Apple Music（クォータ枯渇時は翌日リトライと対象縮小）
 
-#### Phase 4B - 適応型ゲームプレイ (Adaptive Gameplay MLP)
-- 行動データを用いた難易度オートチューニングの最小実装＋新モード1種（例: 作曲者モード or 年代モード）
-- A/B 計測を組み込み、離脱率・正答率・プレイ時間で効果を評価
-- 成功指標: 試験群での完走率/再訪率の改善、意図した難易度帯への収束
-- モード選定: 作曲者モードで進行（Spotify 取り込み後にメタ精度向上を再同期）
+#### Phase 4B - 適応型ゲームプレイ (Adaptive Gameplay MLP)（完了 ✅ 2025-11-23）
+- ✅ 行動データベースの難易度スコア算出（正答率・回答時間ベース）
+- ✅ 作曲者モードの出題・UI・メトリクス（quiz_start/result/revisit + arm/mode）
+- ✅ A/B 割付とロールバック手順（arm assignment server-side, mocks aligned）
+- ✅ MSW/Playwright/contract tests を含むエンドツーエンド検証完了
+- 成功指標: リリース後に完走率/再訪率の改善をA/Bで検証予定
 
 #### Phase 4C - シェアチャレンジ & 軽量ソーシャル (Social & Sharing v1)
 - チャレンジリンク生成と共有計測（OGP最適化含む）を最小構成で提供
