@@ -12,6 +12,7 @@ import type { Reveal } from '@/src/features/quiz/api/types';
 import { msToSeconds } from '@/src/lib/timeUtils';
 import { getOutcomeDisplay } from '@/src/lib/outcomeUtils';
 import { loadAppliedFilters } from '@/src/lib/appliedFiltersStorage';
+import { recordMetricsEvent } from '@/src/lib/metrics/metricsClient';
 
 export default function ResultPage() {
   const { t } = useI18n();
@@ -35,6 +36,20 @@ export default function ResultPage() {
     });
     measure('quiz:finish-to-result', 'quiz:play-finished', 'quiz:result-ready', {
       answered: summary.answeredCount,
+    });
+
+    // Metrics: record revisit/complete summary view
+    recordMetricsEvent('quiz_revisit', {
+      attrs: {
+        mode: summary.mode,
+        arm: summary.arm,
+        total: summary.total,
+        correct: summary.score.correct,
+        wrong: summary.score.wrong,
+        timeout: summary.score.timeout,
+        skip: summary.score.skip,
+        durationMs: summary.durationMs,
+      },
     });
   }, [ready, summary]);
 
@@ -160,12 +175,13 @@ export default function ResultPage() {
                 const link = Array.isArray(reveal?.links) && reveal.links.length > 0 ? reveal.links[0] : undefined;
                 const meta = reveal?.meta;
                 const outcome = getOutcomeDisplay(record.outcome);
+                const promptText = record.mode === 'vgm_composer-ja' ? t('quiz.composer.prompt') : record.prompt;
                 return (
                   <li key={record.questionId} className="p-4 rounded-xl bg-white dark:bg-card shadow border border-border">
                     <div className="flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-foreground">{t('result.questionNumber', { number: String(idx + 1) })} — {record.prompt}</div>
+                          <div className="text-sm font-semibold text-foreground">{t('result.questionNumber', { number: String(idx + 1) })} — {promptText}</div>
                           <dl className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
                             <div className="flex gap-2">
                               <dt className="sr-only">Outcome</dt>
@@ -184,13 +200,13 @@ export default function ResultPage() {
                           </dl>
                           <dl className="mt-2 space-y-1 text-xs text-muted-foreground">
                             <div className="flex gap-2">
-                              <dt className="font-medium">Your answer:</dt>
-                              <dd>{record.choiceLabel ?? '—'}</dd>
+                              <dt className="font-medium sr-only">{t('result.yourAnswerLabel', { answer: '...' })}</dt>
+                              <dd>{t('result.yourAnswerLabel', { answer: record.choiceLabel ?? '—' })}</dd>
                             </div>
                             {record.correctLabel ? (
                               <div className="flex gap-2">
-                                <dt className="font-medium">Correct:</dt>
-                                <dd>{record.correctLabel}</dd>
+                                <dt className="font-medium sr-only">{t('result.correctAnswerLabel', { answer: '...' })}</dt>
+                                <dd>{t('result.correctAnswerLabel', { answer: record.correctLabel })}</dd>
                               </div>
                             ) : null}
                           </dl>

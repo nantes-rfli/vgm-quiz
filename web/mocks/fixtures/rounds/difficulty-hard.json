@@ -45,7 +45,9 @@
           "url": "https://www.youtube.com/watch?v=hard123"
         }
       ]
-    }
+    },
+    "mode": "vgm_composer-ja",
+    "arm": "treatment"
   },
   "finished": false
 }

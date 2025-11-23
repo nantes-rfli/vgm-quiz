@@ -43,6 +43,8 @@ export function composeSummary(input: {
   total: number;
   startedAt?: string;
   finishedAt: string;
+  mode?: string;
+  arm?: string;
 }): ResultSummary {
   return {
     answeredCount: input.history.length,
@@ -51,5 +53,7 @@ export function composeSummary(input: {
     questions: input.history,
     startedAt: input.startedAt,
     finishedAt: input.finishedAt,
+    mode: input.mode,
+    arm: input.arm,
   };
 }

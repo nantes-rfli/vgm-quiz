@@ -30,22 +30,28 @@ export function normalizeFilters(filters?: FilterOptions | null): FilterOptions 
   return normalized
 }
 
-export function createFilterKey(filters?: FilterOptions | null): string {
+export function createFilterKey(filters?: FilterOptions | null, modeId?: string): string {
   const normalized = normalizeFilters(filters)
-  if (Object.keys(normalized).length === 0) {
-    return CANONICAL_FILTER_KEY
-  }
-
-  const sortedKeys = Object.keys(normalized).sort()
   const payload: Record<string, unknown> = {}
 
-  for (const key of sortedKeys) {
+  const sortedKeys = Object.keys(normalized).sort()
+  const allKeys = modeId ? [...sortedKeys, 'mode'].sort() : sortedKeys
+
+  for (const key of allKeys) {
+    if (key === 'mode') {
+      payload.mode = modeId
+      continue
+    }
     const value = normalized[key as keyof FilterOptions]
     if (Array.isArray(value)) {
       payload[key] = value.slice().sort()
     } else if (value !== undefined) {
       payload[key] = value
     }
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return CANONICAL_FILTER_KEY
   }
 
   return JSON.stringify(payload)

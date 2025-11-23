@@ -57,3 +57,35 @@
 ## レビュー依頼事項
 - プロンプト文言、指標の妥当性、Control 群の構成
 - composer メタの最小品質ライン（欠損率の許容範囲）
+
+## 実装プラン（実行用ブレークダウン）
+
+### Milestone 0: フラグ付きスケルトンを立てる
+- [x] Feature Flag `COMPOSER_MODE_ENABLED`（manifest.features.composerModeEnabled）を workers/web 両方に導入し、デフォルト OFF にする
+- [x] manifest に composer モード (`vgm_composer-ja`, 仮) を追加し、/availability で露出
+- [x] rounds API が mode を受け取り、存在しない場合 404 を返す動作を e2e で検証
+
+### Milestone 1: サンプリングと選択肢生成
+- [x] パイプライン publish/export で composer が存在するトラックのみを composer モード用に抽出（欠損率\>5% で warn + Slack）
+- [x] 選択肢生成: 正解1 + 誤答3（シリーズ/年代近傍優先、重複作曲者が多い場合は weighted sampling）を shared レイヤーに実装（現状は均等サンプリング）
+- [x] 難易度スコア初版（facetsベースの簡易マップ）を export meta に埋め込み
+
+### Milestone 2: A/B 割付と計測
+- [x] Treatment/Control の割付ロジックを token に埋め込み、比率を環境変数（AB_TREATMENT_RATIO, default 50/50）で設定可能にする
+- [x] イベント拡張: quiz_start/answer_result/quiz_complete/quiz_revisit に mode/arm/時間系を送信し、E2E で検証
+- [x] composer 欠損率メトリクスと 5% 超アラートを実装し、ダッシュボード接続（ログ出力 + Slack）
+
+### Milestone 3: フロントエンド & i18n
+- [x] モード選択 UI に「作曲者モード」を追加（英/日）
+- [x] プロンプト/正解/不正解文言の i18n キー `quiz.composer.prompt|correct|incorrect` を追加
+- [x] Adaptive 難易度で問題タイトルと Reveal 表示を composer 用に切り替える
+
+### Milestone 4: テスト & ガードレール
+- [x] MSW フィクスチャに composer モード用ラウンドを追加
+- [x] Playwright シナリオ: モード選択→出題→回答→結果までを composer モードで通す
+- [x] ロールバック/disable 手順を Runbook 化し、欠損率\>5% 時に無効化できることを確認（docs/ops/runbooks/composer-mode.md）
+
+## 最初の着手ポイント（提案）
+1. Milestone 0 を一括で実装し、フラグ OFF 状態でデプロイ可能にする（リスク低）
+2. パイプラインの export に composer フィルタと欠損率メトリクスを追加し、ダッシュボードで可視化
+3. フロントの i18n キーと UI 行追加をフラグ下で進め、MSW/Playwright の土台を用意

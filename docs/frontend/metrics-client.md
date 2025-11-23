@@ -30,9 +30,11 @@ FE-07 で実装したメトリクス送信機構（バッチ・冪等・バッ�
 ## 3. イベント語彙（MVP）
 | name | 発火箇所 | attrs |
 | --- | --- | --- |
+| `quiz_start` | `/play` ラウンド開始成功時 | `mode`, `arm`, `total` |
 | `answer_select` | `/play` の選択ボタン | `questionId`, `choiceId`, `choiceLabel` |
-| `answer_result` | 回答確定（正誤判定直後） | `questionId`, `outcome`, `points`, `remainingSeconds`, `choiceId`, `correctChoiceId`, `elapsedMs` |
-| `quiz_complete` | ラウンド完走時 | `total`, `points`, `correct`, `wrong`, `timeout`, `skip`, `durationMs` |
+| `answer_result` | 回答確定（正誤判定直後） | `questionId`, `outcome`, `points`, `remainingSeconds`, `choiceId`, `correctChoiceId`, `elapsedMs`, `mode`, `arm` |
+| `quiz_complete` | ラウンド完走時 | `mode`, `arm`, `total`, `points`, `correct`, `wrong`, `timeout`, `skip`, `durationMs` |
+| `quiz_revisit` | 結果ページ表示時 | `mode`, `arm`, `total`, `correct`, `wrong`, `timeout`, `skip`, `durationMs` |
 | `reveal_open_external` | Reveal の外部リンク押下 | `questionId`, `provider` |
 | `embed_error` | インライン埋め込み iframe の onError | `questionId`, `provider`, `reason` |
 | `embed_fallback_to_link` | インライン再生不可→リンク表示に切り替えたとき | `questionId`, `provider`, `reason` |

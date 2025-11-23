@@ -7,12 +7,14 @@ export interface FilterState {
   difficulty?: Difficulty
   era?: Era
   series: string[]
+  mode?: string
 }
 
 const defaultFilters: FilterState = {
   difficulty: 'mixed',
   era: 'mixed',
   series: [],
+  mode: undefined,
 }
 
 const FilterContext = createContext<{
@@ -20,6 +22,7 @@ const FilterContext = createContext<{
   setDifficulty: (difficulty?: Difficulty) => void
   setEra: (era?: Era) => void
   setSeries: (series: string[]) => void
+  setMode: (mode?: string) => void
   reset: () => void
   isDefault: () => boolean
 }>({
@@ -27,6 +30,7 @@ const FilterContext = createContext<{
   setDifficulty: () => {},
   setEra: () => {},
   setSeries: () => {},
+  setMode: () => {},
   reset: () => {},
   isDefault: () => true,
 })
@@ -55,6 +59,13 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     }))
   }
 
+  const setMode = (mode?: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      mode: mode || undefined,
+    }))
+  }
+
   const reset = () => {
     setFilters(defaultFilters)
   }
@@ -63,7 +74,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     return (
       (filters.difficulty === 'mixed' || filters.difficulty === undefined) &&
       (filters.era === 'mixed' || filters.era === undefined) &&
-      filters.series.length === 0
+      filters.series.length === 0 &&
+      !filters.mode
     )
   }
 
@@ -74,6 +86,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         setDifficulty,
         setEra,
         setSeries,
+        setMode,
         reset,
         isDefault,
       }}

@@ -34,6 +34,8 @@ export interface Artwork {
 export interface Question {
   id: ID;
   prompt: string;
+  mode?: string;
+  arm?: string;
   choices: Choice[];
   reveal?: Reveal;
   artwork?: Artwork;
@@ -42,8 +44,11 @@ export interface Question {
 export interface Progress { index: number; total: number; }
 
 export interface RoundMeta {
+  id?: string;
   token: string;
   progress: Progress;
+  mode?: string;
+  arm?: string;
 }
 
 export interface RoundsStartResponse {
@@ -69,6 +74,8 @@ export interface RoundsNextResponse {
 export interface Phase1Question {
   id: string;
   title: string;
+  mode?: string;
+  arm?: string;
 }
 
 export interface Phase1Choice {
@@ -100,6 +107,7 @@ export interface Phase1StartResponse {
   round?: {
     id: string;
     mode: string;
+    arm?: string;
     date: string;
     filters?: Record<string, unknown>;
     progress: {

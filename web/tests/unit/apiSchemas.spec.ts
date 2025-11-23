@@ -35,6 +35,7 @@ const baseManifest = {
   features: {
     inlinePlaybackDefault: false,
     imageProxyEnabled: false,
+    composerModeEnabled: false,
   },
 }
 

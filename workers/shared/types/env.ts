@@ -32,4 +32,8 @@ export interface Env {
   OBS_SLACK_WEBHOOK_URL?: string
   /** Optional service/stack label for observability payloads */
   OBS_SERVICE?: string
+  /** Feature flag: enable composer mode + adaptive gameplay (Phase 4B) */
+  COMPOSER_MODE_ENABLED?: string
+  /** A/B treatment ratio for gameplay experiments (0-100, default 50) */
+  AB_TREATMENT_RATIO?: string
 }

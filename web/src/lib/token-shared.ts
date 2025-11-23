@@ -18,6 +18,7 @@ export interface Phase2TokenPayload {
   iat: number // Issued at (Unix timestamp)
   exp: number // Expiration (Unix timestamp)
   mode?: string // Quiz mode identifier
+  arm?: string // Experiment arm identifier (treatment/control)
   date?: string // Round date (YYYY-MM-DD)
   aud?: string // Audience (optional, e.g., "rounds")
   nbf?: number // Not before (optional)

@@ -33,6 +33,8 @@ export function toQuestionRecord(params: {
   return {
     questionId: question.id,
     prompt: question.prompt,
+    mode: question.mode,
+    arm: question.arm,
     choiceId,
     choiceLabel,
     correctChoiceId,

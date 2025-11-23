@@ -81,6 +81,17 @@ async function waitForStartRequest(page: Page, trigger: () => Promise<void>) {
   return requestPromise;
 }
 
+async function ensureFilterVisibleAndStart(page: Page) {
+  const filterTitle = page.getByTestId('filter-selector-title');
+  const filterVisible = await filterTitle.isVisible({ timeout: 1000 }).catch(() => false);
+  if (!filterVisible) return false;
+  const startButton = page.getByTestId('filter-start-button');
+  await startButton.waitFor({ state: 'visible', timeout: 10_000 });
+  await expect(startButton).toBeEnabled({ timeout: 10_000 });
+  await startButton.click();
+  return true;
+}
+
 async function completeQuizAndNavigateToResult(page: Page) {
   const maxQuestions = 20;
   for (let i = 0; i < maxQuestions; i += 1) {
@@ -151,6 +162,32 @@ async function enableStartErrorInterceptor(page: Page) {
 
 test.describe('Play page features', () => {
 
+  test('composer mode selection sends mode param and shows composer prompt', async ({ page }) => {
+    await page.goto('/play?autostart=0');
+
+    // Select composer mode (manifest enables it in MSW)
+    const modeRadio = page.getByTestId('mode-vgm_composer-ja');
+    await expect(modeRadio).toBeVisible({ timeout: 5_000 });
+    await modeRadio.check();
+
+    const request = await waitForStartRequest(page, async () => {
+      const started = await ensureFilterVisibleAndStart(page);
+      if (!started) {
+        // fallback: click CTA Start if filter not visible
+        const ctaStart = page.getByRole('button', { name: /Start/i }).first();
+        await expect(ctaStart).toBeEnabled({ timeout: 5_000 });
+        await ctaStart.click();
+      }
+    });
+
+    const payload = parseStartRequest(request);
+    expect(payload.mode).toBe('vgm_composer-ja');
+
+    await page.getByTestId('question-prompt').waitFor({ timeout: 60_000 });
+    const promptText = await page.getByTestId('question-prompt').innerText();
+    expect(promptText).toContain('作曲者');
+  });
+
   test('inline playback toggle persists across reload', async ({ page }) => {
     await page.goto('/play?autostart=1');
 
@@ -168,7 +205,7 @@ test.describe('Play page features', () => {
   });
 
   test('reveal view exposes external link metadata', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     await waitForQuestion(page, 0);
 
@@ -187,11 +224,11 @@ test.describe('Play page features', () => {
     await expect(externalLink).toHaveAttribute('target', '_blank');
     await expect(externalLink).toHaveAttribute('rel', /noopener/);
     await expect(page.getByText('Work:')).toBeVisible();
-    await expect(page.getByText('Composer:')).toBeVisible();
+    await expect(page.locator('span.font-medium', { hasText: 'Composer:' })).toBeVisible();
   });
 
   test('result summary reflects mixed outcomes', async ({ page }) => {
-    await page.goto('/play');
+    await page.goto('/play?autostart=0');
 
     for (const [index, questionId] of QUESTION_IDS.entries()) {
       await waitForQuestion(page, index);
@@ -214,7 +251,7 @@ test.describe('Play page features', () => {
     await expect(page.getByText('✓ 9', { exact: true })).toBeVisible();
     await expect(page.getByText(/Answered: 10/)).toBeVisible();
 
-    const firstCard = page.locator('li', { hasText: '#1 — このBGMの作曲者は？' }).first();
+    const firstCard = page.locator('li', { hasText: '#1 — この曲のゲームタイトルは?' }).first();
     await expect(firstCard).toBeVisible();
     await expect(firstCard.getByText('Wrong')).toBeVisible();
   });
@@ -290,11 +327,11 @@ test.describe('Play page features', () => {
     await page.waitForURL('**/result');
     await expect(page.getByText('? 1', { exact: true })).toBeVisible();
 
-    const timeoutCard = page.locator('li', { hasText: '#1 — このBGMの作曲者は？' }).first();
+    const timeoutCard = page.locator('li', { hasText: '#1 — この曲のゲームタイトルは?' }).first();
     await expect(timeoutCard.getByText('Timeout')).toBeVisible();
     // After Phase 4 a11y improvements, answer is in <dl> structure
     const answerDl = timeoutCard.locator('dl').filter({ hasText: 'Your answer:' });
-    await expect(answerDl.getByText('Your answer:')).toBeVisible();
+    await expect(answerDl.locator('dt', { hasText: 'Your answer:' })).toBeVisible();
     await expect(answerDl.locator('dd', { hasText: '—' })).toBeVisible();
 
     await page.evaluate(() => {
@@ -566,7 +603,16 @@ test.describe('Play page features', () => {
     });
 
     expect(result.attempts).toBeGreaterThanOrEqual(2);
-    expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
+    const start = result.events.find((event) => event.name === 'quiz_start');
+    const answer = result.events.find((event) => event.name === 'answer_result');
+    expect(start).toBeTruthy();
+    expect(typeof start?.attrs?.mode).toBe('string');
+    expect(['treatment', 'control']).toContain(String(start?.attrs?.arm ?? ''));
+    expect(answer).toBeTruthy();
+    expect(typeof answer?.attrs?.mode).toBe('string');
+    expect(['treatment', 'control']).toContain(String(answer?.attrs?.arm ?? '')); 
+    expect(typeof answer?.attrs?.remainingSeconds).toBe('number');
+    expect(typeof answer?.attrs?.elapsedMs).toBe('number');
   });
 
   test('resends metrics after network failures', async ({ page }) => {
@@ -677,7 +723,12 @@ test.describe('Play page features', () => {
     });
 
     expect(result.attempts).toBeGreaterThanOrEqual(3);
-    expect(result.events.some((event) => event.name === 'answer_result')).toBe(true);
+    const answer = result.events.find((event) => event.name === 'answer_result');
+    expect(answer).toBeTruthy();
+    expect(typeof answer?.attrs?.mode).toBe('string');
+    expect(['treatment', 'control']).toContain(String(answer?.attrs?.arm ?? ''));
+    expect(typeof answer?.attrs?.remainingSeconds).toBe('number');
+    expect(typeof answer?.attrs?.elapsedMs).toBe('number');
   });
 });
 

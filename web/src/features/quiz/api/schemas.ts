@@ -27,6 +27,7 @@ export const FacetsSchema = z.object({
 export const FeaturesSchema = z.object({
   inlinePlaybackDefault: z.boolean(),
   imageProxyEnabled: z.boolean(),
+  composerModeEnabled: z.boolean(),
 })
 
 export const ManifestSchema = z.object({
@@ -54,6 +55,8 @@ const Phase1ChoiceSchema: z.ZodType<Phase1Choice> = z.object({
 const Phase1QuestionSchema: z.ZodType<Phase1Question> = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
+  mode: z.string().min(1).optional(),
+  arm: z.string().min(1).optional(),
 })
 
 const Phase1RevealSchema: z.ZodType<Phase1Reveal> = z.object({
@@ -82,6 +85,7 @@ export const Phase1StartResponseSchema: z.ZodType<Phase1StartResponse> = z.objec
       filters: z.record(z.string(), z.unknown()).optional(),
       progress: RoundProgressSchema,
       token: z.string().min(1),
+      arm: z.string().min(1).optional(),
     })
     .optional(),
 })
@@ -97,6 +101,11 @@ export const Phase1NextResponseSchema: z.ZodType<Phase1NextResponse> = z.object(
   continuationToken: z.string().optional(),
   progress: RoundProgressSchema.optional(),
   finished: z.boolean(),
+  round: z
+    .object({
+      arm: z.string().min(1).optional(),
+    })
+    .optional(),
 })
 
 export function ensureApiResponse<T>(payload: unknown, schema: z.ZodType<T>): T {

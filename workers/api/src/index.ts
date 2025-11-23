@@ -32,7 +32,7 @@ export default {
 
       // GET /v1/manifest
       if (url.pathname === '/v1/manifest' && request.method === 'GET') {
-        return handleManifestRequest()
+        return handleManifestRequest(env)
       }
 
       // POST /v1/rounds/start

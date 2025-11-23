@@ -3,6 +3,8 @@ export type Outcome = 'correct' | 'wrong' | 'timeout' | 'skip';
 export type QuestionRecord = {
   questionId: string;
   prompt: string;
+  mode?: string;
+  arm?: string;
   choiceId?: string;
   choiceLabel?: string;
   correctChoiceId?: string;
@@ -25,6 +27,8 @@ export type ResultSummary = {
   total: number;
   score: ScoreBreakdown;
   questions: QuestionRecord[];
+  mode?: string;
+  arm?: string;
   startedAt?: string;  // ISO8601
   finishedAt?: string; // ISO8601
   durationMs?: number; // derived
@@ -45,6 +49,8 @@ function normalizeSummary(summary: Partial<ResultSummary> | undefined): ResultSu
     total: summary.total ?? 0,
     score: summary.score ?? { ...EMPTY_SCORE },
     questions: Array.isArray(summary.questions) ? summary.questions : [],
+    mode: summary.mode,
+    arm: summary.arm,
     startedAt: summary.startedAt,
     finishedAt: summary.finishedAt,
     durationMs: summary.durationMs,

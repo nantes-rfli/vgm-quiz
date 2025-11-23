@@ -109,11 +109,24 @@
       "pokemon": "ポケモン",
       "mixed": "すべて"
     },
+    "mode": {
+      "label": "モード",
+      "description": "プレイスタイルを選択できます",
+      "default": "スタンダード",
+      "composer": "作曲者モード"
+    },
     "preset": {
       "daily": "日替わり（すべて）"
     },
     "availability": "利用可能な問題: {{count}}問",
     "insufficient": "この条件では問題数が不足しています",
     "start": "スタート"
+  },
+  "quiz": {
+    "composer": {
+      "prompt": "この曲の作曲者は？",
+      "correct": "正解！作曲者: {composer}",
+      "incorrect": "正解は {composer} でした"
+    }
   }
 }

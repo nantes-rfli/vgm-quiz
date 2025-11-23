@@ -148,6 +148,7 @@ function PlayPageContent() {
   const {
     phase,
     token,
+    roundId,
     question,
     selectedId,
     currentReveal,
@@ -189,6 +190,19 @@ function PlayPageContent() {
           }
         }
 
+        // Determine stable round id (prefer server UUID)
+        const roundId = res.round?.id || res.continuationToken;
+
+        // Metrics: emit quiz_start when start succeeds
+        recordMetricsEvent('quiz_start', {
+          roundId,
+          attrs: {
+            mode: res.round?.mode || params?.mode,
+            arm: res.round?.arm,
+            total: res.progress?.total ?? 10,
+          },
+        });
+
         // Filters are persisted when a run successfully completes (see useAnswerProcessor)
 
       if (!isMountedRef.current) return;
@@ -204,6 +218,8 @@ function PlayPageContent() {
       const question = {
         id: res.question.id,
         prompt: res.question.title, // Phase1 uses 'title', we use 'prompt'
+        mode: res.question.mode || res.round?.mode,
+        arm: res.question.arm || res.round?.arm,
         choices: res.choices.map((c) => ({
           id: c.id,
           label: c.text, // Phase1 uses 'text', we use 'label'
@@ -218,6 +234,7 @@ function PlayPageContent() {
         type: 'STARTED',
         payload: {
           token: res.continuationToken, // Phase 1: continuationToken stored as token
+          roundId,
           question,
           progress,
           beganAt: performance.now(),
@@ -275,6 +292,7 @@ function PlayPageContent() {
   const processAnswer = useAnswerProcessor({
     phase,
     continuationToken: token, // Phase 1: rename for clarity
+    roundId,
     question,
     remainingMs,
     beganAt,
@@ -297,7 +315,7 @@ function PlayPageContent() {
 
       const choice = question.choices.find((c) => c.id === id);
       recordMetricsEvent('answer_select', {
-        roundId: token,
+        roundId: roundId || token,
         questionIdx: progress?.index,
         attrs: {
           questionId: question.id,
@@ -307,7 +325,7 @@ function PlayPageContent() {
       });
       safeDispatch({ type: 'SELECT', id });
     },
-    [question, token, progress?.index, safeDispatch]
+    [question, roundId, token, progress?.index, safeDispatch]
   );
 
   const submitAnswer = React.useCallback(async () => {
@@ -448,10 +466,11 @@ function PlayPageContent() {
                         : undefined
                     }
                     telemetry={{
-                      roundId: token,
+                      roundId: roundId || token,
                       questionIdx: progress?.index,
                       questionId: latestRecord?.questionId ?? question?.id,
                     }}
+                    isComposerMode={question?.mode === 'vgm_composer-ja'}
                   />
                   <div className="mt-4 text-right">
                     <button

@@ -14,6 +14,7 @@ export interface ManifestFacets {
 export interface ManifestFeatures {
   inlinePlaybackDefault: boolean
   imageProxyEnabled: boolean
+  composerModeEnabled: boolean
 }
 
 export interface Manifest {

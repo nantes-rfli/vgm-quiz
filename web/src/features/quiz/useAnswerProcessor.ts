@@ -21,6 +21,7 @@ type AnswerMode = { kind: 'answer' | 'timeout' | 'skip'; choiceId?: string };
 type ProcessAnswerParams = {
   phase: 'question' | 'reveal';
   continuationToken?: string; // Phase 1: token → continuationToken
+  roundId?: string;
   question?: Question;
   remainingMs: number;
   beganAt?: number;
@@ -42,6 +43,7 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
   const {
     phase,
     continuationToken,
+    roundId,
     question,
     remainingMs,
     beganAt,
@@ -144,10 +146,12 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         const inlineEnabled = getInlinePlayback();
 
         recordMetricsEvent('answer_result', {
-          roundId: continuationToken,
+          roundId: roundId || continuationToken,
           questionIdx: progress?.index,
           attrs: {
             questionId: question.id,
+            mode: question.mode,
+            arm: question.arm,
             outcome,
             points,
             remainingSeconds: Math.floor(remainingForCalc / 1000),
@@ -172,12 +176,16 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
               total: totalQuestions,
               startedAt,
               finishedAt,
+              mode: question.mode,
+              arm: question.arm,
             })
           );
 
           recordMetricsEvent('quiz_complete', {
-            roundId: continuationToken,
+            roundId: roundId || continuationToken,
             attrs: {
+              mode: question.mode,
+              arm: question.arm,
               total: totalQuestions,
               points: updatedTally.points,
               correct: updatedTally.correct,
@@ -193,13 +201,15 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         const convertedRes = res.question
           ? {
               ...res,
-              question: {
-                id: res.question.id,
-                prompt: res.question.title,
-                choices: (res.choices ?? []).map(c => ({
-                  id: c.id,
-                  label: c.text,
-                })),
+            question: {
+              id: res.question.id,
+              prompt: res.question.title,
+              mode: res.question.mode,
+              arm: res.question.arm,
+              choices: (res.choices ?? []).map(c => ({
+                id: c.id,
+                label: c.text,
+              })),
                 // MSW fixtures have these fields; real Phase1 API won't, but we'll handle that in Phase2
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 reveal: (res.question as any).reveal,
@@ -221,6 +231,6 @@ export function useAnswerProcessor(params: ProcessAnswerParams) {
         onError?.(apiError, retry);
       }
     },
-    [phase, continuationToken, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt, onError, getActiveFilters]
+    [phase, continuationToken, roundId, question, remainingMs, dispatch, beganAt, currentReveal, history, tally, progress?.total, progress?.index, startedAt, onError, getActiveFilters]
   );
 }

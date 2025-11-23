@@ -9,6 +9,7 @@ export const SKIP_CHOICE_ID = '__skip__';
 
 export type PlayState = {
   token?: string;
+  roundId?: string;
   question?: Question;
   progress?: ProgressInfo;
   loading: boolean;
@@ -32,6 +33,7 @@ export type PlayAction =
       type: 'STARTED';
       payload: {
         token: string;
+        roundId?: string;
         question?: Question;
         progress?: ProgressInfo;
         beganAt: number;
@@ -66,9 +68,10 @@ export function playReducer(state: PlayState, action: PlayAction): PlayState {
       return { ...state, loading: true, error: undefined, started: true };
 
     case 'STARTED': {
-      const { token, question, progress, beganAt, startedAt, currentReveal } = action.payload;
+      const { token, roundId, question, progress, beganAt, startedAt, currentReveal } = action.payload;
       return {
         token,
+        roundId,
         question,
         progress,
         loading: false,
@@ -128,6 +131,8 @@ export function playReducer(state: PlayState, action: PlayAction): PlayState {
         ? (qn as Phase1NextResponse).continuationToken ?? state.token
         : (qn as RoundsNextResponse).round?.token ?? state.token;
 
+      const nextRoundId = state.roundId;
+
       // Phase 1: question has been converted to Question format by useAnswerProcessor
       // Safe to use qn.question directly
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,6 +143,7 @@ export function playReducer(state: PlayState, action: PlayAction): PlayState {
         loading: false,
         error: undefined,
         token: nextToken,
+        roundId: nextRoundId,
         question: nextQuestion!,
         progress: nextProgress,
         selectedId: undefined,
